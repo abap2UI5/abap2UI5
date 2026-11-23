@@ -52,30 +52,6 @@ CLASS z2ui5_cl_ui5f_bundle DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS part_02
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS part_03
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS part_04
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS part_05
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS part_06
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS part_07
-      RETURNING
-        VALUE(result) TYPE string.
-
 ENDCLASS.
 
 
@@ -83,13 +59,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
 
   METHOD get.
 
-    result = part_01( ) &&
-             part_02( ) &&
-             part_03( ) &&
-             part_04( ) &&
-             part_05( ) &&
-             part_06( ) &&
-             part_07( ).
+    result = part_01( ).
 
   ENDMETHOD.
 
@@ -97,12206 +67,1331 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
 
     result = `(function () {` && |\n| &&
              `  var entries = {` && |\n| &&
-             `      "z2ui5/Component.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/UIComponent",` && |\n| &&
-             `    "z2ui5/model/models",` && |\n| &&
-             `    "z2ui5/core/Server",` && |\n| &&
-             `    "z2ui5/core/Session",` && |\n| &&
-             `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/devtools/DevTools",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `    "z2ui5/core/Router",` && |\n| &&
-             `    "z2ui5/core/ScrollFocus",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/actions/Shortcuts",` && |\n| &&
-             `    "sap/ui/util/Mobile",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    UIComponent,` && |\n| &&
-             `    Models,` && |\n| &&
-             `    Server,` && |\n| &&
-             `    Session,` && |\n| &&
-             `    VersionInfo,` && |\n| &&
-             `    DevTools,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    Env,` && |\n| &&
-             `    Context,` && |\n| &&
-             `    Router,` && |\n| &&
-             `    ScrollFocus,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `    Shortcuts,` && |\n| &&
-             `    Mobile,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+             `      "z2ui5/Component.js": function(){sap.ui.define(["sap/ui/core/UIComponent","z2ui5/model/models","z2ui5/core/Server","z2ui5/core/Session","sap/ui/VersionInfo","z2ui5/devtools/DevTools","z2ui5/core` &&
+             `/Lib","z2ui5/core/Env","z2ui5/core/Context","z2ui5/core/Router","z2ui5/core/ScrollFocus","z2ui5/core/ViewSlots","z2ui5/core/actions/Shortcuts","sap/ui/util/Mobile"],(UIComponent,Models,Server,Session,` &&
+             `VersionInfo,DevTools,Lib,Env,Context,Router,ScrollFocus,ViewSlots,Shortcuts,Mobile)=>{"use strict";function resourceRootPrefix(endpoint,nodePath){if(!endpoint||!nodePath)return null;let url;try{url=ne` &&
+             `w URL(endpoint,window.location.href)}catch{return null}const path=url.pathname.replace(/\/+$/,"");const node=nodePath.replace(/\/+$/,"");if(!node.startsWith("/")||!path.endsWith(node))return null;cons` &&
+             `t prefix=path.slice(0,path.length-node.length);return(url.origin===window.location.origin?"":url.origin)+prefix}function rebaseResourceRoot(root,prefix){if(!root||!prefix||!root.startsWith("/"))return` &&
+             ` root;return prefix+root}const Component=UIComponent.extend("z2ui5.Component",{metadata:{manifest:"json",interfaces:["sap.ui.core.IAsyncContentCreation"]},init(){this.ctx=Context.create(this);const st` &&
+             `ate=this.ctx.state;const{ccResourceRoot,cccResourceRoot,endpoint,ownsHash,ownsPage,nodePath,...componentData}=this.getComponentData()||{};delete componentData.embedded;state.ccResourceRoot=ccResourceR` &&
+             `oot||null;state.cccResourceRoot=cccResourceRoot||null;Env.dropClassGlobals();this.ctx.restart=()=>this._restartApp();state.ownsPage=ownsPage===true||ownsHash===true;if(!state.ownsPage){Mobile.init({vi` &&
+             `ewport:false,hideBrowser:false,preventScroll:false,preventPhoneNumberDetection:false,useFullScreenHeight:false})}state.endpoint=typeof endpoint==="string"&&endpoint.trim()?endpoint.trim():null;state.n` &&
+             `odePath=typeof nodePath==="string"&&nodePath.trim()?nodePath.trim():null;const prefix=resourceRootPrefix(state.endpoint,state.nodePath);state.endpointPrefix=prefix;state.ccResourceRoot=rebaseResourceR` &&
+             `oot(state.ccResourceRoot,prefix);state.cccResourceRoot=rebaseResourceRoot(state.cccResourceRoot,prefix);const paths={};if(state.ccResourceRoot)paths.z2ui5_cci=state.ccResourceRoot;if(state.cccResource` &&
+             `Root)paths.z2ui5_ccc=state.cccResourceRoot;if(Object.keys(paths).length)sap.ui.loader.config({paths});UIComponent.prototype.init.call(this);state.oConfig.ComponentData=Object.keys(componentData).lengt` &&
+             `h?componentData:undefined;state.oDeviceModel=Models.createDeviceModel();this.setModel(state.oDeviceModel,"device");if(Env.hasMessagingModule()){sap.ui.require(["sap/ui/core/Messaging"],()=>{},()=>{})}` &&
+             `this._initLaunchpad();this._initVersionInfo();DevTools.install(this.ctx);this._installUnloadListener();this._installScrollListener();this._installRouterListener()},_installUnloadListener(){this._bound` &&
+             `Unload=this._onUnload.bind(this);this._unloadEvent="pagehide";window.addEventListener(this._unloadEvent,this._boundUnload)},_installScrollListener(){const ctx=this.ctx;this._boundScroll=event=>ScrollF` &&
+             `ocus.onScrollCapture(ctx,event);document.addEventListener("scroll",this._boundScroll,{capture:true,passive:true});ScrollFocus.watchFocus(ctx)},_installRouterListener(){const ctx=this.ctx;Router.init(c` &&
+             `tx,()=>Server.restoreFromRoute(ctx))},_initLaunchpad(){const Container=sap.ui.require("sap/ushell/Container");if(!Container)return;const launchpad={Container};this._launchpad=launchpad;this.ctx.state.` &&
+             `oLaunchpad=launchpad;const setIfAlive=(key,value)=>{if(Lib.isAlive(this)&&this._launchpad===launchpad){launchpad[key]=value}};this.getService("ShellUIService").then(s=>{setIfAlive("ShellUIService",s);` &&
+             `if(this._launchpad===launchpad){sap.ui.require("z2ui5/cc/Dirty")?.sync?.(this.ctx)}}).catch(e=>Lib.logError("Component: ShellUIService init failed",e));Container.getServiceAsync("CrossApplicationNavig` &&
+             `ation").then(s=>setIfAlive("CrossAppNavigator",s)).catch(e=>Lib.logError("Component: CrossApplicationNavigation init failed",e));sap.ui.require(["sap/ushell/services/AppConfiguration"],ac=>setIfAlive(` &&
+             `"AppConfiguration",ac),e=>Lib.logError("Component: AppConfiguration init failed",e))},async _initVersionInfo(){try{const info=await VersionInfo.load();if(Lib.isAlive(this)){this.ctx.state.oConfig.S_UI` &&
+             `5={VERSION:info.version,BUILDTIMESTAMP:info.buildTimestamp,GAV:info.gav,THEME:Env.getTheme()}}}catch(e){Lib.logError("Component: VersionInfo load failed",e)}},_onUnload(event){if(event?.persisted)retu` &&
+             `rn;this.destroy()},exit(){const ctx=this.ctx;window.removeEventListener(this._unloadEvent,this._boundUnload);document.removeEventListener("scroll",this._boundScroll,{capture:true});ScrollFocus.unwatch` &&
+             `Focus(ctx);Router.exit(ctx);DevTools.exit(ctx);this._endApp();if(ctx.state.oDeviceModel){ctx.state.oDeviceModel.destroy()}this._launchpad=null;Context.destroy(ctx);if(UIComponent.prototype.exit)UIComp` &&
+             `onent.prototype.exit.call(this)},_endApp(){const ctx=this.ctx;Shortcuts.reset(ctx);Server.endSession(ctx);Server.reset(ctx);Session.reset(ctx);ViewSlots.destroy(ctx,"POPUP");ViewSlots.destroy(ctx,"POP` &&
+             `OVER");Lib.cancelPendingTimers(ctx);sap.ui.require("z2ui5/cc/Dirty")?.reset?.(ctx);for(const oClient of ctx.state.odataClients){try{oClient.destroy()}catch(e){Lib.logError("Component: destroying an OD` &&
+             `ata client failed",e)}}ScrollFocus.reset(ctx)},_restartApp(){const ctx=this.ctx;if(!ctx?.alive)return;this._endApp();ctx.state.mainLeaving?.();ViewSlots.destroy(ctx,"MAIN");Context.resetApp(ctx);this.` &&
+             `getRootControl()?.getController?.()?.startApp()}});return Env.ownClass(Component)});` && |\n| &&
              `` && |\n| &&
-             `    function resourceRootPrefix(endpoint, nodePath) {` && |\n| &&
-             `      if (!endpoint || !nodePath) return null;` && |\n| &&
-             `      let url;` && |\n| &&
-             `      try {` && |\n| &&
-             `        url = new URL(endpoint, window.location.href);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      const path = url.pathname.replace(/\/+$/, "");` && |\n| &&
-             `      const node = nodePath.replace(/\/+$/, "");` && |\n| &&
-             `      if (!node.startsWith("/") || !path.endsWith(node)) return null;` && |\n| &&
-             `      const prefix = path.slice(0, path.length - node.length);` && |\n| &&
-             `      return (url.origin === window.location.origin ? "" : url.origin) + prefix;` && |\n| &&
-             `    }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/CameraPicture.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Dialog","sap/m/Button","sap/m/Text","sap/ui/core/HTML","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Dialog,Butt` &&
+             `on,Text,HTML,Lib,Env)=>{"use strict";const _CTX_2D_OPTS={willReadFrequently:true};const _THUMB_W=300;const PX_NUMBER=/^\d+$/;const toCssSize=val=>PX_NUMBER.test(val)?``${val}px``:val;const CameraPicture` &&
+             `=Control.extend("z2ui5.cc.CameraPicture",{metadata:{properties:{value:{type:"string"},thumbnail:{type:"string"},width:{type:"string",defaultValue:""},height:{type:"string",defaultValue:""},autoplay:{t` &&
+             `ype:"boolean",defaultValue:true},facingMode:{type:"string"},deviceId:{type:"string"}},events:{OnPhoto:{allowPreventDefault:true,parameters:{photo:{type:"string"}}},press:{allowPreventDefault:true,para` &&
+             `meters:{}}}},capture(){const video=document.getElementById(``${this.getId()}-video``);const canvas=document.getElementById(``${this.getId()}-canvas``);if(!video||!canvas)return false;const videoWidth=vide` &&
+             `o.videoWidth;const videoHeight=video.videoHeight;if(!videoWidth||!videoHeight){this._setStatus("Camera not ready yet - no frame captured.");Lib.logError("CameraPicture: camera not ready, no frame to c` &&
+             `apture");return false}canvas.width=videoWidth;canvas.height=videoHeight;const ctx=canvas.getContext("2d",_CTX_2D_OPTS);if(!ctx)return false;ctx.drawImage(video,0,0,videoWidth,videoHeight);let resultb6` &&
+             `4;try{resultb64=canvas.toDataURL("image/jpeg",.85)}catch(e){this._setStatus("Could not read the captured image.");Lib.logError("CameraPicture: canvas toDataURL failed",e);return false}const thumbH=Mat` &&
+             `h.round(videoHeight*_THUMB_W/videoWidth);const thumbCanvas=document.createElement("canvas");thumbCanvas.width=_THUMB_W;thumbCanvas.height=thumbH;const thumbCtx=thumbCanvas.getContext("2d",_CTX_2D_OPTS` &&
+             `);if(thumbCtx)thumbCtx.drawImage(canvas,0,0,_THUMB_W,thumbH);let thumbB64="";try{thumbB64=thumbCanvas.toDataURL("image/jpeg",.7)}catch(e){Lib.logError("CameraPicture: thumb toDataURL failed",e)}if(Lib` &&
+             `.isDestroyed(this))return false;this.setProperty("value",resultb64,true);this.setProperty("thumbnail",thumbB64,true);this.fireOnPhoto({photo:resultb64});this._stopCamera();return true},_stopCamera(){i` &&
+             `f(this._stream){for(const track of this._stream.getTracks())track.stop()}this._stream=null;const video=document.getElementById(``${this.getId()}-video``);if(video)video.srcObject=null},onPicture(){if(th` &&
+             `is._oScanDialog?.isOpen())return;if(!this._oScanDialog){this._oStatus=(new Text).addStyleClass("sapUiSmallMarginBegin sapUiSmallMarginTop");const id=this.getId();this._oScanDialog=new Dialog({title:"D` &&
+             `evice Photo Function",contentWidth:"640px",contentHeight:"480px",horizontalScrolling:false,verticalScrolling:false,stretch:true,afterClose:()=>this._stopCamera(),content:[this._oStatus,new HTML({id:``$` &&
+             `{id}PictureContainer``,content:``<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay()?" autoplay":""} id="${id}-video"></video>` &&
+             ```}),new Button({text:"Capture",press:()=>{if(this.capture())this._oScanDialog.close()}}),new HTML({content:``<canvas hidden id="${id}-canvas" style="overflow:auto"></canvas>``})],endButton:new Button({t` &&
+             `ext:"Cancel",press:()=>{this._stopCamera();this._oScanDialog.close()}})})}this._setStatus("Starting camera...");const openSeq=this._openSeq=(this._openSeq||0)+1;this._oScanDialog.attachEventOnce("afte` &&
+             `rOpen",async()=>{if(Lib.isDestroyed(this))return;const video=document.getElementById(``${this.getId()}-video``);if(!video){this._setStatus("Camera preview element not found.");Lib.logError("CameraPictur` &&
+             `e: video element not found after dialog open");return}const facingMode=this.getProperty("facingMode");const deviceId=this.getProperty("deviceId");const options={video:{width:{ideal:1920},height:{ideal` &&
+             `:1080}}};if(deviceId)options.video.deviceId=deviceId;if(facingMode)options.video.facingMode={exact:facingMode};try{const md=navigator.mediaDevices;if(!md?.getUserMedia){this._setStatus("Camera not ava` &&
+             `ilable - a secure (HTTPS) connection is required.");Lib.logError("CameraPicture: mediaDevices API not available");return}const stream=await md.getUserMedia(options);if(!stream)return;if(Lib.isDestroye` &&
+             `d(this)||!this._oScanDialog?.isOpen()||openSeq!==this._openSeq){for(const t of stream.getTracks())t.stop();return}this._stream=stream;video.srcObject=stream;this._setStatus("Camera ready - press Captu` &&
+             `re to take a photo.");try{await video.play()}catch(e){Lib.logError("CameraPicture: video.play() failed",e)}}catch(error){this._setStatus(``Camera unavailable: ${error.name||"Error"} - ${error.message}``` &&
+             `);Lib.logError("CameraPicture: getUserMedia failed",error)}});this._oScanDialog.open()},_setStatus(message){if(Lib.isAlive(this._oStatus)){this._oStatus.setText(message)}},exit(){this._stopCamera();if` &&
+             `(this._oButton)this._oButton.destroy();if(this._oScanDialog)this._oScanDialog.destroy()},onAfterRendering(){const h=this.getHeight();const dom=this._oButton?.getDomRef();if(h&&dom)dom.style.height=toC` &&
+             `ssSize(h)},renderer:{apiVersion:2,render(oRm,oControl){if(!oControl._oButton){oControl._oButton=new Button({icon:"sap-icon://camera",text:"Camera",press:()=>{if(oControl.firePress())oControl.onPicture` &&
+             `()}})}oControl._oButton.setWidth(toCssSize(oControl.getWidth()));oRm.openStart("span",oControl);oRm.openEnd();oRm.renderControl(oControl._oButton);oRm.close("span")}}});return Env.ownClass(CameraPictu` &&
+             `re)});` && |\n| &&
              `` && |\n| &&
-             `    function rebaseResourceRoot(root, prefix) {` && |\n| &&
-             `      if (!root || !prefix || !root.startsWith("/")) return root;` && |\n| &&
-             `      return prefix + root;` && |\n| &&
-             `    }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/CameraSelector.js": function(){sap.ui.define(["sap/m/ComboBox","sap/ui/core/Item","sap/m/ComboBoxRenderer","z2ui5/core/Lib","z2ui5/core/Env"],(ComboBox,Item,ComboBoxRenderer,Lib,Env)=>` &&
+             `{"use strict";const CameraSelector=ComboBox.extend("z2ui5.cc.CameraSelector",{init(){ComboBox.prototype.init.call(this);this._onDeviceChange=()=>this._loadCameras();navigator.mediaDevices?.addEventLis` &&
+             `tener?.("devicechange",this._onDeviceChange);this.attachLoadItems?.(this._onDeviceChange);this._loadCameras()},exit(){navigator.mediaDevices?.removeEventListener?.("devicechange",this._onDeviceChange)` &&
+             `;ComboBox.prototype.exit?.call(this)},async _loadCameras(){try{const md=navigator.mediaDevices;if(!md?.enumerateDevices)return;const devices=await md.enumerateDevices();if(!devices||Lib.isDestroyed(th` &&
+             `is))return;const selected=this.getSelectedKey?.();this.destroyItems?.();for(const device of devices){if(device.kind!=="videoinput"||!device.deviceId)continue;const item=new Item;item.setKey(device.dev` &&
+             `iceId);item.setText(device.label||device.deviceId);this.addItem(item)}if(selected)this.setSelectedKey?.(selected)}catch(err){Lib.logError("CameraSelector: enumerateDevices failed",err)}},renderer:Comb` &&
+             `oBoxRenderer});return Env.ownClass(CameraSelector)});` && |\n| &&
              `` && |\n| &&
-             `    const Component = UIComponent.extend("z2ui5.Component", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        manifest: "json",` && |\n| &&
-             `        interfaces: ["sap.ui.core.IAsyncContentCreation"],` && |\n| &&
-             `      },` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/Dirty.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Context","z2ui5/core/Env"],(Control,Lib,Context,Env)=>{"use strict";const dirtyControls=new Set;` &&
+             `const promptOnUnload=e=>{e.preventDefault();e.returnValue=""};let promptInstalled=false;function syncUnloadPrompt(anyDirty){if(anyDirty===promptInstalled)return;if(anyDirty){window.addEventListener("b` &&
+             `eforeunload",promptOnUnload)}else{window.removeEventListener("beforeunload",promptOnUnload)}promptInstalled=anyDirty}const Dirty=Control.extend("z2ui5.cc.Dirty",{metadata:{properties:{isDirty:{type:"b` &&
+             `oolean",defaultValue:false}}},setIsDirty(val){this.setProperty("isDirty",val,true);if(val){dirtyControls.add(this)}else{dirtyControls.delete(this)}this._applyDirtyState();return this},_applyDirtyState` &&
+             `(){applyDirtyState(Context.of(this)?.state.oLaunchpad)},exit(){dirtyControls.delete(this);this._applyDirtyState()},renderer:Lib.EMPTY_RENDERER});function applyDirtyState(launchpad){const anyDirty=dirt` &&
+             `yControls.size>0;const anyDirtyOnOwnPage=[...dirtyControls].some(inst=>Context.of(inst)?.state?.ownsPage!==false);try{const hasFlpDirtyFlag=launchpad?.Container?.setDirtyFlag&&launchpad.ShellUIService` &&
+             `;if(hasFlpDirtyFlag){launchpad.Container.setDirtyFlag(anyDirty);syncUnloadPrompt(false)}else{syncUnloadPrompt(anyDirtyOnOwnPage)}}catch(e){Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed",e)` &&
+             `;syncUnloadPrompt(anyDirtyOnOwnPage)}}Dirty.sync=function sync(ctx){applyDirtyState(ctx?.state?.oLaunchpad)};Dirty.reset=function reset(ctx){for(const inst of dirtyControls){if(Context.of(inst)===ctx)` &&
+             `dirtyControls.delete(inst)}let launchpad=ctx?.state?.oLaunchpad;for(const inst of dirtyControls){if(launchpad)break;launchpad=Context.of(inst)?.state.oLaunchpad}applyDirtyState(launchpad)};return Env.` &&
+             `ownClass(Dirty)});` && |\n| &&
              `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this.ctx = Context.create(this);` && |\n| &&
-             `        const state = this.ctx.state;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/ExcelBridge.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Lib,Env)=>{"use strict";const DEFAULT_MAX_CELLS=2e4;const HARD_MAX_CELLS=1e` &&
+             `5;const SELECTION_DEBOUNCE_MS=300;const EXCEL_EPOCH_MS=Date.UTC(1899,11,30);const DAY_MS=864e5;const ISO_DATE=/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;` &&
+             `const CELL_ADDRESS=/^\$?[A-Za-z]{1,3}\$?[1-9][0-9]{0,6}$/;let excelReady;function excel(){if(excelReady)return excelReady;const w=window;const Office=w.Office;if(!Office||typeof Office.onReady!=="func` &&
+             `tion"){return Promise.resolve(undefined)}excelReady=Promise.resolve().then(()=>Office.onReady()).then(info=>{const host=info?.host??Office.context?.host;const isExcel=host!=null&&host===Office.HostTyp` &&
+             `e?.Excel;return isExcel&&typeof w.Excel?.run==="function"?w.Excel:undefined},()=>undefined);return excelReady}function hasOwn(obj,name){return Object.prototype.hasOwnProperty.call(obj,name)}function m` &&
+             `ember(obj,names){if(!obj||typeof obj!=="object")return undefined;for(const name of names){if(hasOwn(obj,name)&&obj[name]!==undefined)return obj[name];const hit=Object.keys(obj).find(k=>k.toLowerCase()` &&
+             `===name.toLowerCase());if(hit!==undefined)return obj[hit]}return undefined}function normalizeColumns(columns,firstRow){let list=columns;if(typeof list==="string"){list=list.split(",").map(s=>s.trim())` &&
+             `.filter(Boolean)}if(!Array.isArray(list)||!list.length){if(Array.isArray(firstRow)){return firstRow.map((_v,i)=>({key:i,header:``COL${i+1}``,format:""}))}return firstRow&&typeof firstRow==="object"?Obje` &&
+             `ct.keys(firstRow).map(k=>({key:k,header:k,format:""})):[]}return list.map(c=>{if(c&&typeof c==="object"){const key=Lib.toText(member(c,["key","name","field"]));const header=member(c,["header","text","` &&
+             `label"]);return{key,header:Lib.toText(header)||key,format:Lib.toText(member(c,["number_format","numberFormat"]))}}const key=Lib.toText(c);return{key,header:key,format:""}})}function resolveKey(row,key` &&
+             `){if(!row||typeof row!=="object"||Array.isArray(row))return key;if(hasOwn(row,key))return key;const hit=Object.keys(row).find(k=>k.toLowerCase()===String(key).toLowerCase());return hit===undefined?key` &&
+             `:hit}function isoToSerial(text){const m=ISO_DATE.exec(text);if(!m)return undefined;const[,y,mo,d,h="0",mi="0",s="0"]=m;if(Number(y)<1900)return undefined;const ms=Date.UTC(+y,+mo-1,+d,+h,+mi,+s);const` &&
+             ` dt=new Date(ms);if(dt.getUTCFullYear()!==+y||dt.getUTCMonth()!==+mo-1||dt.getUTCDate()!==+d||dt.getUTCHours()!==+h||dt.getUTCMinutes()!==+mi||dt.getUTCSeconds()!==+s)return undefined;return{serial:(m` &&
+             `s-EXCEL_EPOCH_MS)/DAY_MS,hasTime:m[4]!==undefined}}function toCell(value,format){if(typeof value==="number"){return Number.isFinite(value)?{value,format:format||"General"}:{value:"",format:"@"}}if(typ` &&
+             `eof value==="boolean")return{value,format:"General"};if(value==null||typeof value==="object"){return{value:"",format:"@"}}const text=String(value);const date=isoToSerial(text);if(date&&text.length<=25` &&
+             `){const own=date.hasTime?"yyyy-mm-dd hh:mm:ss":"yyyy-mm-dd";return{value:date.serial,format:format||own}}return{value:text,format:"@"}}function buildMatrix({rows,columns,numberFormats,header}){const l` &&
+             `ist=Array.isArray(rows)?rows:[];const cols=normalizeColumns(columns,list[0]);if(!cols.length)return{values:[],formats:[],columns:0};const keys=cols.map(c=>resolveKey(list[0],c.key));const formats=cols` &&
+             `.map((c,i)=>{if(c.format)return c.format;if(Array.isArray(numberFormats)){return Lib.toText(numberFormats[i])}return Lib.toText(member(numberFormats,[String(c.key)]))});const values=[];const cellForma` &&
+             `ts=[];if(header){values.push(cols.map(c=>c.header));cellFormats.push(cols.map(()=>"@"))}for(const row of list){const valueRow=[];const formatRow=[];keys.forEach((key,i)=>{const own=row!=null&&hasOwn(r` &&
+             `ow,key);const cell=toCell(own?row[key]:undefined,formats[i]);valueRow.push(cell.value);formatRow.push(cell.format)});values.push(valueRow);cellFormats.push(formatRow)}return{values,formats:cellFormats` &&
+             `,columns:cols.length}}function unquotedFormat(format){return String(format??"").replace(/"[^"]*"/g,"").replace(/\\./g,"")}function bareFormat(format){return unquotedFormat(format).replace(/\[[^\]]*\]/` &&
+             `g,"")}function formatParts(format){const bare=bareFormat(format);const elapsed=/\[(h+|m+|s+)\]/i.test(unquotedFormat(format));return{hasDate:/[dy]/i.test(bare),hasTime:elapsed||/[hs]/i.test(bare),elap` &&
+             `sed}}function isDateFormat(format){const{hasDate,hasTime}=formatParts(format);return hasDate||hasTime}function serialToDuration(serial){const total=Math.round(Math.abs(serial)*86400);const pad=n=>Stri` &&
+             `ng(n).padStart(2,"0");const text=``${pad(Math.floor(total/3600))}:${pad(Math.floor(total%3600/60))}:${pad(total%60)}``;return serial<0?``-${text}``:text}function serialToIso(serial,format){const{hasDate,h` &&
+             `asTime,elapsed}=formatParts(format);if(elapsed&&!hasDate)return serialToDuration(serial);const ms=Math.round(serial*DAY_MS)+EXCEL_EPOCH_MS;const iso=new Date(ms).toISOString();if(hasDate&&hasTime)retu` &&
+             `rn iso.slice(0,19);if(hasTime)return iso.slice(11,19);return iso.slice(0,10)}function toRows(values,formats){return(values||[]).map((row,r)=>{const out={};row.forEach((v,c)=>{const format=formats?.[r]` &&
+             `?.[c];let value=v;if(typeof v==="number"&&format&&isDateFormat(format)){value=serialToIso(v,format)}out[``COL${c+1}``]=value});return out})}function failure(e,fallback){return{message:Lib.toText(e?.mess` &&
+             `age??e)||fallback,code:Lib.toText(e?.code)}}const definition={metadata:{properties:{rows:{type:"any",defaultValue:null},columns:{type:"any",defaultValue:null},numberFormats:{type:"any",defaultValue:nu` &&
+             `ll},target:{type:"string",defaultValue:"A1"},sheetName:{type:"string",defaultValue:""},asTable:{type:"boolean",defaultValue:true},header:{type:"boolean",defaultValue:true},maxCells:{type:"int",default` &&
+             `Value:2e4},selection:{type:"any",defaultValue:null},selectionAddress:{type:"string",defaultValue:""},readText:{type:"boolean",defaultValue:false},selectionChange:{type:"boolean",defaultValue:false},av` &&
+             `ailable:{type:"boolean",defaultValue:false}},events:{OnWritten:{parameters:{address:{type:"string"},rowCount:{type:"int"},columnCount:{type:"int"}}},OnRead:{parameters:{address:{type:"string"},rowCoun` &&
+             `t:{type:"int"},columnCount:{type:"int"}}},OnSelectionChange:{parameters:{address:{type:"string"}}},OnError:{parameters:{message:{type:"string"},code:{type:"string"}}}}},init(){this._queue=Promise.reso` &&
+             `lve();this._probed=false;this._subscription=null;this._subscribing=false;this._selectionTimer=null;this._lastAddress=""},exit(){clearTimeout(this._selectionTimer);this._unsubscribe()},setSelectionChan` &&
+             `ge(val){this.setProperty("selectionChange",val,true);this._syncSubscription();return this},onAfterRendering(){if(!this._probed)this._probe();this._syncSubscription()},_probe(){const w=window;if(!w.Off` &&
+             `ice)return;this._probed=true;excel().then(Excel=>{if(!Excel||Lib.isDestroyed(this))return;if(!this.getProperty("available")){this.setProperty("available",true,true)}})},_fail(message,code){if(Lib.isDe` &&
+             `stroyed(this))return;this.fireOnError({message,code:code||""})},_limit(){const max=Number(this.getProperty("maxCells"))||DEFAULT_MAX_CELLS;return Math.min(Math.max(1,max),HARD_MAX_CELLS)},_enqueue(nam` &&
+             `e,op){const run=()=>excel().then(Excel=>{if(Lib.isDestroyed(this))return undefined;if(!Excel){this._fail("Excel not available","NotAvailable");return undefined}return Promise.resolve().then(()=>op(Exc` &&
+             `el)).catch(e=>{const f=failure(e,``${name} failed``);Lib.logError(``ExcelBridge: ${name} - ${f.message}``,e);this._fail(f.message,f.code)})});this._queue=this._queue.then(run,run);return this._queue},writ` &&
+             `e(){const asTable=Boolean(this.getProperty("asTable"));const matrix=buildMatrix({rows:this.getProperty("rows"),columns:this.getProperty("columns"),numberFormats:this.getProperty("numberFormats"),heade` &&
+             `r:asTable||Boolean(this.getProperty("header"))});const target=Lib.toText(this.getProperty("target")).trim()||"A1";const sheetName=Lib.toText(this.getProperty("sheetName")).trim();const limit=this._lim` &&
+             `it();return this._enqueue("write",Excel=>{const rowCount=matrix.values.length;const columnCount=matrix.columns;if(!rowCount||!columnCount){this._fail("nothing to write","NoData");return Promise.resolv` &&
+             `e()}if(rowCount*columnCount>limit){this._fail(``${rowCount*columnCount} cells exceed the limit of ${limit}``,"TooLarge");return Promise.resolve()}const mode=target.toLowerCase();if(mode!=="selection"&&m` &&
+             `ode!=="newsheet"&&!CELL_ADDRESS.test(target)){this._fail(``invalid target '${target}'``,"InvalidTarget");return Promise.resolve()}return Excel.run(async context=>{const book=context.workbook;let anchor;` &&
+             `let sheet;if(mode==="selection"){anchor=book.getSelectedRange().getCell(0,0);sheet=anchor.worksheet}else if(mode==="newsheet"){sheet=book.worksheets.add(sheetName||undefined);sheet.activate();anchor=s` &&
+             `heet.getRange("A1")}else{sheet=sheetName?book.worksheets.getItem(sheetName):book.worksheets.getActiveWorksheet();anchor=sheet.getRange(target)}const range=anchor.getResizedRange(rowCount-1,columnCount` &&
+             `-1);range.numberFormat=matrix.formats;range.values=matrix.values;if(asTable)sheet.tables.add(range,true);range.format.autofitColumns();range.load("address");await context.sync();if(Lib.isDestroyed(thi` &&
+             `s))return;this.fireOnWritten({address:Lib.toText(range.address),rowCount,columnCount})})})},read(){const readText=Boolean(this.getProperty("readText"));const limit=this._limit();return this._enqueue("` &&
+             `read",Excel=>Excel.run(async context=>{let range=context.workbook.getSelectedRange();range.load("address,rowCount,columnCount");await context.sync();if(range.rowCount*range.columnCount>limit){range=ra` &&
+             `nge.getUsedRangeOrNullObject(true);range.load("address,rowCount,columnCount,isNullObject");await context.sync()}if(range.isNullObject){this._deliver([],"",0,0);return}const cells=range.rowCount*range.` &&
+             `columnCount;if(cells>limit){this._fail(``${cells} cells exceed the limit of ${limit}``,"TooLarge");return}range.load(readText?"text":"values,numberFormat");await context.sync();const rows=readText?toRow` &&
+             `s(range.text,null):toRows(range.values,range.numberFormat);this._deliver(rows,Lib.toText(range.address),range.rowCount,range.columnCount)}))},_deliver(rows,address,rowCount,columnCount){if(Lib.isDestr` &&
+             `oyed(this))return;this.setProperty("selection",rows,true);this.setProperty("selectionAddress",address,true);this.fireOnRead({address,rowCount,columnCount})},_syncSubscription(){const wanted=Boolean(th` &&
+             `is.getProperty("selectionChange"))&&!Lib.isDestroyed(this);if(wanted&&!this._subscription&&!this._subscribing){this._subscribe()}else if(!wanted&&this._subscription){this._unsubscribe()}},_subscribe()` &&
+             `{this._subscribing=true;excel().then(Excel=>{if(!Excel||Lib.isDestroyed(this))return undefined;return Excel.run(async context=>{const handler=context.workbook.onSelectionChanged.add(()=>this._selectio` &&
+             `nChanged(Excel));await context.sync();return handler})}).then(handler=>{this._subscribing=false;if(!handler)return;this._subscription=handler;this._syncSubscription()},e=>{this._subscribing=false;Lib.` &&
+             `logError("ExcelBridge: selection subscription failed",e)})},_unsubscribe(){const handler=this._subscription;if(!handler)return;this._subscription=null;const Excel=window.Excel;if(typeof Excel?.run!=="` &&
+             `function"||!handler.context)return;Excel.run(handler.context,async context=>{handler.remove();await context.sync()}).catch(e=>Lib.logError("ExcelBridge: selection unsubscribe failed",e))},_selectionCh` &&
+             `anged(Excel){clearTimeout(this._selectionTimer);this._selectionTimer=setTimeout(()=>{if(Lib.isDestroyed(this)||!this._subscription)return;Excel.run(async context=>{const range=context.workbook.getSele` &&
+             `ctedRange();range.load("address");await context.sync();const address=Lib.toText(range.address);if(Lib.isDestroyed(this)||address===this._lastAddress)return;this._lastAddress=address;this.fireOnSelecti` &&
+             `onChange({address})}).catch(e=>Lib.logError("ExcelBridge: reading the selection failed",e))},SELECTION_DEBOUNCE_MS)},renderer:{apiVersion:2,render(oRm,oControl){Lib.renderInvisibleSpan(oRm,oControl)}}` &&
+             `};for(const name of Object.keys(definition.metadata.properties)){const setter=``set${name[0].toUpperCase()}${name.slice(1)}``;if(definition[setter])continue;definition[setter]=function(val){this.setProp` &&
+             `erty(name,val,true);return this}}const ExcelBridge=Control.extend("z2ui5.cc.ExcelBridge",definition);ExcelBridge._buildMatrix=buildMatrix;ExcelBridge._toRows=toRows;return Env.ownClass(ExcelBridge)});` && |\n| &&
              `` && |\n| &&
-             `        const {` && |\n| &&
-             `          ccResourceRoot,` && |\n| &&
-             `          cccResourceRoot,` && |\n| &&
-             `          endpoint,` && |\n| &&
-             `          ownsHash,` && |\n| &&
-             `          ownsPage,` && |\n| &&
-             `          nodePath,` && |\n| &&
-             `          ...componentData` && |\n| &&
-             `        } = this.getComponentData() || {};` && |\n| &&
-             `` && |\n| &&
-             `        delete componentData.embedded;` && |\n| &&
-             `        state.ccResourceRoot = ccResourceRoot || null;` && |\n| &&
-             `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
-             `` && |\n| &&
-             `        Env.dropClassGlobals();` && |\n| &&
-             `` && |\n| &&
-             `        this.ctx.restart = () => this._restartApp();` && |\n| &&
-             `` && |\n| &&
-             `        state.ownsPage = ownsPage === true || ownsHash === true;` && |\n| &&
-             `` && |\n| &&
-             `        if (!state.ownsPage) {` && |\n| &&
-             `          Mobile.init({` && |\n| &&
-             `            viewport: false,` && |\n| &&
-             `            hideBrowser: false,` && |\n| &&
-             `            preventScroll: false,` && |\n| &&
-             `            preventPhoneNumberDetection: false,` && |\n| &&
-             `            useFullScreenHeight: false,` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        state.endpoint =` && |\n| &&
-             `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
-             `            ? endpoint.trim()` && |\n| &&
-             `            : null;` && |\n| &&
-             `` && |\n| &&
-             `        state.nodePath =` && |\n| &&
-             `          typeof nodePath === "string" && nodePath.trim()` && |\n| &&
-             `            ? nodePath.trim()` && |\n| &&
-             `            : null;` && |\n| &&
-             `` && |\n| &&
-             `        const prefix = resourceRootPrefix(state.endpoint, state.nodePath);` && |\n| &&
-             `        state.endpointPrefix = prefix;` && |\n| &&
-             `        state.ccResourceRoot = rebaseResourceRoot(state.ccResourceRoot, prefix);` && |\n| &&
-             `        state.cccResourceRoot = rebaseResourceRoot(` && |\n| &&
-             `          state.cccResourceRoot,` && |\n| &&
-             `          prefix,` && |\n| &&
-             `        );` && |\n| &&
-             `` && |\n| &&
-             `        const paths = {};` && |\n| &&
-             `        if (state.ccResourceRoot) paths.z2ui5_cci = state.ccResourceRoot;` && |\n| &&
-             `        if (state.cccResourceRoot) paths.z2ui5_ccc = state.cccResourceRoot;` && |\n| &&
-             `        if (Object.keys(paths).length) sap.ui.loader.config({ paths });` && |\n| &&
-             `` && |\n| &&
-             `        UIComponent.prototype.init.call(this);` && |\n| &&
-             `` && |\n| &&
-             `        state.oConfig.ComponentData = Object.keys(componentData).length` && |\n| &&
-             `          ? componentData` && |\n| &&
-             `          : undefined;` && |\n| &&
-             `` && |\n| &&
-             `        state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
-             `        this.setModel(state.oDeviceModel, "device");` && |\n| &&
-             `` && |\n| &&
-             `        if (Env.hasMessagingModule()) {` && |\n| &&
-             `          sap.ui.require(` && |\n| &&
-             `            ["sap/ui/core/Messaging"],` && |\n| &&
-             `            () => {},` && |\n| &&
-             `            () => {},` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this._initLaunchpad();` && |\n| &&
-             `        this._initVersionInfo();` && |\n| &&
-             `` && |\n| &&
-             `        DevTools.install(this.ctx);` && |\n| &&
-             `        this._installUnloadListener();` && |\n| &&
-             `        this._installScrollListener();` && |\n| &&
-             `        this._installRouterListener();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _installUnloadListener() {` && |\n| &&
-             `        this._boundUnload = this._onUnload.bind(this);` && |\n| &&
-             `` && |\n| &&
-             `        this._unloadEvent = "pagehide";` && |\n| &&
-             `        window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _installScrollListener() {` && |\n| &&
-             `        const ctx = this.ctx;` && |\n| &&
-             `        this._boundScroll = (event) => ScrollFocus.onScrollCapture(ctx, event);` && |\n| &&
-             `        document.addEventListener("scroll", this._boundScroll, {` && |\n| &&
-             `          capture: true,` && |\n| &&
-             `          passive: true,` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        ScrollFocus.watchFocus(ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _installRouterListener() {` && |\n| &&
-             `        const ctx = this.ctx;` && |\n| &&
-             `        Router.init(ctx, () => Server.restoreFromRoute(ctx));` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _initLaunchpad() {` && |\n| &&
-             `        const Container = sap.ui.require("sap/ushell/Container");` && |\n| &&
-             `        if (!Container) return;` && |\n| &&
-             `` && |\n| &&
-             `        const launchpad = { Container };` && |\n| &&
-             `        this._launchpad = launchpad;` && |\n| &&
-             `        this.ctx.state.oLaunchpad = launchpad;` && |\n| &&
-             `` && |\n| &&
-             `        const setIfAlive = (key, value) => {` && |\n| &&
-             `          if (Lib.isAlive(this) && this._launchpad === launchpad) {` && |\n| &&
-             `            launchpad[key] = value;` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `` && |\n| &&
-             `        this.getService("ShellUIService")` && |\n| &&
-             `          .then((s) => {` && |\n| &&
-             `            setIfAlive("ShellUIService", s);` && |\n| &&
-             `` && |\n| &&
-             `            if (this._launchpad === launchpad) {` && |\n| &&
-             `              sap.ui.require("z2ui5/cc/Dirty")?.sync?.(this.ctx);` && |\n| &&
-             `            }` && |\n| &&
-             `          })` && |\n| &&
-             `          .catch((e) =>` && |\n| &&
-             `            Lib.logError("Component: ShellUIService init failed", e),` && |\n| &&
-             `          );` && |\n| &&
-             `` && |\n| &&
-             `        Container.getServiceAsync("CrossApplicationNavigation")` && |\n| &&
-             `          .then((s) => setIfAlive("CrossAppNavigator", s))` && |\n| &&
-             `          .catch((e) =>` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              "Component: CrossApplicationNavigation init failed",` && |\n| &&
-             `              e,` && |\n| &&
-             `            ),` && |\n| &&
-             `          );` && |\n| &&
-             `` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ["sap/ushell/services/AppConfiguration"],` && |\n| &&
-             `          (ac) => setIfAlive("AppConfiguration", ac),` && |\n| &&
-             `          (e) => Lib.logError("Component: AppConfiguration init failed", e),` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async _initVersionInfo() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const info = await VersionInfo.load();` && |\n| &&
-             `          if (Lib.isAlive(this)) {` && |\n| &&
-             `            this.ctx.state.oConfig.S_UI5 = {` && |\n| &&
-             `              VERSION: info.version,` && |\n| &&
-             `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
-             `              GAV: info.gav,` && |\n| &&
-             `              THEME: Env.getTheme(),` && |\n| &&
-             `            };` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("Component: VersionInfo load failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _onUnload(event) {` && |\n| &&
-             `        if (event?.persisted) return;` && |\n| &&
-             `` && |\n| &&
-             `        this.destroy();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        const ctx = this.ctx;` && |\n| &&
-             `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
-             `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
-             `          capture: true,` && |\n| &&
-             `        });` && |\n| &&
-             `        ScrollFocus.unwatchFocus(ctx);` && |\n| &&
-             `        Router.exit(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        DevTools.exit(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        this._endApp();` && |\n| &&
-             `` && |\n| &&
-             `        if (ctx.state.oDeviceModel) {` && |\n| &&
-             `          ctx.state.oDeviceModel.destroy();` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this._launchpad = null;` && |\n| &&
-             `` && |\n| &&
-             `        Context.destroy(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _endApp() {` && |\n| &&
-             `        const ctx = this.ctx;` && |\n| &&
-             `` && |\n| &&
-             `        Shortcuts.reset(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        Server.endSession(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        Server.reset(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        Session.reset(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
-             `        ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
-             `` && |\n| &&
-             `        Lib.cancelPendingTimers(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        sap.ui.require("z2ui5/cc/Dirty")?.reset?.(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        for (const oClient of ctx.state.odataClients) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            oClient.destroy();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError("Component: destroying an OData client failed", e);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        ScrollFocus.reset(ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _restartApp() {` && |\n| &&
-             `        const ctx = this.ctx;` && |\n| &&
-             `        if (!ctx?.alive) return;` && |\n| &&
-             `        this._endApp();` && |\n| &&
-             `` && |\n| &&
-             `        ctx.state.mainLeaving?.();` && |\n| &&
-             `        ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
-             `        Context.resetApp(ctx);` && |\n| &&
-             `        this.getRootControl()?.getController?.()?.startApp();` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(Component);` && |\n| &&
-             `  },` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/FileUploader.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Button","sap/ui/unified/FileUploader","sap/m/HBox","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Button,FileUploa` &&
+             `der,HBox,Lib,Env)=>{"use strict";const FileUploaderControl=Control.extend("z2ui5.cc.FileUploader",{metadata:{aggregations:{_content:{type:"sap.m.HBox",multiple:false,visibility:"hidden"}},properties:{` &&
+             `value:{type:"string",defaultValue:""},path:{type:"string",defaultValue:""},fileType:{type:"string",defaultValue:""},placeholder:{type:"string",defaultValue:""},buttonText:{type:"string",defaultValue:"` &&
+             `"},style:{type:"string",defaultValue:""},uploadButtonText:{type:"string",defaultValue:"Upload"},enabled:{type:"boolean",defaultValue:true},icon:{type:"string",defaultValue:"sap-icon://browse-folder"},` &&
+             `iconOnly:{type:"boolean",defaultValue:false},buttonOnly:{type:"boolean",defaultValue:false},multiple:{type:"boolean",defaultValue:false},checkDirectUpload:{type:"boolean",defaultValue:false},maximumFi` &&
+             `leSize:{type:"float",defaultValue:0}},events:{fileSizeExceed:{parameters:{fileName:{type:"string"},fileSize:{type:"float"}}},upload:{allowPreventDefault:true,parameters:{}}}},_readFiles(selected){cons` &&
+             `t files=Lib.withinFileSize(selected,this.getProperty("maximumFileSize"),file=>this.fireFileSizeExceed({fileName:file.name,fileSize:file.size/(1024*1024)}));if(!files.length)return;if(!this._reader){th` &&
+             `is._reader=Lib.readFilesInTurn(this,"FileUploader",(_,result)=>{this.setProperty("value",result,true);this.fireUpload()})}this._reader.add(files)},_uploadPendingFiles(){const files=this._pendingFiles;` &&
+             `this._pendingFiles=null;if(files?.length)this._readFiles(files)},exit(){if(this._oHBox)this._oHBox.destroy();if(this._reader)this._reader.cancel()},_ensureControls(directUpload){if(this._oHBox&&this._` &&
+             `builtDirectUpload===directUpload)return;if(this._oHBox)this._oHBox.destroy();this._builtDirectUpload=directUpload;this.oUploadButton=null;if(!directUpload){this.oUploadButton=new Button({enabled:this.` &&
+             `getProperty("path")!=="",press:()=>{this.setProperty("path",this.oFileUploader.getProperty("value"));this._uploadPendingFiles()}})}this.oFileUploader=new FileUploader({uploadOnChange:directUpload,chan` &&
+             `ge:oEvent=>{const files=oEvent.getParameter("files");this._pendingFiles=files?Array.from(files):[];if(directUpload)return;const value=oEvent.getSource().getProperty("value");this.setProperty("path",va` &&
+             `lue);if(this.oUploadButton){this.oUploadButton.setEnabled(Boolean(value))}},fileSizeExceed:oEvent=>{this.fireFileSizeExceed({fileName:oEvent.getParameter("fileName"),fileSize:Number(oEvent.getParamete` &&
+             `r("fileSize"))})},uploadComplete:oEvent=>{if(!directUpload)return;const source=oEvent.getSource();this.setProperty("path",source.getProperty("value"));this._uploadPendingFiles()}});this._oHBox=(new HB` &&
+             `ox).addItem(this.oFileUploader);if(this.oUploadButton){this._oHBox.addItem(this.oUploadButton)}this.setAggregation("_content",this._oHBox,true)},_syncControls(){const u=this.oFileUploader;u.setTooltip` &&
+             `(this.getTooltip_AsString());u.setIcon(this.getProperty("icon"));u.setIconOnly(this.getProperty("iconOnly"));u.setButtonOnly(this.getProperty("buttonOnly"));u.setButtonText(this.getProperty("buttonTex` &&
+             `t"));u.setStyle(this.getProperty("style"));u.setFileType(this.getProperty("fileType"));u.setVisible(this.getProperty("visible"));u.setMultiple(this.getProperty("multiple"));u.setEnabled(this.getProper` &&
+             `ty("enabled"));u.setValue(this.getProperty("path"));u.setPlaceholder(this.getProperty("placeholder"));u.setMaximumFileSize(this.getProperty("maximumFileSize")||undefined);if(this.oUploadButton){this.o` &&
+             `UploadButton.setText(this.getProperty("uploadButtonText"));this.oUploadButton.setEnabled(this.getProperty("path")!=="")}},renderer:{apiVersion:2,render(oRm,oControl){oControl._ensureControls(oControl.` &&
+             `getProperty("checkDirectUpload"));oControl._syncControls();oRm.openStart("div",oControl);oRm.openEnd();oRm.renderControl(oControl._oHBox);oRm.close("div")}}});return Env.ownClass(FileUploaderControl)}` &&
              `);` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/CameraPicture.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "sap/m/Dialog",` && |\n| &&
-             `    "sap/m/Button",` && |\n| &&
-             `    "sap/m/Text",` && |\n| &&
-             `    "sap/ui/core/HTML",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Dialog, Button, Text, HTML, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+             `      "z2ui5/cc/Geolocation.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Lib,Env)=>{"use strict";const _GEO_PROPS=["longitude","latitude","altitude"` &&
+             `,"accuracy","altitudeAccuracy","speed","heading"];const _DEFAULT_TIMEOUT_MS=5e3;function timeoutOf(value){const ms=Number(value);return Number.isFinite(ms)&&ms>0?ms:_DEFAULT_TIMEOUT_MS}const Geolocati` &&
+             `on=Control.extend("z2ui5.cc.Geolocation",{metadata:{properties:{longitude:{type:"string",defaultValue:""},latitude:{type:"string",defaultValue:""},altitude:{type:"string",defaultValue:""},accuracy:{ty` &&
+             `pe:"string",defaultValue:""},altitudeAccuracy:{type:"string",defaultValue:""},speed:{type:"string",defaultValue:""},heading:{type:"string",defaultValue:""},enableHighAccuracy:{type:"boolean",defaultVa` &&
+             `lue:false},timeout:{type:"string",defaultValue:String(_DEFAULT_TIMEOUT_MS)}},events:{finished:{allowPreventDefault:true,parameters:{}},error:{parameters:{code:{type:"string"},message:{type:"string"}}}` &&
+             `}},callbackPosition({coords}){if(Lib.isDestroyed(this))return;for(const prop of _GEO_PROPS){const v=coords[prop];const text=typeof v==="number"&&!Number.isFinite(v)?"":Lib.toText(v);this.setProperty(p` &&
+             `rop,text,true)}this.fireFinished()},callbackError(error){if(Lib.isDestroyed(this))return;Lib.logError(``Geolocation error (${error.code}) on ${this.getId()}: ${error.message}``);this.fireError({code:Str` &&
+             `ing(error.code),message:error.message})},init(){this._pendingGeolocate=true},exit(){this._pendingGeolocate=false},onAfterRendering(){if(!this._pendingGeolocate)return;this._pendingGeolocate=false;try{` &&
+             `if(!navigator.geolocation){this.callbackError({code:0,message:"Geolocation API not available"});return}navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this),this.callbackError.bind` &&
+             `(this),{enableHighAccuracy:this.getProperty("enableHighAccuracy"),timeout:timeoutOf(this.getProperty("timeout"))})}catch(e){Lib.logError("Geolocation.onAfterRendering: getCurrentPosition failed",e)}},` &&
+             `renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Geolocation)});` && |\n| &&
              `` && |\n| &&
-             `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
-             `    const _THUMB_W = 300;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/HTMLFrame.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Lib,Env)=>{"use strict";const SANDBOX="allow-same-origin allow-scripts allow-` &&
+             `forms allow-popups allow-popups-to-escape-sandbox";const SCHEME="sapevent:";const wired=new WeakSet;function parseSapevent(href){const value=String(href||"").trim();if(value.slice(0,SCHEME.length).toL` &&
+             `owerCase()!==SCHEME)return null;const rest=value.slice(SCHEME.length);const q=rest.indexOf("?");return q<0?{action:rest,getdata:""}:{action:rest.slice(0,q),getdata:rest.slice(q+1)}}function formData(f` &&
+             `orm,submitter){const params=new URLSearchParams;for(const el of Array.from(form.elements||[])){if(!el.name||el.disabled)continue;const type=String(el.type||"").toLowerCase();if(["submit","button","ima` &&
+             `ge","reset","file"].includes(type)){continue}if((type==="checkbox"||type==="radio")&&!el.checked)continue;if(el.tagName==="SELECT"&&el.multiple){for(const opt of Array.from(el.options)){if(opt.selecte` &&
+             `d)params.append(el.name,opt.value)}continue}params.append(el.name,el.value)}if(submitter&&submitter.name){params.append(submitter.name,submitter.value||"")}return params.toString()}const HTMLFrame=Con` &&
+             `trol.extend("z2ui5.cc.HTMLFrame",{metadata:{properties:{content:{type:"string",defaultValue:""},width:{type:"sap.ui.core.CSSSize",defaultValue:"100%"},height:{type:"sap.ui.core.CSSSize",defaultValue:"` &&
+             `30rem"},title:{type:"string",defaultValue:""}},events:{sapevent:{parameters:{action:{type:"string"},getdata:{type:"string"},postdata:{type:"string"}}}}},onAfterRendering(){const frame=this.getDomRef()` &&
+             `;if(!frame)return;if(!wired.has(frame)){wired.add(frame);frame.addEventListener("load",()=>this._wire(frame))}this._wire(frame)},_wire(frame){if(Lib.isDestroyed(this))return;let doc;try{doc=frame.cont` &&
+             `entDocument}catch(e){Lib.logError("HTMLFrame: the document of the frame is out of reach",e);return}if(!doc||wired.has(doc))return;wired.add(doc);doc.addEventListener("click",e=>this._onClick(e),true);` &&
+             `doc.addEventListener("submit",e=>this._onSubmit(e),true)},_onClick(e){const link=e.target?.closest?.("a[href]");if(!link)return;const parsed=parseSapevent(link.getAttribute("href"));if(!parsed)return;` &&
+             `e.preventDefault();this.fireSapevent({...parsed,postdata:""})},_onSubmit(e){const form=e.target;e.preventDefault();if(!form||form.tagName!=="FORM")return;const parsed=parseSapevent(form.getAttribute("` &&
+             `action"));if(!parsed){Lib.logError(``HTMLFrame ${this.getId()}: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are``);return}const data=formData(form,e.submitter);const ge` &&
+             `t=String(form.getAttribute("method")||"").toLowerCase()==="get";this.fireSapevent({action:parsed.action,getdata:get?[parsed.getdata,data].filter(Boolean).join("&"):parsed.getdata,postdata:get?"":data}` &&
+             `)},renderer:{apiVersion:2,render(oRm,oControl){oRm.openStart("iframe",oControl);oRm.attr("sandbox",SANDBOX);oRm.attr("srcdoc",oControl.getContent());oRm.attr("title",oControl.getTitle());oRm.style("wi` &&
+             `dth",oControl.getWidth());oRm.style("height",oControl.getHeight());oRm.style("border","0");oRm.style("display","block");oRm.openEnd();oRm.close("iframe")}}});HTMLFrame._parseSapevent=parseSapevent;HTM` &&
+             `LFrame._formData=formData;return Env.ownClass(HTMLFrame)});` && |\n| &&
              `` && |\n| &&
-             `    const PX_NUMBER = /^\d+$/;` && |\n| &&
-             `    const toCssSize = (val) => (PX_NUMBER.test(val) ? ``${val}px`` : val);` && |\n| &&
-             `    const CameraPicture = Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          value: { type: "string" },` && |\n| &&
-             `          thumbnail: { type: "string" },` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/InputExt.js": function(){sap.ui.define(["sap/m/Input","sap/m/InputRenderer","z2ui5/core/Lib","z2ui5/core/Env"],(Input,InputRenderer,Lib,Env)=>{"use strict";const HTML_MODES=new Set(["d` &&
+             `ecimal","email","none","numeric","search","tel","text","url"]);const InputExt=Input.extend("z2ui5.cc.InputExt",{metadata:{properties:{inputMode:{type:"string",defaultValue:""}}},setInputMode(val){this` &&
+             `.setProperty("inputMode",val,true);this._applyInputMode();return this},onAfterRendering(...args){Input.prototype.onAfterRendering.apply(this,args);const dom=this.getFocusDomRef();this._renderedMode=do` &&
+             `m?dom.getAttribute("inputmode"):null;this._applyInputMode()},_htmlMode(){const raw=this.getInputMode();if(!raw)return"";const mode=String(raw).trim().toLowerCase();if(HTML_MODES.has(mode))return mode;` &&
+             `if(this._refusedMode!==mode){this._refusedMode=mode;Lib.logError(``InputExt: inputMode "${raw}" is not an HTML inputmode keyword - ``+``ignored``)}return""},_applyInputMode(){const dom=this.getFocusDomRef` &&
+             `();if(!dom)return;const mode=this._htmlMode();if(mode){dom.setAttribute("inputmode",mode)}else if(this._renderedMode){dom.setAttribute("inputmode",this._renderedMode)}else{dom.removeAttribute("inputmo` &&
+             `de")}},renderer:InputRenderer});return Env.ownClass(InputExt)});` && |\n| &&
              `` && |\n| &&
-             `          width: { type: "string", defaultValue: "" },` && |\n| &&
-             `          height: { type: "string", defaultValue: "" },` && |\n| &&
-             `          autoplay: { type: "boolean", defaultValue: true },` && |\n| &&
-             `          facingMode: { type: "string" },` && |\n| &&
-             `          deviceId: { type: "string" },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          OnPhoto: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              photo: {` && |\n| &&
-             `                type: "string",` && |\n| &&
-             `              },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/MessageManager.js": function(){sap.ui.define(["sap/ui/core/Control","sap/ui/core/message/Message","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Contro` &&
+             `l,Message,Lib,Env,ViewSlots,Context)=>{"use strict";const KEY_SEP=String.fromCharCode(1);const keyOf=o=>[o.MESSAGE,o.TYPE,o.TARGET,o.DESCRIPTION,o.ADDITIONALTEXT,o.CODE].join(KEY_SEP);const MessageMan` &&
+             `ager=Control.extend("z2ui5.cc.MessageManager",{metadata:{properties:{items:{type:"object"},checkInit:{type:"boolean",defaultValue:false}},events:{change:{allowPreventDefault:true,parameters:{}}}},init` &&
+             `(){this._added=new Map;this._ready=false;this._unhook=Lib.hookCallback(this,"onAfterRendering","setup")},exit(){this._unhook();if(this._added.size&&this._messaging){this._messaging.removeMessages([...` &&
+             `this._added.values()])}this._added.clear()},renderer:Lib.EMPTY_RENDERER,setup(){const messaging=Env.getMessaging();if(!Lib.claimOnce(this,messaging))return;this._messaging=messaging;const ctx=Context.` &&
+             `of(this);if(!ctx){Lib.logError("MessageManager.setup: no component context, messages carry no processor")}const view=ctx?ViewSlots.getView(ctx,ViewSlots.containingSlotKey(ctx,this)??"MAIN"):undefined;` &&
+             `this._processor=view?.getModel?.()??null;this._ready=true;this.reconcile()},setItems(aItems){this.setProperty("items",aItems,true);if(this._ready)this.reconcile();return this},reconcile(){const rows=t` &&
+             `his.getProperty("items")||[];const wanted=new Map(rows.map(r=>[keyOf(r),r]));let changed=false;for(const[key,oMessage]of this._added){if(!wanted.has(key)){this._messaging.removeMessages(oMessage);this` &&
+             `._added.delete(key);changed=true}}for(const[key,r]of wanted){if(this._added.has(key))continue;changed=true;const oMessage=new Message({message:r.MESSAGE??"",description:r.DESCRIPTION??"",type:r.TYPE||` &&
+             `"Error",target:r.TARGET??"",additionalText:r.ADDITIONALTEXT??"",code:r.CODE??"",processor:this._processor});this._messaging.addMessages(oMessage);this._added.set(key,oMessage)}if(changed)this.fireChan` &&
+             `ge()}});return Env.ownClass(MessageManager)});` && |\n| &&
              `` && |\n| &&
-             `          press: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/MultiInputExt.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Token","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Env"],(Control,Token,Lib,ViewSlots,Env)=>{"use stri` &&
+             `ct";function plainToken(key,text){const token=new Token;token.setKey(key);token.setText(text);return token}const SETTINGS_CHARS=/[\\{}]/;function freeText(text,input){const given=Lib.toText(text);if(!` &&
+             `SETTINGS_CHARS.test(given))return given;let value="";try{value=Lib.toText(input?.getValue?.()).trim()}catch(e){Lib.logError("MultiInputExt: reading the input value failed",e)}if(value===given)return g` &&
+             `iven;if(value&&value.replace(/[\\{}]/g,"\\$&")===given)return value;return/^(?:[^\\{}]|\\[\\{}])*$/.test(given)?given.replace(/\\([\\{}])/g,"$1"):given}const MultiInputExt=Control.extend("z2ui5.cc.Mul` &&
+             `tiInputExt",{metadata:{properties:{MultiInputId:{type:"string"},MultiInputName:{type:"string"},addedTokens:{type:"object"},checkInit:{type:"boolean",defaultValue:false},removedTokens:{type:"object"},T` &&
+             `okenKeyCell:{type:"int",defaultValue:-1},TokenTextCells:{type:"string",defaultValue:""}},events:{change:{allowPreventDefault:true,parameters:{}}}},init(){this._unhook=Lib.hookCallback(this,"onAfterRen` &&
+             `dering","setControl")},exit(){this._unhook();this._detach()},_detach(){const input=this._target;this._target=null;if(!input||Lib.isDestroyed(input))return;if(this._onTokenUpdate){input.detachTokenUpda` &&
+             `te?.(this._onTokenUpdate)}if(this._validator)input.removeValidator?.(this._validator);this._onTokenUpdate=null;this._validator=null},onTokenUpdate(oEvent){Lib.applyTokenUpdate(this,oEvent);this.fireCh` &&
+             `ange()},renderer:Lib.EMPTY_RENDERER,tokenFromRow(row){const keyIdx=this.getProperty("TokenKeyCell");if(!(keyIdx>=0))return null;const cells=typeof row.getCells==="function"?row.getCells():[];const cel` &&
+             `lText=i=>{const c=cells[i];return c&&typeof c.getText==="function"?c.getText():undefined};const key=cellText(keyIdx);if(key===undefined){Lib.logError(``MultiInputExt: TokenKeyCell ${keyIdx} is not a te` &&
+             `xt cell of the picked row``);return null}const rest=String(this.getProperty("TokenTextCells")||"").split(",").map(s=>s.trim()).filter(s=>s!=="").map(Number).map(i=>{const v=cellText(i);if(v===undefined` &&
+             `){Lib.logError(``MultiInputExt: TokenTextCells entry ${i} is not a text cell of the picked row``)}return v}).filter(v=>v!==undefined&&v!=="");return plainToken(key,rest.length?``${key}(${rest.join(" ")})` &&
+             ```:key)},setControl(){if(this.getProperty("checkInit"))return;const input=ViewSlots.byIdOfOwner(this,this.getProperty("MultiInputId"));if(!Lib.claimOnce(this,input))return;try{this._target=input;this._` &&
+             `onTokenUpdate=this.onTokenUpdate.bind(this);input.attachTokenUpdate(this._onTokenUpdate);this._validator=args=>{const picked=args?.suggestionObject;if(picked&&typeof picked.getCells==="function"){retu` &&
+             `rn this.tokenFromRow(picked)}if(picked){if(args.suggestedToken)return args.suggestedToken;return plainToken(typeof picked.getKey==="function"?picked.getKey():args.text,typeof picked.getText==="functio` &&
+             `n"?picked.getText():args.text)}const text=freeText(args.text,input);return plainToken(text,text)};input.addValidator(this._validator)}catch(e){Lib.logError(``MultiInputExt.setControl: setup failed for ` &&
+             `MultiInputId '${this.getProperty("MultiInputId")}'``,e)}}});return Env.ownClass(MultiInputExt)});` && |\n| &&
              `` && |\n| &&
-             `      capture() {` && |\n| &&
-             `        const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
-             `        const canvas = document.getElementById(``${this.getId()}-canvas``);` && |\n| &&
-             `        if (!video || !canvas) return false;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/NativeBridgeScan.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Button","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Button,Lib,Env)=>{"use strict";const READY_EVENT="abap2` &&
+             `ui5native:ready";function bridge(){const native=window.abap2ui5Native;return native&&typeof native.scanBarcode==="function"?native:undefined}const NativeBridgeScan=Control.extend("z2ui5.cc.NativeBridg` &&
+             `eScan",{metadata:{properties:{value:{type:"string",defaultValue:""},text:{type:"string",defaultValue:"Scan"},icon:{type:"string",defaultValue:"sap-icon://bar-code"},enabled:{type:"boolean",defaultValu` &&
+             `e:true},showInBrowser:{type:"boolean",defaultValue:false}},events:{OnScan:{parameters:{value:{type:"string"}}},OnError:{parameters:{message:{type:"string"}}}}},init(){this._onReady=()=>{this._stopWait` &&
+             `ing();if(!Lib.isDestroyed(this))this.invalidate()};this._waiting=false},exit(){this._stopWaiting();if(this._oButton)this._oButton.destroy()},setValue(val){this.setProperty("value",val,true);return thi` &&
+             `s},_waitForBridge(){if(this._waiting)return;this._waiting=true;window.addEventListener(READY_EVENT,this._onReady)},_stopWaiting(){if(!this._waiting)return;this._waiting=false;window.removeEventListene` &&
+             `r(READY_EVENT,this._onReady)},_fail(message){if(Lib.isDestroyed(this))return;this.fireOnError({message})},scan(){const native=bridge();if(!native){this._fail("native shell not available");return undef` &&
+             `ined}if(this._scanning)return undefined;this._scanning=true;let pending;try{pending=Promise.resolve(native.scanBarcode())}catch(e){pending=Promise.reject(e)}return pending.then(value=>{this._scanning=` &&
+             `false;if(Lib.isDestroyed(this))return;const text=Lib.toText(value);this.setProperty("value",text,true);this.fireOnScan({value:text})},e=>{this._scanning=false;const message=Lib.toText(e?.message??e)||` &&
+             `"scan failed";if(message!=="cancelled"){Lib.logError(``NativeBridgeScan: ${message}``)}this._fail(message)})},renderer:{apiVersion:2,render(oRm,oControl){if(!bridge())oControl._waitForBridge();if(!bridg` &&
+             `e()&&!oControl.getShowInBrowser()){Lib.renderInvisibleSpan(oRm,oControl);return}if(!oControl._oButton){oControl._oButton=new Button({press:()=>{oControl.scan()}})}oControl._oButton.setText(oControl.ge` &&
+             `tText());oControl._oButton.setIcon(oControl.getIcon());oControl._oButton.setEnabled(oControl.getEnabled());oRm.openStart("span",oControl);oRm.openEnd();oRm.renderControl(oControl._oButton);oRm.close("` &&
+             `span")}}});return Env.ownClass(NativeBridgeScan)});` && |\n| &&
              `` && |\n| &&
-             `        const videoWidth = video.videoWidth;` && |\n| &&
-             `        const videoHeight = video.videoHeight;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/SmartMultiInputExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Env"],(Control,Lib,ViewSlots,Env)=>{"use strict";const Smart` &&
+             `MultiInputExt=Control.extend("z2ui5.cc.SmartMultiInputExt",{metadata:{properties:{multiInputId:{type:"string"},addedTokens:{type:"object"},removedTokens:{type:"object"},rangeData:{type:"object"},check` &&
+             `Init:{type:"boolean",defaultValue:false}},events:{change:{allowPreventDefault:true,parameters:{}}}},init(){this._oInput=null;this._aPendingInnerControlsCreated=[];this._bInnerControlsCreated=false;thi` &&
+             `s._unhook=Lib.hookCallback(this,"onAfterRendering","setControl")},exit(){this._unhook();this._detach();for(const resolve of this._aPendingInnerControlsCreated)resolve(null);this._aPendingInnerControls` &&
+             `Created=[]},onTokenUpdate(oEvent){Lib.applyTokenUpdate(this,oEvent);const source=oEvent.getSource();const tokens=source.getTokens();const rangeData=source.getRangeData()||[];const enrichedRanges=range` &&
+             `Data.map((oRangeData,index)=>{const token=tokens[index];oRangeData.tokenText=token?.getText()??"";oRangeData.tokenLongKey=token?.data("longKey");return oRangeData});this.setProperty("rangeData",enrich` &&
+             `edRanges,true);this.fireChange()},setRangeData(aRangeData){this.setProperty("rangeData",aRangeData,true);if(!Array.isArray(aRangeData))return this;this._rangeDataApply=this._applyRangeData(aRangeData)` &&
+             `;return this},async _applyRangeData(aRangeData){try{const input=await this.inputInitialized();if(Lib.isDestroyed(this)||!input)return;const normalizedRangeData=aRangeData.map(oRangeData=>{const out={}` &&
+             `;for(const[key,value]of Object.entries(oRangeData)){const lower=key.toLowerCase();const finalKey=lower==="keyfield"?"keyField":lower;out[finalKey]=value}return out});input.setRangeData(normalizedRange` &&
+             `Data);const inputTokens=input.getTokens()||[];for(const[index,token]of inputTokens.entries()){const rangeItem=aRangeData[index];if(!rangeItem)continue;const{TOKENLONGKEY,TOKENTEXT}=rangeItem;token.dat` &&
+             `a("longKey",TOKENLONGKEY);token.data("range",null);if(TOKENTEXT)token.setText(TOKENTEXT)}}catch(e){Lib.logError("SmartMultiInputExt.setRangeData failed",e)}},renderer:Lib.EMPTY_RENDERER,setControl(){i` &&
+             `f(this.getProperty("checkInit"))return;const input=ViewSlots.byIdOfOwner(this,this.getProperty("multiInputId"));if(!Lib.claimOnce(this,input))return;try{this._target=input;this._onTokenUpdate=this.onT` &&
+             `okenUpdate.bind(this);this._onInnerControlsCreated=this.onInnerControlsCreated.bind(this);input.attachTokenUpdate(this._onTokenUpdate);input.attachInnerControlsCreated(this._onInnerControlsCreated)}ca` &&
+             `tch(e){Lib.logError(``SmartMultiInputExt.setControl: setup failed for multiInputId '${this.getProperty("multiInputId")}'``,e)}},_detach(){const input=this._target;this._target=null;if(!input||Lib.isDest` &&
+             `royed(input))return;if(this._onTokenUpdate){input.detachTokenUpdate?.(this._onTokenUpdate)}if(this._onInnerControlsCreated){input.detachInnerControlsCreated?.(this._onInnerControlsCreated)}this._onTok` &&
+             `enUpdate=null;this._onInnerControlsCreated=null},inputInitialized(){return new Promise(resolve=>{if(this._bInnerControlsCreated){resolve(this._oInput)}else{this._aPendingInnerControlsCreated.push(reso` &&
+             `lve)}})},onInnerControlsCreated(oEvent){this._oInput=oEvent.getSource();this._bInnerControlsCreated=true;for(const resolve of this._aPendingInnerControlsCreated){resolve(this._oInput)}this._aPendingIn` &&
+             `nerControlsCreated=[]}});return Env.ownClass(SmartMultiInputExt)});` && |\n| &&
              `` && |\n| &&
-             `        if (!videoWidth || !videoHeight) {` && |\n| &&
-             `          this._setStatus("Camera not ready yet - no frame captured.");` && |\n| &&
-             `          Lib.logError("CameraPicture: camera not ready, no frame to capture");` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
-             `        canvas.width = videoWidth;` && |\n| &&
-             `        canvas.height = videoHeight;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/Storage.js": function(){sap.ui.define(["sap/ui/core/Control","sap/ui/util/Storage","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Storage,Lib,Env)=>{"use strict";function isSameValue(a,b)` &&
+             `{if(a===b)return true;if(a===null||b===null)return false;if(typeof a!=="object"||typeof b!=="object")return false;if(Array.isArray(a)!==Array.isArray(b))return false;if(Array.isArray(a)){return a.leng` &&
+             `th===b.length&&a.every((v,i)=>isSameValue(v,b[i]))}const keys=Object.keys(a);if(keys.length!==Object.keys(b).length)return false;return keys.every(k=>Object.prototype.hasOwnProperty.call(b,k)&&isSameV` &&
+             `alue(a[k],b[k]))}const StorageControl=Control.extend("z2ui5.cc.Storage",{metadata:{properties:{type:{type:"string",defaultValue:"session"},prefix:{type:"string",defaultValue:""},key:{type:"string",def` &&
+             `aultValue:""},value:{type:"any",defaultValue:""}},events:{finished:{parameters:{type:{type:"string"},prefix:{type:"string"},key:{type:"string"},value:{type:"any"}}}}},onAfterRendering(){if(!this._pend` &&
+             `ingRead)return;this._pendingRead=false;const type=this.getProperty("type");const prefix=this.getProperty("prefix");const key=this.getProperty("key");const value=this.getProperty("value");let stored;tr` &&
+             `y{const storageType=Lib.resolveStorageType(Storage,type,"Storage","reading");if(this._storeType!==storageType||this._storePrefix!==prefix){this._store=new Storage(storageType,prefix);this._storeType=s` &&
+             `torageType;this._storePrefix=prefix}stored=this._store.get(key)}catch(e){Lib.logError(``Storage: read failed for key '${key}'``,e);return}if(stored==null)return;if(!isSameValue(stored,value)){this.setPr` &&
+             `operty("value",stored,true);this.fireFinished({type,prefix,key,value:stored})}},renderer:{apiVersion:2,render(oRm,oControl){Lib.renderInvisibleSpan(oRm,oControl);oControl._pendingRead=true}}});return ` &&
+             `Env.ownClass(StorageControl)});` && |\n| &&
              `` && |\n| &&
-             `        const ctx = canvas.getContext("2d", _CTX_2D_OPTS);` && |\n| &&
-             `        if (!ctx) return false;` && |\n| &&
-             `        ctx.drawImage(video, 0, 0, videoWidth, videoHeight);` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/Tree.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/core/Env"],(Control,Lib,ViewSlots,Context,Env)=>{"use stri` &&
+             `ct";const Tree=Control.extend("z2ui5.cc.Tree",{metadata:{properties:{tree_id:{type:"string"}}},_getTreeBinding(){const treeControl=ViewSlots.byIdOfOwner(this,this.getProperty("tree_id"));return treeCo` &&
+             `ntrol?.getBinding("items")},_treeStates(where){const states=Context.of(this)?.state.treeStates;if(states)return states;if(!this._noContextLogged){this._noContextLogged=true;Lib.logError(``Tree.${where}` &&
+             `: no component context, tree state not preserved``)}return null},setBackend(){try{const id=this.getProperty("tree_id");if(!id)return;const treeStates=this._treeStates("setBackend");if(!treeStates)retur` &&
+             `n;const binding=this._getTreeBinding();if(binding){treeStates[id]=binding.getCurrentTreeState()}}catch(e){Lib.logError(``Tree.setBackend: failed for tree_id '${this.getProperty("tree_id")}'``,e)}},init(` &&
+             `){this._unhook=Lib.hookCallback(this,"onBeforeRoundtrip","setBackend")},exit(){this._unhook()},onAfterRendering(){try{const id=this.getProperty("tree_id");if(!id)return;const snapshot=this._treeStates` &&
+             `("onAfterRendering")?.[id];if(!snapshot)return;const binding=this._getTreeBinding();if(!binding)return;if(this._appliedSnapshot===snapshot&&this._appliedBinding===binding){return}this._appliedSnapshot` &&
+             `=snapshot;this._appliedBinding=binding;binding.setTreeState(snapshot);binding.refresh(true)}catch(e){Lib.logError(``Tree.onAfterRendering: setTreeState failed for tree_id '${this.getProperty("tree_id")` &&
+             `}'``,e)}},renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Tree)});` && |\n| &&
              `` && |\n| &&
-             `        let resultb64;` && |\n| &&
-             `        try {` && |\n| &&
-             `          resultb64 = canvas.toDataURL("image/jpeg", 0.85);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          this._setStatus("Could not read the captured image.");` && |\n| &&
-             `          Lib.logError("CameraPicture: canvas toDataURL failed", e);` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/UITableExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Control,Lib,Env,ViewSlots,Context)=>{"us` &&
+             `e strict";const opSymbols={EQ:"=",NE:"!=",LT:"<",LE:"<=",GT:">",GE:">="};const filterDisplayFns={Contains:v=>``*${v??""}*``,StartsWith:v=>``${v??""}*``,EndsWith:v=>``*${v??""}``};const UITableExt=Control.ex` &&
+             `tend("z2ui5.cc.UITableExt",{metadata:{properties:{tableId:{type:"string"}}},init(){this._unhooks=[Lib.hookCallback(this,"onBeforeRoundtrip","readBackend"),Lib.hookCallback(this,"onAfterRendering","app` &&
+             `lyBackend")]},exit(){for(const unhook of this._unhooks)unhook()},readBackend(){const table=this._getTable();this.readFilter(table);this.readSort(table);const kept=this._tableStates();const id=this.get` &&
+             `Property("tableId");if(kept&&id){kept[id]={filters:this.aFilters,sorters:this.aSorters}}},_tableStates(){return Context.of(this)?.state.tableStates??null},applyBackend(){try{const oTable=this._getTabl` &&
+             `e();if(!oTable)return;if(this._applyPending&&this._pendingTable===oTable)return;this._applyPending=true;this._pendingTable=oTable;Lib.whenRendered(oTable,this,()=>{if(this._pendingTable!==oTable)retur` &&
+             `n;this._applyPending=false;this._pendingTable=null;const kept=this._tableStates()?.[this.getProperty("tableId")]??{};this._applyGuarded(oTable,this.aFilters??kept.filters,"_applyFilters");this._applyG` &&
+             `uarded(oTable,this.aSorters??kept.sorters,"_applySorters")})}catch(e){this._applyPending=false;this._pendingTable=null;Lib.logError(``UITableExt.applyBackend failed${this._forTable()}``,e)}},_applyGuard` &&
+             `ed(oTable,aValues,method){try{this[method](oTable,aValues)}catch(e){Lib.logError(``UITableExt.${method} failed${this._forTable()}``,e)}},_forTable(){return`` for tableId '${this.getProperty("tableId")}'``` &&
+             `},_getTable(){return ViewSlots.byIdOfOwner(this,this.getProperty("tableId"))},readFilter(oTable){try{const binding=oTable?.getBinding();this._filterBinding=binding;this.aFilters=Env.controlFilters(bin` &&
+             `ding)}catch(e){Lib.logError(``UITableExt.readFilter failed${this._forTable()}``,e)}},_applyFilters(oTable,aFilters){if(!aFilters)return;const binding=oTable.getBinding();if(!binding)return;if(binding===` &&
+             `this._filterBinding)return;binding.filter(aFilters);this._filterBinding=binding;const columns=oTable.getColumns();for(const oFilter of aFilters){let sProperty=oFilter.sPath;if(!sProperty&&oFilter.aFil` &&
+             `ters?.[0]){sProperty=oFilter.aFilters[0].sPath}if(!sProperty)continue;const operator=oFilter.sOperator;let vValue=oFilter.oValue1;if(vValue===undefined)vValue=oFilter.oValue2;if(vValue===undefined&&oF` &&
+             `ilter.aFilters?.[0]){vValue=oFilter.aFilters[0].oValue1}let displayFn;if(operator==="BT"){displayFn=v=>{const from=Lib.toText(v);const to=Lib.toText(oFilter.oValue2);return``${from}..${to}``}}else if(fi` &&
+             `lterDisplayFns[operator]){displayFn=filterDisplayFns[operator]}else{const prefix=opSymbols[operator]||"";displayFn=v=>``${prefix}${Lib.toText(v)}``}const display=displayFn(vValue);for(const oCol of colu` &&
+             `mns){if(oCol.getFilterProperty?.()===sProperty){oCol.setFilterValue(display);oCol.setFiltered(Boolean(display))}}}},readSort(oTable){try{const binding=oTable?.getBinding();this._sortBinding=binding;th` &&
+             `is.aSorters=binding?binding.aSorters:undefined}catch(e){Lib.logError(``UITableExt.readSort failed${this._forTable()}``,e)}},_applySorters(oTable,aSorters){if(!aSorters)return;const binding=oTable.getBin` &&
+             `ding();if(!binding)return;if(binding===this._sortBinding)return;binding.sort(aSorters);this._sortBinding=binding;const columns=oTable.getColumns();for(const[index,sorter]of aSorters.entries()){for(con` &&
+             `st oCol of columns){if(oCol.getSortProperty?.()===sorter.sPath){oCol.setSorted(true);oCol.setSortOrder(sorter.bDescending?"Descending":"Ascending");if(oCol.setSortIndex)oCol.setSortIndex(index)}}}},re` &&
+             `nderer:Lib.EMPTY_RENDERER});return Env.ownClass(UITableExt)});` && |\n| &&
              `` && |\n| &&
-             `        const thumbH = Math.round((videoHeight * _THUMB_W) / videoWidth);` && |\n| &&
-             `        const thumbCanvas = document.createElement("canvas");` && |\n| &&
-             `        thumbCanvas.width = _THUMB_W;` && |\n| &&
-             `        thumbCanvas.height = thumbH;` && |\n| &&
-             `        const thumbCtx = thumbCanvas.getContext("2d", _CTX_2D_OPTS);` && |\n| &&
-             `        if (thumbCtx) thumbCtx.drawImage(canvas, 0, 0, _THUMB_W, thumbH);` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/UploadSetExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Env"],(Control,Lib,ViewSlots,Env)=>{"use strict";const UploadSetEx` &&
+             `t=Control.extend("z2ui5.cc.UploadSetExt",{metadata:{properties:{uploadSetId:{type:"string"},fileData:{type:"string",defaultValue:""},fileName:{type:"string",defaultValue:""},mediaType:{type:"string",d` &&
+             `efaultValue:""},fileSize:{type:"string",defaultValue:""},removedFileName:{type:"string",defaultValue:""},checkInit:{type:"boolean",defaultValue:false}},events:{change:{allowPreventDefault:true,paramet` &&
+             `ers:{}},remove:{allowPreventDefault:true,parameters:{}}}},init(){this._unhook=Lib.hookCallback(this,"onAfterRendering","setControl")},exit(){this._unhook();this._detach();if(this._reader)this._reader.` &&
+             `cancel()},_detach(){const uploadSet=this._target;this._target=null;if(!uploadSet||Lib.isDestroyed(uploadSet))return;if(this._onItemAdded){uploadSet.detachAfterItemAdded?.(this._onItemAdded)}if(this._o` &&
+             `nItemRemoved){uploadSet.detachAfterItemRemoved?.(this._onItemRemoved)}this._onItemAdded=null;this._onItemRemoved=null},_readFile(file){if(!this._reader){this._reader=Lib.readFilesInTurn(this,"UploadSe` &&
+             `tExt",(f,result)=>{this.setProperty("fileData",result,true);this.setProperty("fileName",f.name,true);this.setProperty("mediaType",f.type,true);this.setProperty("fileSize",String(f.size),true);this.fir` &&
+             `eChange()})}this._reader.add([file])},onItemAdded(oEvent){const file=oEvent.getParameter("item")?.getFileObject?.();if(!file)return;const max=this._target?.getMaxFileSize?.()||0;if(!Lib.withinFileSize` &&
+             `([file],max).length)return;this._readFile(file)},onItemRemoved(oEvent){const name=oEvent.getParameter("item")?.getFileName?.()??"";this.setProperty("removedFileName",name,true);this.fireRemove()},rend` &&
+             `erer:Lib.EMPTY_RENDERER,setControl(){if(this.getProperty("checkInit"))return;const uploadSet=ViewSlots.byIdOfOwner(this,this.getProperty("uploadSetId"));if(!Lib.claimOnce(this,uploadSet))return;try{th` &&
+             `is._target=uploadSet;this._onItemAdded=this.onItemAdded.bind(this);uploadSet.attachAfterItemAdded(this._onItemAdded);if(uploadSet.attachAfterItemRemoved){this._onItemRemoved=this.onItemRemoved.bind(th` &&
+             `is);uploadSet.attachAfterItemRemoved(this._onItemRemoved)}else{Lib.logError("UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported")}}catch(e){Lib.logError(``UploadSetExt.setC` &&
+             `ontrol: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,e)}}});return Env.ownClass(UploadSetExt)});` && |\n| &&
              `` && |\n| &&
-             `        let thumbB64 = "";` && |\n| &&
-             `        try {` && |\n| &&
-             `          thumbB64 = thumbCanvas.toDataURL("image/jpeg", 0.7);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("CameraPicture: thumb toDataURL failed", e);` && |\n| &&
-             `        }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/cc/Websocket.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Context","z2ui5/core/Env"],(Control,Lib,Context,Env)=>{"use strict";const RECONNECT_BASE_MS=` &&
+             `500;const RECONNECT_MAX_MS=3e4;const MAX_CONNECT_ATTEMPTS=5;const CONNECT_STABLE_MS=1e4;const MAX_QUEUE=100;const WS_URL=/^wss?:\/\//i;const HTTP_SCHEME=/^http/i;const Websocket=Control.extend("z2ui5.` &&
+             `cc.Websocket",{metadata:{properties:{path:{type:"string",defaultValue:""},value:{type:"string",defaultValue:""},checkActive:{type:"boolean",defaultValue:true},checkRepeat:{type:"boolean",defaultValue:` &&
+             `true}},events:{received:{allowPreventDefault:true,parameters:{}},error:{parameters:{code:{type:"string"},message:{type:"string"}}}}},init(){this._queue=[];this._failedAttempts=0;this._dropped=0},onAft` &&
+             `erRendering(){const url=this._resolveUrl();if(url!==this._url){this._disconnect();this._failedAttempts=0;this._doneAfterFirst=false}this._url=url;const active=this.getProperty("checkActive");if(active` &&
+             `&&this._wasInactive){this._failedAttempts=0;this._doneAfterFirst=false}this._wasInactive=!active;if(this.getProperty("checkRepeat"))this._doneAfterFirst=false;if(active){this._connect()}else{this._dis` &&
+             `connect()}},exit(){clearTimeout(this._drainId);this._cancelWait?.();this._cancelWait=null;clearTimeout(this._reconnectId);this._disconnect()},_resolveUrl(){const path=this.getProperty("path");if(!path` &&
+             `)return"";if(WS_URL.test(path))return path;const prefix=Context.of(this)?.state.endpointPrefix||"";const base=HTTP_SCHEME.test(prefix)?prefix:window.location.origin+prefix;const origin=base.replace(HT` &&
+             `TP_SCHEME,"ws");return path.charAt(0)==="/"?origin+path:origin+"/"+path},_connect(){if(this._ws||!this._url)return;if(this._failedAttempts>=MAX_CONNECT_ATTEMPTS)return;if(this._doneAfterFirst)return;c` &&
+             `onst url=this._url;let ws;try{ws=new WebSocket(url)}catch(err){const message="Cannot open "+url+": "+(err.message||err);Lib.logError("Websocket: "+message,err);this._countFailure(url);this._report({ki` &&
+             `nd:"error",code:"CONSTRUCT",message});return}this._ws=ws;this._opened=false;this._openedAt=0;ws.onopen=()=>{if(this._ws===ws){this._opened=true;this._openedAt=Date.now()}};ws.onmessage=event=>{if(Lib.` &&
+             `isDestroyed(this)||this._ws!==ws)return;if(typeof event.data!=="string"){Lib.logError("Websocket: ignored a non-text message");return}this._failedAttempts=0;if(!this.getProperty("checkRepeat")){this._` &&
+             `doneAfterFirst=true;this._disconnect()}this._report({kind:"message",value:event.data})};ws.onerror=()=>{Lib.logError("Websocket: connection error on "+url)};ws.onclose=event=>{if(this._ws!==ws)return;` &&
+             `this._ws=null;if(Lib.isDestroyed(this))return;const cause=this._opened?"Connection to "+url+" was closed":"Connection to "+url+" could not be established";const message=event.reason?cause+": "+event.r` &&
+             `eason:cause;Lib.logError("Websocket ("+event.code+"): "+message);if(this._opened&&Date.now()-this._openedAt>=CONNECT_STABLE_MS){this._failedAttempts=0}else{this._countFailure(url)}this._report({kind:"` &&
+             `error",code:String(event.code),message});this._scheduleReconnect()}},_countFailure(url){this._failedAttempts+=1;if(this._failedAttempts>=MAX_CONNECT_ATTEMPTS){Lib.logError("Websocket: "+MAX_CONNECT_AT` &&
+             `TEMPTS+" failed connection attempts to "+url+" - giving up until path or checkActive changes")}},_scheduleReconnect(){if(this._failedAttempts>=MAX_CONNECT_ATTEMPTS)return;const delay=Math.min(RECONNEC` &&
+             `T_MAX_MS,RECONNECT_BASE_MS*2**this._failedAttempts);clearTimeout(this._reconnectId);this._reconnectId=setTimeout(()=>{if(Lib.isDestroyed(this))return;if(!this.getProperty("checkActive"))return;this._c` &&
+             `onnect()},delay)},_disconnect(){const ws=this._ws;if(!ws)return;this._ws=null;ws.onopen=null;ws.onmessage=null;ws.onerror=null;ws.onclose=null;try{ws.close()}catch(err){Lib.logError("Websocket: close ` &&
+             `failed",err)}},_report(item){if(this._queue.length>=MAX_QUEUE){this._dropped+=1;Lib.logError("Websocket: queue full ("+MAX_QUEUE+"), dropped "+this._dropped+" item(s) so far");return}this._queue.push(` &&
+             `item);this._drain()},_drain(){if(!this._queue.length)return;if(Context.of(this)?.state.isBusy){this._scheduleDrain();return}const item=this._queue.shift();if(item.kind==="error"){this.fireError({code:` &&
+             `item.code,message:item.message})}else{this.setProperty("value",item.value,true);this.fireReceived()}if(this._queue.length)this._scheduleDrain()},_scheduleDrain(){this._cancelWait?.();this._cancelWait=` &&
+             `Lib.afterRoundtrip(this,()=>{this._cancelWait=null;clearTimeout(this._drainId);this._drainId=setTimeout(()=>{if(Lib.isDestroyed(this))return;this._drain()},0)})},renderer:{apiVersion:2,render:Lib.rend` &&
+             `erInvisibleSpan}});return Env.ownClass(Websocket)});` && |\n| &&
              `` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return false;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/controller/App.controller.js": function(){sap.ui.define(["sap/ui/core/mvc/Controller","sap/m/App","sap/m/NavContainer","z2ui5/controller/View1.controller","z2ui5/core/Server","z2ui5/core/` &&
+             `Context","z2ui5/core/ViewSlots","z2ui5/core/Env","z2ui5/core/Lib"],(BaseController,App,NavContainer,Controller,Server,Context,ViewSlots,Env,Lib)=>{"use strict";function createRoot(ctx,oController){con` &&
+             `st Root=ctx.state.ownsPage?App:NavContainer;const oRoot=Context.runAsOwner(ctx,()=>new Root(oController.createId("app")));oController.byId("rootSlot").setRoot(oRoot);return oRoot}function holdFirstAut` &&
+             `oFocus(oApp){if(!oApp?.getAutoFocus?.())return;oApp.setAutoFocus(false);const delegate={onAfterRendering(){if(!oApp.getCurrentPage())return;oApp.removeEventDelegate(delegate);oApp.setProperty("autoFoc` &&
+             `us",true,true)}};oApp.addEventDelegate(delegate)}function launchpadClient(){try{const Container=sap.ui.require("sap/ushell/Container");return Container?.getLogonSystem?.()?.getClient?.()}catch{return ` &&
+             `undefined}}const AppController=BaseController.extend("z2ui5.controller.App",{onInit(){const ctx=Context.of(this.getOwnerComponent());const state=ctx.state;state.oOwnerComponent=this.getOwnerComponent(` &&
+             `);const manifest=state.oOwnerComponent.getManifest();const uri=manifest?.["sap.app"]?.dataSources?.http?.uri;state.url=Lib.withSapClient(state.endpoint||uri,window.location.href,launchpadClient());sta` &&
+             `te.oApp=createRoot(ctx,this);if(!state.ownsPage)holdFirstAutoFocus(state.oApp);this.startApp()},startApp(){const ctx=Context.of(this.getOwnerComponent());const state=ctx.state;for(const slot of ViewSl` &&
+             `ots.slots){const oController=new Controller;oController.ctx=ctx;state[slot.controllerProp]=oController}state.isBusy=true;Server.roundtrip(ctx)}});return Env.ownClass(AppController)});` && |\n| &&
              `` && |\n| &&
-             `        this.setProperty("value", resultb64, true);` && |\n| &&
-             `        this.setProperty("thumbnail", thumbB64, true);` && |\n| &&
-             `        this.fireOnPhoto({ photo: resultb64 });` && |\n| &&
-             `        this._stopCamera();` && |\n| &&
-             `        return true;` && |\n| &&
-             `      },` && |\n|.
+             `},` && |\n| &&
+             `      "z2ui5/controller/View1.controller.js": function(){sap.ui.define(["sap/ui/core/mvc/Controller","sap/ui/core/BusyIndicator","z2ui5/core/Server","z2ui5/core/Lib","z2ui5/core/FrontendAction","z2ui5` &&
+             `/core/actions/Slots","z2ui5/core/ViewSlots","z2ui5/core/Router","z2ui5/core/Env"],(Controller,BusyIndicator,Server,Lib,FrontendAction,Slots,ViewSlots,Router,Env)=>{"use strict";function showBusy(ctx,d` &&
+             `elay){if(ctx?.state?.ownsPage===false)Lib.setComponentBusy(ctx,true,delay);else BusyIndicator.show(delay)}function hideBusy(ctx){if(ctx?.state?.ownsPage===false)Lib.setComponentBusy(ctx,false);else Bu` &&
+             `syIndicator.hide()}const RENDER_EVENT_CHAIN_MAX=25;const View1Controller=Controller.extend("z2ui5.controller.View1",{onAfterRendering(){if(this.ctx.state.oResponse)this._processAfterRendering()},async` &&
+             ` _processAfterRendering(reqSeq){let superseded=false;let replaced=false;let failed=false;const oResponse=this.ctx.state.oResponse;if(!oResponse||oResponse._processed)return;oResponse._processed=true;o` &&
+             `Response._processing=true;const seq=reqSeq??this.ctx.server.requestSeq;try{const state=this.ctx.state;const previousApp=state.renderedApp;if(oResponse.APP&&previousApp!==oResponse.APP){state.oQueuedEv` &&
+             `ent=null;state.oQueuedWindow=null;state.aRenderEvents=[];state.renderedApp=oResponse.APP}if(this._replacesMainOwner(oResponse,previousApp)){state.shortcuts=Object.create(null);state.treeStates=Object.` &&
+             `create(null);state.tableStates=Object.create(null);state.viewSizeLimits=Object.create(null);state.hashEvent=null;state.appHash="";state.pendingAppHash=null}if(oResponse.VIEWS){await this._applyViews(o` &&
+             `Response,seq)}const alive=Lib.isControllerAlive(this);if(!alive||seq!==this.ctx.server.requestSeq||oResponse!==this.ctx.state.oResponse){superseded=true;replaced=!alive||oResponse!==this.ctx.state.oRe` &&
+             `sponse;return}if(oResponse.MODELPRESENT)Slots.action(this.ctx,"updateModel");Router.sync(this.ctx,{...oResponse.NAV||{},id:oResponse.ID});Lib.runCallbacks(this.ctx.state.onAfterRendering);Lib.runCallb` &&
+             `acks(this.ctx.state.onRoundtripEnd)}catch(e){Lib.logError("_processAfterRendering: unexpected error",e);if(!Lib.isControllerAlive(this)||seq!==this.ctx.server.requestSeq){superseded=true;replaced=!Lib` &&
+             `.isControllerAlive(this)||oResponse!==this.ctx.state.oResponse}else{failed=true;Server.showRenderError(this.ctx,e,"Unexpected Error Occurred - App Terminated")}}finally{oResponse._processing=false;if(` &&
+             `!superseded){hideBusy(this.ctx);this.ctx.state.isBusy=false}if(!replaced&&this.ctx.state.mainTransition){await this.ctx.state.mainTransition}if(!replaced&&!failed)await this._runPendingActions(oRespon` &&
+             `se);if(superseded&&!replaced&&this.ctx.server.restoreSeq===this.ctx.server.requestSeq&&seq!==this.ctx.server.requestSeq){Lib.cancelPendingTimers(this.ctx)}if(!superseded&&!failed){this._dispatchQueued` &&
+             `Event();Router.dispatchPendingAppHash(this.ctx)}}},_replacesMainOwner(oResponse,previousApp){if(!oResponse?.APP)return false;const main=oResponse.VIEWS?.MAIN;if(!main||main.DESTROY)return false;const ` &&
+             `owner=ViewSlots.getViewApp(this.ctx,"MAIN")??previousApp;return owner!==oResponse.APP},async _applyViews(oResponse,seq){const views=oResponse?.VIEWS;if(!views)return;for(const slot of ViewSlots.slots)` &&
+             `{const entry=views[slot.key];if(!entry)continue;if(!Lib.isControllerAlive(this)||seq!==this.ctx.server.requestSeq)return;await Slots.action(this.ctx,entry.DESTROY?"destroy":"display",slot.key,entry.XM` &&
+             `L,entry.OPT,seq)}},_dispatchQueuedEvent(){const state=this.ctx.state;while(state.aRenderEvents.length){const queued=state.aRenderEvents.shift();if(!Lib.isControllerAlive(queued.controller))continue;co` &&
+             `nst key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getViewToken(this.ctx,key)!==queued.token){continue}const chain=state.renderEventChain+1;if(chain>RENDER_EVENT_CHAIN_MAX){Lib.logError` &&
+             `(``eB: ${RENDER_EVENT_CHAIN_MAX} events fired while a view was being built went out in a row - '${queued.args[0]?.[0]}' and the ones behind it are dropped. An app that answers a rendering event with a ` &&
+             `new view fires it again``);state.aRenderEvents=[];break}queued.controller.eB(...queued.args);state.renderEventChain=chain;break}const queued=state.oQueuedEvent;state.oQueuedEvent=null;if(queued&&Lib.is` &&
+             `ControllerAlive(queued.controller)){const key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getView(this.ctx,key)===queued.view){queued.controller.eB(...queued.args)}}Slots.dispatchQueuedW` &&
+             `indows(this.ctx)},async _runPendingActions(oResponse){const actions=oResponse?._pendingActions;if(oResponse)oResponse._pendingActions=null;if(!actions)return;if(!Lib.isControllerAlive(this))return;for` &&
+             `(const item of actions){const result=FrontendAction.runCustom(item,this);if(typeof result?.then==="function"){try{await result}catch(e){Lib.logError(``FrontendAction: async action '${item?.[0]}' failed` &&
+             ```,e)}if(!Lib.isControllerAlive(this))return}}},destroyPopup(){ViewSlots.destroy(this.ctx,"POPUP")},destroyPopover(){ViewSlots.destroy(this.ctx,"POPOVER")},destroyNestView(){ViewSlots.destroy(this.ctx,`.
     result = result &&
-             `` && |\n| &&
-             `      _stopCamera() {` && |\n| &&
-             `        if (this._stream) {` && |\n| &&
-             `          for (const track of this._stream.getTracks()) track.stop();` && |\n| &&
-             `        }` && |\n| &&
-             `        this._stream = null;` && |\n| &&
-             `        const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
-             `        if (video) video.srcObject = null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onPicture() {` && |\n| &&
-             `        if (this._oScanDialog?.isOpen()) return;` && |\n| &&
-             `        if (!this._oScanDialog) {` && |\n| &&
-             `          this._oStatus = new Text().addStyleClass(` && |\n| &&
-             `            "sapUiSmallMarginBegin sapUiSmallMarginTop",` && |\n| &&
-             `          );` && |\n| &&
-             `          const id = this.getId();` && |\n| &&
-             `          this._oScanDialog = new Dialog({` && |\n| &&
-             `            title: "Device Photo Function",` && |\n| &&
-             `            contentWidth: "640px",` && |\n| &&
-             `            contentHeight: "480px",` && |\n| &&
-             `            horizontalScrolling: false,` && |\n| &&
-             `            verticalScrolling: false,` && |\n| &&
-             `            stretch: true,` && |\n| &&
-             `            afterClose: () => this._stopCamera(),` && |\n| &&
-             `            content: [` && |\n| &&
-             `              this._oStatus,` && |\n| &&
-             `              new HTML({` && |\n| &&
-             `                id: ``${id}PictureContainer``,` && |\n| &&
-             `` && |\n| &&
-             `                content: ``<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay() ? " autoplay" : ""} id="${id}-video"></video>``` &&
-             `,` && |\n| &&
-             `              }),` && |\n| &&
-             `              new Button({` && |\n| &&
-             `                text: "Capture",` && |\n| &&
-             `` && |\n| &&
-             `                press: () => {` && |\n| &&
-             `                  if (this.capture()) this._oScanDialog.close();` && |\n| &&
-             `                },` && |\n| &&
-             `              }),` && |\n| &&
-             `              new HTML({` && |\n| &&
-             `                content: ``<canvas hidden id="${id}-canvas" style="overflow:auto"></canvas>``,` && |\n| &&
-             `              }),` && |\n| &&
-             `            ],` && |\n| &&
-             `            endButton: new Button({` && |\n| &&
-             `              text: "Cancel",` && |\n| &&
-             `              press: () => {` && |\n| &&
-             `                this._stopCamera();` && |\n| &&
-             `                this._oScanDialog.close();` && |\n| &&
-             `              },` && |\n| &&
-             `            }),` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this._setStatus("Starting camera...");` && |\n| &&
-             `` && |\n| &&
-             `        const openSeq = (this._openSeq = (this._openSeq || 0) + 1);` && |\n| &&
-             `` && |\n| &&
-             `        this._oScanDialog.attachEventOnce("afterOpen", async () => {` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
-             `          if (!video) {` && |\n| &&
-             `            this._setStatus("Camera preview element not found.");` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              "CameraPicture: video element not found after dialog open",` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          const facingMode = this.getProperty("facingMode");` && |\n| &&
-             `          const deviceId = this.getProperty("deviceId");` && |\n| &&
-             `          const options = {` && |\n| &&
-             `            video: { width: { ideal: 1920 }, height: { ideal: 1080 } },` && |\n| &&
-             `          };` && |\n| &&
-             `          if (deviceId) options.video.deviceId = deviceId;` && |\n| &&
-             `          if (facingMode) options.video.facingMode = { exact: facingMode };` && |\n| &&
-             `` && |\n| &&
-             `          try {` && |\n| &&
-             `            const md = navigator.mediaDevices;` && |\n| &&
-             `            if (!md?.getUserMedia) {` && |\n| &&
-             `              this._setStatus(` && |\n| &&
-             `                "Camera not available - a secure (HTTPS) connection is required.",` && |\n| &&
-             `              );` && |\n| &&
-             `              Lib.logError("CameraPicture: mediaDevices API not available");` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `            const stream = await md.getUserMedia(options);` && |\n| &&
-             `            if (!stream) return;` && |\n| &&
-             `` && |\n| &&
-             `            if (` && |\n| &&
-             `              Lib.isDestroyed(this) ||` && |\n| &&
-             `              !this._oScanDialog?.isOpen() ||` && |\n| &&
-             `              openSeq !== this._openSeq` && |\n| &&
-             `            ) {` && |\n| &&
-             `              for (const t of stream.getTracks()) t.stop();` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `            this._stream = stream;` && |\n| &&
-             `            video.srcObject = stream;` && |\n| &&
-             `            this._setStatus("Camera ready - press Capture to take a photo.");` && |\n| &&
-             `` && |\n| &&
-             `            try {` && |\n| &&
-             `              await video.play();` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              Lib.logError("CameraPicture: video.play() failed", e);` && |\n| &&
-             `            }` && |\n| &&
-             `          } catch (error) {` && |\n| &&
-             `            this._setStatus(` && |\n| &&
-             `              ``Camera unavailable: ${error.name || "Error"} - ${error.message}``,` && |\n| &&
-             `            );` && |\n| &&
-             `            Lib.logError("CameraPicture: getUserMedia failed", error);` && |\n| &&
-             `          }` && |\n| &&
-             `        });` && |\n| &&
-             `        this._oScanDialog.open();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _setStatus(message) {` && |\n| &&
-             `        if (Lib.isAlive(this._oStatus)) {` && |\n| &&
-             `          this._oStatus.setText(message);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._stopCamera();` && |\n| &&
-             `        if (this._oButton) this._oButton.destroy();` && |\n| &&
-             `        if (this._oScanDialog) this._oScanDialog.destroy();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        const h = this.getHeight();` && |\n| &&
-             `        const dom = this._oButton?.getDomRef();` && |\n| &&
-             `        if (h && dom) dom.style.height = toCssSize(h);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          if (!oControl._oButton) {` && |\n| &&
-             `            oControl._oButton = new Button({` && |\n| &&
-             `              icon: "sap-icon://camera",` && |\n| &&
-             `              text: "Camera",` && |\n| &&
-             `` && |\n| &&
-             `              press: () => {` && |\n| &&
-             `                if (oControl.firePress()) oControl.onPicture();` && |\n| &&
-             `              },` && |\n| &&
-             `            });` && |\n| &&
-             `          }` && |\n| &&
-             `          oControl._oButton.setWidth(toCssSize(oControl.getWidth()));` && |\n| &&
-             `` && |\n| &&
-             `          oRm.openStart("span", oControl);` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.renderControl(oControl._oButton);` && |\n| &&
-             `          oRm.close("span");` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(CameraPicture);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `"NEST")},destroyNestView2(){ViewSlots.destroy(this.ctx,"NEST2")},destroyView(){ViewSlots.destroy(this.ctx,"MAIN")},eF(...args){return FrontendAction.execute(this,args)},eBP(oEvent,bVeto,...args){if(bV` &&
+             `eto&&typeof oEvent?.preventDefault==="function"){oEvent.preventDefault()}this.eB(...args)},textPath(oControl,sSeparator){return Lib.getTextPath(oControl,sSeparator)},slotById(sSlot,sId){const control=` &&
+             `sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotById: no control '${sId}' in slot '${sSlot||"(any)"}'``);return null}return control},slotValu` &&
+             `e(sSlot,sId,sMethod){try{const control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotValue: no control '${sId}' in slot '${sSlot||"(any)"}` &&
+             `'``);return""}if(typeof control[sMethod]!=="function"){Lib.logError(``slotValue: '${sMethod}' is not a method of control '${sId}'``);return""}const value=control[sMethod]();return value===undefined||valu` &&
+             `e===null?"":value}catch(e){Lib.logError(``slotValue: '${sMethod}' on '${sId}' failed``,e);return""}},eB(...args){if(!Array.isArray(args[0])){let got;try{got=JSON.stringify(args[0])}catch{got=``an object ` &&
+             `that is no JSON (${Object.prototype.toString.call(args[0])})``}Lib.logError(``eB: the first argument must be the event array, got ${got}``);return}const{useMainModel,queueLast,noBusy}=Lib.eventOptions(ar` &&
+             `gs[0]);if(this.ctx.state.isBusy){if(queueLast){this.ctx.state.oQueuedEvent={controller:this,view:ViewSlots.getView(this.ctx,ViewSlots.keyOfController(this)),args:Lib.normalizeEventArgs(args)}}else if(` &&
+             `this._firedWhileBuilding()){this.ctx.state.aRenderEvents.push({controller:this,token:this.ctx.state.oResponse.TOKEN,args:Lib.normalizeEventArgs(args)});return}if(!noBusy)showBusy(this.ctx,0);return}th` &&
+             `is.ctx.state.renderEventChain=0;Lib.cancelPendingTimers(this.ctx);this.ctx.state.isBusy=true;if(!noBusy)showBusy(this.ctx);const oBody={};this.ctx.state.oBody=oBody;const oModel=this._pickModelForRoun` &&
+             `dtrip(useMainModel);Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);const changedPaths=oModel?._z2ui5ChangedPaths;if(oModel&&changedPaths?.size>0){const data=oModel.getData();if(data){oBody.MODEL=L` &&
+             `ib.buildDeltaFromPaths(changedPaths,data)}oModel._z2ui5SentValues=new Map(Array.from(changedPaths,path=>[path,oModel.getProperty(path)]))}this.ctx.state.oSentModel=oModel;oBody.ID=this.ctx.state.oResp` &&
+             `onse?.ID;oBody.ARGUMENTS=Lib.normalizeEventArgs(args);Server.roundtrip(this.ctx,oBody);Lib.runCallbacks(this.ctx.state.onAfterRoundtrip)},_firedWhileBuilding(){const oResponse=this.ctx.state.oResponse` &&
+             `;if(!oResponse?._processing)return false;const key=ViewSlots.keyOfController(this);if(!ViewSlots.getView(this.ctx,key))return true;return ViewSlots.getViewToken(this.ctx,key)===oResponse.TOKEN},_pickM` &&
+             `odelForRoundtrip(useMainModel){const slotKey=useMainModel?"MAIN":ViewSlots.keyOfController(this);if(!slotKey)return undefined;const oView=ViewSlots.getView(this.ctx,slotKey);if(!oView)return undefined` &&
+             `;if(Lib.isRootModelSlot(slotKey)){return Slots.resolveTrackedModel(oView)}return oView.getModel()}});return Env.ownClass(View1Controller)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/CameraSelector.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/m/ComboBox",` && |\n| &&
-             `    "sap/ui/core/Item",` && |\n| &&
-             `    "sap/m/ComboBoxRenderer",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (ComboBox, Item, ComboBoxRenderer, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const CameraSelector = ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
-             `      init() {` && |\n| &&
-             `        ComboBox.prototype.init.call(this);` && |\n| &&
-             `        this._onDeviceChange = () => this._loadCameras();` && |\n| &&
-             `        navigator.mediaDevices?.addEventListener?.(` && |\n| &&
-             `          "devicechange",` && |\n| &&
-             `          this._onDeviceChange,` && |\n| &&
-             `        );` && |\n| &&
-             `        this.attachLoadItems?.(this._onDeviceChange);` && |\n| &&
-             `        this._loadCameras();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        navigator.mediaDevices?.removeEventListener?.(` && |\n| &&
-             `          "devicechange",` && |\n| &&
-             `          this._onDeviceChange,` && |\n| &&
-             `        );` && |\n| &&
-             `        ComboBox.prototype.exit?.call(this);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async _loadCameras() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const md = navigator.mediaDevices;` && |\n| &&
-             `          if (!md?.enumerateDevices) return;` && |\n| &&
-             `          const devices = await md.enumerateDevices();` && |\n| &&
-             `` && |\n| &&
-             `          if (!devices || Lib.isDestroyed(this)) return;` && |\n| &&
-             `          const selected = this.getSelectedKey?.();` && |\n| &&
-             `          this.destroyItems?.();` && |\n| &&
-             `          for (const device of devices) {` && |\n| &&
-             `            if (device.kind !== "videoinput" || !device.deviceId) continue;` && |\n| &&
-             `` && |\n| &&
-             `            const item = new Item();` && |\n| &&
-             `            item.setKey(device.deviceId);` && |\n| &&
-             `            item.setText(device.label || device.deviceId);` && |\n| &&
-             `            this.addItem(item);` && |\n| &&
-             `          }` && |\n| &&
-             `          if (selected) this.setSelectedKey?.(selected);` && |\n| &&
-             `        } catch (err) {` && |\n| &&
-             `          Lib.logError("CameraSelector: enumerateDevices failed", err);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: ComboBoxRenderer,` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(CameraSelector);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/AppState.js": function(){sap.ui.define([],()=>{"use strict";function createState(){return{endpoint:null,url:null,oConfig:{},ccResourceRoot:null,cccResourceRoot:null,endpointPrefix:nu` &&
+             `ll,nodePath:null,ownsPage:false,oApp:null,oOwnerComponent:null,oDeviceModel:null,oView:null,oViewNest:null,oViewNest2:null,oViewPopup:null,oViewPopover:null,oController:null,oControllerNest:null,oCont` &&
+             `rollerNest2:null,oControllerPopup:null,oControllerPopover:null,slotXml:{},slotApp:{},slotToken:{},oLaunchpad:null,mainArrival:"",mainInstance:"",mainTransition:null,mainLeaving:null,oBody:null,oRespon` &&
+             `se:null,renderedApp:null,responseData:null,contextId:null,isBusy:false,oQueuedEvent:null,oQueuedWindow:null,aRenderEvents:[],renderEventChain:0,oSentModel:null,lastRequestBytes:null,lastRoundtripMs:nu` &&
+             `ll,lastMainDisplayOptions:null,navRouting:false,navMode:null,currentApp:null,currentDraftId:null,navFromHash:false,navDirection:"",hashEvent:null,appHash:"",pendingAppHash:null,hashPushCount:0,timers:` &&
+             `Object.create(null),shortcuts:Object.create(null),lastScrolled:{},odataClients:new Set,viewSizeLimits:Object.create(null),treeStates:Object.create(null),tableStates:Object.create(null),lastError:null,` &&
+             `onBeforeRoundtrip:[],onAfterRoundtrip:[],onAfterRendering:[],onRoundtripEnd:[],onBeforeEventFrontend:[],onErrorDetails:[]}}const COMPONENT_FIELDS=new Set(["endpoint","url","oConfig","ccResourceRoot","` &&
+             `cccResourceRoot","endpointPrefix","nodePath","ownsPage","oApp","oOwnerComponent","oDeviceModel","oLaunchpad","onBeforeRoundtrip","onAfterRoundtrip","onAfterRendering","onBeforeEventFrontend","onErrorD` &&
+             `etails"]);function resetApp(state){const fresh=createState();for(const key of Object.keys(fresh)){if(!COMPONENT_FIELDS.has(key))state[key]=fresh[key]}}return{createState,resetApp,COMPONENT_FIELDS}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/Dirty.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, Context, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const dirtyControls = new Set();` && |\n| &&
-             `` && |\n| &&
-             `    const promptOnUnload = (e) => {` && |\n| &&
-             `      e.preventDefault();` && |\n| &&
-             `      e.returnValue = "";` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    let promptInstalled = false;` && |\n| &&
-             `` && |\n| &&
-             `    function syncUnloadPrompt(anyDirty) {` && |\n| &&
-             `      if (anyDirty === promptInstalled) return;` && |\n| &&
-             `      if (anyDirty) {` && |\n| &&
-             `        window.addEventListener("beforeunload", promptOnUnload);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        window.removeEventListener("beforeunload", promptOnUnload);` && |\n| &&
-             `      }` && |\n| &&
-             `      promptInstalled = anyDirty;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const Dirty = Control.extend("z2ui5.cc.Dirty", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          isDirty: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `      setIsDirty(val) {` && |\n| &&
-             `        this.setProperty("isDirty", val, true);` && |\n| &&
-             `        if (val) {` && |\n| &&
-             `          dirtyControls.add(this);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          dirtyControls.delete(this);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._applyDirtyState();` && |\n| &&
-             `        return this;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _applyDirtyState() {` && |\n| &&
-             `        applyDirtyState(Context.of(this)?.state.oLaunchpad);` && |\n| &&
-             `      },` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        dirtyControls.delete(this);` && |\n| &&
-             `        this._applyDirtyState();` && |\n| &&
-             `      },` && |\n| &&
-             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
-             `    function applyDirtyState(launchpad) {` && |\n| &&
-             `      const anyDirty = dirtyControls.size > 0;` && |\n| &&
-             `` && |\n| &&
-             `      const anyDirtyOnOwnPage = [...dirtyControls].some(` && |\n| &&
-             `        (inst) => Context.of(inst)?.state?.ownsPage !== false,` && |\n| &&
-             `      );` && |\n| &&
-             `      try {` && |\n| &&
-             `        const hasFlpDirtyFlag =` && |\n| &&
-             `          launchpad?.Container?.setDirtyFlag && launchpad.ShellUIService;` && |\n| &&
-             `        if (hasFlpDirtyFlag) {` && |\n| &&
-             `          launchpad.Container.setDirtyFlag(anyDirty);` && |\n| &&
-             `` && |\n| &&
-             `          syncUnloadPrompt(false);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          syncUnloadPrompt(anyDirtyOnOwnPage);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed", e);` && |\n| &&
-             `        syncUnloadPrompt(anyDirtyOnOwnPage);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    Dirty.sync = function sync(ctx) {` && |\n| &&
-             `      applyDirtyState(ctx?.state?.oLaunchpad);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    Dirty.reset = function reset(ctx) {` && |\n| &&
-             `      for (const inst of dirtyControls) {` && |\n| &&
-             `        if (Context.of(inst) === ctx) dirtyControls.delete(inst);` && |\n| &&
-             `      }` && |\n| &&
-             `      let launchpad = ctx?.state?.oLaunchpad;` && |\n| &&
-             `      for (const inst of dirtyControls) {` && |\n| &&
-             `        if (launchpad) break;` && |\n| &&
-             `        launchpad = Context.of(inst)?.state.oLaunchpad;` && |\n| &&
-             `      }` && |\n| &&
-             `      applyDirtyState(launchpad);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return Env.ownClass(Dirty);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/Context.js": function(){sap.ui.define(["z2ui5/core/AppState"],AppState=>{"use strict";const byComponent=new WeakMap;const byView=new WeakMap;function create(component){const ctx={com` &&
+             `ponent:component||null,id:typeof component?.getId==="function"?component.getId():"",alive:true,state:AppState.createState(),server:{requestSeq:0,restoreSeq:0,inflight:new Set,viewBuild:null,csrfToken:` &&
+             `""},session:{configSent:false,ui5Sent:false,liveSent:"",pending:null,locationSent:false},router:{navigate:null,startRoute:null,hashListener:null,trail:[],trailPos:-1},shortcuts:{listener:null},variant` &&
+             `s:{activeInits:new Set},scroll:{target:undefined,ui5El:undefined,slotKey:undefined},focus:{userInside:false,listener:null},errorView:{title:"",details:"",options:{},dialog:null},restart:null,devtools:` &&
+             `{}};if(component)byComponent.set(component,ctx);return ctx}function destroy(ctx){if(!ctx)return;ctx.alive=false;ctx.state=AppState.createState();if(ctx.component)byComponent.delete(ctx.component)}func` &&
+             `tion resetApp(ctx){if(ctx?.state)AppState.resetApp(ctx.state)}function registerView(ctx,view){if(ctx&&view&&typeof view==="object")byView.set(view,ctx)}function runAsOwner(ctx,fn){const component=ctx?` &&
+             `.component;if(component&&typeof component.runAsOwner==="function"){return component.runAsOwner(fn)}return fn()}function of(anchor){if(!anchor||typeof anchor!=="object")return null;if(anchor.ctx&&ancho` &&
+             `r.ctx.state)return anchor.ctx;const own=byComponent.get(anchor);if(own)return own;const Component=sap.ui.require?.("sap/ui/core/Component");if(Component&&typeof Component.getOwnerComponentFor==="funct` &&
+             `ion"){const owner=Component.getOwnerComponentFor(anchor);const found=owner&&byComponent.get(owner);if(found)return found}let node=anchor;for(let i=0;node&&i<200;i++){const found=byView.get(node);if(fo` &&
+             `und)return found;node=typeof node.getParent==="function"?node.getParent():null}return null}return{create,destroy,resetApp,registerView,runAsOwner,of}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/ExcelBridge.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
-             `  (Control, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+             `      "z2ui5/core/Embed.js": function(){sap.ui.define(["sap/ui/core/Component","sap/ui/core/ComponentContainer"],(Component,ComponentContainer)=>{"use strict";const AREA="z2ui5EmbedArea";const STYLE=``` &&
+             `.${AREA} .sapMShell.sapMShellAppWidthLimited .sapMShellCentralBox ``+"{ left: 0; margin-left: 0; width: 100%; }";const STYLE_ID="z2ui5-embed-style";function installStyle(){if(document.getElementById(ST` &&
+             `YLE_ID))return;const marker=document.createElement("meta");marker.id=STYLE_ID;document.head.appendChild(marker);try{const sheet=new CSSStyleSheet;sheet.replaceSync(STYLE);document.adoptedStyleSheets=[` &&
+             `...document.adoptedStyleSheets,sheet]}catch(e){const style=document.createElement("style");style.textContent=STYLE;document.head.appendChild(style)}}function startupParameters(params,app){const result` &&
+             `={};for(const name of Object.keys(params||{}).sort()){if(name==="app_start")continue;const value=params[name];const values=(Array.isArray(value)?value:[value]).filter(v=>v!=null).map(v=>typeof v==="ob` &&
+             `ject"?JSON.stringify(v):String(v));if(values.length)result[name]=values}if(app)result.app_start=[app];return result}function withHostStart(settings){if(settings.ownsPage!==true||!settings.host)return ` &&
+             `settings;const owner=Component.getOwnerComponentFor(settings.host);const data=owner&&owner.getComponentData&&owner.getComponentData();const startup=data&&data.startupParameters||{};const first=name=>[` &&
+             `].concat(startup[name])[0];const params={};for(const name of Object.keys(startup)){if(name!=="app_start"&&first(name)!=null){params[name]=first(name)}}const app=settings.app||first("app_start")||"";re` &&
+             `turn Object.assign({},settings,{app:String(app),params:Object.assign(params,settings.params)})}function componentData(settings,installation){const data=Object.assign({},installation.componentData,{end` &&
+             `point:settings.endpoint});const parameters=startupParameters(settings.params,settings.app);if(Object.keys(parameters).length)data.startupParameters=parameters;if(settings.ownsPage===true)data.ownsPage` &&
+             `=true;return data}function createComponent(settings,installation){const create=()=>Component.create({name:installation.componentName,manifest:true,handleValidation:true,componentData:componentData(set` &&
+             `tings,installation)});const owner=settings.host&&Component.getOwnerComponentFor(settings.host);if(owner){try{return owner.runAsOwner(create)}catch(e){}}return create()}return{startupParameters,compone` &&
+             `ntData,withHostStart,create(settings,installation){const part=settings.ownsPage!==true;if(part)installStyle();return Promise.resolve(createComponent(withHostStart(settings),installation)).then(compone` &&
+             `nt=>{const container=new ComponentContainer({lifecycle:"Container",propagateModel:false,width:"100%",height:"100%",component});if(part)container.addStyleClass(AREA);return container})}}});` && |\n| &&
              `` && |\n| &&
-             `    const DEFAULT_MAX_CELLS = 20000;` && |\n| &&
-             `    const HARD_MAX_CELLS = 100000;` && |\n| &&
-             `    const SELECTION_DEBOUNCE_MS = 300;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/Env.js": function(){sap.ui.define(["sap/ui/core/Element","sap/ui/VersionInfo","z2ui5/core/Lib"],(Element,VersionInfo,Lib)=>{"use strict";function getElementById(sId){if(!sId)return n` &&
+             `ull;if(Element.getElementById)return Element.getElementById(sId)||null;if(sap.ui.getCore){const core=sap.ui.getCore();if(core?.byId)return core.byId(sId)||null}return null}let messagingFacade=null;fun` &&
+             `ction getMessaging(){if(messagingFacade)return messagingFacade;const Messaging=sap.ui.require("sap/ui/core/Messaging");if(Messaging){messagingFacade=Messaging;return Messaging}if(sap.ui.getCore){const` &&
+             ` core=sap.ui.getCore();if(core?.getMessageManager){messagingFacade=core.getMessageManager();return messagingFacade}}return null}function getThemingModule(){return sap.ui.require("sap/ui/core/Theming")` &&
+             `||null}function getTheme(){try{const Theming=getThemingModule();if(Theming?.getTheme)return Theming.getTheme();if(sap.ui.getCore){const config=sap.ui.getCore().getConfiguration?.();if(config?.getTheme` &&
+             `)return config.getTheme()}}catch(e){Lib.logError("Env: reading theme failed",e)}return""}function getLocale(){try{const Localization=sap.ui.require("sap/base/i18n/Localization");if(Localization?.getLa` &&
+             `nguage){return{language:Localization.getLanguage(),rtl:Boolean(Localization.getRTL?.())}}if(sap.ui.getCore){const config=sap.ui.getCore().getConfiguration?.();if(config?.getLanguage){return{language:c` &&
+             `onfig.getLanguage(),rtl:Boolean(config.getRTL?.())}}}}catch(e){Lib.logError("Env: reading locale failed",e)}return{language:"",rtl:false}}function hasMessagingModule(){const version=ui5Version();if(!v` &&
+             `ersion)return true;const[major,minor]=version;return major>1||major===1&&minor>=118}function ui5Version(){const rawVersion=String(sap.ui.version||"");const[major,minor]=rawVersion.split(".").map(Numbe` &&
+             `r);if(!Number.isFinite(major)||!Number.isFinite(minor))return null;return[major,minor]}function fragmentLoadsSync(){const version=ui5Version();if(!version)return false;const[major,minor]=version;retur` &&
+             `n major===1&&minor<84}const XMLNS=/\bxmlns(?::([\w.-]+))?\s*=\s*["']([\w.]+)["']/g;const ELEMENT=/<(?:([\w.-]+):)?([A-Z]\w*)[\s/>]/g;function fragmentControlModules(xml){const text=String(xml??"");con` &&
+             `st namespaces=new Map;for(const[,prefix,namespace]of text.matchAll(XMLNS)){namespaces.set(prefix??"",namespace)}const result=new Set;for(const[,prefix,name]of text.matchAll(ELEMENT)){const namespace=n` &&
+             `amespaces.get(prefix??"");if(!namespace||name==="FragmentDefinition")continue;result.add(``${namespace.replace(/\./g,"/")}/${name}``)}return[...result]}function preloadFragmentModules(xml){if(!fragmentL` &&
+             `oadsSync())return Promise.resolve();const modules=fragmentControlModules(xml);if(!modules.length)return Promise.resolve();return new Promise(resolve=>{sap.ui.require(modules,()=>resolve(),e=>{Lib.logE` &&
+             `rror("Env: preloading the fragment's controls failed",e);resolve()})})}const LIBRARY_NAME=/^[A-Za-z_]\w*(?:\.\w+)+$/;const namespaceLibrary=new Map;const libraryLoads=new Map;let distributionLibraries` &&
+             `=null;function viewNamespaces(xml){const result=new Set;for(const[,,namespace]of String(xml??"").matchAll(XMLNS)){if(LIBRARY_NAME.test(namespace)&&!namespace.startsWith("z2ui5")){result.add(namespace)` &&
+             `}}return[...result]}function loadDistributionLibraries(){if(!distributionLibraries){distributionLibraries=Promise.resolve().then(()=>VersionInfo?.load?.()).then(info=>Array.isArray(info?.libraries)?in` &&
+             `fo.libraries.map(lib=>lib?.name).filter(Boolean):null).catch(()=>null)}return distributionLibraries}function loadedLibraryNames(){try{const Library=sap.ui.require("sap/ui/core/Lib");if(Library?.all)re` &&
+             `turn new Set(Object.keys(Library.all()));if(sap.ui.getCore){const loaded=sap.ui.getCore().getLoadedLibraries?.();if(loaded)return new Set(Object.keys(loaded))}}catch(e){Lib.logError("Env: reading the ` &&
+             `loaded libraries failed",e)}return new Set}function isUnder(name,library){return name===library||name.startsWith(``${library}.``)}function libraryOf(namespace,libraries){if(!libraries)return namespace;l` &&
+             `et best=null;for(const library of libraries){if(isUnder(namespace,library)&&(!best||library.length>best.length)){best=library}}return best}function loadLibrary(name){let load=libraryLoads.get(name);if` &&
+             `(load)return load;load=new Promise(resolve=>{try{const Library=sap.ui.require("sap/ui/core/Lib");if(Library?.load){Library.load({name}).then(()=>resolve(true),()=>resolve(false));return}const core=sap` &&
+             `.ui.getCore?.();if(core?.loadLibraries){core.loadLibraries([name],{async:true}).then(()=>resolve(true),()=>resolve(false));return}}catch(e){Lib.logError(``Env: loading the library ${name} failed``,e)}re` &&
+             `solve(false)});libraryLoads.set(name,load);return load}async function loadViewLibraries(xml){const namespaces=viewNamespaces(xml).filter(namespace=>!namespaceLibrary.has(namespace));if(!namespaces.len` &&
+             `gth)return;const libraries=await loadDistributionLibraries();const loaded=[...loadedLibraryNames()];const names=new Set;for(const namespace of namespaces){const library=libraryOf(namespace,libraries);` &&
+             `namespaceLibrary.set(namespace,library);if(!library)continue;if(loaded.some(lib=>isUnder(library,lib)))continue;names.add(library)}await Promise.all([...names].map(loadLibrary))}const ownClasses=[];le` &&
+             `t hostPage=false;const hostNamespaces=new WeakSet;function collectHostNamespaces(object,depth){if(!object||typeof object!=="object"||depth>3)return;hostNamespaces.add(object);for(const key of Object.k` &&
+             `eys(object)){collectHostNamespaces(object[key],depth+1)}}collectHostNamespaces(window.z2ui5,0);function removeGlobal(name,value){if(!name||value===undefined)return;const keys=String(name).split(".");c` &&
+             `onst leaf=keys.pop();const chain=[window];for(const key of keys){const next=chain[chain.length-1][key];if(!next||typeof next!=="object")return;chain.push(next)}const holder=chain[chain.length-1];if(ho` &&
+             `lder[leaf]!==value)return;delete holder[leaf];for(let i=keys.length-1;i>=0;i--){const namespace=chain[i+1];if(hostNamespaces.has(namespace)||Object.keys(namespace).length){return}delete chain[i][keys[` &&
+             `i]]}}function removeClassGlobals(Class){try{const metadata=Class.getMetadata();removeGlobal(metadata.getName(),Class);if(typeof metadata.getRendererName==="function"){removeGlobal(metadata.getRenderer` &&
+             `Name(),metadata.getRenderer())}}catch(e){Lib.logError("Env: removing a class's global export failed",e)}}function ownClass(Class){ownClasses.push(Class);if(hostPage)removeClassGlobals(Class);return Cl` &&
+             `ass}function dropClassGlobals(){hostPage=true;for(const Class of ownClasses)removeClassGlobals(Class)}function controlFilters(binding){if(!binding)return undefined;if(typeof binding.getFilters==="func` &&
+             `tion"){return binding.getFilters("Control")}return binding.aFilters}return{getElementById,getMessaging,controlFilters,getThemingModule,getTheme,getLocale,hasMessagingModule,fragmentLoadsSync,fragmentC` &&
+             `ontrolModules,preloadFragmentModules,viewNamespaces,loadViewLibraries,ownClass,dropClassGlobals}});` && |\n| &&
              `` && |\n| &&
-             `    const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30);` && |\n| &&
-             `    const DAY_MS = 86400000;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/ErrorView.js": function(){sap.ui.define([],()=>{"use strict";const ERROR_MAX_LENGTH=5e4;const PREVIEW_MAX_LENGTH=500;const PREVIEW_SCAN_MAX=16e3;const DEFAULT_TITLE="Application Erro` &&
+             `r - Please Restart The App";const STYLE_ID="z2ui5ErrorViewStyle";const DIALOG_CLASS="z2ui5ErrorDialog";const MESSAGE_CLASS="z2ui5ErrorMessage";const HINT_CLASS="z2ui5ErrorHint";function fromCodePoint(` &&
+             `raw,codePoint){if(!(codePoint>=0&&codePoint<=1114111))return raw;return String.fromCodePoint(codePoint)}const NAMED_ENTITIES={nbsp:" ",lt:"<",gt:">",quot:'"',apos:"'",copy:String.fromCharCode(169)};co` &&
+             `nst ENTITY=/&(?:([a-z]+)|#(\d+)|#x([0-9a-f]+));/gi;function decodeEntities(s){return s.replace(ENTITY,(raw,name,dec,hex)=>{if(name)return NAMED_ENTITIES[name.toLowerCase()]??raw;if(dec)return fromCode` &&
+             `Point(raw,Number(dec));return fromCodePoint(raw,parseInt(hex,16))}).replace(/&amp;/gi,"&")}const cleanText=s=>decodeEntities(s.replace(/<[^>]+>/g," ")).replace(/\s+/g," ").trim();function extractServe` &&
+             `rError(html){const parts=[];const rx=/class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;let m;while(m=rx.exec(html))parts.push(cleanText(m[1]));return parts.filter(t=>t&&!/^server time:/i` &&
+             `.test(t)).join(" - ")}const ERROR_SECTION_HEADER="--- error ---";function extractFrameworkMessages(text){const lines=text.split("\n");const start=lines.findIndex(line=>line.trim()===ERROR_SECTION_HEAD` &&
+             `ER);if(start<0)return"";const messages=[];for(const line of lines.slice(start+1)){if(line.trim().startsWith("---"))break;const cleaned=cleanText(line);if(cleaned)messages.push(cleaned)}return messages` &&
+             `.join("\n")}function buildErrorPreview(text){if(!text)return"";let preview=extractFrameworkMessages(text);if(!preview){preview=text.slice(0,PREVIEW_SCAN_MAX);if(/<[a-z][\s\S]*>/i.test(preview)){previe` &&
+             `w=extractServerError(preview)||cleanText(preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi," "))}preview=preview.replace(/\s+/g," ").trim()}return preview.length>PREVIEW_MAX_LENGTH?``${preview.sl` &&
+             `ice(0,PREVIEW_MAX_LENGTH)}...``:preview}function copyToClipboard(text){const value=String(text==null?"":text);let copied;const textarea=document.createElement("textarea");textarea.value=value;textarea.` &&
+             `style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0;";textarea.setAttribute("readonly","");document.body.appendChild(textarea);try{textarea.focus();textarea.select();textarea.setSelection` &&
+             `Range(0,value.length);copied=document.execCommand("copy")}catch{copied=false}textarea.remove();if(!copied&&navigator.clipboard?.writeText){navigator.clipboard.writeText(value).catch(()=>{})}}const DIA` &&
+             `LOG_STYLES=``\n.${DIALOG_CLASS}.sapMDialog,\n.${DIALOG_CLASS} .sapMDialogTitleGroup,\n.${DIALOG_CLASS} .sapMIBar,\n.${DIALOG_CLASS} .sapMDialogFooter,\n.${DIALOG_CLASS} .sapMDialogScrollCont,\n.${DIALO` &&
+             `G_CLASS} .sapMBtnInner {\n  border-radius: 0 !important;\n}\n.${MESSAGE_CLASS} {\n  display: block;\n  margin: 0 0 0.5rem 0;\n  padding: 0.5rem 0.75rem;\n  border-left: 0.1875rem solid var(--sapNegati` &&
+             `veColor, #bb0000);\n  background: var(--sapErrorBackground, #ffebeb);\n  color: var(--sapTextColor, #32363a);\n  line-height: 1.4;\n  overflow-wrap: anywhere;\n}\n.${MESSAGE_CLASS}:last-of-type {\n  m` &&
+             `argin-bottom: 0;\n}\n.${HINT_CLASS} {\n  display: block;\n  margin-top: 0.75rem;\n  color: var(--sapContent_LabelColor, #6a6d70);\n  font-size: 0.8125rem;\n}\n``;function ensureDialogStyles(){try{if(do` &&
+             `cument.getElementById(STYLE_ID))return;const head=document.head||document.documentElement;if(!head)return;const style=document.createElement("style");style.id=STYLE_ID;style.textContent=DIALOG_STYLES;` &&
+             `head.appendChild(style)}catch{}}function withClass(control,className){if(control&&typeof control.addStyleClass==="function"){control.addStyleClass(className)}return control}function createContainer(){` &&
+             `document.getElementById("z2ui5ServerErrorContainer")?.remove();const container=document.createElement("div");container.id="z2ui5ServerErrorContainer";container.style.cssText=``\n      position: fixed;\` &&
+             `n      top: 50%;\n      left: 50%;\n      transform: translate(-50%, -50%);\n      width: 90%;\n      height: 90%;\n      background: white;\n      border: 1px solid #bb0000;\n      border-radius: 0;\` &&
+             `n      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);\n      z-index: 9999;\n      display: flex;\n      flex-direction: column;\n      font-family: "72", "72full", Arial, Helvetica, sans-serif;\n    ``;d` &&
+             `ocument.body.appendChild(container);return container}function hasErrorDetails(ctx){return(ctx?.state?.onErrorDetails||[]).length>0}function openErrorDetails(ctx){for(const fn of ctx?.state?.onErrorDet` &&
+             `ails||[]){if(!fn)continue;try{fn()}catch{}}}function restart(ctx){if(typeof ctx?.restart==="function"){ctx.restart();return}window.location.reload()}function showFriendlyDialog(ctx,title,details,optio` &&
+             `ns={}){try{const Dialog=sap.ui.require("sap/m/Dialog");const Button=sap.ui.require("sap/m/Button");const Text=sap.ui.require("sap/m/Text");if(!Dialog||!Button||!Text)return false;const store=ctx.error` &&
+             `View;store.title=title;store.details=details;store.options=options;if(store.dialog){store.dialog.destroy();store.dialog=null}ensureDialogStyles();const message=buildErrorPreview(details)||"An error oc` &&
+             `curred.";const content=message.split("\n").map(line=>{const text=new Text;text.setText(line);if(typeof text.setRenderWhitespace==="function"){text.setRenderWhitespace(true)}return withClass(text,MESSA` &&
+             `GE_CLASS)});if(String(details||"").trim()!==message){content.push(withClass(new Text({text:"Choose Details for the full technical information."}),HINT_CLASS))}const restartButton=new Button({text:"Res` &&
+             `tart",type:"Emphasized",press:()=>{dialog.close();restart(ctx)}});const copyText=``${title||DEFAULT_TITLE}\n\n${details}``;const copyButton=new Button({text:"Copy",press:()=>{copyToClipboard(copyText);c` &&
+             `opyButton.setText("Copied");setTimeout(()=>{if(!copyButton.bIsDestroyed)copyButton.setText("Copy")},1500)}});const buttons=[];if(hasErrorDetails(ctx)){buttons.push(new Button({text:"Details",press:()=` &&
+             `>{dialog.close();openErrorDetails(ctx)}}))}buttons.push(copyButton);if(typeof options.onRetry==="function"){buttons.push(new Button({text:"Retry",press:()=>{dialog.close();options.onRetry()}}))}button` &&
+             `s.push(restartButton);const dialog=new Dialog({title:title||"Application Error",type:"Message",state:"Error",icon:"sap-icon://message-error",contentWidth:"36rem",escapeHandler:oPromise=>oPromise.rejec` &&
+             `t(),content,buttons,initialFocus:restartButton,afterClose:()=>{if(store.dialog===dialog)store.dialog=null;dialog.destroy()}});withClass(dialog,DIALOG_CLASS);store.dialog=dialog;dialog.open();return tr` &&
+             `ue}catch(e){window.console?.error?.("ErrorView: friendly dialog failed",e);return false}}function reset(ctx){const store=ctx.errorView;store.title="";store.details="";store.options={}}function reopenE` &&
+             `rrorDialog(ctx){const store=ctx.errorView;return showFriendlyDialog(ctx,store.title,store.details,store.options)}function handleLogout(ctx){const fallback=()=>{window.location.href="/sap/public/bc/icf` &&
+             `/logoff"};try{const launchpad=ctx?.state?.oLaunchpad;if(launchpad?.Container?.logout){launchpad.Container.logout()}else{fallback()}}catch{fallback()}}function loadFriendlyDialogAsync(ctx,title,details` &&
+             `,options){try{const require=sap?.ui?.require;if(typeof require!=="function")return false;require(["sap/m/Dialog","sap/m/Button","sap/m/Text"],()=>{if(!showFriendlyDialog(ctx,title,details,options)){sh` &&
+             `owRawOverlay(ctx,title,details,options)}},()=>showRawOverlay(ctx,title,details,options));return true}catch{return false}}function show(ctx,response,title,options={}){const stack=response?.stack?String` &&
+             `(response.stack):"";const message=String(response);const full=stack?stack.includes(message)?stack:``${message}\n${stack}``:message;const errorMessage=full.length>ERROR_MAX_LENGTH?``${full.slice(0,ERROR_M` &&
+             `AX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``:full;ctx.state.lastError={title:title||DEFAULT_TITLE,text:errorMessage,onRetry:typeof options.onRetry==="function"?options.onRetry:` &&
+             `null};if(showFriendlyDialog(ctx,title,errorMessage,options))return;if(loadFriendlyDialogAsync(ctx,title,errorMessage,options))return;showRawOverlay(ctx,title,errorMessage,options)}function showRawOver` &&
+             `lay(ctx,title,errorMessage,options={}){const errorContainer=createContainer();errorContainer.setAttribute("role","alertdialog");errorContainer.setAttribute("aria-modal","true");errorContainer.setAttri` &&
+             `bute("aria-labelledby","serverErrorTitle");const headerDiv=document.createElement("div");headerDiv.style.cssText="padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-conte` &&
+             `nt: space-between; align-items: center; gap: 1rem;";const h3=document.createElement("h3");h3.id="serverErrorTitle";h3.textContent=title||DEFAULT_TITLE;h3.style.cssText="margin: 0; font-size: 1rem; fon` &&
+             `t-weight: bold;";headerDiv.appendChild(h3);const btnStyle="padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; fon` &&
+             `t-weight: bold; white-space: nowrap;";const actionsDiv=document.createElement("div");actionsDiv.style.cssText="display: flex; gap: 8px;";const addAction=(label,onClick)=>{const button=document.createE` &&
+             `lement("button");button.type="button";button.textContent=label;button.style.cssText=btnStyle;button.addEventListener("click",onClick);actionsDiv.appendChild(button)};if(typeof options.onRetry==="funct` &&
+             `ion"){addAction("Retry",()=>{errorContainer.remove();options.onRetry()})}addAction("Refresh",()=>{errorContainer.remove();restart(ctx)});addAction("Logout",()=>handleLogout(ctx));headerDiv.appendChild` &&
+             `(actionsDiv);errorContainer.appendChild(headerDiv);const trapButtons=actionsDiv.querySelectorAll("button");const firstTrap=trapButtons[0];const lastTrap=trapButtons[trapButtons.length-1];errorContaine` &&
+             `r.addEventListener("keydown",event=>{if(event.key!=="Tab")return;if(event.shiftKey&&document.activeElement===firstTrap){event.preventDefault();lastTrap.focus()}else if(!event.shiftKey&&document.active` &&
+             `Element===lastTrap){event.preventDefault();firstTrap.focus()}});let lastFocused=firstTrap;const containFocus=event=>{if(!errorContainer.isConnected){document.removeEventListener("focusin",containFocus` &&
+             `,true);return}const target=event.target;if(errorContainer.contains(target)){lastFocused=target;return}if(target?.closest?.('[role="dialog"], [role="alertdialog"], [aria-modal="true"]')){return}(lastFo` &&
+             `cused?.isConnected?lastFocused:firstTrap)?.focus()};document.addEventListener("focusin",containFocus,true);const iframe=document.createElement("iframe");iframe.id="errorIframe";iframe.style.cssText="w` &&
+             `idth: 100%; height: 100%; border: none; flex: 1;";iframe.setAttribute("sandbox","allow-same-origin");errorContainer.appendChild(iframe);const createPre=ownerDocument=>{const pre=ownerDocument.createEl` &&
+             `ement("pre");pre.style.cssText="margin:0;padding:1rem;font-family:monospace;font-size:0.75rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;";pre.textContent=errorMessage;return pre};con` &&
+             `st contentDocument=iframe.contentDocument;if(contentDocument){const target=contentDocument.body||contentDocument.documentElement;target.appendChild(createPre(contentDocument))}else{errorContainer.appe` &&
+             `ndChild(createPre(document))}if(firstTrap)firstTrap.focus()}return{show,restart,handleLogout,reopenErrorDialog,reset}});` && |\n| &&
              `` && |\n| &&
-             `    const ISO_DATE =` && |\n| &&
-             `      /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/FrontendAction.js": function(){sap.ui.define(["z2ui5/core/actions/ControlCall","z2ui5/core/actions/BindingCall","z2ui5/core/actions/Browser","z2ui5/core/actions/Launchpad","z2ui5/cor` &&
+             `e/actions/Variants","z2ui5/core/actions/Shortcuts","z2ui5/core/actions/ViewOps","z2ui5/core/Lib","z2ui5/core/ViewSlots"],(ControlCall,BindingCall,Browser,Launchpad,Variants,Shortcuts,ViewOps,Lib,ViewS` &&
+             `lots)=>{"use strict";const handlers=Object.assign(Object.create(null),ControlCall.handlers,BindingCall.handlers,Browser.handlers,Launchpad.handlers,Variants.handlers,Shortcuts.handlers,ViewOps.handler` &&
+             `s);function execute(oController,args){Lib.runCallbacks(oController?.ctx?.state.onBeforeEventFrontend,args);try{const handler=handlers[args[0]];if(handler){return handler(oController,args)}else{Lib.log` &&
+             `Error(``FrontendAction: unknown action '${args[0]}'``)}}catch(e){Lib.logError(``FrontendAction: handler '${args[0]}' failed``,e)}return undefined}function parseAction(item){let args=item;if(typeof item===` &&
+             `"string"){try{args=JSON.parse(item)}catch{args=null}}return Array.isArray(args)?args:null}function resolveBoundArgs(oController,args){let oModel;let looked=false;return args.map((arg,i)=>{const path=i` &&
+             `===0?null:Lib.bindingPathOf(arg);if(!path)return arg;if(!looked){looked=true;oModel=ViewSlots.responseModel(oController?.ctx,oController)}const value=oModel?.getProperty(path);if(value===undefined||va` &&
+             `lue===null){Lib.logError(``FrontendAction: '${args[0]}' - nothing bound at '${arg}', passed on as text``);return arg}return value})}function runCustom(item,oController){const args=parseAction(item);if(!` &&
+             `args)return undefined;try{return oController.eF(...resolveBoundArgs(oController,args))}catch(e){Lib.logError(``FrontendAction: custom action '${args[0]}' failed``,e)}return undefined}return{execute,runC` &&
+             `ustom}});` && |\n| &&
              `` && |\n| &&
-             `    const CELL_ADDRESS = /^\$?[A-Za-z]{1,3}\$?[1-9][0-9]{0,6}$/;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/Lib.js": function(){sap.ui.define(["z2ui5/core/Context"],Context=>{"use strict";const MAX_ERRORS=100;const errors=[];function logError(message,error){const entry={message,ts:(new Dat` &&
+             `e).toISOString()};if(error!==undefined)entry.error=error;errors.push(entry);if(errors.length>MAX_ERRORS)errors.shift();mirrorToUi5Log(message,error)}function mirrorToUi5Log(message,error){try{if(typeo` &&
+             `f sap==="undefined"||typeof sap.ui?.require!=="function")return;const Log=sap.ui.require("sap/base/Log");if(typeof Log?.warning!=="function")return;const details=error===undefined?undefined:String(err` &&
+             `or?.stack||error);Log.warning(message,details,"z2ui5")}catch{}}const CONTROLLER_FIELDS=["oController","oControllerNest","oControllerNest2","oControllerPopup","oControllerPopover"];function requireODat` &&
+             `aModel(){const loaded=sap.ui.require("sap/ui/model/odata/v2/ODataModel");if(loaded)return Promise.resolve(loaded);return new Promise((resolve,reject)=>{sap.ui.require(["sap/ui/model/odata/v2/ODataMode` &&
+             `l"],resolve,reject)})}function isControllerAlive(oController){const ctx=oController?.ctx;if(!ctx?.alive)return false;const state=ctx.state;return CONTROLLER_FIELDS.some(field=>state[field]===oControll` &&
+             `er)}function setComponentBusy(ctx,busy,delay){const root=ctx?.component?.getRootControl?.()||ctx?.state?.oApp||null;if(!root||isDestroyed(root))return;try{if(busy){root.setBusyIndicatorDelay(typeof de` &&
+             `lay==="number"?delay:1e3)}root.setBusy(busy===true)}catch(e){logError("setComponentBusy: setting the busy state failed",e)}}function isDestroyed(obj){if(!obj)return false;if(typeof obj.isDestroyed==="` &&
+             `function")return obj.isDestroyed();return Boolean(obj.bIsDestroyed)}function claimOnce(owner,target){if(!target||owner.getProperty("checkInit"))return false;owner.setProperty("checkInit",true,true);re` &&
+             `turn true}function isAlive(obj){return Boolean(obj)&&!isDestroyed(obj)}function registerCallback(ctx,name,fn){const state=ctx?.state;if(!state)return;if(!state[name])state[name]=[];state[name].push(fn` &&
+             `)}function unregisterCallback(ctx,name,fn){const state=ctx?.state;if(!state?.[name])return;state[name]=state[name].filter(f=>f!==fn)}function readFileAsDataURL(file,owner,onLoaded,errorContext,onFaile` &&
+             `d){const reader=new FileReader;reader.onload=()=>{if(isDestroyed(owner))return;onLoaded(reader.result)};reader.onerror=()=>{logError(``${errorContext}: FileReader failed``,reader.error);if(onFailed&&!is` &&
+             `Destroyed(owner))onFailed()};reader.readAsDataURL(file)}function readFilesInTurn(owner,errorContext,onFile){const queue=[];let reading=false;let cancelWait=null;let deliverId=null;const deliver=(file,` &&
+             `result)=>{if(isDestroyed(owner)){reading=false;return}if(Context.of(owner)?.state.isBusy){cancelWait=afterRoundtrip(owner,()=>{cancelWait=null;deliverId=setTimeout(()=>{deliverId=null;deliver(file,res` &&
+             `ult)},0)});return}onFile(file,result);step()};const step=()=>{cancelWait=afterRoundtrip(owner,()=>{cancelWait=null;readNext()})};const readNext=()=>{const file=queue.shift();if(!file||isDestroyed(owne` &&
+             `r)){reading=false;return}reading=true;readFileAsDataURL(file,owner,result=>deliver(file,result),errorContext,readNext)};return{add(files){for(const file of files)queue.push(file);if(!reading)readNext(` &&
+             `)},cancel(){queue.length=0;reading=false;if(cancelWait){cancelWait();cancelWait=null}if(deliverId!==null){clearTimeout(deliverId);deliverId=null}}}}function cancelPendingTimers(ctx){const timers=ctx?.` &&
+             `state?.timers;if(!timers)return;for(const key in timers){cancelTimer(timers[key]);delete timers[key]}}function resolveStorageType(Storage,type,context,verb){const typeKey=String(type||"").toLowerCase(` &&
+             `);const known=Storage.Type[typeKey];const storageType=known||Storage.Type.session;if(type&&!known){logError(``${context}: unknown type '${type}', ${verb} the session store``)}return storageType}function` &&
+             ` cancelTimer(handle){if(typeof handle==="function")handle();else clearTimeout(handle)}function applyTokenUpdate(control,oEvent){const isRemoved=oEvent.getParameter("type")==="removed";const rawList=oE` &&
+             `vent.getParameter(isRemoved?"removedTokens":"addedTokens")||[];const tokens=rawList.map(item=>({KEY:item.getKey(),TEXT:item.getText()}));control.setProperty("addedTokens",isRemoved?[]:tokens,true);con` &&
+             `trol.setProperty("removedTokens",isRemoved?tokens:[],true)}function afterRoundtrip(owner,fn){const ctx=Context.of(owner);if(!ctx?.state.isBusy){fn();return()=>{}}const once=()=>{unregisterCallback(ctx` &&
+             `,"onRoundtripEnd",once);if(isDestroyed(owner))return;fn()};registerCallback(ctx,"onRoundtripEnd",once);return()=>unregisterCallback(ctx,"onRoundtripEnd",once)}function withinFileSize(files,maxMegabyte` &&
+             `s,onTooBig){const list=Array.from(files||[]);const limit=Number(maxMegabytes)*1024*1024;if(!(limit>0))return list;return list.filter(file=>{if(!(Number(file?.size)>limit))return true;logError(``file '$` &&
+             `{file?.name??""}' is over the limit of ${maxMegabytes} MB - not read``);try{onTooBig?.(file)}catch(e){logError("withinFileSize: the size handler failed",e)}return false})}function dispatchWhenIdle(oCon` &&
+             `troller,args){const fire=()=>{if(!isControllerAlive(oController))return;if(oController.ctx?.state?.isBusy){afterRoundtrip(oController,()=>setTimeout(fire,0));return}oController.eB(...args)};fire()}fun` &&
+             `ction runCallbacks(callbacks,...args){if(!callbacks)return;for(const fn of callbacks){if(!fn)continue;try{fn(...args)}catch(e){logError("runCallbacks: callback failed",e)}}}const pendingDelegates=new ` &&
+             `WeakMap;function onNextRendering(control,fn,key){let byKey;if(key){byKey=pendingDelegates.get(control);if(!byKey){byKey=new Map;pendingDelegates.set(control,byKey)}const prev=byKey.get(key);if(prev)co` &&
+             `ntrol.removeEventDelegate(prev)}const delegate={onAfterRendering:()=>{control.removeEventDelegate(delegate);if(byKey)byKey.delete(key);fn()}};if(byKey)byKey.set(key,delegate);control.addEventDelegate(` &&
+             `delegate)}function whenRendered(control,owner,fn,key){if(control.getDomRef()){if(!isDestroyed(owner))fn();return}onNextRendering(control,()=>{if(!isDestroyed(owner))fn()},key)}const XML_TEMPLATING=/sa` &&
+             `p\.ui\.core\.template\/1|\{\s*template>/;function usesXmlTemplating(xml){return XML_TEMPLATING.test(String(xml??""))}function getTextPath(control,separator){const texts=[];let node=control;for(let i=0` &&
+             `;node&&i<100;i++){if(typeof node.getText!=="function")break;const text=node.getText();if(text)texts.push(text);node=typeof node.getParent==="function"?node.getParent():null}return texts.reverse().join` &&
+             `(separator||" > ")}function copyToClipboard(textToCopy){if(navigator.clipboard?.writeText){return navigator.clipboard.writeText(textToCopy).then(()=>true,err=>{logError("Clipboard: writeText failed, f` &&
+             `alling back",err);return copyToClipboardFallback(textToCopy)})}return Promise.resolve(copyToClipboardFallback(textToCopy))}function copyToClipboardFallback(textToCopy){const textarea=document.createEl` &&
+             `ement("textarea");textarea.value=textToCopy;textarea.setAttribute("readonly","");textarea.style.position="fixed";textarea.style.top="-1000px";textarea.style.opacity="0";document.body.appendChild(texta` &&
+             `rea);textarea.select();try{if(document.execCommand("copy"))return true;logError("Clipboard: execCommand('copy') returned false");return false}catch(err){logError("Clipboard: execCommand('copy') threw"` &&
+             `,err);return false}finally{document.body.removeChild(textarea)}}const SAFE_PROTOCOLS=["http:","https:"];function toText(val){return val==null?"":String(val)}function modelPathOf(raw){if(typeof raw!=="` &&
+             `string")return null;const path=raw.trim().replace(/^\$?\{(.*)\}$/,"$1").trim().replace(/^http>/,"");return path.startsWith("/")?path:null}function bindingPathOf(raw){if(typeof raw!=="string")return nu` &&
+             `ll;const m=/^\$\{\s*(?:http>)?(\/[^{}]*?)\s*\}$/.exec(raw.trim());return m?m[1]:null}function toCaretIndex(val){if(val==null||String(val).trim()==="")return null;const n=Number(val);return Number.isFi` &&
+             `nite(n)?Math.max(Math.trunc(n),0):null}function isTextInput(el){return Boolean(el)&&(el.tagName==="INPUT"||el.tagName==="TEXTAREA")}function readCaret(el){if(!isTextInput(el))return null;try{const sta` &&
+             `rt=el.selectionStart;const end=el.selectionEnd;if(start==null||end==null)return null;return{start,end}}catch{return null}}function deriveSystemType(system){if(!system)return"desktop";if(system.phone)r` &&
+             `eturn"phone";if(system.tablet)return"tablet";if(system.combi)return"combi";return"desktop"}function parseUrl(url){if(!url)return null;try{return new URL(url,window.location.origin)}catch(e){logError(``` &&
+             `Security: Invalid URL format: ${url}``,e);return null}}function hasSafeProtocol(parsed){if(SAFE_PROTOCOLS.includes(parsed.protocol))return true;logError(``Security: Blocked redirect with invalid protoco` &&
+             `l: ${parsed.protocol}``);return false}function isValidRedirectURL(url){const parsed=parseUrl(url);if(!parsed)return false;if(parsed.origin!==window.location.origin){logError(``Security: Blocked redirect` &&
+             ` to different origin: ${url}``);return false}return hasSafeProtocol(parsed)}function isSafeRedirectProtocol(url){const parsed=parseUrl(url);return parsed!==null&&hasSafeProtocol(parsed)}function isSafe` &&
+             `DownloadURL(url){const parsed=parseUrl(url);return parsed!==null&&(parsed.protocol==="data:"||parsed.protocol==="blob:"||SAFE_PROTOCOLS.includes(parsed.protocol))}function isValidContextId(id){return ` &&
+             `typeof id==="string"&&id!==""&&id!=="undefined"}function withSapClient(url,pageHref,shellClient){if(typeof url!=="string"||!url)return url;try{const page=new URL(pageHref);const parsed=new URL(url,pag` &&
+             `e.href);if(parsed.origin!==page.origin)return url;if(parsed.searchParams.has("sap-client"))return url;const client=page.searchParams.get("sap-client")||shellClient;if(typeof client!=="string"||!/^[0-9` &&
+             `]{3}$/.test(client))return url;const hashAt=url.indexOf("#");const base=hashAt<0?url:url.slice(0,hashAt);const hash=hashAt<0?"":url.slice(hashAt);let separator="&";if(!base.includes("?"))separator="?"` &&
+             `;else if(base.endsWith("?")||base.endsWith("&"))separator="";return``${base}${separator}sap-client=${client}${hash}``}catch{return url}}function parseDeltaSteps(segs){const steps=[];let i=0;while(i<segs` &&
+             `.length){const row=segs[i];if(row===""||Number.isNaN(Number(row)))return null;const field=segs[i+1];if(field===undefined||field===""||!Number.isNaN(Number(field))){return null}i+=2;if(i>=segs.length||` &&
+             `Number.isNaN(Number(segs[i]))){steps.push({row,field,leaf:true});return steps}steps.push({row,field,leaf:false})}return null}function buildDeltaFromPaths(paths,modelData){const delta={};const nests=ne` &&
+             `w WeakSet;for(const path of paths){const parts=path.slice(1).split("/");const attr=parts[0];let depth=1;while(parts[depth]==="*")depth+=1;const steps=parseDeltaSteps(parts.slice(depth));if(!steps){del` &&
+             `ta[attr]=modelData[attr];continue}const keys=parts.slice(0,depth);let holder=delta;let model=modelData;let whole=false;for(const key of keys.slice(0,-1)){if(!(key in holder)){holder[key]={};nests.add(` &&
+             `holder[key])}else if(!nests.has(holder[key])){whole=true;break}holder=holder[key];model=model?.[key]}if(whole)continue;const tableKey=keys[keys.length-1];if(tableKey in holder&&!holder[tableKey]?.__de` &&
+             `lta)continue;if(!holder[tableKey]?.__delta)holder[tableKey]={__delta:{}};let node=holder[tableKey];model=model?.[tableKey];for(const{row,field,leaf}of steps){const rows=node.__delta;if(!rows[row])rows` &&
+             `[row]={};const rowDelta=rows[row];model=model?.[Number(row)]?.[field];if(leaf){rowDelta[field]=model;break}if(field in rowDelta&&!rowDelta[field]?.__delta)break;if(!rowDelta[field]?.__delta)rowDelta[f` &&
+             `ield]={__delta:{}};node=rowDelta[field]}}return delta}const MSG_DETAIL_TAGS=new Set(["UL","OL","LI","STRONG","EM","P"]);const MSG_DROP_TAGS=new Set(["SCRIPT","STYLE","TEMPLATE"]);let _msgParser=null;l` &&
+             `et _sanitizeEl=null;function escapeMessageText(text){_sanitizeEl.textContent=text;return _sanitizeEl.innerHTML}function sanitizeMessageNodes(node){let out="";for(const child of node.childNodes){if(chi` &&
+             `ld.nodeType===3){out+=escapeMessageText(child.nodeValue)}else if(child.nodeType===1){const tag=child.tagName.toUpperCase();if(MSG_DROP_TAGS.has(tag)){continue}if(tag==="BR"){out+="<br>"}else if(MSG_DE` &&
+             `TAIL_TAGS.has(tag)){const name=tag.toLowerCase();out+=``<${name}>${sanitizeMessageNodes(child)}</${name}>``}else{out+=sanitizeMessageNodes(child)}}}return out}function sanitizeMessageDetails(html){if(!_` &&
+             `msgParser){_msgParser=new DOMParser;_sanitizeEl=document.createElement("div")}const doc=_msgParser.parseFromString(html,"text/html");return sanitizeMessageNodes(doc.body)}const ROOT_MODEL_SLOTS=["MAIN` &&
+             `","NEST","NEST2"];function isRootModelSlot(slotKey){return ROOT_MODEL_SLOTS.includes(slotKey)}function effectiveSizeLimit(viewSizeLimits,slotKey){if(!isRootModelSlot(slotKey))return viewSizeLimits[slo` &&
+             `tKey];let max;for(const key of ROOT_MODEL_SLOTS){const limit=viewSizeLimits[key];if(limit!==undefined&&(max===undefined||limit>max)){max=limit}}return max}function renderInvisibleSpan(oRm,oControl){oR` &&
+             `m.openStart("span",oControl);oRm.style("display","none");oRm.openEnd();oRm.close("span")}const EMPTY_RENDERER={apiVersion:2,render(){}};function hookCallback(owner,callbackName,method){const bound=own` &&
+             `er[method].bind(owner);let ctx=Context.of(owner);if(ctx){registerCallback(ctx,callbackName,bound);return()=>unregisterCallback(ctx,callbackName,bound)}let delegate={onBeforeRendering:()=>{ctx=Context.` &&
+             `of(owner);if(!ctx)return;owner.removeEventDelegate(delegate);delegate=null;registerCallback(ctx,callbackName,bound)}};if(typeof owner.addEventDelegate==="function"){owner.addEventDelegate(delegate)}re` &&
+             `turn()=>{if(delegate){owner.removeEventDelegate?.(delegate);delegate=null}if(ctx)unregisterCallback(ctx,callbackName,bound)}}const MAX_ARG_DEPTH=4;function isA(value,type){return value!==null&&typeof ` &&
+             `value==="object"&&typeof value.isA==="function"&&value.isA(type)}function isManagedObject(value){return isA(value,"sap.ui.base.ManagedObject")}const pad=(n,w=2)=>String(n).padStart(w,"0");function pro` &&
+             `jectValue(value){if(Object.prototype.toString.call(value)==="[object Date]"&&!isNaN(value)){return``${pad(value.getFullYear(),4)}-${pad(value.getMonth()+1)}-${pad(value.getDate())}``+``T${pad(value.getHo` &&
+             `urs())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}``}return value}function projectControl(control){const result={ID:control.getId()};const properties=control.getMetadata().getAllProperties()` &&
+             `;for(const name in properties){try{const value=control.getProperty(name);if(value!==undefined)result[name]=projectValue(value)}catch{}}return result}function isContext(value){return isA(value,"sap.ui.` &&
+             `model.Context")}function isPlainObject(value){if(value===null||typeof value!=="object")return false;const proto=Object.getPrototypeOf(value);return proto===null||Object.getPrototypeOf(proto)===null}fu` &&
+             `nction projectContext(context,level,ancestors){const result={};try{result.PATH=context.getPath()}catch{}try{const data=context.getObject();if(data!==undefined){result.OBJECT=normalizeEventArg(data,lev` &&
+             `el+1,ancestors)}}catch{}return result}function projectContainer(value,level,ancestors){if(ancestors.has(value))return null;ancestors.add(value);try{let copy=null;const keys=Array.isArray(value)?value.` &&
+             `map((_,i)=>i):Object.keys(value);for(const key of keys){const entry=value[key];const next=normalizeEventArg(entry,level+1,ancestors);if(next!==entry&&copy===null){copy=Array.isArray(value)?value.slice` &&
+             `():{...value}}if(copy!==null)copy[key]=next}return copy??value}finally{ancestors.delete(value)}}function isEvent(value){return isA(value,"sap.ui.base.Event")}function projectEvent(event,level,ancestor` &&
+             `s){const result={};try{result.ID=event.getId()}catch{}try{const source=event.getSource();if(source&&typeof source.getId==="function"){result.SOURCE=source.getId()}}catch{}try{const parameters=event.ge` &&
+             `tParameters();if(parameters!==undefined&&parameters!==null){result.PARAMETERS=normalizeEventArg(parameters,level+1,ancestors)}}catch{}return result}function normalizeEventArg(value,depth,ancestors){co` &&
+             `nst level=depth||0;if(level>MAX_ARG_DEPTH)return value;if(isEvent(value))return projectEvent(value,level,ancestors);if(isManagedObject(value))return projectControl(value);if(isContext(value))return pr` &&
+             `ojectContext(value,level,ancestors);if(Array.isArray(value)||isPlainObject(value)){return projectContainer(value,level,ancestors)}return projectValue(value)}const NO_EVENT_OPTIONS=Object.freeze({useMa` &&
+             `inModel:false,queueLast:false,noBusy:false});function eventOptions(aEvent){const opt=aEvent?.[1];if(opt!==null&&typeof opt==="object"&&!Array.isArray(opt)){return{useMainModel:Boolean(opt.useMainModel` &&
+             `),queueLast:Boolean(opt.queueLast),noBusy:Boolean(opt.noBusy)}}if(Array.isArray(aEvent)&&aEvent.slice(3).some(Boolean)){logError(``eB: the event '${aEvent[0]}' carries positional flags, which are not r` &&
+             `ead any more - write them as an object in slot [1], ['${aEvent[0]}', { queueLast: true }]``)}return NO_EVENT_OPTIONS}function normalizeEventArgs(args){return args.map(arg=>normalizeEventArg(arg,0,new S` &&
+             `et))}function byteLength(text){if(typeof TextEncoder==="function"){return(new TextEncoder).encode(text).length}if(typeof Blob==="function")return new Blob([text]).size;return text.length}function lazy` &&
+             `ByteLength(text){let pending=text;let bytes;return()=>{if(pending!==undefined){bytes=byteLength(pending);pending=undefined}return bytes}}return{errors,logError,isDestroyed,setComponentBusy,isControlle` &&
+             `rAlive,requireODataModel,afterRoundtrip,dispatchWhenIdle,withinFileSize,isAlive,claimOnce,isTextInput,readCaret,registerCallback,unregisterCallback,readFilesInTurn,cancelPendingTimers,cancelTimer,reso` &&
+             `lveStorageType,applyTokenUpdate,runCallbacks,whenRendered,onNextRendering,usesXmlTemplating,getTextPath,copyToClipboard,toText,modelPathOf,bindingPathOf,toCaretIndex,deriveSystemType,isValidRedirectUR` &&
+             `L,isSafeRedirectProtocol,isSafeDownloadURL,isValidContextId,withSapClient,buildDeltaFromPaths,sanitizeMessageDetails,isRootModelSlot,effectiveSizeLimit,renderInvisibleSpan,EMPTY_RENDERER,hookCallback,` &&
+             `normalizeEventArgs,eventOptions,byteLength,lazyByteLength}});` && |\n| &&
              `` && |\n| &&
-             `    let excelReady;` && |\n| &&
-             `    function excel() {` && |\n| &&
-             `      if (excelReady) return excelReady;` && |\n| &&
-             `      const w = window;` && |\n| &&
-             `      const Office = w.Office;` && |\n| &&
-             `      if (!Office || typeof Office.onReady !== "function") {` && |\n| &&
-             `        return Promise.resolve(undefined);` && |\n| &&
-             `      }` && |\n| &&
-             `      excelReady = Promise.resolve()` && |\n| &&
-             `        .then(() => Office.onReady())` && |\n| &&
-             `        .then(` && |\n| &&
-             `          (info) => {` && |\n| &&
-             `            const host = info?.host ?? Office.context?.host;` && |\n| &&
-             `            const isExcel = host != null && host === Office.HostType?.Excel;` && |\n| &&
-             `            return isExcel && typeof w.Excel?.run === "function"` && |\n| &&
-             `              ? w.Excel` && |\n| &&
-             `              : undefined;` && |\n| &&
-             `          },` && |\n| &&
-             `          () => undefined,` && |\n| &&
-             `        );` && |\n| &&
-             `      return excelReady;` && |\n| &&
-             `    }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/RootSlot.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Env"],(Control,Env)=>{"use strict";const RootSlot=Control.extend("z2ui5.core.RootSlot",{metadata:{aggregatio` &&
+             `ns:{root:{type:"sap.ui.core.Control",multiple:false}},defaultAggregation:"root"},renderer:{apiVersion:2,render(rm,oSlot){rm.openStart("div",oSlot);rm.style("width","100%");rm.style("height","100%");rm` &&
+             `.openEnd();const oRoot=oSlot.getAggregation("root");if(oRoot)rm.renderControl(oRoot);rm.close("div")}}});return Env.ownClass(RootSlot)});` && |\n| &&
              `` && |\n| &&
-             `    function hasOwn(obj, name) {` && |\n| &&
-             `      return Object.prototype.hasOwnProperty.call(obj, name);` && |\n| &&
-             `    }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/Router.js": function(){sap.ui.define(["sap/ui/core/routing/HashChanger","z2ui5/core/Lib"],(HashChanger,Lib)=>{"use strict";const APP_ROUTE_PREFIX="/app/";const SHELL_SEPARATOR="&/";f` &&
+             `unction hashChanger(){return HashChanger.getInstance()}function splitHash(sHash){const raw=String(sHash||"").replace(/^#/,"");if(!raw||raw.startsWith("/"))return{shell:"",app:raw};const i=raw.indexOf(` &&
+             `SHELL_SEPARATOR);if(i<0)return{shell:"",app:raw};let app=raw.slice(i+SHELL_SEPARATOR.length).replace(/^\/+/,"");if(app)app=``/${app}``;return{shell:raw.slice(0,i),app}}function appHashOf(sHash){return s` &&
+             `plitHash(sHash).app}function getHash(){return appHashNormalized(hashChanger().getHash())}function appHashNormalized(sHash){const app=appHashOf(sHash);if(app==="/")return"";return app&&!app.startsWith(` &&
+             `"/")?``/${app}``:app}function getRawHash(){return String(window.location.hash||"").replace(/^#/,"")}function patternFor(sClass,sDraftId){const base=``${APP_ROUTE_PREFIX}${sClass}``;return sDraftId?``${base` &&
+             `}/${sDraftId}``:base}function segmentsOf(sHash){const app=appHashOf(sHash).replace(/^\/+/,"");const marker="app/";if(!app.startsWith(marker))return null;return app.slice(marker.length).split(/[&?]/)[0]` &&
+             `.split("/")}function parse(sHash){const parts=segmentsOf(sHash);if(!parts)return null;if(parts[0]===""){if(parts.length<3||!parts[1]||!parts[2])return null;return{app:``/${parts[1]}/${parts[2]}``,draft:` &&
+             `parts.length>3?parts[3]:""}}if(!parts[0])return null;return{app:parts[0],draft:parts.length>1?parts[1]:""}}const APP_STATE_PARAM="z2ui5-xapp-state=";function appStateOf(sHash){const app=appHashOf(sHas` &&
+             `h).replace(/^\/+/,"");const query=app.includes("?")?app.slice(app.indexOf("?")+1):app;for(const part of query.split("&")){if(part.toLowerCase().startsWith(APP_STATE_PARAM)){return part.slice(APP_STATE` &&
+             `_PARAM.length)}}return""}function startRoute(sHash){const route=parse(sHash);if(route){return route.draft?{APP:route.app,DRAFT:route.draft}:{APP:route.app}}const appState=appStateOf(sHash);return appS` &&
+             `tate?{APP_STATE:appState}:null}function navTo(sRoute,bReplace){const sHash=String(sRoute||"").replace(/^\/+/,"");if(bReplace){hashChanger().replaceHash(sHash)}else{hashChanger().setHash(sHash)}}functi` &&
+             `on trailWrite(ctx,sHash,bReplace){const r=ctx.router;const h=appHashNormalized(sHash);if(bReplace&&r.trailPos>=0){r.trail[r.trailPos]=h;return}r.trail=r.trail.slice(0,r.trailPos+1);r.trail.push(h);r.t` &&
+             `railPos=r.trail.length-1}function write(ctx,sHash,bReplace){trailWrite(ctx,sHash,bReplace);navTo(sHash,bReplace)}function trailMove(ctx,sHash){const r=ctx.router;const h=appHashNormalized(sHash);const` &&
+             ` pos=r.trailPos;if(r.trail[pos]===h)return"";const prev=pos>0&&r.trail[pos-1]===h;const next=r.trail[pos+1]===h;if(prev){r.trailPos=pos-1;return next?"":"back"}if(next){r.trailPos=pos+1;return"forward` &&
+             `"}const before=pos>0?r.trail.lastIndexOf(h,pos-1):-1;if(before>=0){r.trailPos=before;return"back"}const after=r.trail.indexOf(h,pos+1);if(after>=0){r.trailPos=after;return"forward"}trailWrite(ctx,h,fa` &&
+             `lse);return""}function writeHash(ctx,sHash,bPush){if(bPush)ctx.state.hashPushCount+=1;write(ctx,sHash,!bPush)}function navBack(ctx,sFallback){if(!sFallback||ctx.state.hashPushCount>0){window.history.b` &&
+             `ack();return}write(ctx,sFallback,true)}function onHashChanged(ctx,sNewHash){const state=ctx.state;const direction=trailMove(ctx,sNewHash);if(direction==="back"){state.hashPushCount=Math.max(0,state.ha` &&
+             `shPushCount-1)}else if(direction==="forward"){state.hashPushCount+=1}if(!state.navRouting){dispatchAppHashChange(ctx,sNewHash);return}const route=parse(sNewHash);if(!route)return;if(route.draft){if(ro` &&
+             `ute.draft===state.currentDraftId)return}else if(route.app.toUpperCase()===String(state.currentApp).toUpperCase()){return}state.navFromHash=true;state.navDirection=direction;if(ctx.router.navigate)ctx.` &&
+             `router.navigate()}function applyHashEvent(ctx,mOptions){if(!mOptions.setHashEvent)return;const state=ctx.state;const sEvent=String(mOptions.setHashEvent).trim();state.hashEvent=sEvent||null;state.appH` &&
+             `ash=appHashNormalized(getRawHash())}function dispatchAppHashChange(ctx,sNewHash){const state=ctx.state;if(!state.hashEvent)return;const appHash=appHashNormalized(sNewHash);if(appHash===state.appHash)r` &&
+             `eturn;const controller=state.oController;if(!Lib.isControllerAlive(controller))return;if(state.isBusy){state.pendingAppHash=sNewHash;return}state.pendingAppHash=null;state.appHash=appHash;controller.e` &&
+             `B([state.hashEvent])}function dispatchPendingAppHash(ctx){const state=ctx.state;const pending=state.pendingAppHash;if(pending==null)return;state.pendingAppHash=null;dispatchAppHashChange(ctx,pending)}` &&
+             `function repointCallerEntry(ctx,mOptions,draftForRoute){const state=ctx.state;const prevApp=mOptions.navAppCallPrevApp;const prevDraft=mOptions.navAppCallPrevId;if(!draftForRoute||!prevApp||!prevDraft` &&
+             `)return;const prevRoute=patternFor(prevApp,prevDraft);if(getHash()===prevRoute)return;state.currentDraftId=prevDraft;write(ctx,prevRoute,true)}function applyMode(ctx,mOptions){if(!mOptions.setNavRouti` &&
+             `ng)return;const mode=String(mOptions.setNavRouting).toUpperCase();const on=mode==="KEEP"||mode==="FRESH";ctx.state.navRouting=on;ctx.state.navMode=on?mode:null}function updateAppRoute(ctx,mOptions,ID,` &&
+             `app){const state=ctx.state;const draftForRoute=state.navMode==="FRESH"?null:ID;state.currentApp=app;state.currentDraftId=draftForRoute;if(state.navFromHash){state.navFromHash=false;state.navDirection=` &&
+             `"";return}const route=patternFor(app,draftForRoute);if(mOptions.checkNavAppCall){repointCallerEntry(ctx,mOptions,draftForRoute);state.currentApp=app;state.currentDraftId=draftForRoute;write(ctx,route,` &&
+             `false)}else if(getHash()!==route){write(ctx,route,true)}}function sync(ctx,mOptions){if(!ctx.state.ownsPage)return;const ID=mOptions.id;try{applyMode(ctx,mOptions);applyHashEvent(ctx,mOptions);const s` &&
+             `tate=ctx.state;const sAsked=mOptions.setPushState||mOptions.setHashReplace;const bPush=Boolean(mOptions.setPushState);const bOwner=!state.navRouting&&Boolean(state.hashEvent);if(sAsked&&!bOwner){Lib.l` &&
+             `ogError(``Router: hash_set / hash_replace need the app to own the hash - '${sAsked}' is not written. Register a listener first (cs_event-hash_attach_changed); ${state.navRouting?"under hash_routing the` &&
+             ` hash is the router's":"none is registered"}``)}if(state.navRouting){const app=state.oResponse?.APP;if(app)updateAppRoute(ctx,mOptions,ID,app);return}if(sAsked&&bOwner){state.appHash=appHashNormalized(` &&
+             `sAsked);writeHash(ctx,sAsked,bPush);return}if(state.hashEvent)return;const newHash=mOptions.setAppStateActive?``/z2ui5-xapp-state=${ID||""}``:"";write(ctx,newHash,true)}catch(e){Lib.logError("Router.syn` &&
+             `c: history update failed",e)}}function init(ctx,fnNavigate){ctx.router.navigate=fnNavigate;ctx.router.startRoute=ctx.state.ownsPage?()=>startRoute(window.location.hash):null;if(!ctx.state.ownsPage)ret` &&
+             `urn;const listener=oEvent=>onHashChanged(ctx,oEvent.getParameter("newHash"));ctx.router.hashListener=listener;hashChanger().attachEvent("hashChanged",listener);hashChanger().init()}function exit(ctx){` &&
+             `const listener=ctx.router.hashListener;if(listener){hashChanger().detachEvent("hashChanged",listener);ctx.router.hashListener=null}ctx.router.navigate=null;ctx.router.startRoute=null}return{init,exit,` &&
+             `splitHash,patternFor,parse,startRoute,navTo,navBack,onHashChanged,dispatchPendingAppHash,sync}});` && |\n| &&
              `` && |\n| &&
-             `    function member(obj, names) {` && |\n| &&
-             `      if (!obj || typeof obj !== "object") return undefined;` && |\n| &&
-             `      for (const name of names) {` && |\n| &&
-             `        if (hasOwn(obj, name) && obj[name] !== undefined) return obj[name];` && |\n| &&
-             `        const hit = Object.keys(obj).find(` && |\n| &&
-             `          (k) => k.toLowerCase() === name.toLowerCase(),` && |\n| &&
-             `        );` && |\n| &&
-             `        if (hit !== undefined) return obj[hit];` && |\n| &&
-             `      }` && |\n| &&
-             `      return undefined;` && |\n| &&
-             `    }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/ScrollFocus.js": function(){sap.ui.define(["sap/ui/core/Element","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Element,Lib,Env,ViewSlots,Context)=>{` &&
+             `"use strict";function closestUi5Element(dom){if(Element.closestTo)return Element.closestTo(dom)??null;let el=dom;while(el&&el.getAttribute){if(el.hasAttribute("data-sap-ui")){return Env.getElementById` &&
+             `(el.id)}el=el.parentElement}return null}function stripSlotPrefix(ctx,fullId,slot){const view=ViewSlots.getView(ctx,slot.key);if(!view)return fullId;const prefix=slot.fragmentId?``${ViewSlots.fragmentId` &&
+             `Of(ctx,slot)}--``:``${view.getId()}--``;return fullId.startsWith(prefix)?fullId.slice(prefix.length):fullId}function focusTextInput(active,ui5El){if(Lib.isTextInput(active))return active;const focusRef=u` &&
+             `i5El?.getFocusDomRef?.();if(Lib.isTextInput(focusRef))return focusRef;const root=ui5El?.getDomRef?.();const inner=root?.querySelector?.("input, textarea");return Lib.isTextInput(inner)?inner:null}func` &&
+             `tion getFocusInfo(ctx){try{const active=document.activeElement;if(!active)return undefined;const ui5El=closestUi5Element(active);if(!ui5El)return undefined;if(ctx?.state?.ownsPage===false&&!isInCompon` &&
+             `ent(ctx,active)){return undefined}const fullId=ui5El.getId();let id=fullId;for(const slot of ViewSlots.slots){const local=stripSlotPrefix(ctx,fullId,slot);if(local!==fullId){id=local;break}}const info` &&
+             `={ID:id};const caret=Lib.readCaret(focusTextInput(active,ui5El));if(caret){info.SELECTION_START=caret.start;info.SELECTION_END=caret.end}return info}catch(e){Lib.logError("getFocusInfo: focus capture ` &&
+             `failed",e);return undefined}}function isInComponent(ctx,node){if(!ctx||!node||node.nodeType!==1)return false;try{const root=ctx.component?.getRootControl?.()?.getDomRef?.();if(root?.contains?.(node))r` &&
+             `eturn true;const ui5El=closestUi5Element(node);return Boolean(ui5El)&&Context.of(ui5El)===ctx}catch(e){Lib.logError("isInComponent: resolving the node failed",e);return false}}function mayMoveFocus(ct` &&
+             `x){if(ctx?.state?.ownsPage!==false)return true;const active=document.activeElement;if(!active||active===document.body){return ctx.focus.userInside}return isInComponent(ctx,active)}function watchFocus(` &&
+             `ctx){if(ctx?.state?.ownsPage!==false||ctx.focus.listener)return;const listener=event=>{ctx.focus.userInside=isInComponent(ctx,event.target)};ctx.focus.listener=listener;document.addEventListener("focu` &&
+             `sin",listener,true);document.addEventListener("pointerdown",listener,true)}function unwatchFocus(ctx){const listener=ctx?.focus?.listener;if(!listener)return;document.removeEventListener("focusin",lis` &&
+             `tener,true);document.removeEventListener("pointerdown",listener,true);ctx.focus.listener=null}function clearScrollCache(ctx){const cache=ctx.scroll;cache.target=undefined;cache.ui5El=undefined;cache.s` &&
+             `lotKey=undefined}function onScrollCapture(ctx,event){const target=event.target;if(!target||target.nodeType!==1)return;const _scrollCache=ctx.scroll;if(target!==_scrollCache.target){const ui5El=closest` &&
+             `Ui5Element(target);_scrollCache.target=target;_scrollCache.ui5El=ui5El;_scrollCache.slotKey=ui5El?ViewSlots.containingSlotKey(ctx,ui5El):undefined}if(_scrollCache.slotKey){ctx.state.lastScrolled[_scro` &&
+             `llCache.slotKey]={control:_scrollCache.ui5El,dom:target}}}function getScrollInfo(ctx){const _scrollCache=ctx.scroll;if(_scrollCache.target&&!_scrollCache.target.isConnected){clearScrollCache(ctx)}cons` &&
+             `t store=ctx.state.lastScrolled;const out={};for(const slot of ViewSlots.slots){const entry=store[slot.key];if(!entry)continue;if(!entry.dom.isConnected||!Lib.isAlive(entry.control)){delete store[slot.` &&
+             `key];continue}const id=stripSlotPrefix(ctx,entry.control.getId(),slot);out[slot.key]={ID:id,X:entry.dom.scrollLeft||0,Y:entry.dom.scrollTop||0}}return Object.keys(out).length?out:undefined}function re` &&
+             `set(ctx){clearScrollCache(ctx)}return{getFocusInfo,getScrollInfo,onScrollCapture,closestUi5Element,focusTextInput,isInComponent,mayMoveFocus,watchFocus,unwatchFocus,reset}});` && |\n| &&
              `` && |\n| &&
-             `    function normalizeColumns(columns, firstRow) {` && |\n| &&
-             `      let list = columns;` && |\n| &&
-             `      if (typeof list === "string") {` && |\n| &&
-             `        list = list` && |\n| &&
-             `          .split(",")` && |\n| &&
-             `          .map((s) => s.trim())` && |\n| &&
-             `          .filter(Boolean);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!Array.isArray(list) || !list.length) {` && |\n| &&
-             `        if (Array.isArray(firstRow)) {` && |\n| &&
-             `          return firstRow.map((_v, i) => ({` && |\n| &&
-             `            key: i,` && |\n| &&
-             `            header: ``COL${i + 1}``,` && |\n| &&
-             `            format: "",` && |\n| &&
-             `          }));` && |\n| &&
-             `        }` && |\n| &&
-             `        return firstRow && typeof firstRow === "object"` && |\n| &&
-             `          ? Object.keys(firstRow).map((k) => ({` && |\n| &&
-             `              key: k,` && |\n| &&
-             `              header: k,` && |\n| &&
-             `              format: "",` && |\n|.
+             `},` && |\n| &&
+             `      "z2ui5/core/Server.js": function(){sap.ui.define(["sap/ui/core/BusyIndicator","sap/ui/VersionInfo","z2ui5/core/Lib","z2ui5/core/Session","z2ui5/core/ScrollFocus","z2ui5/core/ViewSlots","z2ui5/co` &&
+             `re/ErrorView"],(BusyIndicator,VersionInfo,Lib,Session,ScrollFocus,ViewSlots,ErrorView)=>{"use strict";const REQUEST_TIMEOUT_MS=6e5;function showBusy(ctx,delay){if(ctx?.state?.ownsPage===false)Lib.setC` &&
+             `omponentBusy(ctx,true,delay);else BusyIndicator.show(delay)}function hideBusy(ctx){if(ctx?.state?.ownsPage===false)Lib.setComponentBusy(ctx,false);else BusyIndicator.hide()}return{PROTOCOL:3,endSessio` &&
+             `n(ctx){if(!Lib.isValidContextId(ctx.state.contextId))return;fetch(ctx.state.url,{method:"HEAD",keepalive:true,headers:{"sap-terminate":"session","sap-contextid":ctx.state.contextId,"sap-contextid-acce` &&
+             `pt":"header"}}).catch(()=>{});ctx.state.contextId=null},reset(ctx){ctx.server.requestSeq+=1;this._abortInflight(ctx);ctx.server.viewBuild=null;ctx.state.oQueuedEvent=null;ctx.state.oQueuedWindow=null;` &&
+             `ctx.state.aRenderEvents=[];ErrorView.reset(ctx)},restoreFromRoute(ctx){ctx.state.isBusy=true;showBusy(ctx,0);Lib.cancelPendingTimers(ctx);ctx.state.oQueuedEvent=null;ctx.state.oQueuedWindow=null;ctx.s` &&
+             `tate.aRenderEvents=[];this.roundtrip(ctx,{});ctx.server.restoreSeq=ctx.server.requestSeq},roundtrip(ctx,oBody={}){const state=ctx.state;state.oBody=oBody;const eventName=oBody.ARGUMENTS?.[0]?.[0];cons` &&
+             `t oConfig=state.oConfig;const config={...Session.config(ctx,oConfig,oBody.ID),S_FOCUS:ScrollFocus.getFocusInfo(ctx),S_SCROLL:ScrollFocus.getScrollInfo(ctx)};oBody.S_FRONT={ID:oBody.ID,EVENT:eventName,` &&
+             `HASH:state.ownsPage?window.location.hash:""};const sFront=oBody.S_FRONT;if(!oBody.ID){const route=ctx.router?.startRoute?.();if(route)sFront.ROUTE=route}if(Object.values(config).some(v=>v!==undefined)` &&
+             `){sFront.CONFIG=config}if(state.lastRoundtripMs){sFront.MS_CLIENT_PREV=state.lastRoundtripMs}Object.assign(sFront,Session.location(ctx,oBody.ID));if(oBody.ARGUMENTS)oBody.ARGUMENTS.shift();sFront.T_EV` &&
+             `ENT_ARG=oBody.ARGUMENTS;delete oBody.ID;delete oBody.ARGUMENTS;if(!sFront.T_EVENT_ARG?.length)delete sFront.T_EVENT_ARG;if(sFront.SEARCH==="")delete sFront.SEARCH;if(!sFront.HASH)delete sFront.HASH;if` &&
+             `(!oBody.MODEL)delete oBody.MODEL;this.readHttp(ctx,oBody,Session.takePending(ctx))},_openRequest(ctx,ms){const controller=new AbortController;const request={signal:controller.signal,timedOut:false,abo` &&
+             `rt:()=>controller.abort()};const timer=setTimeout(()=>{request.timedOut=true;controller.abort()},ms);request.close=()=>{clearTimeout(timer);ctx.server.inflight.delete(request)};ctx.server.inflight.add` &&
+             `(request);return request},_abortInflight(ctx){for(const request of[...ctx.server.inflight]){request.close();request.abort()}},async readHttp(ctx,oBody,sessionCarried){const oRetry={onRetry:()=>{ctx.st` &&
+             `ate.isBusy=true;showBusy(ctx,0);this.readHttp(ctx,oBody,sessionCarried)}};const reportTimeout=()=>this.responseError(ctx,``No backend response within ${REQUEST_TIMEOUT_MS/1e3} seconds - request aborted` &&
+             ```,undefined,oRetry);const seq=++ctx.server.requestSeq;const isStale=()=>seq!==ctx.server.requestSeq;this._abortInflight(ctx);let sentAt;let body;try{body=JSON.stringify({value:oBody})}catch(e){this.re` &&
+             `sponseError(ctx,``The request could not be serialized - an event argument is no plain data (${e.message})``);return}const request=this._openRequest(ctx,REQUEST_TIMEOUT_MS);const{signal}=request;try{let ` &&
+             `response;try{ctx.state.lastRequestBytes=Lib.lazyByteLength(body);sentAt=Date.now();response=await this._post(ctx,body,signal);if(this._csrfTokenRequired(response)&&await this._fetchCsrfToken(ctx,signa` &&
+             `l)&&!isStale()){response=await this._post(ctx,body,signal)}}catch(e){if(isStale())return;if(request.timedOut){reportTimeout()}else{const hint=e.name==="TypeError"?" - the backend could not be reached.` &&
+             ` Common causes: an expired "+"logon session redirecting to another origin (SSO), a CORS rule, "+"or the backend being offline.":"";this.responseError(ctx,``Network error: ${e.message}${hint}``,undefined` &&
+             `,oRetry)}return}if(isStale())return;const contextId=response.headers.get("sap-contextid");if(Lib.isValidContextId(contextId)){ctx.state.contextId=contextId}if(!response.ok){let text;try{text=await res` &&
+             `ponse.text()}catch{if(isStale())return;if(request.timedOut){reportTimeout();return}text=``HTTP ${response.status}: could not read error body``}if(isStale())return;this.responseError(ctx,text||``HTTP ${re` &&
+             `sponse.status}``,undefined,response.status>=502?oRetry:undefined);return}let responseData;try{responseData=await response.json()}catch(e){if(isStale())return;if(request.timedOut){reportTimeout();return` &&
+             `}const type=response.headers.get("content-type")||"";if(type.toLowerCase().includes("text/html")){this.responseError(ctx,"The server answered with an HTML page instead of the app's data - "+"usually a` &&
+             ` logon page after the session expired, or the page of a "+"proxy in between. Restart the app, logging on again if asked.");return}this.responseError(ctx,``Invalid JSON response: ${e.message}``);return}i` &&
+             `f(isStale())return;if(!responseData?.S_FRONT){this.responseError(ctx,"Invalid response: missing S_FRONT - the URL probably does not reach "+"the abap2UI5 handler. Check that the ICF service (or route)` &&
+             ` of this "+"page calls z2ui5_cl_ui5_http_handler.");return}if(responseData.S_FRONT.PROTOCOL!==undefined&&responseData.S_FRONT.PROTOCOL!==this.PROTOCOL){this.responseError(ctx,"Protocol mismatch: this ` &&
+             `frontend speaks "+this.PROTOCOL+", the backend answered "+responseData.S_FRONT.PROTOCOL+". Update whichever of the two is older - they ship together.");return}ctx.state.responseData=responseData;Sessi` &&
+             `on.confirmSent(ctx,sessionCarried);ctx.state.lastRoundtripMs=Date.now()-sentAt;this._clearSentPaths(ctx.state.oSentModel);ctx.state.oSentModel=null;this.responseSuccess(ctx,{ID:responseData.S_FRONT.ID` &&
+             `,VIEWS:responseData.S_FRONT.VIEWS,NAV:responseData.S_FRONT.NAV,ACTIONS:responseData.S_FRONT.ACTIONS,OVIEWMODEL:responseData.MODEL??{},MODELPRESENT:responseData.MODEL!==undefined,APP:responseData.S_FRO` &&
+             `NT.APP,TOKEN:Object.freeze({seq})},seq)}catch(e){if(!isStale())this.responseError(ctx,e)}finally{request.close()}},_post(ctx,body,signal){const headers={"Content-Type":"application/json","sap-contexti` &&
+             `d-accept":"header"};if(Lib.isValidContextId(ctx.state.contextId)){headers["sap-contextid"]=ctx.state.contextId}if(ctx.server.csrfToken){headers["X-CSRF-Token"]=ctx.server.csrfToken}return fetch(ctx.st` &&
+             `ate.url,{method:"POST",headers,body,signal})},_csrfTokenRequired(response){const value=response.headers.get("x-csrf-token")||"";return response.status===403&&value.trim().toLowerCase()==="required"},a` &&
+             `sync _fetchCsrfToken(ctx,signal){ctx.server.csrfToken="";try{const response=await fetch(ctx.state.url,{method:"HEAD",headers:{"X-CSRF-Token":"Fetch"},signal});const token=(response.headers.get("x-csrf` &&
+             `-token")||"").trim();const lower=token.toLowerCase();if(response.ok&&token&&lower!=="required"&&lower!=="fetch"){ctx.server.csrfToken=token}}catch(e){if(e?.name!=="AbortError"){Lib.logError("_fetchCsr` &&
+             `fToken: token fetch failed",e)}}return ctx.server.csrfToken!==""},_clearSentPaths(oModel){const pending=oModel?._z2ui5ChangedPaths;if(!pending)return;const sentValues=oModel._z2ui5SentValues;oModel._z` &&
+             `2ui5SentValues=null;if(!sentValues)return;for(const path of Array.from(pending)){if(sentValues.has(path)&&sentValues.get(path)===oModel.getProperty(path)){pending.delete(path)}}},async responseSuccess` &&
+             `(ctx,response,reqSeq){const oController=ViewSlots.getController(ctx,"MAIN");try{ctx.state.oResponse=response;response._pendingActions=response.ACTIONS||null;await oController._processAfterRendering(re` &&
+             `qSeq)}catch(e){hideBusy(ctx);ctx.state.isBusy=false;Lib.logError("responseSuccess: unexpected error",e);this.showRenderError(ctx,e)}},showRenderError(ctx,e,title){const msg=e?.message||"";if(msg.inclu` &&
+             `des("openui5")&&msg.includes("script load error")){this._checkSDKcompatibility(ctx,e)}else{this.responseError(ctx,e,title)}},async _checkSDKcompatibility(ctx,err){let gav;try{const info=await VersionI` &&
+             `nfo.load();gav=info.gav}catch(e){Lib.logError("_checkSDKcompatibility: VersionInfo.load failed",e);this.responseError(ctx,err);return}if(!gav?.includes("com.sap.ui5")){const moduleMatch=/['"]([\w./-]+` &&
+             `)['"]/.exec(err?.message||"");const missingModule=err?._modules||moduleMatch?.[1]||"the requested module";this.responseError(ctx,``openui5 SDK is loaded, module: ${missingModule} is not available in op` &&
+             `enui5``);return}this.responseError(ctx,err)},responseError(ctx,response,title,oOptions){hideBusy(ctx);ctx.state.isBusy=false;ctx.state.oQueuedEvent=null;ctx.state.oQueuedWindow=null;ctx.state.aRenderEv` &&
+             `ents=[];ErrorView.show(ctx,response,title,oOptions)}}});` && |\n| &&
+             `` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/Session.js": function(){sap.ui.define(["sap/ui/Device","z2ui5/core/Lib"],(Device,Lib)=>{"use strict";let deviceStatic;function getDeviceStatic(){if(!deviceStatic){deviceStatic={SYSTE` &&
+             `M:Lib.deriveSystemType(Device.system),BROWSER:{NAME:Device.browser.name||"",VERSION:String(Device.browser.version||"")},OS:{NAME:Device.os.name||"",VERSION:String(Device.os.version||"")},SUPPORT:{TOUC` &&
+             `H:Device.support.touch||false,POINTER:Device.support.pointer||false,RETINA:Device.support.retina||false}}}return deviceStatic}function getDeviceLive(){return{ORIENTATION:Device.orientation.portrait?"p` &&
+             `ortrait":"landscape",RESIZE:{WIDTH:Device.resize.width||window.innerWidth,HEIGHT:Device.resize.height||window.innerHeight}}}function config(ctx,oConfig,draftId){const latches=ctx.session;const live=ge` &&
+             `tDeviceLive();const liveKey=JSON.stringify(live);const ui5=oConfig?.S_UI5;if(latches.configSent&&draftId){const sendUi5=Boolean(ui5)&&!latches.ui5Sent;const sendLive=liveKey!==latches.liveSent;if(!sen` &&
+             `dUi5&&!sendLive){latches.pending=null;return{}}latches.pending={...sendUi5&&{ui5:true},...sendLive&&{live:liveKey}};return{...sendUi5&&{S_UI5:ui5},...sendLive&&{S_DEVICE:live}}}latches.pending={config` &&
+             `:true,ui5:Boolean(ui5),live:liveKey};return{S_UI5:ui5,ComponentData:oConfig?.ComponentData,S_DEVICE:{...getDeviceStatic(),...live}}}function takePending(ctx){const p=ctx.session.pending;ctx.session.pe` &&
+             `nding=null;return p}function confirmSent(ctx,p){if(!p)return;const latches=ctx.session;if(p.config)latches.configSent=true;if(p.ui5)latches.ui5Sent=true;if(p.live!==undefined)latches.liveSent=p.live;i` &&
+             `f(p.location)latches.locationSent=true}function location(ctx,draftId){const latches=ctx.session;if(draftId&&latches.locationSent)return null;latches.pending={...latches.pending,location:true};return{O` &&
+             `RIGIN:window.location.origin,PATHNAME:window.location.pathname,SEARCH:window.location.search}}function reset(ctx){const latches=ctx.session;latches.configSent=false;latches.ui5Sent=false;latches.liveS` &&
+             `ent="";latches.pending=null;latches.locationSent=false}return{config,takePending,confirmSent,location,reset}});` && |\n| &&
+             `` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/core/ViewSlots.js": function(){sap.ui.define(["sap/ui/core/Fragment","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/Context"],(Fragment,Lib,Env,Context)=>{"use strict";const slots=[{key:"M` &&
+             `AIN",ownsModel:true,dependentSlots:["NEST","NEST2"],prop:"oView",controllerProp:"oController"},{key:"NEST",containedSlots:["NEST2"],prop:"oViewNest",controllerProp:"oControllerNest"},{key:"NEST2",prop` &&
+             `:"oViewNest2",controllerProp:"oControllerNest2"},{key:"POPUP",ownsModel:true,prop:"oViewPopup",controllerProp:"oControllerPopup",fragmentId:"popupId"},{key:"POPOVER",ownsModel:true,prop:"oViewPopover"` &&
+             `,controllerProp:"oControllerPopover",fragmentId:"popoverId"}];function ownId(ctx,localId){const owner=ctx?.component;return owner?.createId?owner.createId(localId):localId}function fragmentIdOf(ctx,sl` &&
+             `ot){return slot.fragmentId?ownId(ctx,slot.fragmentId):undefined}const slotsByKey=new Map(slots.map(s=>[s.key,s]));function byKey(key){return slotsByKey.get(key)}function getView(ctx,key){const slot=by` &&
+             `Key(key);return slot?ctx?.state[slot.prop]:undefined}function setView(ctx,key,view,xml){const slot=byKey(key);if(!slot)return;ctx.state[slot.prop]=view;Context.registerView(ctx,view);slotXmlStore(ctx)` &&
+             `[key]=xml;slotAppStore(ctx)[key]=ctx.state.oResponse?.APP;ctx.state.slotToken[key]=ctx.state.oResponse?.TOKEN;attachSharedModels(ctx,view)}function getViewXml(ctx,key){return slotXmlStore(ctx)[key]}fu` &&
+             `nction slotXmlStore(ctx){return ctx.state.slotXml}function getViewApp(ctx,key){return slotAppStore(ctx)[key]}function slotAppStore(ctx){return ctx.state.slotApp}function getViewToken(ctx,key){return c` &&
+             `tx.state.slotToken[key]}function attachSharedModels(ctx,view){if(!view)return;if(ctx.state.oDeviceModel){view.setModel(ctx.state.oDeviceModel,"device")}const messaging=Env.getMessaging?.();if(messagin` &&
+             `g){view.setModel(messaging.getMessageModel(),"message");messaging.registerObject(view,true)}}function getController(ctx,key){const slot=byKey(key);return slot?ctx?.state[slot.controllerProp]:undefined` &&
+             `}function keyOfController(controller){const state=controller?.ctx?.state;if(!state)return undefined;const slot=slots.find(s=>state[s.controllerProp]===controller);return slot?slot.key:undefined}functi` &&
+             `on byId(ctx,key,id){const slot=byKey(key);if(!slot)return undefined;const view=ctx?.state[slot.prop];if(!view)return undefined;if(slot.fragmentId)return Fragment.byId(fragmentIdOf(ctx,slot),id);return` &&
+             ` view.byId(id)}function resolveById(ctx,id){if(!id)return null;for(const slot of slots){const found=byId(ctx,slot.key,id);if(found)return found}return Env.getElementById(id)}function trackedModel(owne` &&
+             `r){const isOurs=m=>m?._z2ui5Tracked?m:undefined;if(!owner?.getModel)return undefined;return isOurs(owner.getModel())??isOurs(owner.getModel("http"))}function responseModel(ctx,oController){const app=c` &&
+             `tx?.state?.oResponse?.APP;let oView;if(app){for(const slot of slots){if(getViewApp(ctx,slot.key)!==app)continue;const candidate=getView(ctx,slot.key);if(candidate){oView=candidate;break}}}if(!oView)oV` &&
+             `iew=oController?.getView?.();if(!oView)return undefined;return trackedModel(oView)??oView.getModel?.()}function containingSlotKey(ctx,element){const state=ctx?.state;if(!state)return undefined;let cur` &&
+             `rent=element;while(current){for(const slot of slots){if(state[slot.prop]===current)return slot.key}current=current.getParent?.()}return undefined}function byIdOfOwner(owner,id){const ctx=Context.of(ow` &&
+             `ner);if(!ctx)return undefined;return byId(ctx,containingSlotKey(ctx,owner)??"MAIN",id)}function destroy(ctx,key){const slot=byKey(key);if(!slot||!ctx?.state)return;for(const dep of slot.dependentSlots`.
     result = result &&
-             `            }))` && |\n| &&
-             `          : [];` && |\n| &&
-             `      }` && |\n| &&
-             `      return list.map((c) => {` && |\n| &&
-             `        if (c && typeof c === "object") {` && |\n| &&
-             `          const key = Lib.toText(member(c, ["key", "name", "field"]));` && |\n| &&
-             `          const header = member(c, ["header", "text", "label"]);` && |\n| &&
-             `          return {` && |\n| &&
-             `            key,` && |\n| &&
-             `` && |\n| &&
-             `            header: Lib.toText(header) || key,` && |\n| &&
-             `            format: Lib.toText(member(c, ["number_format", "numberFormat"])),` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `        const key = Lib.toText(c);` && |\n| &&
-             `        return { key, header: key, format: "" };` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveKey(row, key) {` && |\n| &&
-             `      if (!row || typeof row !== "object" || Array.isArray(row)) return key;` && |\n| &&
-             `      if (hasOwn(row, key)) return key;` && |\n| &&
-             `      const hit = Object.keys(row).find(` && |\n| &&
-             `        (k) => k.toLowerCase() === String(key).toLowerCase(),` && |\n| &&
-             `      );` && |\n| &&
-             `      return hit === undefined ? key : hit;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isoToSerial(text) {` && |\n| &&
-             `      const m = ISO_DATE.exec(text);` && |\n| &&
-             `      if (!m) return undefined;` && |\n| &&
-             `      const [, y, mo, d, h = "0", mi = "0", s = "0"] = m;` && |\n| &&
-             `      if (Number(y) < 1900) return undefined;` && |\n| &&
-             `      const ms = Date.UTC(+y, +mo - 1, +d, +h, +mi, +s);` && |\n| &&
-             `` && |\n| &&
-             `      const dt = new Date(ms);` && |\n| &&
-             `      if (` && |\n| &&
-             `        dt.getUTCFullYear() !== +y ||` && |\n| &&
-             `        dt.getUTCMonth() !== +mo - 1 ||` && |\n| &&
-             `        dt.getUTCDate() !== +d ||` && |\n| &&
-             `        dt.getUTCHours() !== +h ||` && |\n| &&
-             `        dt.getUTCMinutes() !== +mi ||` && |\n| &&
-             `        dt.getUTCSeconds() !== +s` && |\n| &&
-             `      )` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      return {` && |\n| &&
-             `        serial: (ms - EXCEL_EPOCH_MS) / DAY_MS,` && |\n| &&
-             `        hasTime: m[4] !== undefined,` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function toCell(value, format) {` && |\n| &&
-             `      if (typeof value === "number") {` && |\n| &&
-             `        return Number.isFinite(value)` && |\n| &&
-             `          ? { value, format: format || "General" }` && |\n| &&
-             `          : { value: "", format: "@" };` && |\n| &&
-             `      }` && |\n| &&
-             `      if (typeof value === "boolean") return { value, format: "General" };` && |\n| &&
-             `      if (value == null || typeof value === "object") {` && |\n| &&
-             `        return { value: "", format: "@" };` && |\n| &&
-             `      }` && |\n| &&
-             `      const text = String(value);` && |\n| &&
-             `      const date = isoToSerial(text);` && |\n| &&
-             `      if (date && text.length <= 25) {` && |\n| &&
-             `        const own = date.hasTime ? "yyyy-mm-dd hh:mm:ss" : "yyyy-mm-dd";` && |\n| &&
-             `        return { value: date.serial, format: format || own };` && |\n| &&
-             `      }` && |\n| &&
-             `      return { value: text, format: "@" };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function buildMatrix({ rows, columns, numberFormats, header }) {` && |\n| &&
-             `      const list = Array.isArray(rows) ? rows : [];` && |\n| &&
-             `      const cols = normalizeColumns(columns, list[0]);` && |\n| &&
-             `      if (!cols.length) return { values: [], formats: [], columns: 0 };` && |\n| &&
-             `      const keys = cols.map((c) => resolveKey(list[0], c.key));` && |\n| &&
-             `      const formats = cols.map((c, i) => {` && |\n| &&
-             `        if (c.format) return c.format;` && |\n| &&
-             `        if (Array.isArray(numberFormats)) {` && |\n| &&
-             `          return Lib.toText(numberFormats[i]);` && |\n| &&
-             `        }` && |\n| &&
-             `        return Lib.toText(member(numberFormats, [String(c.key)]));` && |\n| &&
-             `      });` && |\n| &&
-             `      const values = [];` && |\n| &&
-             `      const cellFormats = [];` && |\n| &&
-             `      if (header) {` && |\n| &&
-             `        values.push(cols.map((c) => c.header));` && |\n| &&
-             `        cellFormats.push(cols.map(() => "@"));` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const row of list) {` && |\n| &&
-             `        const valueRow = [];` && |\n| &&
-             `        const formatRow = [];` && |\n| &&
-             `        keys.forEach((key, i) => {` && |\n| &&
-             `          const own = row != null && hasOwn(row, key);` && |\n| &&
-             `          const cell = toCell(own ? row[key] : undefined, formats[i]);` && |\n| &&
-             `          valueRow.push(cell.value);` && |\n| &&
-             `          formatRow.push(cell.format);` && |\n| &&
-             `        });` && |\n| &&
-             `        values.push(valueRow);` && |\n| &&
-             `        cellFormats.push(formatRow);` && |\n| &&
-             `      }` && |\n| &&
-             `      return { values, formats: cellFormats, columns: cols.length };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function unquotedFormat(format) {` && |\n| &&
-             `      return String(format ?? "")` && |\n| &&
-             `        .replace(/"[^"]*"/g, "")` && |\n| &&
-             `        .replace(/\\./g, "");` && |\n| &&
-             `    }` && |\n| &&
-             `    function bareFormat(format) {` && |\n| &&
-             `      return unquotedFormat(format).replace(/\[[^\]]*\]/g, "");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatParts(format) {` && |\n| &&
-             `      const bare = bareFormat(format);` && |\n| &&
-             `      const elapsed = /\[(h+|m+|s+)\]/i.test(unquotedFormat(format));` && |\n| &&
-             `      return {` && |\n| &&
-             `        hasDate: /[dy]/i.test(bare),` && |\n| &&
-             `        hasTime: elapsed || /[hs]/i.test(bare),` && |\n| &&
-             `        elapsed,` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isDateFormat(format) {` && |\n| &&
-             `      const { hasDate, hasTime } = formatParts(format);` && |\n| &&
-             `      return hasDate || hasTime;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function serialToDuration(serial) {` && |\n| &&
-             `      const total = Math.round(Math.abs(serial) * 86400);` && |\n| &&
-             `      const pad = (n) => String(n).padStart(2, "0");` && |\n| &&
-             `      const text = ``${pad(Math.floor(total / 3600))}:${pad(` && |\n| &&
-             `        Math.floor((total % 3600) / 60),` && |\n| &&
-             `      )}:${pad(total % 60)}``;` && |\n| &&
-             `      return serial < 0 ? ``-${text}`` : text;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function serialToIso(serial, format) {` && |\n| &&
-             `      const { hasDate, hasTime, elapsed } = formatParts(format);` && |\n| &&
-             `      if (elapsed && !hasDate) return serialToDuration(serial);` && |\n| &&
-             `      const ms = Math.round(serial * DAY_MS) + EXCEL_EPOCH_MS;` && |\n| &&
-             `      const iso = new Date(ms).toISOString();` && |\n| &&
-             `      if (hasDate && hasTime) return iso.slice(0, 19);` && |\n| &&
-             `      if (hasTime) return iso.slice(11, 19);` && |\n| &&
-             `      return iso.slice(0, 10);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function toRows(values, formats) {` && |\n| &&
-             `      return (values || []).map((row, r) => {` && |\n| &&
-             `        const out = {};` && |\n| &&
-             `        row.forEach((v, c) => {` && |\n| &&
-             `          const format = formats?.[r]?.[c];` && |\n| &&
-             `          let value = v;` && |\n| &&
-             `          if (typeof v === "number" && format && isDateFormat(format)) {` && |\n| &&
-             `            value = serialToIso(v, format);` && |\n| &&
-             `          }` && |\n| &&
-             `          out[``COL${c + 1}``] = value;` && |\n| &&
-             `        });` && |\n| &&
-             `        return out;` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function failure(e, fallback) {` && |\n| &&
-             `      return {` && |\n| &&
-             `        message: Lib.toText(e?.message ?? e) || fallback,` && |\n| &&
-             `        code: Lib.toText(e?.code),` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const definition = {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          rows: { type: "any", defaultValue: null },` && |\n| &&
-             `          columns: { type: "any", defaultValue: null },` && |\n| &&
-             `          numberFormats: { type: "any", defaultValue: null },` && |\n| &&
-             `          target: { type: "string", defaultValue: "A1" },` && |\n| &&
-             `          sheetName: { type: "string", defaultValue: "" },` && |\n| &&
-             `          asTable: { type: "boolean", defaultValue: true },` && |\n| &&
-             `          header: { type: "boolean", defaultValue: true },` && |\n| &&
-             `          maxCells: { type: "int", defaultValue: 20000 },` && |\n| &&
-             `          selection: { type: "any", defaultValue: null },` && |\n| &&
-             `          selectionAddress: { type: "string", defaultValue: "" },` && |\n| &&
-             `          readText: { type: "boolean", defaultValue: false },` && |\n| &&
-             `          selectionChange: { type: "boolean", defaultValue: false },` && |\n| &&
-             `          available: { type: "boolean", defaultValue: false },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          OnWritten: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              address: { type: "string" },` && |\n| &&
-             `              rowCount: { type: "int" },` && |\n| &&
-             `              columnCount: { type: "int" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `          OnRead: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              address: { type: "string" },` && |\n| &&
-             `              rowCount: { type: "int" },` && |\n| &&
-             `              columnCount: { type: "int" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `          OnSelectionChange: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              address: { type: "string" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `          OnError: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              message: { type: "string" },` && |\n| &&
-             `              code: { type: "string" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._queue = Promise.resolve();` && |\n| &&
-             `        this._probed = false;` && |\n| &&
-             `        this._subscription = null;` && |\n| &&
-             `        this._subscribing = false;` && |\n| &&
-             `        this._selectionTimer = null;` && |\n| &&
-             `        this._lastAddress = "";` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        clearTimeout(this._selectionTimer);` && |\n| &&
-             `        this._unsubscribe();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      setSelectionChange(val) {` && |\n| &&
-             `        this.setProperty("selectionChange", val, true);` && |\n| &&
-             `        this._syncSubscription();` && |\n| &&
-             `        return this;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        if (!this._probed) this._probe();` && |\n| &&
-             `        this._syncSubscription();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _probe() {` && |\n| &&
-             `        const w = window;` && |\n| &&
-             `        if (!w.Office) return;` && |\n| &&
-             `        this._probed = true;` && |\n| &&
-             `        excel().then((Excel) => {` && |\n| &&
-             `          if (!Excel || Lib.isDestroyed(this)) return;` && |\n| &&
-             `          if (!this.getProperty("available")) {` && |\n| &&
-             `            this.setProperty("available", true, true);` && |\n| &&
-             `          }` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _fail(message, code) {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        this.fireOnError({ message, code: code || "" });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _limit() {` && |\n| &&
-             `        const max = Number(this.getProperty("maxCells")) || DEFAULT_MAX_CELLS;` && |\n| &&
-             `        return Math.min(Math.max(1, max), HARD_MAX_CELLS);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _enqueue(name, op) {` && |\n| &&
-             `        const run = () =>` && |\n| &&
-             `          excel().then((Excel) => {` && |\n| &&
-             `            if (Lib.isDestroyed(this)) return undefined;` && |\n| &&
-             `            if (!Excel) {` && |\n| &&
-             `              this._fail("Excel not available", "NotAvailable");` && |\n| &&
-             `              return undefined;` && |\n| &&
-             `            }` && |\n| &&
-             `            return Promise.resolve()` && |\n| &&
-             `              .then(() => op(Excel))` && |\n| &&
-             `              .catch((e) => {` && |\n| &&
-             `                const f = failure(e, ``${name} failed``);` && |\n| &&
-             `                Lib.logError(``ExcelBridge: ${name} - ${f.message}``, e);` && |\n| &&
-             `                this._fail(f.message, f.code);` && |\n| &&
-             `              });` && |\n| &&
-             `          });` && |\n| &&
-             `        this._queue = this._queue.then(run, run);` && |\n| &&
-             `        return this._queue;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      write() {` && |\n| &&
-             `        const asTable = Boolean(this.getProperty("asTable"));` && |\n| &&
-             `        const matrix = buildMatrix({` && |\n| &&
-             `          rows: this.getProperty("rows"),` && |\n| &&
-             `          columns: this.getProperty("columns"),` && |\n| &&
-             `          numberFormats: this.getProperty("numberFormats"),` && |\n| &&
-             `          header: asTable || Boolean(this.getProperty("header")),` && |\n| &&
-             `        });` && |\n| &&
-             `        const target = Lib.toText(this.getProperty("target")).trim() || "A1";` && |\n| &&
-             `        const sheetName = Lib.toText(this.getProperty("sheetName")).trim();` && |\n| &&
-             `        const limit = this._limit();` && |\n| &&
-             `        return this._enqueue("write", (Excel) => {` && |\n| &&
-             `          const rowCount = matrix.values.length;` && |\n| &&
-             `          const columnCount = matrix.columns;` && |\n| &&
-             `          if (!rowCount || !columnCount) {` && |\n| &&
-             `            this._fail("nothing to write", "NoData");` && |\n| &&
-             `            return Promise.resolve();` && |\n| &&
-             `          }` && |\n| &&
-             `          if (rowCount * columnCount > limit) {` && |\n| &&
-             `            this._fail(` && |\n| &&
-             `              ``${rowCount * columnCount} cells exceed the limit of ${limit}``,` && |\n| &&
-             `              "TooLarge",` && |\n| &&
-             `            );` && |\n| &&
-             `            return Promise.resolve();` && |\n| &&
-             `          }` && |\n| &&
-             `          const mode = target.toLowerCase();` && |\n| &&
-             `          if (` && |\n| &&
-             `            mode !== "selection" &&` && |\n| &&
-             `            mode !== "newsheet" &&` && |\n| &&
-             `            !CELL_ADDRESS.test(target)` && |\n| &&
-             `          ) {` && |\n| &&
-             `            this._fail(``invalid target '${target}'``, "InvalidTarget");` && |\n| &&
-             `            return Promise.resolve();` && |\n| &&
-             `          }` && |\n| &&
-             `          return Excel.run(async (context) => {` && |\n| &&
-             `            const book = context.workbook;` && |\n| &&
-             `            let anchor;` && |\n| &&
-             `            let sheet;` && |\n| &&
-             `            if (mode === "selection") {` && |\n| &&
-             `              anchor = book.getSelectedRange().getCell(0, 0);` && |\n| &&
-             `              sheet = anchor.worksheet;` && |\n| &&
-             `            } else if (mode === "newsheet") {` && |\n| &&
-             `              sheet = book.worksheets.add(sheetName || undefined);` && |\n| &&
-             `              sheet.activate();` && |\n| &&
-             `              anchor = sheet.getRange("A1");` && |\n| &&
-             `            } else {` && |\n| &&
-             `              sheet = sheetName` && |\n| &&
-             `                ? book.worksheets.getItem(sheetName)` && |\n| &&
-             `                : book.worksheets.getActiveWorksheet();` && |\n| &&
-             `              anchor = sheet.getRange(target);` && |\n| &&
-             `            }` && |\n| &&
-             `            const range = anchor.getResizedRange(rowCount - 1, columnCount - 1);` && |\n| &&
-             `` && |\n| &&
-             `            range.numberFormat = matrix.formats;` && |\n| &&
-             `            range.values = matrix.values;` && |\n| &&
-             `            if (asTable) sheet.tables.add(range, true);` && |\n| &&
-             `            range.format.autofitColumns();` && |\n| &&
-             `            range.load("address");` && |\n| &&
-             `            await context.sync();` && |\n| &&
-             `            if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `            this.fireOnWritten({` && |\n| &&
-             `              address: Lib.toText(range.address),` && |\n| &&
-             `              rowCount,` && |\n| &&
-             `              columnCount,` && |\n| &&
-             `            });` && |\n| &&
-             `          });` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      read() {` && |\n| &&
-             `        const readText = Boolean(this.getProperty("readText"));` && |\n| &&
-             `        const limit = this._limit();` && |\n| &&
-             `        return this._enqueue("read", (Excel) =>` && |\n| &&
-             `          Excel.run(async (context) => {` && |\n| &&
-             `            let range = context.workbook.getSelectedRange();` && |\n| &&
-             `            range.load("address,rowCount,columnCount");` && |\n| &&
-             `            await context.sync();` && |\n| &&
-             `` && |\n| &&
-             `            if (range.rowCount * range.columnCount > limit) {` && |\n| &&
-             `              range = range.getUsedRangeOrNullObject(true);` && |\n| &&
-             `              range.load("address,rowCount,columnCount,isNullObject");` && |\n| &&
-             `              await context.sync();` && |\n| &&
-             `            }` && |\n| &&
-             `            if (range.isNullObject) {` && |\n| &&
-             `              this._deliver([], "", 0, 0);` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `            const cells = range.rowCount * range.columnCount;` && |\n| &&
-             `            if (cells > limit) {` && |\n| &&
-             `              this._fail(` && |\n| &&
-             `                ``${cells} cells exceed the limit of ${limit}``,` && |\n| &&
-             `                "TooLarge",` && |\n| &&
-             `              );` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `            range.load(readText ? "text" : "values,numberFormat");` && |\n| &&
-             `            await context.sync();` && |\n| &&
-             `            const rows = readText` && |\n| &&
-             `              ? toRows(range.text, null)` && |\n| &&
-             `              : toRows(range.values, range.numberFormat);` && |\n| &&
-             `            this._deliver(` && |\n| &&
-             `              rows,` && |\n| &&
-             `              Lib.toText(range.address),` && |\n| &&
-             `              range.rowCount,` && |\n| &&
-             `              range.columnCount,` && |\n| &&
-             `            );` && |\n| &&
-             `          }),` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _deliver(rows, address, rowCount, columnCount) {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        this.setProperty("selection", rows, true);` && |\n| &&
-             `        this.setProperty("selectionAddress", address, true);` && |\n| &&
-             `        this.fireOnRead({ address, rowCount, columnCount });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _syncSubscription() {` && |\n| &&
-             `        const wanted =` && |\n|.
-    result = result &&
-             `          Boolean(this.getProperty("selectionChange")) &&` && |\n| &&
-             `          !Lib.isDestroyed(this);` && |\n| &&
-             `        if (wanted && !this._subscription && !this._subscribing) {` && |\n| &&
-             `          this._subscribe();` && |\n| &&
-             `        } else if (!wanted && this._subscription) {` && |\n| &&
-             `          this._unsubscribe();` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _subscribe() {` && |\n| &&
-             `        this._subscribing = true;` && |\n| &&
-             `        excel()` && |\n| &&
-             `          .then((Excel) => {` && |\n| &&
-             `            if (!Excel || Lib.isDestroyed(this)) return undefined;` && |\n| &&
-             `            return Excel.run(async (context) => {` && |\n| &&
-             `              const handler = context.workbook.onSelectionChanged.add(() =>` && |\n| &&
-             `                this._selectionChanged(Excel),` && |\n| &&
-             `              );` && |\n| &&
-             `              await context.sync();` && |\n| &&
-             `              return handler;` && |\n| &&
-             `            });` && |\n| &&
-             `          })` && |\n| &&
-             `          .then(` && |\n| &&
-             `            (handler) => {` && |\n| &&
-             `              this._subscribing = false;` && |\n| &&
-             `              if (!handler) return;` && |\n| &&
-             `              this._subscription = handler;` && |\n| &&
-             `` && |\n| &&
-             `              this._syncSubscription();` && |\n| &&
-             `            },` && |\n| &&
-             `            (e) => {` && |\n| &&
-             `              this._subscribing = false;` && |\n| &&
-             `              Lib.logError("ExcelBridge: selection subscription failed", e);` && |\n| &&
-             `            },` && |\n| &&
-             `          );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _unsubscribe() {` && |\n| &&
-             `        const handler = this._subscription;` && |\n| &&
-             `        if (!handler) return;` && |\n| &&
-             `        this._subscription = null;` && |\n| &&
-             `        const Excel = window.Excel;` && |\n| &&
-             `        if (typeof Excel?.run !== "function" || !handler.context) return;` && |\n| &&
-             `        Excel.run(handler.context, async (context) => {` && |\n| &&
-             `          handler.remove();` && |\n| &&
-             `          await context.sync();` && |\n| &&
-             `        }).catch((e) =>` && |\n| &&
-             `          Lib.logError("ExcelBridge: selection unsubscribe failed", e),` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _selectionChanged(Excel) {` && |\n| &&
-             `        clearTimeout(this._selectionTimer);` && |\n| &&
-             `        this._selectionTimer = setTimeout(() => {` && |\n| &&
-             `          if (Lib.isDestroyed(this) || !this._subscription) return;` && |\n| &&
-             `          Excel.run(async (context) => {` && |\n| &&
-             `            const range = context.workbook.getSelectedRange();` && |\n| &&
-             `            range.load("address");` && |\n| &&
-             `            await context.sync();` && |\n| &&
-             `            const address = Lib.toText(range.address);` && |\n| &&
-             `            if (Lib.isDestroyed(this) || address === this._lastAddress) return;` && |\n| &&
-             `            this._lastAddress = address;` && |\n| &&
-             `            this.fireOnSelectionChange({ address });` && |\n| &&
-             `          }).catch((e) =>` && |\n| &&
-             `            Lib.logError("ExcelBridge: reading the selection failed", e),` && |\n| &&
-             `          );` && |\n| &&
-             `        }, SELECTION_DEBOUNCE_MS);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    for (const name of Object.keys(definition.metadata.properties)) {` && |\n| &&
-             `      const setter = ``set${name[0].toUpperCase()}${name.slice(1)}``;` && |\n| &&
-             `      if (definition[setter]) continue;` && |\n| &&
-             `      definition[setter] = function (val) {` && |\n| &&
-             `        this.setProperty(name, val, true);` && |\n| &&
-             `        return this;` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const ExcelBridge = Control.extend("z2ui5.cc.ExcelBridge", definition);` && |\n| &&
-             `` && |\n| &&
-             `    ExcelBridge._buildMatrix = buildMatrix;` && |\n| &&
-             `    ExcelBridge._toRows = toRows;` && |\n| &&
-             `    return Env.ownClass(ExcelBridge);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `??[])destroy(ctx,dep);delete slotXmlStore(ctx)[key];delete slotAppStore(ctx)[key];delete ctx.state.slotToken[key];const view=ctx.state[slot.prop];if(!view)return;for(const inner of slot.containedSlots` &&
+             `??[]){if(isInside(ctx.state[byKey(inner).prop],view))destroy(ctx,inner)}if(slot.fragmentId){try{if(view.close)view.close()}catch(e){Lib.logError(``ViewSlots.destroy: view.close() failed for ${key}``,e)}` &&
+             `}try{Env.getMessaging?.()?.unregisterObject(view)}catch(e){Lib.logError(``ViewSlots.destroy: unregisterObject failed for ${key}``,e)}try{view.destroy()}catch(e){Lib.logError(``ViewSlots.destroy: view.des` &&
+             `troy() failed for ${key}``,e)}ctx.state[slot.prop]=null}function isInside(control,container){let node=control?.getParent?.();for(let depth=0;node&&depth<200;depth++){if(node===container)return true;nod` &&
+             `e=node.getParent?.()}return false}function detach(ctx,key){const slot=byKey(key);if(!slot||!ctx?.state)return undefined;for(const dep of slot.dependentSlots??[])detach(ctx,dep);delete slotXmlStore(ctx` &&
+             `)[key];delete slotAppStore(ctx)[key];delete ctx.state.slotToken[key];const view=ctx.state[slot.prop];if(!view)return undefined;try{Env.getMessaging?.()?.unregisterObject(view)}catch(e){Lib.logError(``V` &&
+             `iewSlots.detach: unregisterObject failed for ${key}``,e)}ctx.state[slot.prop]=null;return view}return{slots,getView,getViewXml,getViewApp,getViewToken,setView,getController,keyOfController,byId,byIdOfO` &&
+             `wner,ownId,fragmentIdOf,resolveById,containingSlotKey,trackedModel,responseModel,destroy,detach}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/FileUploader.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "sap/m/Button",` && |\n| &&
-             `    "sap/ui/unified/FileUploader",` && |\n| &&
-             `    "sap/m/HBox",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Button, FileUploader, HBox, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const FileUploaderControl = Control.extend("z2ui5.cc.FileUploader", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        aggregations: {` && |\n| &&
-             `          _content: {` && |\n| &&
-             `            type: "sap.m.HBox",` && |\n| &&
-             `            multiple: false,` && |\n| &&
-             `            visibility: "hidden",` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          value: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          path: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          fileType: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          placeholder: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          buttonText: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          style: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          uploadButtonText: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "Upload",` && |\n| &&
-             `          },` && |\n| &&
-             `          enabled: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: true,` && |\n| &&
-             `          },` && |\n| &&
-             `          icon: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "sap-icon://browse-folder",` && |\n| &&
-             `          },` && |\n| &&
-             `          iconOnly: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `          buttonOnly: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `          multiple: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          checkDirectUpload: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          maximumFileSize: {` && |\n| &&
-             `            type: "float",` && |\n| &&
-             `            defaultValue: 0,` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `` && |\n| &&
-             `        events: {` && |\n| &&
-             `          fileSizeExceed: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              fileName: { type: "string" },` && |\n| &&
-             `              fileSize: { type: "float" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `          upload: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _readFiles(selected) {` && |\n| &&
-             `        const files = Lib.withinFileSize(` && |\n| &&
-             `          selected,` && |\n| &&
-             `          this.getProperty("maximumFileSize"),` && |\n| &&
-             `          (file) =>` && |\n| &&
-             `            this.fireFileSizeExceed({` && |\n| &&
-             `              fileName: file.name,` && |\n| &&
-             `              fileSize: file.size / (1024 * 1024),` && |\n| &&
-             `            }),` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!files.length) return;` && |\n| &&
-             `        if (!this._reader) {` && |\n| &&
-             `          this._reader = Lib.readFilesInTurn(` && |\n| &&
-             `            this,` && |\n| &&
-             `            "FileUploader",` && |\n| &&
-             `            (_, result) => {` && |\n| &&
-             `              this.setProperty("value", result, true);` && |\n| &&
-             `              this.fireUpload();` && |\n| &&
-             `            },` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        this._reader.add(files);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _uploadPendingFiles() {` && |\n| &&
-             `        const files = this._pendingFiles;` && |\n| &&
-             `        this._pendingFiles = null;` && |\n| &&
-             `        if (files?.length) this._readFiles(files);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        if (this._oHBox) this._oHBox.destroy();` && |\n| &&
-             `        if (this._reader) this._reader.cancel();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _ensureControls(directUpload) {` && |\n| &&
-             `        if (this._oHBox && this._builtDirectUpload === directUpload) return;` && |\n| &&
-             `        if (this._oHBox) this._oHBox.destroy();` && |\n| &&
-             `        this._builtDirectUpload = directUpload;` && |\n| &&
-             `        this.oUploadButton = null;` && |\n| &&
-             `` && |\n| &&
-             `        if (!directUpload) {` && |\n| &&
-             `          this.oUploadButton = new Button({` && |\n| &&
-             `            enabled: this.getProperty("path") !== "",` && |\n| &&
-             `            press: () => {` && |\n| &&
-             `              this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
-             `              this._uploadPendingFiles();` && |\n| &&
-             `            },` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this.oFileUploader = new FileUploader({` && |\n| &&
-             `          uploadOnChange: directUpload,` && |\n| &&
-             `          change: (oEvent) => {` && |\n| &&
-             `            const files = oEvent.getParameter("files");` && |\n| &&
-             `            this._pendingFiles = files ? Array.from(files) : [];` && |\n| &&
-             `            if (directUpload) return;` && |\n| &&
-             `            const value = oEvent.getSource().getProperty("value");` && |\n| &&
-             `            this.setProperty("path", value);` && |\n| &&
-             `            if (this.oUploadButton) {` && |\n| &&
-             `              this.oUploadButton.setEnabled(Boolean(value));` && |\n| &&
-             `            }` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          fileSizeExceed: (oEvent) => {` && |\n| &&
-             `            this.fireFileSizeExceed({` && |\n| &&
-             `              fileName: oEvent.getParameter("fileName"),` && |\n| &&
-             `              fileSize: Number(oEvent.getParameter("fileSize")),` && |\n| &&
-             `            });` && |\n| &&
-             `          },` && |\n| &&
-             `          uploadComplete: (oEvent) => {` && |\n| &&
-             `            if (!directUpload) return;` && |\n| &&
-             `            const source = oEvent.getSource();` && |\n| &&
-             `            this.setProperty("path", source.getProperty("value"));` && |\n| &&
-             `            this._uploadPendingFiles();` && |\n| &&
-             `          },` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        this._oHBox = new HBox().addItem(this.oFileUploader);` && |\n| &&
-             `        if (this.oUploadButton) {` && |\n| &&
-             `          this._oHBox.addItem(this.oUploadButton);` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this.setAggregation("_content", this._oHBox, true);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _syncControls() {` && |\n| &&
-             `        const u = this.oFileUploader;` && |\n| &&
-             `` && |\n| &&
-             `        u.setTooltip(this.getTooltip_AsString());` && |\n| &&
-             `        u.setIcon(this.getProperty("icon"));` && |\n| &&
-             `        u.setIconOnly(this.getProperty("iconOnly"));` && |\n| &&
-             `        u.setButtonOnly(this.getProperty("buttonOnly"));` && |\n| &&
-             `        u.setButtonText(this.getProperty("buttonText"));` && |\n| &&
-             `        u.setStyle(this.getProperty("style"));` && |\n| &&
-             `        u.setFileType(this.getProperty("fileType"));` && |\n| &&
-             `        u.setVisible(this.getProperty("visible"));` && |\n| &&
-             `        u.setMultiple(this.getProperty("multiple"));` && |\n| &&
-             `        u.setEnabled(this.getProperty("enabled"));` && |\n| &&
-             `        u.setValue(this.getProperty("path"));` && |\n| &&
-             `        u.setPlaceholder(this.getProperty("placeholder"));` && |\n| &&
-             `        u.setMaximumFileSize(this.getProperty("maximumFileSize") || undefined);` && |\n| &&
-             `        if (this.oUploadButton) {` && |\n| &&
-             `          this.oUploadButton.setText(this.getProperty("uploadButtonText"));` && |\n| &&
-             `          this.oUploadButton.setEnabled(this.getProperty("path") !== "");` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          oControl._ensureControls(oControl.getProperty("checkDirectUpload"));` && |\n| &&
-             `          oControl._syncControls();` && |\n| &&
-             `` && |\n| &&
-             `          oRm.openStart("div", oControl);` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.renderControl(oControl._oHBox);` && |\n| &&
-             `          oRm.close("div");` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(FileUploaderControl);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/WindowModel.js": function(){sap.ui.define(["sap/ui/model/json/JSONModel","sap/ui/model/json/JSONListBinding","z2ui5/core/Lib","z2ui5/core/Env"],(JSONModel,JSONListBinding,Lib,Env)=>{` &&
+             `"use strict";const EVENT="___ZZZ_WIN";const REASON={MORE:"MORE",SORT:"SORT",FILTER:"FILTER"};const META="__WINDOW";function windowName(sPath,oContext){if(oContext||typeof sPath!=="string")return undef` &&
+             `ined;const match=/^\/([^/].*?)\/?$/.exec(sPath);return match?match[1]:undefined}function toArray(value){if(!value)return[];return Array.isArray(value)?value:[value]}const pad=n=>String(n).padStart(2,"` &&
+             `0");function wireValue(value){if(Object.prototype.toString.call(value)==="[object Date]"){return``${value.getFullYear()}-${pad(value.getMonth()+1)}-${pad(value.getDate())}``}return value??null}function ` &&
+             `isSimple(oFilter){return!!oFilter&&!oFilter.aFilters&&!oFilter.fnTest&&typeof oFilter.sPath==="string"}function filterRow(oFilter){return[oFilter.sPath,oFilter.sOperator,wireValue(oFilter.oValue1),wir` &&
+             `eValue(oFilter.oValue2)]}function filterGroups(aFilters){const groups=[];const byPath=new Map;const unsupported=()=>Lib.logError("WINDOW: a filter of this shape is not sent to the server");for(const o` &&
+             `Filter of toArray(aFilters)){if(isSimple(oFilter)){if(!byPath.has(oFilter.sPath)){const group=[];byPath.set(oFilter.sPath,group);groups.push(group)}byPath.get(oFilter.sPath).push(filterRow(oFilter));c` &&
+             `ontinue}const children=Array.isArray(oFilter?.aFilters)?oFilter.aFilters:null;if(!children){unsupported();continue}if(!oFilter.bAnd){if(children.every(isSimple))groups.push(children.map(filterRow));el` &&
+             `se unsupported();continue}for(const child of children){if(isSimple(child))groups.push([filterRow(child)]);else if(Array.isArray(child?.aFilters)&&!child.bAnd&&child.aFilters.every(isSimple))groups.pus` &&
+             `h(child.aFilters.map(filterRow));else unsupported()}}return groups.filter(group=>group.length)}function sortWire(aSorters){return toArray(aSorters).filter(oSorter=>typeof oSorter?.sPath==="string").ma` &&
+             `p(oSorter=>({PATH:oSorter.sPath,DESCENDING:!!oSorter.bDescending}))}const WindowListBinding=Env.ownClass(JSONListBinding.extend("z2ui5.core.WindowListBinding",{constructor:function(oModel,sPath,oConte` &&
+             `xt,aSorters,aFilters,mParameters){this._z2ui5Name=windowName(sPath,oContext);this._z2ui5Wanted=0;JSONListBinding.call(this,oModel,sPath,oContext,undefined,undefined,mParameters)}}));WindowListBinding.` &&
+             `prototype._z2ui5Meta=function(){if(!this._z2ui5Name)return undefined;return this.oModel.getProperty(``/${META}/${this._z2ui5Name}``)};WindowListBinding.prototype.applyFilter=function(...args){if(!this._` &&
+             `z2ui5Meta()){return JSONListBinding.prototype.applyFilter.apply(this,args)}this.iLength=this.aIndices.length;return undefined};WindowListBinding.prototype.applySort=function(...args){if(!this._z2ui5Me` &&
+             `ta()){return JSONListBinding.prototype.applySort.apply(this,args)}return undefined};WindowListBinding.prototype.update=function(...args){this._z2ui5Wanted=0;return JSONListBinding.prototype.update.app` &&
+             `ly(this,args)};WindowListBinding.prototype.getLength=function(...args){const meta=this._z2ui5Meta();if(!meta)return JSONListBinding.prototype.getLength.apply(this,args);return Math.max(Number(meta.TOT` &&
+             `AL)||0,this.aIndices.length)};WindowListBinding.prototype.isLengthFinal=function(){return true};WindowListBinding.prototype.getContexts=function(...args){const meta=this._z2ui5Meta();if(meta){const[iS` &&
+             `tart,iLength,iThreshold]=args;this._z2ui5Ensure(meta,(iStart||0)+(iLength||0)+(iThreshold||0))}return JSONListBinding.prototype.getContexts.apply(this,args)};WindowListBinding.prototype._z2ui5Ensure=f` &&
+             `unction(meta,need){const loaded=this.aIndices.length;const total=Number(meta.TOTAL)||0;const size=Number(meta.SIZE)||1;if(need<=loaded||loaded>=total)return;const wanted=Math.min(total,Math.ceil(need/` &&
+             `size)*size);if(wanted<=this._z2ui5Wanted)return;this._z2ui5Wanted=wanted;this._z2ui5Send(meta,REASON.MORE,loaded,wanted-loaded,true)};WindowListBinding.prototype.sort=function(aSorters,...rest){const ` &&
+             `meta=this._z2ui5Meta();if(!meta){return JSONListBinding.prototype.sort.call(this,aSorters,...rest)}this.aSorters=toArray(aSorters);this._z2ui5Restart(meta,REASON.SORT);return this};WindowListBinding.p` &&
+             `rototype.filter=function(aFilters,sFilterType){const meta=this._z2ui5Meta();if(!meta){return JSONListBinding.prototype.filter.call(this,aFilters,sFilterType)}const list=toArray(aFilters);if(sFilterTyp` &&
+             `e==="Application"){this.aApplicationFilters=list}else if(sFilterType==="Control"){this.aFilters=list}else{this.aFilters=list;this.aApplicationFilters=[]}this._z2ui5Restart(meta,REASON.FILTER);return t` &&
+             `his};WindowListBinding.prototype._z2ui5Restart=function(meta,reason){this._z2ui5Wanted=Number(meta.SIZE)||0;this._z2ui5Send(meta,reason,0,this._z2ui5Wanted,false)};WindowListBinding.prototype._z2ui5Se` &&
+             `nd=function(meta,reason,skip,top,noBusy){const send=this.oModel._z2ui5WindowSend;if(typeof send!=="function"){Lib.logError(``WINDOW: no way to the server for /${this._z2ui5Name}``);return}const event=ty` &&
+             `peof meta.EVENT==="string"?meta.EVENT:"";if(!event){Lib.logError(``WINDOW: no app event for /${this._z2ui5Name}``);return}const args=[``/${this._z2ui5Name}``,event,reason,String(skip),String(top)];if(reas` &&
+             `on!==REASON.MORE){args.push(JSON.stringify(sortWire(this.aSorters)));args.push(JSON.stringify([...filterGroups(this.aFilters),...filterGroups(this.aApplicationFilters)]))}send(args,noBusy)};function k` &&
+             `eepRestart(args,kept){if(!Array.isArray(kept)||kept[0]!==args[0])return args;if(args[2]===REASON.MORE&&kept[2]&&kept[2]!==REASON.MORE){return kept}return args}const WindowModel=Env.ownClass(JSONModel.` &&
+             `extend("z2ui5.core.WindowModel",{bindList(sPath,oContext,aSorters,aFilters,mParameters){const name=windowName(sPath,oContext);if(name&&this.getProperty(``/${META}/${name}``)){return new WindowListBindin` &&
+             `g(this,sPath,oContext,aSorters,aFilters,mParameters)}return JSONModel.prototype.bindList.call(this,sPath,oContext,aSorters,aFilters,mParameters)}}));WindowModel.EVENT=EVENT;WindowModel.filterGroups=fi` &&
+             `lterGroups;WindowModel.sortWire=sortWire;WindowModel.keepRestart=keepRestart;WindowModel.REASON=REASON;return WindowModel});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/Geolocation.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
-             `  (Control, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const _GEO_PROPS = [` && |\n| &&
-             `      "longitude",` && |\n| &&
-             `      "latitude",` && |\n| &&
-             `      "altitude",` && |\n| &&
-             `      "accuracy",` && |\n| &&
-             `      "altitudeAccuracy",` && |\n| &&
-             `      "speed",` && |\n| &&
-             `      "heading",` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const _DEFAULT_TIMEOUT_MS = 5000;` && |\n| &&
-             `` && |\n| &&
-             `    function timeoutOf(value) {` && |\n| &&
-             `      const ms = Number(value);` && |\n| &&
-             `      return Number.isFinite(ms) && ms > 0 ? ms : _DEFAULT_TIMEOUT_MS;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const Geolocation = Control.extend("z2ui5.cc.Geolocation", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          longitude: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          latitude: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          altitude: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          accuracy: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          altitudeAccuracy: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          speed: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          heading: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          enableHighAccuracy: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `          timeout: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: String(_DEFAULT_TIMEOUT_MS),` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          finished: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          error: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              code: { type: "string" },` && |\n| &&
-             `              message: { type: "string" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      callbackPosition({ coords }) {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        for (const prop of _GEO_PROPS) {` && |\n| &&
-             `          const v = coords[prop];` && |\n| &&
-             `          const text =` && |\n|.
-    result = result &&
-             `            typeof v === "number" && !Number.isFinite(v) ? "" : Lib.toText(v);` && |\n| &&
-             `          this.setProperty(prop, text, true);` && |\n| &&
-             `        }` && |\n| &&
-             `        this.fireFinished();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      callbackError(error) {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``Geolocation error (${error.code}) on ${this.getId()}: ${error.message}``,` && |\n| &&
-             `        );` && |\n| &&
-             `        this.fireError({` && |\n| &&
-             `          code: String(error.code),` && |\n| &&
-             `          message: error.message,` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._pendingGeolocate = true;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._pendingGeolocate = false;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        if (!this._pendingGeolocate) return;` && |\n| &&
-             `        this._pendingGeolocate = false;` && |\n| &&
-             `        try {` && |\n| &&
-             `          if (!navigator.geolocation) {` && |\n| &&
-             `            this.callbackError({` && |\n| &&
-             `              code: 0,` && |\n| &&
-             `              message: "Geolocation API not available",` && |\n| &&
-             `            });` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          navigator.geolocation.getCurrentPosition(` && |\n| &&
-             `            this.callbackPosition.bind(this),` && |\n| &&
-             `            this.callbackError.bind(this),` && |\n| &&
-             `            {` && |\n| &&
-             `              enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
-             `              timeout: timeoutOf(this.getProperty("timeout")),` && |\n| &&
-             `            },` && |\n| &&
-             `          );` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            "Geolocation.onAfterRendering: getCurrentPosition failed",` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(Geolocation);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/BindingCall.js": function(){sap.ui.define(["sap/ui/model/Filter","sap/ui/model/FilterOperator","sap/ui/model/Sorter","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/actio` &&
+             `ns/ControlCall"],(Filter,FilterOperator,Sorter,Lib,ViewSlots,ControlCall)=>{"use strict";const FILTER_OPERATORS=new Set(["BT","Contains","EndsWith","EQ","GE","GT","LE","LT","NB","NE","NotContains","No` &&
+             `tEndsWith","NotStartsWith","StartsWith"]);const isEmpty=v=>v==null||v==="";function buildFilterGroups(binding,json){let groups=json;if(typeof json==="string"){try{groups=JSON.parse(json)}catch{Lib.log` &&
+             `Error("BINDING_CALL: malformed filter groups JSON");return}}if(!Array.isArray(groups)){Lib.logError("BINDING_CALL: filter groups must be an array");return}groups=groups.filter(g=>Array.isArray(g)&&g.l` &&
+             `ength);if(!groups.length){binding.filter([]);return}const outer=[];for(const group of groups){const inner=[];for(const row of group){const[path,operator,value1,value2]=Array.isArray(row)?row:[];if(typ` &&
+             `eof path!=="string"||!FILTER_OPERATORS.has(operator)){Lib.logError(``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``);return}inner.push(new Filter(path,FilterOperator[operator],` &&
+             `value1,value2))}outer.push(new Filter(inner,false))}binding.filter([new Filter(outer,true)])}const BINDING_METHODS={filter(binding,params){const[path,operator,value1,value2]=params;if(params.length===` &&
+             `1&&(Array.isArray(path)||typeof path==="string"&&path.trimStart().startsWith("["))){buildFilterGroups(binding,path);return}if(isEmpty(value1)&&isEmpty(value2)){binding.filter([]);return}if(!FILTER_OPE` &&
+             `RATORS.has(operator)){Lib.logError(``BINDING_CALL: operator '${operator}' not allowed``);return}binding.filter([new Filter(path,FilterOperator[operator],value1,value2)])},sort(binding,[path,descending,g` &&
+             `roup]){binding.sort([new Sorter(path,ControlCall.castArg("bool",descending),ControlCall.castArg("bool",group))])}};Object.setPrototypeOf(BINDING_METHODS,null);function evBindingCall(oController,args){` &&
+             `const[,id,aggregation,method]=args;const build=BINDING_METHODS[method];if(!build){Lib.logError(``BINDING_CALL: method '${method}' not allowed``);return}const binding=ViewSlots.resolveById(oController?.c` &&
+             `tx,id)?.getBinding?.(aggregation);if(!binding||typeof binding[method]!=="function"){Lib.logError(``BINDING_CALL: no '${aggregation}' binding with '${method}' on control '${id}'``);return}build(binding,a` &&
+             `rgs.slice(4))}const handlers={BINDING_CALL:evBindingCall};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/HTMLFrame.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
-             `  (Control, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const SANDBOX =` && |\n| &&
-             `      "allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox";` && |\n| &&
-             `    const SCHEME = "sapevent:";` && |\n| &&
-             `` && |\n| &&
-             `    const wired = new WeakSet();` && |\n| &&
-             `` && |\n| &&
-             `    function parseSapevent(href) {` && |\n| &&
-             `      const value = String(href || "").trim();` && |\n| &&
-             `      if (value.slice(0, SCHEME.length).toLowerCase() !== SCHEME) return null;` && |\n| &&
-             `      const rest = value.slice(SCHEME.length);` && |\n| &&
-             `      const q = rest.indexOf("?");` && |\n| &&
-             `      return q < 0` && |\n| &&
-             `        ? { action: rest, getdata: "" }` && |\n| &&
-             `        : { action: rest.slice(0, q), getdata: rest.slice(q + 1) };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formData(form, submitter) {` && |\n| &&
-             `      const params = new URLSearchParams();` && |\n| &&
-             `      for (const el of Array.from(form.elements || [])) {` && |\n| &&
-             `        if (!el.name || el.disabled) continue;` && |\n| &&
-             `        const type = String(el.type || "").toLowerCase();` && |\n| &&
-             `        if (["submit", "button", "image", "reset", "file"].includes(type)) {` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        if ((type === "checkbox" || type === "radio") && !el.checked) continue;` && |\n| &&
-             `        if (el.tagName === "SELECT" && el.multiple) {` && |\n| &&
-             `          for (const opt of Array.from(el.options)) {` && |\n| &&
-             `            if (opt.selected) params.append(el.name, opt.value);` && |\n| &&
-             `          }` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        params.append(el.name, el.value);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (submitter && submitter.name) {` && |\n| &&
-             `        params.append(submitter.name, submitter.value || "");` && |\n| &&
-             `      }` && |\n| &&
-             `      return params.toString();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const HTMLFrame = Control.extend("z2ui5.cc.HTMLFrame", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          content: { type: "string", defaultValue: "" },` && |\n| &&
-             `          width: { type: "sap.ui.core.CSSSize", defaultValue: "100%" },` && |\n| &&
-             `          height: { type: "sap.ui.core.CSSSize", defaultValue: "30rem" },` && |\n| &&
-             `          title: { type: "string", defaultValue: "" },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          sapevent: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              action: { type: "string" },` && |\n| &&
-             `              getdata: { type: "string" },` && |\n| &&
-             `              postdata: { type: "string" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        const frame = this.getDomRef();` && |\n| &&
-             `        if (!frame) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (!wired.has(frame)) {` && |\n| &&
-             `          wired.add(frame);` && |\n| &&
-             `          frame.addEventListener("load", () => this._wire(frame));` && |\n| &&
-             `        }` && |\n| &&
-             `        this._wire(frame);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _wire(frame) {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        let doc;` && |\n| &&
-             `        try {` && |\n| &&
-             `          doc = frame.contentDocument;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            "HTMLFrame: the document of the frame is out of reach",` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!doc || wired.has(doc)) return;` && |\n| &&
-             `        wired.add(doc);` && |\n| &&
-             `        doc.addEventListener("click", (e) => this._onClick(e), true);` && |\n| &&
-             `        doc.addEventListener("submit", (e) => this._onSubmit(e), true);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _onClick(e) {` && |\n| &&
-             `        const link = e.target?.closest?.("a[href]");` && |\n| &&
-             `        if (!link) return;` && |\n| &&
-             `        const parsed = parseSapevent(link.getAttribute("href"));` && |\n| &&
-             `        if (!parsed) return;` && |\n| &&
-             `        e.preventDefault();` && |\n| &&
-             `        this.fireSapevent({ ...parsed, postdata: "" });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _onSubmit(e) {` && |\n| &&
-             `        const form = e.target;` && |\n| &&
-             `` && |\n| &&
-             `        e.preventDefault();` && |\n| &&
-             `        if (!form || form.tagName !== "FORM") return;` && |\n| &&
-             `        const parsed = parseSapevent(form.getAttribute("action"));` && |\n| &&
-             `        if (!parsed) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``HTMLFrame ${this.getId()}: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const data = formData(form, e.submitter);` && |\n| &&
-             `        const get =` && |\n| &&
-             `          String(form.getAttribute("method") || "").toLowerCase() === "get";` && |\n| &&
-             `        this.fireSapevent({` && |\n| &&
-             `          action: parsed.action,` && |\n| &&
-             `          getdata: get` && |\n| &&
-             `            ? [parsed.getdata, data].filter(Boolean).join("&")` && |\n| &&
-             `            : parsed.getdata,` && |\n| &&
-             `          postdata: get ? "" : data,` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          oRm.openStart("iframe", oControl);` && |\n| &&
-             `          oRm.attr("sandbox", SANDBOX);` && |\n| &&
-             `          oRm.attr("srcdoc", oControl.getContent());` && |\n| &&
-             `          oRm.attr("title", oControl.getTitle());` && |\n| &&
-             `          oRm.style("width", oControl.getWidth());` && |\n| &&
-             `          oRm.style("height", oControl.getHeight());` && |\n| &&
-             `          oRm.style("border", "0");` && |\n| &&
-             `          oRm.style("display", "block");` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.close("iframe");` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
-             `    HTMLFrame._parseSapevent = parseSapevent;` && |\n| &&
-             `    HTMLFrame._formData = formData;` && |\n| &&
-             `` && |\n| &&
-             `    return Env.ownClass(HTMLFrame);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/Browser.js": function(){sap.ui.define(["sap/m/MessageBox","sap/m/library","sap/ui/util/Storage","z2ui5/core/Router","z2ui5/core/Lib","z2ui5/core/ViewSlots"],(MessageBox,mobil` &&
+             `eLibrary,Storage,Router,Lib,ViewSlots)=>{"use strict";const _URLHelper=mobileLibrary.URLHelper;function evClipboardCopy(oController,args){const value=args[1];Lib.copyToClipboard(value!==null&&typeof v` &&
+             `alue==="object"?JSON.stringify(value):value)}const ACTIVE_DATA_MIME=/^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i;const UNSAFE_FILENAME_CHARS=/[\\/:*?"<>|\x00-\x1f]/g;function evDow` &&
+             `nloadB64File(oController,args){if(!Lib.isSafeDownloadURL(args[1])){Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");return}const href=new URL(args[1],window.location.origin).href;if(ACTIVE_DATA_M` &&
+             `IME.test(href)){Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");return}const a=document.createElement("a");a.href=args[1];a.download=String(args[2]||"").replace(UNSAFE_FILENAME_CHARS` &&
+             `,"_");document.body.appendChild(a);a.click();document.body.removeChild(a)}function boundPayload(oController,raw,action){if(raw==null||typeof raw!=="string")return raw;const path=Lib.modelPathOf(raw);i` &&
+             `f(!path){Lib.logError(``${action}: '${raw}' is neither a payload nor a model path``);return undefined}const oModel=ViewSlots.responseModel(oController?.ctx,oController);const value=oModel?.getProperty(p` &&
+             `ath);if(value==null){Lib.logError(``${action}: nothing bound at the model path '${path}'``)}return value}function evStoreData(oController,args){const payload=boundPayload(oController,args[1],"STORE_DATA` &&
+             `");if(payload==null){if(args[1]==null){Lib.logError("STORE_DATA: no payload - pass the storage structure or its model path")}return}const{TYPE,PREFIX,VALUE,KEY}=payload;try{const storageType=Lib.resol` &&
+             `veStorageType(Storage,TYPE,"STORE_DATA","writing to");const oStorage=new Storage(storageType,PREFIX);if(VALUE===""||VALUE==null){oStorage.remove(KEY)}else{oStorage.put(KEY,VALUE)}}catch(e){Lib.logErro` &&
+             `r(``STORE_DATA: storage operation failed for key '${KEY}'``,e)}}function evHashBack(oController,args){Router.navBack(oController?.ctx,args?args[1]:undefined)}function evLocationReload(oController,args){` &&
+             `if(Lib.isValidRedirectURL(args[1])){window.location.href=args[1]}else{MessageBox.error("Invalid redirect URL. Only relative URLs to the same domain are allowed.")}}function evSystemLogout(oController,` &&
+             `args){const explicitUrl=args[1];const logoutUrl=explicitUrl||"/sap/public/bc/icf/logoff";try{const container=oController?.ctx?.state.oLaunchpad?.Container;if(container?.logout&&!explicitUrl){container` &&
+             `.logout();return}}catch(e){Lib.logError("SYSTEM_LOGOUT: ushell logout failed",e)}logoutViaBspTerminate(logoutUrl)}function logoutViaBspTerminate(logoutUrl){const path=window.location.pathname;if(!path` &&
+             `.startsWith("/sap/bc/bsp/")){redirectToLogout(logoutUrl);return}const bspKill=``${path}?sap-sessioncmd=logoff``;let done=false;let frame;const finish=()=>{if(done)return;done=true;if(frame){try{frame.re` &&
+             `move()}catch{}frame=null}redirectToLogout(logoutUrl)};try{frame=document.createElement("iframe");frame.style.display="none";frame.src=bspKill;frame.addEventListener("load",finish);document.body.append` &&
+             `Child(frame)}catch(e){Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed",e);finish();return}setTimeout(finish,1500)}function redirectToLogout(logoutUrl){if(Lib.isValidRedirectURL(logoutUrl)){wi` &&
+             `ndow.location.href=logoutUrl}else{MessageBox.error("Invalid logout URL. Only relative URLs to the same domain are allowed.")}}function evOpenNewTab(oController,args){if(!Lib.isValidRedirectURL(args[1]` &&
+             `)){MessageBox.error("Invalid URL. Only relative URLs to the same domain are allowed.");return}window.open(args[1],"_blank","noopener,noreferrer")}function evUrlHelper(oController,args){const params=ty` &&
+             `peof args[2]==="string"?boundPayload(oController,args[2],"URLHELPER"):args[2]??{};if(params==null)return;const hasCrLf=v=>typeof v==="string"&&/[\r\n]/.test(v);if(Object.values(params).some(hasCrLf)){` &&
+             `Lib.logError("URLHELPER: blocked CR/LF in parameters");return}const actions={REDIRECT:()=>{if(!Lib.isSafeRedirectProtocol(params.URL)){MessageBox.error("Invalid redirect URL. Only http/https protocols` &&
+             ` are allowed.");return}if(params.NEW_WINDOW){window.open(params.URL,"_blank","noopener,noreferrer");return}_URLHelper.redirect(params.URL,false)},TRIGGER_EMAIL:()=>_URLHelper.triggerEmail(params.EMAIL` &&
+             `,params.SUBJECT,params.BODY,params.CC,params.BCC,params.NEW_WINDOW),TRIGGER_SMS:()=>_URLHelper.triggerSms(params.TEL,params.TEXT,params.NEW_WINDOW),TRIGGER_TEL:()=>_URLHelper.triggerTel(params.TEL)};O` &&
+             `bject.setPrototypeOf(actions,null);try{const fn=actions[args[1]];if(fn)fn()}catch(e){Lib.logError(``URLHELPER: '${args[1]}' failed``,e)}}function ownsPage(oController){return oController?.ctx?.state?.ow` &&
+             `nsPage!==false}function evSetTitle(oController,args){if(!ownsPage(oController))return;const title=Lib.toText(args[1]);try{document.title=title}catch(e){Lib.logError("SET_TITLE: setting document.title ` &&
+             `failed",e)}}function evSetFavicon(oController,args){if(!ownsPage(oController))return;const href=Lib.toText(args[1]);if(!Lib.isSafeDownloadURL(href)){Lib.logError(``SET_FAVICON: refused unsafe URL "${hr` &&
+             `ef}"``);return}try{const existing=document.head.querySelector('link[rel~="icon"]');if(existing){existing.href=href;return}const link=document.createElement("link");link.rel="icon";link.href=href;docume` &&
+             `nt.head.appendChild(link)}catch(e){Lib.logError("SET_FAVICON: setting the favicon failed",e)}}function evPlayAudio(oController,args){if(!Lib.isSafeDownloadURL(args[1])){Lib.logError("PLAY_AUDIO: block` &&
+             `ed unsafe audio URL");return}try{const playing=new Audio(args[1]).play();if(playing?.catch){playing.catch(e=>Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``,e))}}catch(e){Lib.logError(``PLAY_AUDIO: ` &&
+             `failed for '${args[1]}'``,e)}}const handlers={CLIPBOARD_COPY:evClipboardCopy,DOWNLOAD_B64_FILE:evDownloadB64File,STORE_DATA:evStoreData,HASH_BACK:evHashBack,LOCATION_RELOAD:evLocationReload,SYSTEM_LOGO` &&
+             `UT:evSystemLogout,OPEN_NEW_TAB:evOpenNewTab,URLHELPER:evUrlHelper,SET_TITLE:evSetTitle,SET_FAVICON:evSetFavicon,PLAY_AUDIO:evPlayAudio};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/InputExt.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/m/Input", "sap/m/InputRenderer", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
-             `  (Input, InputRenderer, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const HTML_MODES = new Set([` && |\n| &&
-             `      "decimal",` && |\n| &&
-             `      "email",` && |\n| &&
-             `      "none",` && |\n| &&
-             `      "numeric",` && |\n| &&
-             `      "search",` && |\n| &&
-             `      "tel",` && |\n| &&
-             `      "text",` && |\n| &&
-             `      "url",` && |\n| &&
-             `    ]);` && |\n| &&
-             `` && |\n| &&
-             `    const InputExt = Input.extend("z2ui5.cc.InputExt", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          inputMode: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      setInputMode(val) {` && |\n| &&
-             `        this.setProperty("inputMode", val, true);` && |\n| &&
-             `        this._applyInputMode();` && |\n| &&
-             `        return this;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering(...args) {` && |\n| &&
-             `        Input.prototype.onAfterRendering.apply(this, args);` && |\n| &&
-             `` && |\n| &&
-             `        const dom = this.getFocusDomRef();` && |\n| &&
-             `        this._renderedMode = dom ? dom.getAttribute("inputmode") : null;` && |\n| &&
-             `        this._applyInputMode();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _htmlMode() {` && |\n| &&
-             `        const raw = this.getInputMode();` && |\n| &&
-             `        if (!raw) return "";` && |\n| &&
-             `` && |\n| &&
-             `        const mode = String(raw).trim().toLowerCase();` && |\n| &&
-             `        if (HTML_MODES.has(mode)) return mode;` && |\n| &&
-             `` && |\n| &&
-             `        if (this._refusedMode !== mode) {` && |\n| &&
-             `          this._refusedMode = mode;` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``InputExt: inputMode "${raw}" is not an HTML inputmode keyword - `` +` && |\n| &&
-             `              ``ignored``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        return "";` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _applyInputMode() {` && |\n| &&
-             `        const dom = this.getFocusDomRef();` && |\n| &&
-             `        if (!dom) return;` && |\n| &&
-             `        const mode = this._htmlMode();` && |\n| &&
-             `        if (mode) {` && |\n| &&
-             `          dom.setAttribute("inputmode", mode);` && |\n| &&
-             `        } else if (this._renderedMode) {` && |\n| &&
-             `          dom.setAttribute("inputmode", this._renderedMode);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          dom.removeAttribute("inputmode");` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: InputRenderer,` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(InputExt);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/ControlCall.js": function(){sap.ui.define(["sap/m/MessageBox","sap/ui/core/BusyIndicator","sap/ui/core/Popup","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/` &&
+             `core/ScrollFocus"],(MessageBox,BusyIndicator,CorePopup,Lib,Env,ViewSlots,ScrollFocus)=>{"use strict";let MessageToast;sap.ui.require(["sap/m/MessageToast"],MT=>{MessageToast=MT});function applyToastCl` &&
+             `ass(sClass){const classes=sClass.trim().split(/\s+/).filter(Boolean);if(!classes.length)return;const apply=()=>{const toasts=document.querySelectorAll(".sapMMessageToast");const toastEl=toasts[toasts.` &&
+             `length-1];if(toastEl)toastEl.classList.add(...classes);return Boolean(toastEl)};if(!apply())requestAnimationFrame(apply)}function showToast(sText,mOptions,oController){const o={...mOptions||{}};const ` &&
+             `sClass=o.class;delete o.class;if(o.onClose){const sEvent=o.onClose;o.onClose=()=>Lib.dispatchWhenIdle(oController,[[sEvent]])}if(Object.keys(o).length)MessageToast.show(sText,o);else MessageToast.show` &&
+             `(sText);if(sClass)applyToastClass(sClass)}let iBoxNo=0;function expandBoxDetails(sDialogId,sDetails){const oDialog=Env.getElementById(sDialogId);const oLayout=oDialog?.getContent?.()[0];if(!oLayout?.g` &&
+             `etItems)return;for(const oItem of oLayout.getItems()){if(!oItem?.isA)continue;if(oItem.isA("sap.m.FormattedText")){if(!oItem.getHtmlText())oItem.setHtmlText(sDetails);oDialog.addAriaLabelledBy?.(oItem` &&
+             `);oItem.setVisible(true)}else if(oItem.isA("sap.m.Link"))oItem.setVisible(false)}}const escapeSetting=v=>typeof v==="string"?v.replace(/[\\{}]/g,c=>``\\${c}``):v;function showBox(sType,sText,mOptions,oC` &&
+             `ontroller){const o={...mOptions||{}};if(o.title!==undefined)o.title=escapeSetting(o.title);const actionOf=new Map;if(Array.isArray(o.actions)){o.actions=o.actions.map(a=>{const escaped=escapeSetting(a` &&
+             `);if(escaped!==a)actionOf.set(escaped,a);return escaped});for(const key of["emphasizedAction","initialFocus"]){if(typeof o[key]==="string")o[key]=escapeSetting(o[key])}}if(o.onClose){const sEvent=o.on` &&
+             `Close;o.onClose=sAction=>Lib.dispatchWhenIdle(oController,[[sEvent],actionOf.get(sAction)??sAction])}if(o.details){o.details=Lib.sanitizeMessageDetails(o.details);if(!o.id)o.id=``z2ui5MessageBox${++iBo` &&
+             `xNo}``}if(o.dependentOn){const oDependentOn=ViewSlots.resolveById(oController?.ctx,o.dependentOn);if(oDependentOn)o.dependentOn=oDependentOn;else delete o.dependentOn}let showFn=MessageBox[sType];if(ty` &&
+             `peof showFn!=="function"){Lib.logError(``ControlCall: unknown message box type '${sType}', shown via show()``);showFn=MessageBox.show}if(Object.keys(o).length)showFn(sText,o);else showFn(sText);if(o.det` &&
+             `ails)expandBoxDetails(o.id,o.details)}const CONTROL_METHODS={to:["pageId","string"],back:[],backToPage:["pageId"],toDetail:["controlId"],toMaster:["controlId"],backDetail:[],backMaster:[],setMode:["st` &&
+             `ring"],navigateBack:[],focus:[],scrollToIndex:["int"],scrollTo:["int","int"],open:["string"],close:[],setExpanded:["bool"],discardProgress:["controlId"],setNextStep:["controlId"],setCurrentStep:["cont` &&
+             `rolId"],goToStep:["controlId","bool"],openBy:["anchor"],toggleBy:["anchor"],setActivePage:["controlId"],expandToLevel:["int"],collapseAll:[],expandSelected:[],collapseSelected:[],setHiddenInPopin:["ob` &&
+             `ject"],setSticky:["object"],setSelectedSection:["controlIdOrNull"],setSelectedItem:["controlIdOrNull"],setP13nData:["object"],setBadgeMinValue:["int"],setBadgeMaxValue:["int"],css:["string","string"],` &&
+             `enablePostButton:["bool"],addStyleClass:["string"],removeStyleClass:["string"],toggleStyleClass:["string"],setAsyncURLHandler:["string"]};Object.setPrototypeOf(CONTROL_METHODS,null);const URL_POLICIES` &&
+             `={ALLOW_ALL:()=>true,RELATIVE_ONLY:url=>!isAbsoluteUrl(url),DENY_ALL:()=>false};const CSS_PROPERTIES=["width","min-width","max-width","height","min-height","max-height","color","background-color","fon` &&
+             `t-size","opacity"];const URL_PROBE_BASE=new URL("https://z2ui5.invalid/");function isAbsoluteUrl(url){try{return new URL(String(url??""),URL_PROBE_BASE).origin!==URL_PROBE_BASE.origin}catch{return tru` &&
+             `e}}const CONTROL_METHOD_DENY_EXACT=["destroy","exit","fireEvent","clone","applySettings","setAggregation","addAggregation","insertAggregation","removeAggregation","removeAllAggregation","destroyAggreg` &&
+             `ation","setAssociation","addAssociation","removeAssociation","removeAllAssociation"];const CONTROL_METHOD_DENY_PREFIXES=["_","bind","unbind","attach","detach","addDependent","placeAt","rerender","inva` &&
+             `lidate","setModel","setBinding","setParent"];const CONTROL_METHOD_DENY=new RegExp("^("+CONTROL_METHOD_DENY_PREFIXES.join("|")+")");const CONTROL_METHOD_DENY_SET=new Set(CONTROL_METHOD_DENY_EXACT);func` &&
+             `tion isSafeControlMethod(method){return typeof method==="string"&&method.length>0&&!CONTROL_METHOD_DENY_SET.has(method)&&!CONTROL_METHOD_DENY.test(method)}const GLOBAL_TARGETS={MESSAGE_TOAST:{get:()=>` &&
+             `MessageToast,methods:{show:["string"]},display:(oController,method,aArgs,mOptions)=>showToast(aArgs[0],mOptions,oController)},MESSAGE_BOX:{get:()=>MessageBox,methods:{show:["string"],alert:["string"],` &&
+             `confirm:["string"],information:["string"],warning:["string"],error:["string"],success:["string"]},display:(oController,method,aArgs,mOptions)=>showBox(method,aArgs[0],mOptions,oController)},VIEW_SLOTS` &&
+             `:{get:()=>ViewSlots,methods:{destroy:["string"]},display:(oController,method,aArgs)=>ViewSlots.destroy(oController?.ctx,aArgs[0])},BUSY_INDICATOR:{get:()=>BusyIndicator,methods:{show:["int"],hide:[]}}` &&
+             `,ICON_POOL:{get:()=>sap.ui.require("sap/ui/core/IconPool"),methods:{registerFont:["string","string"]},display:(oController,method,aArgs,mOptions,oIconPool)=>registerIconFont(oIconPool,aArgs[0],aArgs[1` &&
+             `])},THEMING:{get:()=>Env.getThemingModule(),methods:{setTheme:["string"]}},POPUP:{get:()=>CorePopup,methods:{setWithinArea:["within"]}},INVISIBLE_MESSAGE:{get:()=>{const IM=sap.ui.require("sap/ui/core` &&
+             `/InvisibleMessage");return IM?IM.getInstance():undefined},methods:{announce:["string","string"]}},FORMATTING:{get:()=>sap.ui.require("sap/base/i18n/Formatting"),methods:{setCustomCurrencies:["object"]` &&
+             `,addCustomCurrencies:["object"]}}};Object.setPrototypeOf(GLOBAL_TARGETS,null);const AGG_ITEM=/^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;function resolveControl(raw,view,ctx){const byId=id=>view&&ViewSlots.b` &&
+             `yId(ctx,view.toUpperCase(),id)||ViewSlots.resolveById(ctx,id);const m=AGG_ITEM.exec(String(raw??""));if(!m)return byId(raw);const owner=byId(m[1]);if(!owner||typeof owner.getAggregation!=="function"){` &&
+             `Lib.logError(``aggregation item '${raw}': no control '${m[1]}'``);return null}const items=owner.getAggregation(m[2]);if(!Array.isArray(items)){Lib.logError(``aggregation item '${raw}': '${m[2]}' is no mu` &&
+             `ltiple aggregation of ${m[1]}``);return null}const item=items[Number(m[3])];if(!item){Lib.logError(``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``);return null}return item}function res` &&
+             `olveControlOrNull(raw,view,ctx){if(raw===""||raw===undefined||raw===null)return null;return resolveControl(raw,view,ctx)||null}function castArg(kind,raw,view,ctx){switch(kind){case"int":return Number(` &&
+             `raw);case"bool":return raw==="true"||raw==="X"||raw===true;case"controlId":return resolveControl(raw,view,ctx);case"pageId":{const page=resolveControl(raw,view,ctx);if(page&&typeof page.getId==="funct` &&
+             `ion")return page.getId();Lib.logError(``CONTROL_CALL: no control '${raw}' for the page argument``);return raw}case"controlIdOrNull":return resolveControlOrNull(raw,view,ctx);case"anchor":return resolveC` &&
+             `ontrol(raw,view,ctx);case"within":return resolveControlOrNull(raw,view,ctx);case"object":if(raw&&typeof raw==="object")return raw;try{return JSON.parse(raw)}catch{Lib.logError(``CONTROL_CALL: malformed` &&
+             ` object argument '${raw}'``);return{}}default:return raw}}function castArgAuto(raw){if(raw==="X"||raw==="true")return true;if(raw===""||raw===" "||raw==="false")return false;return raw}function setsStr` &&
+             `ingProperty(control,method){if(!control||typeof method!=="string"||!/^set[A-Z]/.test(method))return false;const prop=control.getMetadata?.()?.getAllProperties?.()[method.charAt(3).toLowerCase()+method` &&
+             `.slice(4)];if(!prop)return false;const primitive=prop.getType?.()?.getPrimitiveType?.()?.getName?.();return primitive?primitive==="string":prop.type==="string"}const NULLABLE_KINDS=["controlIdOrNull"]` &&
+             `;function castArgs(kinds,rawArgs,view,target,ctx){if(kinds===null){const keepString=setsStringProperty(target?.control,target?.method);return rawArgs.map((raw,i)=>i===0&&keepString?raw:castArgAuto(raw` &&
+             `))}let count=rawArgs.length;while(count<kinds.length&&NULLABLE_KINDS.includes(kinds[count]))count++;return kinds.slice(0,count).map((kind,i)=>castArg(kind,rawArgs[i],view,ctx))}const registeredIconFon` &&
+             `ts=new Set;function registerIconFont(IconPool,fontFamily,fontURI){if(!fontFamily||!fontURI){Lib.logError("ICON_POOL: registerFont needs a fontFamily AND a fontURI");return}if(registeredIconFonts.has(f` &&
+             `ontFamily))return;const uri=/^(?:[a-z]+:)?\/\//i.test(fontURI)?fontURI:sap.ui.require.toUrl(fontURI);IconPool.registerFont({fontFamily,fontURI:uri});registeredIconFonts.add(fontFamily)}function select` &&
+             `edIndicesOf(control){if(typeof control.getSelectedIndices==="function"){return control.getSelectedIndices()}if(typeof control.getSelectedItems==="function"&&typeof control.indexOfItem==="function"){re` &&
+             `turn control.getSelectedItems().map(item=>control.indexOfItem(item)).filter(i=>i>=0)}return null}function whenAnchorRendered(anchor,oController,fn){const guarded=()=>{if(!Lib.isControllerAlive(oContro` &&
+             `ller))return;fn()};if(anchor&&typeof anchor.getDomRef==="function"){Lib.whenRendered(anchor,oController,guarded,"open")}else{guarded()}}function pseudoToggleBy({control,id,view,kinds,args,oController}` &&
+             `){if(!control||typeof control.openBy!=="function"){Lib.logError(``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``);return}const anchor=castArgs(kinds,args.slice(4),view,undefined,oController` &&
+             `?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(control.isOpen?.())control.close();else control.openBy(anchor)})}function pseudoOpenBy({control,id,view,kinds,args,oController}){if(!control||ty` &&
+             `peof control.openBy!=="function"&&typeof control.open!=="function"){Lib.logError(``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``);return}const anchor=castArgs(kinds,args.slice(4),view,undefi` &&
+             `ned,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(typeof control.openBy==="function")control.openBy(anchor);else control.open(false,anchor,"begin top","begin bottom",anchor)})}fun` &&
+             `ction pseudoCss({control,id,args}){const prop=String(args[4]??"").toLowerCase();if(!CSS_PROPERTIES.includes(prop)){Lib.logError(``CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PR` &&
+             `OPERTIES.join(", ")})``);return}const el=control?.getDomRef?.();if(!el){Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);return}el.style.setProperty(prop,String(args[5]??""))}funct` &&
+             `ion pseudoExpandCollapse({control,id,method}){const op=method==="expandSelected"?"expand":"collapse";if(!control||typeof control[op]!=="function"){Lib.logError(``CONTROL_BY_ID: '${method}' not callable` &&
+             ` on control '${id}'``);return}const indices=selectedIndicesOf(control);if(indices===null){Lib.logError(``CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection``);return}if(indices.length)cont` &&
+             `rol[op](indices)}function pseudoSetAsyncURLHandler({control,id,args}){const policy=String(args[4]??"").toUpperCase();const isAllowed=URL_POLICIES[policy];if(!isAllowed){Lib.logError(``CONTROL_BY_ID: un` &&
+             `known URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``);return}if(!control||typeof control.setAsyncURLHandler!=="function"){Lib.logError(``CONTROL_BY_ID: 'setAsyncURLHandler'` &&
+             ` not callable on control '${id}'``);return}control.setAsyncURLHandler(config=>{config?.promise?.resolve({allowed:isAllowed(config.url),id:config.id})})}function isRootPrototypeMethod(obj,method){let ow` &&
+             `ner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&Object.getPrototypeOf(owner)===null}const PSEUDO_M` &&
+             `ETHODS=Object.assign(Object.create(null),{toggleBy:pseudoToggleBy,openBy:pseudoOpenBy,css:pseudoCss,expandSelected:pseudoExpandCollapse,collapseSelected:pseudoExpandCollapse,setAsyncURLHandler:pseudoS` &&
+             `etAsyncURLHandler});function evControlCallById(oController,args){const[,id,view,method]=args;let kinds=CONTROL_METHODS[method];if(!kinds){if(!isSafeControlMethod(method)){Lib.logError(``CONTROL_BY_ID: ` &&
+             `method '${method}' not allowed``);return}kinds=null}const ctx=oController?.ctx;if(method==="focus"&&!ScrollFocus.mayMoveFocus(ctx))return;const control=resolveControl(id,view,ctx);const pseudo=PSEUDO_M` &&
+             `ETHODS[method];if(pseudo){pseudo({control,id,view,method,kinds,args,oController});return}if(!control){Lib.logError(``CONTROL_BY_ID: no control '${id}'${view?`` in view '${view}'``:""} - '${method}' not c` &&
+             `alled``);return}const inherited=method==="constructor"||isRootPrototypeMethod(control,method);if(inherited||typeof control[method]!=="function"){Lib.logError(``CONTROL_BY_ID: '${method}' not callable on` &&
+             ` control '${id}'``);return}control[method](...castArgs(kinds,args.slice(4),view,{control,method},ctx))}function evControlCall(oController,args){const[,name,method]=args;const target=GLOBAL_TARGETS[name` &&
+             `];const kinds=target&&Object.prototype.hasOwnProperty.call(target.methods,method)?target.methods[method]:undefined;if(!kinds){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not allowed``);return}con` &&
+             `st obj=target.get();if(!obj){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}let raw=args.slice(3);let mOptions;if(target.display){const last=raw[raw.length-1];if(last&&typeof` &&
+             ` last==="object"){mOptions=last;raw=raw.slice(0,-1)}}if(kinds.length===1&&kinds[0]==="string"&&raw.length>1){raw=[formatTemplate(String(raw[0]),raw.slice(1))]}if(target.display){return target.display(` &&
+             `oController,method,raw,mOptions||{},obj)}if(typeof obj[method]!=="function"){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}obj[method](...castArgs(kinds,raw,undefined,undefi` &&
+             `ned,oController?.ctx))}function formatTemplate(tpl,values){return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,(m,i,tText,fText)=>{const n=Number(i);if(n>=values.length)return m;const v=String(valu` &&
+             `es[n]);if(tText===undefined)return v;const truthy=v!==""&&!/^(false|0|undefined|null)$/i.test(v);return truthy?tText:fText})}const handlers={CONTROL_BY_ID:evControlCallById,CONTROL_GLOBAL:evControlCal` &&
+             `l};for(const name of Object.keys(GLOBAL_TARGETS)){handlers[name]=(oController,args)=>evControlCall(oController,["CONTROL_GLOBAL",...args])}return{handlers,castArg}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/MessageManager.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "sap/ui/core/message/Message",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Message, Lib, Env, ViewSlots, Context) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const KEY_SEP = String.fromCharCode(1);` && |\n| &&
-             `` && |\n| &&
-             `    const keyOf = (o) =>` && |\n| &&
-             `      [` && |\n| &&
-             `        o.MESSAGE,` && |\n| &&
-             `        o.TYPE,` && |\n| &&
-             `        o.TARGET,` && |\n| &&
-             `        o.DESCRIPTION,` && |\n| &&
-             `        o.ADDITIONALTEXT,` && |\n| &&
-             `        o.CODE,` && |\n| &&
-             `      ].join(KEY_SEP);` && |\n| &&
-             `` && |\n| &&
-             `    const MessageManager = Control.extend("z2ui5.cc.MessageManager", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          items: { type: "object" },` && |\n| &&
-             `          checkInit: { type: "boolean", defaultValue: false },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          change: { allowPreventDefault: true, parameters: {} },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._added = new Map();` && |\n| &&
-             `        this._ready = false;` && |\n| &&
-             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setup");` && |\n| &&
-             `      },` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._unhook();` && |\n| &&
-             `` && |\n| &&
-             `        if (this._added.size && this._messaging) {` && |\n| &&
-             `          this._messaging.removeMessages([...this._added.values()]);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._added.clear();` && |\n| &&
-             `      },` && |\n| &&
-             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `` && |\n| &&
-             `      setup() {` && |\n| &&
-             `        const messaging = Env.getMessaging();` && |\n| &&
-             `        if (!Lib.claimOnce(this, messaging)) return;` && |\n| &&
-             `        this._messaging = messaging;` && |\n| &&
-             `` && |\n| &&
-             `        const ctx = Context.of(this);` && |\n| &&
-             `        if (!ctx) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            "MessageManager.setup: no component context, messages carry no processor",` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        const view = ctx` && |\n| &&
-             `          ? ViewSlots.getView(` && |\n| &&
-             `              ctx,` && |\n| &&
-             `              ViewSlots.containingSlotKey(ctx, this) ?? "MAIN",` && |\n| &&
-             `            )` && |\n| &&
-             `          : undefined;` && |\n| &&
-             `        this._processor = view?.getModel?.() ?? null;` && |\n| &&
-             `        this._ready = true;` && |\n| &&
-             `` && |\n| &&
-             `        this.reconcile();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      setItems(aItems) {` && |\n| &&
-             `        this.setProperty("items", aItems, true);` && |\n| &&
-             `        if (this._ready) this.reconcile();` && |\n| &&
-             `        return this;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      reconcile() {` && |\n| &&
-             `        const rows = this.getProperty("items") || [];` && |\n| &&
-             `        const wanted = new Map(rows.map((r) => [keyOf(r), r]));` && |\n| &&
-             `` && |\n| &&
-             `        let changed = false;` && |\n| &&
-             `` && |\n| &&
-             `        for (const [key, oMessage] of this._added) {` && |\n| &&
-             `          if (!wanted.has(key)) {` && |\n| &&
-             `            this._messaging.removeMessages(oMessage);` && |\n| &&
-             `            this._added.delete(key);` && |\n| &&
-             `            changed = true;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        for (const [key, r] of wanted) {` && |\n| &&
-             `          if (this._added.has(key)) continue;` && |\n| &&
-             `          changed = true;` && |\n| &&
-             `          const oMessage = new Message({` && |\n| &&
-             `            message: r.MESSAGE ?? "",` && |\n| &&
-             `            description: r.DESCRIPTION ?? "",` && |\n| &&
-             `` && |\n| &&
-             `            type: r.TYPE || "Error",` && |\n| &&
-             `            target: r.TARGET ?? "",` && |\n| &&
-             `            additionalText: r.ADDITIONALTEXT ?? "",` && |\n| &&
-             `` && |\n| &&
-             `            code: r.CODE ?? "",` && |\n| &&
-             `            processor: this._processor,` && |\n| &&
-             `          });` && |\n| &&
-             `          this._messaging.addMessages(oMessage);` && |\n| &&
-             `          this._added.set(key, oMessage);` && |\n| &&
-             `        }` && |\n| &&
-             `        if (changed) this.fireChange();` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_02.
-
-    result = `    return Env.ownClass(MessageManager);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/Launchpad.js": function(){sap.ui.define(["sap/m/library","z2ui5/core/Lib","z2ui5/core/ViewSlots"],(mobileLibrary,Lib,ViewSlots)=>{"use strict";const _URLHelper=mobileLibrary.` &&
+             `URLHelper;function withCrossAppNavigator(oController,callback){const nav=oController?.ctx?.state.oLaunchpad?.CrossAppNavigator;if(!nav){Lib.logError("CrossAppNav: not running inside Launchpad");return` &&
+             `}try{callback(nav)}catch(e){Lib.logError("CrossAppNav: callback failed",e)}}function evCrossAppNavToPrevApp(oController){withCrossAppNavigator(oController,nav=>nav.backToPreviousApp())}function boundA` &&
+             `rg(oController,raw,what){if(raw==null||raw==="")return undefined;const path=Lib.modelPathOf(raw);if(!path)return raw;const oModel=ViewSlots.responseModel(oController?.ctx,oController);const value=oMod` &&
+             `el?.getProperty(path);if(value==null){Lib.logError(``CROSS_APP_NAV_TO_EXT: nothing bound at the model path '${path}' (${what})``);return null}return value}function navTarget(oController,raw){const targe` &&
+             `t=boundArg(oController,raw,"target");if(typeof target==="string"&&target.trim().startsWith("{")){Lib.logError(``CROSS_APP_NAV_TO_EXT: target '${target}' is no object - spell it as JSON ({"semanticObjec` &&
+             `t":"...","action":"..."}) or pass its model path``);return null}return target}function evCrossAppNavToExt(oController,args){withCrossAppNavigator(oController,nav=>{const target=navTarget(oController,ar` &&
+             `gs[1]);if(target===null)return;const params=boundArg(oController,args[2],"params");if(params===null)return;const hash=nav.hrefForExternal({target,params})||"";if(args[3]==="EXT"){const base=window.loc` &&
+             `ation.href.split("#")[0];const url=``${base}${hash}``;if(!Lib.isValidRedirectURL(url)){Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);return}_URLHelper.redirect(url,true)}else{nav.toExter` &&
+             `nal({target:{shellHash:hash}})}})}function splitIntent(sIntent){const m=/^#?([^-?&#]+)-([^?&#~]+)(?:\?(.*))?$/.exec(sIntent||"");if(!m)return{};const params={};for(const pair of(m[3]||"").split("&")){` &&
+             `if(!pair)continue;const i=pair.indexOf("=");const key=decodeURIComponent(i<0?pair:pair.slice(0,i));if(key.startsWith("sap-"))continue;params[key]=i<0?"":decodeURIComponent(pair.slice(i+1))}return{sema` &&
+             `nticObject:m[1],action:m[2],params}}function evCrossAppNavGetLinks(oController,args){withCrossAppNavigator(oController,nav=>{const target=navTarget(oController,args[1]);if(target===null)return;const p` &&
+             `arams=boundArg(oController,args[2],"params");if(params===null)return;const sEvent=Lib.toText(args[3]);if(!target?.semanticObject||!sEvent){Lib.logError("CROSS_APP_NAV_GET_LINKS: needs a target with a ` &&
+             `semanticObject and a callback event");return}const query={semanticObject:target.semanticObject};if(target.action)query.action=target.action;if(params)query.params=params;Promise.resolve(nav.getLinks(q` &&
+             `uery)).then(links=>{const result=(links||[]).map(l=>({intent:l.intent,text:l.text||"",subTitle:l.subTitle||"",...splitIntent(l.intent)}));Lib.dispatchWhenIdle(oController,[[sEvent],JSON.stringify(resu` &&
+             `lt)])}).catch(e=>Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed",e))})}function evSetTitleLaunchpad(oController,args){const title=Lib.toText(args[1]);try{const shell=oController?.ctx?.state.oL` &&
+             `aunchpad?.ShellUIService;if(shell?.setTitle){const result=shell.setTitle(title);if(result?.catch){result.catch(e=>Lib.logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",e))}}}catch(e){Lib.` &&
+             `logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",e)}}function evSetAppFullWidth(oController,args){const launchpad=oController?.ctx?.state.oLaunchpad;if(!launchpad)return;const raw=args[1` &&
+             `];const fullWidth=raw===true||raw==="X"||raw==="true";const guarded=call=>{try{call()}catch(e){Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed",e)}};const shell=launchpad.ShellUIServi` &&
+             `ce;if(shell?.setApplicationFullWidth){guarded(()=>shell.setApplicationFullWidth(fullWidth));return}const viaAppConfiguration=ac=>guarded(()=>ac.setApplicationFullWidth(fullWidth));if(launchpad.AppConf` &&
+             `iguration){viaAppConfiguration(launchpad.AppConfiguration);return}sap.ui.require(["sap/ushell/services/AppConfiguration"],viaAppConfiguration,e=>Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not ` &&
+             `loaded",e))}const handlers={CROSS_APP_NAV_TO_PREV_APP:evCrossAppNavToPrevApp,CROSS_APP_NAV_TO_EXT:evCrossAppNavToExt,CROSS_APP_NAV_GET_LINKS:evCrossAppNavGetLinks,SET_TITLE_LAUNCHPAD:evSetTitleLaunchp` &&
+             `ad,SET_APP_FULL_WIDTH:evSetAppFullWidth};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/MultiInputExt.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "sap/m/Token",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Token, Lib, ViewSlots, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function plainToken(key, text) {` && |\n| &&
-             `      const token = new Token();` && |\n| &&
-             `      token.setKey(key);` && |\n| &&
-             `      token.setText(text);` && |\n| &&
-             `      return token;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const SETTINGS_CHARS = /[\\{}]/;` && |\n| &&
-             `    function freeText(text, input) {` && |\n| &&
-             `      const given = Lib.toText(text);` && |\n| &&
-             `      if (!SETTINGS_CHARS.test(given)) return given;` && |\n| &&
-             `      let value = "";` && |\n| &&
-             `      try {` && |\n| &&
-             `        value = Lib.toText(input?.getValue?.()).trim();` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("MultiInputExt: reading the input value failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (value === given) return given;` && |\n| &&
-             `      if (value && value.replace(/[\\{}]/g, "\\$&") === given) return value;` && |\n| &&
-             `      return /^(?:[^\\{}]|\\[\\{}])*$/.test(given)` && |\n| &&
-             `        ? given.replace(/\\([\\{}])/g, "$1")` && |\n| &&
-             `        : given;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const MultiInputExt = Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          MultiInputId: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `          },` && |\n| &&
-             `          MultiInputName: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `          },` && |\n| &&
-             `          addedTokens: {` && |\n| &&
-             `            type: "object",` && |\n| &&
-             `          },` && |\n| &&
-             `          checkInit: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `          removedTokens: {` && |\n| &&
-             `            type: "object",` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          TokenKeyCell: {` && |\n| &&
-             `            type: "int",` && |\n| &&
-             `            defaultValue: -1,` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          TokenTextCells: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          change: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
-             `      },` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._unhook();` && |\n| &&
-             `        this._detach();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _detach() {` && |\n| &&
-             `        const input = this._target;` && |\n| &&
-             `        this._target = null;` && |\n| &&
-             `        if (!input || Lib.isDestroyed(input)) return;` && |\n| &&
-             `        if (this._onTokenUpdate) {` && |\n| &&
-             `          input.detachTokenUpdate?.(this._onTokenUpdate);` && |\n| &&
-             `        }` && |\n| &&
-             `        if (this._validator) input.removeValidator?.(this._validator);` && |\n| &&
-             `        this._onTokenUpdate = null;` && |\n| &&
-             `        this._validator = null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onTokenUpdate(oEvent) {` && |\n| &&
-             `        Lib.applyTokenUpdate(this, oEvent);` && |\n| &&
-             `        this.fireChange();` && |\n| &&
-             `      },` && |\n| &&
-             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `` && |\n| &&
-             `      tokenFromRow(row) {` && |\n| &&
-             `        const keyIdx = this.getProperty("TokenKeyCell");` && |\n| &&
-             `        if (!(keyIdx >= 0)) return null;` && |\n| &&
-             `        const cells = typeof row.getCells === "function" ? row.getCells() : [];` && |\n| &&
-             `        const cellText = (i) => {` && |\n| &&
-             `          const c = cells[i];` && |\n| &&
-             `          return c && typeof c.getText === "function" ? c.getText() : undefined;` && |\n| &&
-             `        };` && |\n| &&
-             `        const key = cellText(keyIdx);` && |\n| &&
-             `        if (key === undefined) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``MultiInputExt: TokenKeyCell ${keyIdx} is not a text cell of the picked row``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return null;` && |\n| &&
-             `        }` && |\n| &&
-             `        const rest = String(this.getProperty("TokenTextCells") || "")` && |\n| &&
-             `          .split(",")` && |\n| &&
-             `          .map((s) => s.trim())` && |\n| &&
-             `          .filter((s) => s !== "")` && |\n| &&
-             `          .map(Number)` && |\n| &&
-             `          .map((i) => {` && |\n| &&
-             `            const v = cellText(i);` && |\n| &&
-             `            if (v === undefined) {` && |\n| &&
-             `              Lib.logError(` && |\n| &&
-             `                ``MultiInputExt: TokenTextCells entry ${i} is not a text cell of the picked row``,` && |\n| &&
-             `              );` && |\n| &&
-             `            }` && |\n| &&
-             `            return v;` && |\n| &&
-             `          })` && |\n| &&
-             `          .filter((v) => v !== undefined && v !== "");` && |\n| &&
-             `        return plainToken(key, rest.length ? ``${key}(${rest.join(" ")})`` : key);` && |\n| &&
-             `      },` && |\n| &&
-             `      setControl() {` && |\n| &&
-             `        if (this.getProperty("checkInit")) return;` && |\n| &&
-             `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
-             `          this,` && |\n| &&
-             `          this.getProperty("MultiInputId"),` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
-             `        try {` && |\n| &&
-             `          this._target = input;` && |\n| &&
-             `          this._onTokenUpdate = this.onTokenUpdate.bind(this);` && |\n| &&
-             `          input.attachTokenUpdate(this._onTokenUpdate);` && |\n| &&
-             `` && |\n| &&
-             `          this._validator = (args) => {` && |\n| &&
-             `            const picked = args?.suggestionObject;` && |\n| &&
-             `            if (picked && typeof picked.getCells === "function") {` && |\n| &&
-             `              return this.tokenFromRow(picked);` && |\n| &&
-             `            }` && |\n| &&
-             `            if (picked) {` && |\n| &&
-             `              if (args.suggestedToken) return args.suggestedToken;` && |\n| &&
-             `              return plainToken(` && |\n| &&
-             `                typeof picked.getKey === "function"` && |\n| &&
-             `                  ? picked.getKey()` && |\n| &&
-             `                  : args.text,` && |\n| &&
-             `                typeof picked.getText === "function"` && |\n| &&
-             `                  ? picked.getText()` && |\n| &&
-             `                  : args.text,` && |\n| &&
-             `              );` && |\n| &&
-             `            }` && |\n| &&
-             `            const text = freeText(args.text, input);` && |\n| &&
-             `            return plainToken(text, text);` && |\n| &&
-             `          };` && |\n| &&
-             `          input.addValidator(this._validator);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``MultiInputExt.setControl: setup failed for MultiInputId '${this.getProperty("MultiInputId")}'``,` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(MultiInputExt);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/Shortcuts.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/ScrollFocus"],(Lib,ViewSlots,ScrollFocus)=>{"use strict";const SHORTCUT_MODIFIERS` &&
+             `=["ctrl","shift","alt","meta"];const SHORTCUT_ALIASES={control:"ctrl",cmd:"meta",command:"meta",option:"alt",esc:"escape",del:"delete",ins:"insert",return:"enter",space:" "};function shortcutToken(par` &&
+             `t){const t=part.trim().toLowerCase();return Object.prototype.hasOwnProperty.call(SHORTCUT_ALIASES,t)?SHORTCUT_ALIASES[t]:t}function normalizeShortcut(combo){const tokens=String(combo??"").split("+");c` &&
+             `onst plusKey=tokens.length>=2&&tokens[tokens.length-1].trim()===""&&tokens[tokens.length-2].trim()==="";const parts=tokens.map(shortcutToken).filter(p=>p!=="");const mods=SHORTCUT_MODIFIERS.filter(m=>` &&
+             `parts.includes(m));const keys=parts.filter(p=>!SHORTCUT_MODIFIERS.includes(p));if(plusKey)keys.push("+");if(keys.length===0)return"";return[...mods,keys[keys.length-1]].join("+")}function shortcutFrom` &&
+             `Event(oEvent){const key=String(oEvent.key??"").toLowerCase();if(key===""||SHORTCUT_MODIFIERS.includes(shortcutToken(key)))return"";const mods=[];if(oEvent.ctrlKey)mods.push("ctrl");if(oEvent.shiftKey)` &&
+             `mods.push("shift");if(oEvent.altKey)mods.push("alt");if(oEvent.metaKey)mods.push("meta");return[...mods,key].join("+")}function shortcutCandidates(oEvent){const exact=shortcutFromEvent(oEvent);const k` &&
+             `ey=String(oEvent.key??"");if(exact===""||!oEvent.shiftKey||key.length!==1||key===" "||key.toLowerCase()!==key.toUpperCase()){return[exact]}return[exact,shortcutFromEvent({key:oEvent.key,ctrlKey:oEvent` &&
+             `.ctrlKey,shiftKey:false,altKey:oEvent.altKey,metaKey:oEvent.metaKey})]}const SHORTCUT_SLOTS=["POPOVER","POPUP","NEST2","NEST","MAIN"];const SHORTCUT_GLOBAL="";function scopeControlOpen(ctx,id){const c` &&
+             `=ViewSlots.resolveById(ctx,id);if(!c)return false;if(typeof c.isOpen==="function")return!!c.isOpen();return typeof c.getVisible==="function"?c.getVisible()!==false:true}function shortcutEntry(ctx,comb` &&
+             `o){const shortcuts=ctx.state.shortcuts;if(!Object.prototype.hasOwnProperty.call(shortcuts,combo)){return undefined}const scopes=shortcuts[combo];for(const key of Object.keys(scopes)){if(key===SHORTCUT` &&
+             `_GLOBAL||SHORTCUT_SLOTS.includes(key))continue;if(scopeControlOpen(ctx,key))return scopes[key]}for(const key of SHORTCUT_SLOTS){if(scopes[key]&&ViewSlots.getView(ctx,key)){const own=ViewSlots.getContr` &&
+             `oller(ctx,key);return own?{...scopes[key],controller:own}:scopes[key]}}return scopes[SHORTCUT_GLOBAL]}function commitFocusedValue(){if(typeof document==="undefined")return;const active=document.active` &&
+             `Element;if(!active||active===document.body)return;try{const control=ScrollFocus.closestUi5Element(active);if(control?.isA?.("sap.m.InputBase")&&typeof control.onChange==="function"){control.onChange()` &&
+             `}}catch(e){Lib.logError("KEYBOARD_SHORTCUT: committing the focused field failed",e)}}function installShortcutListener(ctx){if(ctx.shortcuts.listener||typeof document==="undefined")return;const listene` &&
+             `r=oEvent=>{try{let entry;for(const combo of shortcutCandidates(oEvent)){entry=shortcutEntry(ctx,combo);if(entry)break}if(!entry)return;if(!Lib.isControllerAlive(entry.controller))return;oEvent.prevent` &&
+             `Default();const wasBusy=ctx.state.isBusy;commitFocusedValue();if(!wasBusy&&ctx.state.isBusy){const controller=entry.controller;Lib.afterRoundtrip(controller,()=>setTimeout(()=>{if(Lib.isControllerAliv` &&
+             `e(controller)){controller.eB([entry.event])}},0));return}entry.controller.eB([entry.event])}catch(e){Lib.logError("KEYBOARD_SHORTCUT: dispatch failed",e)}};ctx.shortcuts.listener=listener;document.add` &&
+             `EventListener("keydown",listener)}function reset(ctx){const listener=ctx?.shortcuts?.listener;if(!listener||typeof document==="undefined")return;document.removeEventListener("keydown",listener);ctx.sh` &&
+             `ortcuts.listener=null}function evKeyboardShortcut(oController,args){const ctx=oController?.ctx;if(!ctx){Lib.logError("KEYBOARD_SHORTCUT: no context to register in");return}const combo=normalizeShortcu` &&
+             `t(args[1]);if(!combo){Lib.logError(``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``);return}const raw=String(args[3]??"");const upper=raw.toUpperCase();const scope=SHORTCUT_SLO` &&
+             `TS.includes(upper)?upper:raw;const shortcuts=ctx.state.shortcuts;if(combo in Object.prototype){Lib.logError(``KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination``);return}const scopes=shortcuts[co` &&
+             `mbo]??(shortcuts[combo]=Object.create(null));if(!args[2]){delete scopes[scope];if(Object.keys(scopes).length===0)delete shortcuts[combo];return}scopes[scope]={event:args[2],controller:oController};ins` &&
+             `tallShortcutListener(ctx)}const handlers={KEYBOARD_SHORTCUT:evKeyboardShortcut};return{handlers,reset,normalizeShortcut,shortcutFromEvent,shortcutCandidates}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/NativeBridgeScan.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/m/Button", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
-             `  (Control, Button, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const READY_EVENT = "abap2ui5native:ready";` && |\n| &&
-             `` && |\n| &&
-             `    function bridge() {` && |\n| &&
-             `      const native = window.abap2ui5Native;` && |\n| &&
-             `      return native && typeof native.scanBarcode === "function"` && |\n| &&
-             `        ? native` && |\n| &&
-             `        : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const NativeBridgeScan = Control.extend("z2ui5.cc.NativeBridgeScan", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          value: { type: "string", defaultValue: "" },` && |\n| &&
-             `          text: { type: "string", defaultValue: "Scan" },` && |\n| &&
-             `          icon: { type: "string", defaultValue: "sap-icon://bar-code" },` && |\n| &&
-             `          enabled: { type: "boolean", defaultValue: true },` && |\n| &&
-             `          showInBrowser: { type: "boolean", defaultValue: false },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          OnScan: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              value: { type: "string" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `          OnError: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              message: { type: "string" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._onReady = () => {` && |\n| &&
-             `          this._stopWaiting();` && |\n| &&
-             `          if (!Lib.isDestroyed(this)) this.invalidate();` && |\n| &&
-             `        };` && |\n| &&
-             `        this._waiting = false;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._stopWaiting();` && |\n| &&
-             `        if (this._oButton) this._oButton.destroy();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      setValue(val) {` && |\n| &&
-             `        this.setProperty("value", val, true);` && |\n| &&
-             `        return this;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _waitForBridge() {` && |\n| &&
-             `        if (this._waiting) return;` && |\n| &&
-             `        this._waiting = true;` && |\n| &&
-             `        window.addEventListener(READY_EVENT, this._onReady);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _stopWaiting() {` && |\n| &&
-             `        if (!this._waiting) return;` && |\n| &&
-             `        this._waiting = false;` && |\n| &&
-             `        window.removeEventListener(READY_EVENT, this._onReady);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _fail(message) {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        this.fireOnError({ message });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      scan() {` && |\n| &&
-             `        const native = bridge();` && |\n| &&
-             `        if (!native) {` && |\n| &&
-             `          this._fail("native shell not available");` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (this._scanning) return undefined;` && |\n| &&
-             `        this._scanning = true;` && |\n| &&
-             `        let pending;` && |\n| &&
-             `        try {` && |\n| &&
-             `          pending = Promise.resolve(native.scanBarcode());` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          pending = Promise.reject(e);` && |\n| &&
-             `        }` && |\n| &&
-             `        return pending.then(` && |\n| &&
-             `          (value) => {` && |\n| &&
-             `            this._scanning = false;` && |\n| &&
-             `            if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `            const text = Lib.toText(value);` && |\n| &&
-             `            this.setProperty("value", text, true);` && |\n| &&
-             `            this.fireOnScan({ value: text });` && |\n| &&
-             `          },` && |\n| &&
-             `          (e) => {` && |\n| &&
-             `            this._scanning = false;` && |\n| &&
-             `            const message = Lib.toText(e?.message ?? e) || "scan failed";` && |\n| &&
-             `` && |\n| &&
-             `            if (message !== "cancelled") {` && |\n| &&
-             `              Lib.logError(``NativeBridgeScan: ${message}``);` && |\n| &&
-             `            }` && |\n| &&
-             `            this._fail(message);` && |\n| &&
-             `          },` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          if (!bridge()) oControl._waitForBridge();` && |\n| &&
-             `          if (!bridge() && !oControl.getShowInBrowser()) {` && |\n| &&
-             `            Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!oControl._oButton) {` && |\n| &&
-             `            oControl._oButton = new Button({` && |\n| &&
-             `              press: () => {` && |\n| &&
-             `                oControl.scan();` && |\n| &&
-             `              },` && |\n| &&
-             `            });` && |\n| &&
-             `          }` && |\n| &&
-             `          oControl._oButton.setText(oControl.getText());` && |\n| &&
-             `          oControl._oButton.setIcon(oControl.getIcon());` && |\n| &&
-             `          oControl._oButton.setEnabled(oControl.getEnabled());` && |\n| &&
-             `` && |\n| &&
-             `          oRm.openStart("span", oControl);` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.renderControl(oControl._oButton);` && |\n| &&
-             `          oRm.close("span");` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(NativeBridgeScan);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/Slots.js": function(){sap.ui.define(["sap/ui/core/mvc/XMLView","sap/ui/core/Fragment","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/cor` &&
+             `e/WindowModel"],(XMLView,Fragment,Lib,Env,ViewSlots,Context,WindowModel)=>{"use strict";function applyStoredSizeLimit(ctx,viewKey,oModel){if(!oModel)return;const limit=Lib.effectiveSizeLimit(ctx.state` &&
+             `.viewSizeLimits,viewKey);if(limit!==undefined)oModel.setSizeLimit(limit)}function trackChanges(oModel){oModel._z2ui5Tracked=true;oModel._z2ui5ChangedPaths=new Set;oModel.attachPropertyChange(e=>{const` &&
+             ` params=e.getParameters();const raw=params.path;const ctx=params.context;if(!raw)return;const changedPath=ctx&&!raw.startsWith("/")?``${ctx.getPath()}/${raw}``:raw;if(changedPath.startsWith("/")){oModel` &&
+             `._z2ui5ChangedPaths.add(changedPath)}});return oModel}function resolveTrackedModel(oView){return ViewSlots.trackedModel(oView)}function dataForSlot(slotKey,data){if(!data||Lib.isRootModelSlot(slotKey)` &&
+             `)return data;if(typeof structuredClone==="function")return structuredClone(data);return JSON.parse(JSON.stringify(data))}function keepWindowRequest(ctx,oModel,slotKey,args,noBusy){const path=String(ar` &&
+             `gs[0]);const windows=ctx.state.oQueuedWindow||{};const kept=windows[path];windows[path]={model:oModel,slotKey,args:kept?.model===oModel?WindowModel.keepRestart(args,kept.args):args,noBusy:!!noBusy};ct` &&
+             `x.state.oQueuedWindow=windows}function slotModel(ctx,slotKey){const oView=ViewSlots.getView(ctx,slotKey);if(!oView)return undefined;return Lib.isRootModelSlot(slotKey)?resolveTrackedModel(oView):oView` &&
+             `.getModel()}function dispatchQueuedWindows(ctx){const windows=ctx.state.oQueuedWindow;if(!windows)return;for(const path of Object.keys(windows)){if(ctx.state.isBusy)break;const queued=windows[path];de` &&
+             `lete windows[path];const oController=ViewSlots.getController(ctx,queued.slotKey);if(!Lib.isControllerAlive(oController))continue;if(slotModel(ctx,queued.slotKey)!==queued.model)continue;oController.eB` &&
+             `([WindowModel.EVENT,{noBusy:queued.noBusy}],...queued.args)}if(!Object.keys(windows).length)ctx.state.oQueuedWindow=null}function createViewModel(ctx,slotKey="MAIN",data=ctx.state.oResponse?.OVIEWMODE` &&
+             `L){const oModel=trackChanges(new WindowModel(dataForSlot(slotKey,data)));oModel._z2ui5WindowSend=(args,noBusy)=>{const oController=ViewSlots.getController(ctx,slotKey);if(typeof oController?.eB!=="fun` &&
+             `ction"){Lib.logError(``WINDOW: slot ${slotKey} has no controller``);return}if(ctx.state.isBusy){keepWindowRequest(ctx,oModel,slotKey,args,noBusy);return}oController.eB([WindowModel.EVENT,{noBusy:!!noBus` &&
+             `y}],...args)};if(data&&data===ctx.state.oResponse?.OVIEWMODEL){oModel._z2ui5BuiltFrom=ctx.state.oResponse.TOKEN}return oModel}function isSuperseded(ctx,seq){return seq!==undefined&&seq!==ctx.server.re` &&
+             `questSeq}async function loadSlotFragment(ctx,slotKey,fragmentId,xml,seq){const oModel=createViewModel(ctx,slotKey);applyStoredSizeLimit(ctx,slotKey,oModel);await Env.loadViewLibraries(xml);await Env.p` &&
+             `reloadFragmentModules(xml);const oFragment=await Context.runAsOwner(ctx,()=>Fragment.load({definition:xml,controller:ViewSlots.getController(ctx,slotKey),id:ViewSlots.ownId(ctx,fragmentId)}));if(!Lib.` &&
+             `isAlive(ctx.state.oApp)||isSuperseded(ctx,seq)){oFragment.destroy();return null}oFragment.setModel(oModel);return oFragment}async function displayFragment(ctx,xml,seq){const oFragment=await loadSlotFr` &&
+             `agment(ctx,"POPUP","popupId",xml,seq);if(!oFragment)return;ViewSlots.setView(ctx,"POPUP",oFragment,xml);oFragment.open()}async function displayPopover(ctx,xml,openById,seq){const oFragment=await loadS` &&
+             `lotFragment(ctx,"POPOVER","popoverId",xml,seq);if(!oFragment)return;const oControl=ViewSlots.resolveById(ctx,openById);if(!oControl){Lib.logError(``displayPopover: openBy control '${openById}' not foun` &&
+             `d``);oFragment.destroy();return}ViewSlots.setView(ctx,"POPOVER",oFragment,xml);Lib.whenRendered(oControl,oFragment,()=>oFragment.openBy(oControl))}function templatePreprocessors(xml,oTemplateModel){if(` &&
+             `!Lib.usesXmlTemplating(xml))return undefined;return{xml:{models:{template:oTemplateModel}}}}async function displayNestedView(ctx,xml,slotKey,mOptions,seq){const oMainView=ViewSlots.getView(ctx,"MAIN")` &&
+             `;const oTemplateModel=oMainView?.getModel("http")??oMainView?.getModel();await Env.loadViewLibraries(xml);const oView=await Context.runAsOwner(ctx,()=>XMLView.create({definition:xml,controller:ViewSlo` &&
+             `ts.getController(ctx,slotKey),preprocessors:templatePreprocessors(xml,oTemplateModel)}));if(!Lib.isAlive(ctx.state.oApp)||isSuperseded(ctx,seq)){oView.destroy();return}const{id:ID,methodDestroy:METHOD` &&
+             `_DESTROY,methodInsert:METHOD_INSERT}=mOptions;const oParent=ViewSlots.byId(ctx,"MAIN",ID)??(slotKey==="NEST2"?ViewSlots.byId(ctx,"NEST",ID):undefined);if(!oParent){Lib.logError(``displayNestedView: par` &&
+             `ent control '${ID}' not found, nested view discarded``);oView.destroy();return}if(METHOD_DESTROY){try{oParent[METHOD_DESTROY]()}catch(e){Lib.logError(``displayNestedView: parent destroy method '${METHOD` &&
+             `_DESTROY}' failed``,e)}}try{oParent[METHOD_INSERT](oView)}catch(e){Lib.logError("displayNestedView: parent insert method failed",e);oView.destroy();return}ViewSlots.setView(ctx,slotKey,oView,xml)}const` &&
+             ` MAIN_VIEW_ID="mainView";const MAIN_VIEW_ID_ALT="mainView2";function freeMainViewId(ctx,oOld){return oOld&&oOld.getId()===ViewSlots.ownId(ctx,MAIN_VIEW_ID)?MAIN_VIEW_ID_ALT:MAIN_VIEW_ID}async function` &&
+             ` displayView(ctx,xml,viewModel,mOptions={},place=swapAlone,localId=MAIN_VIEW_ID){const oViewModel=createViewModel(ctx,"MAIN",viewModel);const switchPath=mOptions.switchDefaultModelPath;let oModel;if(s` &&
+             `witchPath){const ODataModel=await Lib.requireODataModel();oModel=new ODataModel({serviceUrl:switchPath,annotationURI:mOptions.switchDefaultModelAnnoUri||""});ctx.state.odataClients.add(oModel)}else{oM` &&
+             `odel=oViewModel}applyStoredSizeLimit(ctx,"MAIN",oViewModel);if(switchPath)applyStoredSizeLimit(ctx,"MAIN",oModel);await Env.loadViewLibraries(xml);const oView=await Context.runAsOwner(ctx,()=>XMLView.` &&
+             `create({definition:xml,models:oModel,controller:ViewSlots.getController(ctx,"MAIN"),id:ViewSlots.ownId(ctx,localId),preprocessors:templatePreprocessors(xml,oViewModel)}));const discardBuild=()=>{oView` &&
+             `.destroy();ctx.state.odataClients.delete(oModel);oModel.destroy();if(switchPath)oViewModel.destroy()};if(!Lib.isAlive(ctx.state.oApp)){discardBuild();return undefined}ViewSlots.setView(ctx,"MAIN",oVie` &&
+             `w,xml);if(switchPath)oView.setModel(oViewModel,"http");return place(ctx,oView)}function swapAlone(ctx,oView,oOld,aOldClients){const oApp=ctx.state.oApp;oApp.removeAllPages();oApp.insertPage(oView);if(` &&
+             `oOld)leaveOnceRendered(ctx,oView,oOld,aOldClients);return true}const SWAP_TIMEOUT=3e3;function leaveOnceRendered(ctx,oView,oOld,aOldClients){const state=ctx.state;let timer=null;const finish=()=>{if(s` &&
+             `tate.mainLeaving!==finish)return;state.mainLeaving=null;clearTimeout(timer);leavePage(ctx,oOld,aOldClients)};state.mainLeaving=finish;freezePage(oOld);timer=setTimeout(finish,SWAP_TIMEOUT);Lib.whenRen` &&
+             `dered(oView,oView,finish)}const TRANSITION_OPTIONS=["transition","transitionBack","navBack","appInstance"];const TRANSITION_TIMEOUT=3e3;function isSameOwner(ctx,options){const state=ctx.state;const in` &&
+             `stance=options.appInstance||"";if(instance&&state.mainInstance){return instance===state.mainInstance}const pageApp=ViewSlots.getViewApp(ctx,"MAIN");return Boolean(pageApp)&&pageApp===state.oResponse?.` &&
+             `APP}function transitionPlan(ctx,options){const state=ctx.state;const oCurrent=ViewSlots.getView(ctx,"MAIN");if(!oCurrent?.getDomRef?.()||!state.oApp?.getDomRef?.())return null;const explicitBack=optio` &&
+             `ns.transitionBack===true;const recognizedBack=options.navBack===true||state.navFromHash&&state.navDirection==="back";if(explicitBack||recognizedBack){if(!state.mainArrival)return null;if(!explicitBack` &&
+             `&&isSameOwner(ctx,options))return null;return{back:true,name:state.mainArrival}}if(!options.transition)return null;return{back:false,name:String(options.transition)}}function rememberPlainArrival(ctx,` &&
+             `options,bSameOwner){const state=ctx.state;if(!bSameOwner||options.transition){state.mainArrival=String(options.transition||"")}state.mainInstance=options.appInstance||(bSameOwner?state.mainInstance:""` &&
+             `)}function freezePage(oPage){const dom=oPage?.getDomRef?.();if(dom?.style)dom.style.pointerEvents="none"}function leavePage(ctx,oOld,aOldClients){const oApp=ctx.state.oApp;try{if(Lib.isAlive(oApp)&&Li` &&
+             `b.isAlive(oOld))oApp.removePage(oOld)}catch(e){Lib.logError("Slots: removing the page that left failed",e)}try{if(Lib.isAlive(oOld))oOld.destroy()}catch(e){Lib.logError("Slots: destroying the page tha` &&
+             `t left failed",e)}for(const oClient of aOldClients){try{oClient.destroy()}catch(e){Lib.logError("displayMain: destroying an OData client failed",e)}}}function navigatePage(ctx,oOld,oView,plan,mOptions` &&
+             `,aOldClients){const state=ctx.state;const oApp=state.oApp;let settle;let timer=null;const change=new Promise(resolve=>{settle=resolve});const onAfterNavigate=oEvent=>{if(oEvent.getParameter("toId")===` &&
+             `oView.getId())finish()};const finish=()=>{if(!settle)return;const fnSettle=settle;settle=null;clearTimeout(timer);if(Lib.isAlive(oApp))oApp.detachAfterNavigate(onAfterNavigate);leavePage(ctx,oOld,aOld` &&
+             `Clients);if(state.mainTransition===change)state.mainTransition=null;fnSettle()};state.mainTransition=change;oApp.attachAfterNavigate(onAfterNavigate);timer=setTimeout(finish,TRANSITION_TIMEOUT);state.` &&
+             `mainArrival=plan.back?String(mOptions.transition||""):plan.name;state.mainInstance=mOptions.appInstance||"";oApp.addPage(oView);try{if(plan.back){oApp.to(oOld.getId(),plan.name);oApp.insertPreviousPag` &&
+             `e(oView.getId(),mOptions.transition||plan.name);oApp.backToPage(oView.getId())}else{oApp.to(oView.getId(),plan.name)}}catch(e){Lib.logError("Slots: the page transition failed",e);finish()}return true}` &&
+             `async function displayPaged(ctx,xml,mOptions,plan){const state=ctx.state;const oOld=ViewSlots.detach(ctx,"MAIN");const aOldClients=[...state.odataClients];state.odataClients.clear();ViewSlots.destroy(` &&
+             `ctx,"POPUP");ViewSlots.destroy(ctx,"POPOVER");freezePage(oOld);const localId=freeMainViewId(ctx,oOld);let bPlaced;try{bPlaced=await displayView(ctx,xml,state.oResponse?.OVIEWMODEL,mOptions,(c,oView)=>` &&
+             `navigatePage(c,oOld,oView,plan,mOptions,aOldClients),localId)}catch(e){leavePage(ctx,oOld,aOldClients);throw e}if(!bPlaced)leavePage(ctx,oOld,aOldClients)}function chainBuild(ctx,seq,build){ctx.server` &&
+             `.viewBuild=Promise.resolve(ctx.server.viewBuild).catch(()=>{}).then(()=>{if(isSuperseded(ctx,seq)){return undefined}return build()});return ctx.server.viewBuild}function displayMain(ctx,xml,mOptions,s` &&
+             `eq){return chainBuild(ctx,seq,async()=>{if(ctx.state.mainTransition){await ctx.state.mainTransition;if(isSuperseded(ctx,seq))return undefined}ctx.state.mainLeaving?.();const plan=transitionPlan(ctx,mO` &&
+             `ptions);if(plan)return displayPaged(ctx,xml,mOptions,plan);rememberPlainArrival(ctx,mOptions,isSameOwner(ctx,mOptions));const oOld=ViewSlots.detach(ctx,"MAIN");const aOldClients=[...ctx.state.odataCli` &&
+             `ents];ctx.state.odataClients.clear();ViewSlots.destroy(ctx,"POPUP");ViewSlots.destroy(ctx,"POPOVER");const localId=freeMainViewId(ctx,oOld);let bPlaced;try{bPlaced=await displayView(ctx,xml,ctx.state.` &&
+             `oResponse?.OVIEWMODEL,mOptions,(c,oView)=>swapAlone(c,oView,oOld,aOldClients),localId)}catch(e){if(oOld)leavePage(ctx,oOld,aOldClients);throw e}if(!bPlaced&&oOld)leavePage(ctx,oOld,aOldClients);return` &&
+             ` bPlaced})}function displayStandalone(ctx,slotKey,xml,mOptions,seq){return chainBuild(ctx,seq,()=>{ViewSlots.destroy(ctx,slotKey);if(slotKey==="POPUP")return displayFragment(ctx,xml,seq);return displa` &&
+             `yPopover(ctx,xml,mOptions.openById,seq)})}function updateModelIfRequired(ctx,slotKey){const oView=ViewSlots.getView(ctx,slotKey);if(!oView)return;const sSlotApp=ViewSlots.getViewApp(ctx,slotKey);const` &&
+             ` sResponseApp=ctx.state.oResponse?.APP;if(sSlotApp&&sResponseApp&&sSlotApp!==sResponseApp)return;const tracked=resolveTrackedModel(oView);if(tracked){if(tracked._z2ui5BuiltFrom&&tracked._z2ui5BuiltFro` &&
+             `m===ctx.state.oResponse?.TOKEN){return}applyStoredSizeLimit(ctx,slotKey,tracked);const pending=tracked._z2ui5ChangedPaths;const keep=[];if(pending?.size){for(const path of pending){const value=tracked` &&
+             `.getProperty(path);if(value!==undefined)keep.push([path,value])}}tracked.setData(dataForSlot(slotKey,ctx.state.oResponse?.OVIEWMODEL));keep.forEach(([path,value],i)=>{tracked.setProperty(path,value,un` &&
+             `defined,i<keep.length-1)});return}const oModel=createViewModel(ctx,slotKey);applyStoredSizeLimit(ctx,slotKey,oModel);oView.setModel(oModel)}function action(ctx,method,slotKey,xml,mOptions,seq){const o` &&
+             `ptions=mOptions||{};if(method==="destroy"){ViewSlots.destroy(ctx,slotKey);return undefined}if(method==="updateModel"){for(const slot of ViewSlots.slots){if(slot.ownsModel)updateModelIfRequired(ctx,slo` &&
+             `t.key)}return undefined}if(isSuperseded(ctx,seq))return undefined;if(slotKey==="MAIN"){const reusable={...options};for(const key of TRANSITION_OPTIONS)delete reusable[key];ctx.state.lastMainDisplayOpt` &&
+             `ions=reusable;return displayMain(ctx,xml,options,seq)}if(slotKey==="POPUP"||slotKey==="POPOVER"){return displayStandalone(ctx,slotKey,xml,options,seq)}ViewSlots.destroy(ctx,slotKey);return displayNest` &&
+             `edView(ctx,xml,slotKey,options,seq)}return{action,resolveTrackedModel,dispatchQueuedWindows}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/SmartMultiInputExt.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const SmartMultiInputExt = Control.extend("z2ui5.cc.SmartMultiInputExt", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          multiInputId: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `          },` && |\n| &&
-             `          addedTokens: {` && |\n| &&
-             `            type: "object",` && |\n| &&
-             `          },` && |\n| &&
-             `          removedTokens: {` && |\n| &&
-             `            type: "object",` && |\n| &&
-             `          },` && |\n| &&
-             `          rangeData: {` && |\n| &&
-             `            type: "object",` && |\n| &&
-             `          },` && |\n| &&
-             `          checkInit: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          change: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._oInput = null;` && |\n| &&
-             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
-             `        this._bInnerControlsCreated = false;` && |\n| &&
-             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
-             `      },` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._unhook();` && |\n| &&
-             `        this._detach();` && |\n| &&
-             `` && |\n| &&
-             `        for (const resolve of this._aPendingInnerControlsCreated) resolve(null);` && |\n| &&
-             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onTokenUpdate(oEvent) {` && |\n| &&
-             `        Lib.applyTokenUpdate(this, oEvent);` && |\n| &&
-             `` && |\n| &&
-             `        const source = oEvent.getSource();` && |\n| &&
-             `        const tokens = source.getTokens();` && |\n| &&
-             `        const rangeData = source.getRangeData() || [];` && |\n| &&
-             `        const enrichedRanges = rangeData.map((oRangeData, index) => {` && |\n| &&
-             `          const token = tokens[index];` && |\n| &&
-             `          oRangeData.tokenText = token?.getText() ?? "";` && |\n| &&
-             `          oRangeData.tokenLongKey = token?.data("longKey");` && |\n| &&
-             `          return oRangeData;` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        this.setProperty("rangeData", enrichedRanges, true);` && |\n| &&
-             `        this.fireChange();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      setRangeData(aRangeData) {` && |\n| &&
-             `        this.setProperty("rangeData", aRangeData, true);` && |\n| &&
-             `` && |\n| &&
-             `        if (!Array.isArray(aRangeData)) return this;` && |\n| &&
-             `        this._rangeDataApply = this._applyRangeData(aRangeData);` && |\n| &&
-             `        return this;` && |\n| &&
-             `      },` && |\n| &&
-             `      async _applyRangeData(aRangeData) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const input = await this.inputInitialized();` && |\n| &&
-             `          if (Lib.isDestroyed(this) || !input) return;` && |\n| &&
-             `` && |\n| &&
-             `          const normalizedRangeData = aRangeData.map((oRangeData) => {` && |\n|.
-    result = result &&
-             `            const out = {};` && |\n| &&
-             `            for (const [key, value] of Object.entries(oRangeData)) {` && |\n| &&
-             `              const lower = key.toLowerCase();` && |\n| &&
-             `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
-             `              out[finalKey] = value;` && |\n| &&
-             `            }` && |\n| &&
-             `            return out;` && |\n| &&
-             `          });` && |\n| &&
-             `          input.setRangeData(normalizedRangeData);` && |\n| &&
-             `` && |\n| &&
-             `          const inputTokens = input.getTokens() || [];` && |\n| &&
-             `          for (const [index, token] of inputTokens.entries()) {` && |\n| &&
-             `            const rangeItem = aRangeData[index];` && |\n| &&
-             `            if (!rangeItem) continue;` && |\n| &&
-             `            const { TOKENLONGKEY, TOKENTEXT } = rangeItem;` && |\n| &&
-             `            token.data("longKey", TOKENLONGKEY);` && |\n| &&
-             `            token.data("range", null);` && |\n| &&
-             `            if (TOKENTEXT) token.setText(TOKENTEXT);` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("SmartMultiInputExt.setRangeData failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `      setControl() {` && |\n| &&
-             `        if (this.getProperty("checkInit")) return;` && |\n| &&
-             `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
-             `          this,` && |\n| &&
-             `          this.getProperty("multiInputId"),` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
-             `        try {` && |\n| &&
-             `          this._target = input;` && |\n| &&
-             `          this._onTokenUpdate = this.onTokenUpdate.bind(this);` && |\n| &&
-             `          this._onInnerControlsCreated = this.onInnerControlsCreated.bind(this);` && |\n| &&
-             `          input.attachTokenUpdate(this._onTokenUpdate);` && |\n| &&
-             `          input.attachInnerControlsCreated(this._onInnerControlsCreated);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``SmartMultiInputExt.setControl: setup failed for multiInputId '${this.getProperty("multiInputId")}'``,` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _detach() {` && |\n| &&
-             `        const input = this._target;` && |\n| &&
-             `        this._target = null;` && |\n| &&
-             `        if (!input || Lib.isDestroyed(input)) return;` && |\n| &&
-             `        if (this._onTokenUpdate) {` && |\n| &&
-             `          input.detachTokenUpdate?.(this._onTokenUpdate);` && |\n| &&
-             `        }` && |\n| &&
-             `        if (this._onInnerControlsCreated) {` && |\n| &&
-             `          input.detachInnerControlsCreated?.(this._onInnerControlsCreated);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._onTokenUpdate = null;` && |\n| &&
-             `        this._onInnerControlsCreated = null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      inputInitialized() {` && |\n| &&
-             `        return new Promise((resolve) => {` && |\n| &&
-             `          if (this._bInnerControlsCreated) {` && |\n| &&
-             `            resolve(this._oInput);` && |\n| &&
-             `          } else {` && |\n| &&
-             `            this._aPendingInnerControlsCreated.push(resolve);` && |\n| &&
-             `          }` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `      onInnerControlsCreated(oEvent) {` && |\n| &&
-             `        this._oInput = oEvent.getSource();` && |\n| &&
-             `        this._bInnerControlsCreated = true;` && |\n| &&
-             `        for (const resolve of this._aPendingInnerControlsCreated) {` && |\n| &&
-             `          resolve(this._oInput);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(SmartMultiInputExt);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/Variants.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots"],(Lib,ViewSlots)=>{"use strict";const SMART_VARIANT_INIT_TRIES=50;const SMART_VARIANT_INIT_DEL` &&
+             `AY=100;function anchorPersoControl(oSVM,target){if(oSVM._oPersoControl)return;if(typeof oSVM.setPersControler==="function"){oSVM.setPersControler(target)}else{oSVM._oPersoControl=target}}function ensu` &&
+             `reInitialised(oSVM,target,attempt,fnCallback){if(Lib.isDestroyed(oSVM))return;const wrapper=oSVM._getControlWrapper?oSVM._getControlWrapper(target):null;if(!wrapper){if(attempt<SMART_VARIANT_INIT_TRIE` &&
+             `S){setTimeout(()=>ensureInitialised(oSVM,target,attempt+1,fnCallback),SMART_VARIANT_INIT_DELAY)}return}if(wrapper.bInitialized)return;oSVM.initialise(fnCallback||(()=>{}),target)}function activeInitsO` &&
+             `f(oController,action){const ctx=oController?.ctx;if(!ctx){Lib.logError(``${action}: no context to register in``);return null}return ctx.variants.activeInits}function evSmartVariantInit(oController,args)` &&
+             `{const[,svmId,controlId]=args;const activeInits=activeInitsOf(oController,"SMART_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${controlId||""}``;if(activeInits.has(key))return;activeInits.` &&
+             `add(key);const finish=()=>activeInits.delete(key);let tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const cont` &&
+             `rol=controlId?ViewSlots.resolveById(oController?.ctx,controlId):null;if(!oSVM||controlId&&!control){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``S` &&
+             `MART_VARIANT_INIT: '${controlId?``${svmId}' / '${controlId}``:svmId}' not found``);finish();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.initialise!=="function"){Lib.logError(``SMART_VARIANT_INIT: no Smar` &&
+             `tVariantManagement for id '${svmId}'``);finish();return}let target=control;if(!target){const registered=oSVM.getPersonalizableControls?oSVM.getPersonalizableControls():[];if(!registered.length){if(trie` &&
+             `s++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``);finish();return}target=ViewSlots.re` &&
+             `solveById(oController?.ctx,registered[0].getControl());if(!target){finish();return}}anchorPersoControl(oSVM,target);ensureInitialised(oSVM,target,0);finish()};run()}const FILTER_BAR_WIRED="_z2ui5Filte` &&
+             `rBarVariantWired";function filterItemControl(item){return item&&typeof item.getControl==="function"?item.getControl():null}function filterItemValue(item){const control=filterItemControl(item);return c` &&
+             `ontrol&&typeof control.getValue==="function"?control.getValue():""}function registerFilterBarCallbacks(oFilterBar){oFilterBar.registerFetchData(()=>oFilterBar.getAllFilterItems().map(item=>({groupName` &&
+             `:item.getGroupName(),fieldName:item.getName(),fieldData:filterItemValue(item)})));oFilterBar.registerApplyData(data=>{(data||[]).forEach(entry=>{const control=oFilterBar.determineControlByName(entry.f` &&
+             `ieldName,entry.groupName);if(control&&typeof control.setValue==="function"){control.setValue(entry.fieldData)}})});oFilterBar.registerGetFiltersWithValues(()=>oFilterBar.getAllFilterItems().filter(ite` &&
+             `m=>String(filterItemValue(item)).length>0))}function attachFilterBarChange(oSVM,oFilterBar){oFilterBar.getAllFilterItems().forEach(item=>{const control=filterItemControl(item);if(!control||typeof cont` &&
+             `rol.attachChange!=="function")return;control.attachChange(oEvent=>{if(typeof oSVM.currentVariantSetModified==="function"){oSVM.currentVariantSetModified(true)}if(typeof oFilterBar.fireFilterChange==="` &&
+             `function"){oFilterBar.fireFilterChange(oEvent)}})})}function withPersonalizableInfo(callback){const name="sap/ui/comp/smartvariants/PersonalizableInfo";if(typeof sap==="undefined"||!sap.ui||typeof sap` &&
+             `.ui.require!=="function"){Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");return}const loaded=sap.ui.require(name);if(loaded){callback(loaded);return}sap.ui.require([name],callba` &&
+             `ck,()=>Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available"))}function evFilterBarVariantInit(oController,args){const[,svmId,filterBarId]=args;const activeInits=activeInitsO` &&
+             `f(oController,"FILTER_BAR_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${filterBarId||""}``;if(activeInits.has(key))return;activeInits.add(key);const finish=()=>activeInits.delete(key);let` &&
+             ` tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const oFilterBar=ViewSlots.resolveById(oController?.ctx,filterB` &&
+             `arId);if(!oSVM||!oFilterBar){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``);finis` &&
+             `h();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.addPersonalizableControl!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``);finish();return}if(typeof o` &&
+             `FilterBar.registerFetchData!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'``);finish();return}if(oFilterBar[FILTER_BAR_WIRED]){finish();return}oFilterBar[FILT` &&
+             `ER_BAR_WIRED]=true;finish();registerFilterBarCallbacks(oFilterBar);attachFilterBarChange(oSVM,oFilterBar);withPersonalizableInfo(PersonalizableInfo=>{oSVM.addPersonalizableControl(new PersonalizableIn` &&
+             `fo({type:"filterBar",keyName:"persistencyKey",dataSource:"",control:oFilterBar}));anchorPersoControl(oSVM,oFilterBar);ensureInitialised(oSVM,oFilterBar,0,()=>{if(typeof oSVM.currentVariantSetModified=` &&
+             `=="function"){oSVM.currentVariantSetModified(false)}})})};run()}const handlers={SMART_VARIANT_INIT:evSmartVariantInit,FILTER_BAR_VARIANT_INIT:evFilterBarVariantInit};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/Storage.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "sap/ui/util/Storage",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Storage, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function isSameValue(a, b) {` && |\n| &&
-             `      if (a === b) return true;` && |\n| &&
-             `      if (a === null || b === null) return false;` && |\n| &&
-             `      if (typeof a !== "object" || typeof b !== "object") return false;` && |\n| &&
-             `      if (Array.isArray(a) !== Array.isArray(b)) return false;` && |\n| &&
-             `      if (Array.isArray(a)) {` && |\n| &&
-             `        return a.length === b.length && a.every((v, i) => isSameValue(v, b[i]));` && |\n| &&
-             `      }` && |\n| &&
-             `      const keys = Object.keys(a);` && |\n| &&
-             `      if (keys.length !== Object.keys(b).length) return false;` && |\n| &&
-             `      return keys.every(` && |\n| &&
-             `        (k) =>` && |\n| &&
-             `          Object.prototype.hasOwnProperty.call(b, k) && isSameValue(a[k], b[k]),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const StorageControl = Control.extend("z2ui5.cc.Storage", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          type: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "session",` && |\n| &&
-             `          },` && |\n| &&
-             `          prefix: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          key: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          value: {` && |\n| &&
-             `            type: "any",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          finished: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              type: {` && |\n| &&
-             `                type: "string",` && |\n| &&
-             `              },` && |\n| &&
-             `              prefix: {` && |\n| &&
-             `                type: "string",` && |\n| &&
-             `              },` && |\n| &&
-             `              key: {` && |\n| &&
-             `                type: "string",` && |\n| &&
-             `              },` && |\n| &&
-             `              value: {` && |\n| &&
-             `                type: "any",` && |\n| &&
-             `              },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        if (!this._pendingRead) return;` && |\n| &&
-             `        this._pendingRead = false;` && |\n| &&
-             `` && |\n| &&
-             `        const type = this.getProperty("type");` && |\n| &&
-             `        const prefix = this.getProperty("prefix");` && |\n| &&
-             `        const key = this.getProperty("key");` && |\n| &&
-             `        const value = this.getProperty("value");` && |\n| &&
-             `` && |\n| &&
-             `        let stored;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const storageType = Lib.resolveStorageType(` && |\n| &&
-             `            Storage,` && |\n| &&
-             `            type,` && |\n| &&
-             `            "Storage",` && |\n| &&
-             `            "reading",` && |\n| &&
-             `          );` && |\n| &&
-             `` && |\n| &&
-             `          if (this._storeType !== storageType || this._storePrefix !== prefix) {` && |\n| &&
-             `            this._store = new Storage(storageType, prefix);` && |\n| &&
-             `            this._storeType = storageType;` && |\n| &&
-             `            this._storePrefix = prefix;` && |\n| &&
-             `          }` && |\n| &&
-             `          stored = this._store.get(key);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (stored == null) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (!isSameValue(stored, value)) {` && |\n| &&
-             `          this.setProperty("value", stored, true);` && |\n| &&
-             `          this.fireFinished({ type, prefix, key, value: stored });` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
-             `          oControl._pendingRead = true;` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(StorageControl);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/cc/Tree.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, Context, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const Tree = Control.extend("z2ui5.cc.Tree", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          tree_id: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _getTreeBinding() {` && |\n| &&
-             `        const treeControl = ViewSlots.byIdOfOwner(` && |\n| &&
-             `          this,` && |\n| &&
-             `          this.getProperty("tree_id"),` && |\n| &&
-             `        );` && |\n| &&
-             `        return treeControl?.getBinding("items");` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _treeStates(where) {` && |\n| &&
-             `        const states = Context.of(this)?.state.treeStates;` && |\n| &&
-             `        if (states) return states;` && |\n| &&
-             `        if (!this._noContextLogged) {` && |\n| &&
-             `          this._noContextLogged = true;` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``Tree.${where}: no component context, tree state not preserved``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        return null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      setBackend() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const id = this.getProperty("tree_id");` && |\n| &&
-             `          if (!id) return;` && |\n| &&
-             `          const treeStates = this._treeStates("setBackend");` && |\n| &&
-             `          if (!treeStates) return;` && |\n| &&
-             `          const binding = this._getTreeBinding();` && |\n| &&
-             `` && |\n| &&
-             `          if (binding) {` && |\n| &&
-             `            treeStates[id] = binding.getCurrentTreeState();` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``Tree.setBackend: failed for tree_id '${this.getProperty("tree_id")}'``,` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._unhook = Lib.hookCallback(` && |\n| &&
-             `          this,` && |\n| &&
-             `          "onBeforeRoundtrip",` && |\n| &&
-             `          "setBackend",` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._unhook();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const id = this.getProperty("tree_id");` && |\n| &&
-             `          if (!id) return;` && |\n| &&
-             `          const snapshot = this._treeStates("onAfterRendering")?.[id];` && |\n| &&
-             `          if (!snapshot) return;` && |\n| &&
-             `          const binding = this._getTreeBinding();` && |\n| &&
-             `          if (!binding) return;` && |\n| &&
-             `` && |\n| &&
-             `          if (` && |\n| &&
-             `            this._appliedSnapshot === snapshot &&` && |\n| &&
-             `            this._appliedBinding === binding` && |\n| &&
-             `          ) {` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          this._appliedSnapshot = snapshot;` && |\n| &&
-             `          this._appliedBinding = binding;` && |\n| &&
-             `` && |\n| &&
-             `          binding.setTreeState(snapshot);` && |\n| &&
-             `          binding.refresh(true);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``Tree.onAfterRendering: setTreeState failed for tree_id '${this.getProperty("tree_id")}'``,` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(Tree);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/cc/UITableExt.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, Env, ViewSlots, Context) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const opSymbols = {` && |\n| &&
-             `      EQ: "=",` && |\n| &&
-             `      NE: "!=",` && |\n| &&
-             `      LT: "<",` && |\n| &&
-             `      LE: "<=",` && |\n| &&
-             `      GT: ">",` && |\n| &&
-             `      GE: ">=",` && |\n| &&
-             `    };` && |\n| &&
-             `    const filterDisplayFns = {` && |\n| &&
-             `      Contains: (v) => ``*${v ?? ""}*``,` && |\n| &&
-             `      StartsWith: (v) => ``${v ?? ""}*``,` && |\n| &&
-             `      EndsWith: (v) => ``*${v ?? ""}``,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const UITableExt = Control.extend("z2ui5.cc.UITableExt", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          tableId: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._unhooks = [` && |\n| &&
-             `          Lib.hookCallback(this, "onBeforeRoundtrip", "readBackend"),` && |\n| &&
-             `` && |\n| &&
-             `          Lib.hookCallback(this, "onAfterRendering", "applyBackend"),` && |\n| &&
-             `        ];` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        for (const unhook of this._unhooks) unhook();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      readBackend() {` && |\n| &&
-             `        const table = this._getTable();` && |\n| &&
-             `        this.readFilter(table);` && |\n| &&
-             `        this.readSort(table);` && |\n| &&
-             `` && |\n| &&
-             `        const kept = this._tableStates();` && |\n| &&
-             `        const id = this.getProperty("tableId");` && |\n| &&
-             `        if (kept && id) {` && |\n| &&
-             `          kept[id] = { filters: this.aFilters, sorters: this.aSorters };` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _tableStates() {` && |\n| &&
-             `        return Context.of(this)?.state.tableStates ?? null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      applyBackend() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const oTable = this._getTable();` && |\n| &&
-             `          if (!oTable) return;` && |\n| &&
-             `` && |\n| &&
-             `          if (this._applyPending && this._pendingTable === oTable) return;` && |\n| &&
-             `          this._applyPending = true;` && |\n| &&
-             `          this._pendingTable = oTable;` && |\n| &&
-             `          Lib.whenRendered(oTable, this, () => {` && |\n| &&
-             `            if (this._pendingTable !== oTable) return;` && |\n| &&
-             `            this._applyPending = false;` && |\n| &&
-             `            this._pendingTable = null;` && |\n| &&
-             `` && |\n| &&
-             `            const kept =` && |\n| &&
-             `              this._tableStates()?.[this.getProperty("tableId")] ?? {};` && |\n| &&
-             `            this._applyGuarded(` && |\n| &&
-             `              oTable,` && |\n| &&
-             `              this.aFilters ?? kept.filters,` && |\n| &&
-             `              "_applyFilters",` && |\n| &&
-             `            );` && |\n| &&
-             `            this._applyGuarded(` && |\n| &&
-             `              oTable,` && |\n| &&
-             `              this.aSorters ?? kept.sorters,` && |\n| &&
-             `              "_applySorters",` && |\n| &&
-             `            );` && |\n| &&
-             `          });` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          this._applyPending = false;` && |\n| &&
-             `          this._pendingTable = null;` && |\n| &&
-             `          Lib.logError(``UITableExt.applyBackend failed${this._forTable()}``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _applyGuarded(oTable, aValues, method) {` && |\n|.
-    result = result &&
-             `        try {` && |\n| &&
-             `          this[method](oTable, aValues);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``UITableExt.${method} failed${this._forTable()}``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _forTable() {` && |\n| &&
-             `        return `` for tableId '${this.getProperty("tableId")}'``;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _getTable() {` && |\n| &&
-             `        return ViewSlots.byIdOfOwner(this, this.getProperty("tableId"));` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      readFilter(oTable) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const binding = oTable?.getBinding();` && |\n| &&
-             `` && |\n| &&
-             `          this._filterBinding = binding;` && |\n| &&
-             `` && |\n| &&
-             `          this.aFilters = Env.controlFilters(binding);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``UITableExt.readFilter failed${this._forTable()}``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _applyFilters(oTable, aFilters) {` && |\n| &&
-             `        if (!aFilters) return;` && |\n| &&
-             `        const binding = oTable.getBinding();` && |\n| &&
-             `        if (!binding) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (binding === this._filterBinding) return;` && |\n| &&
-             `        binding.filter(aFilters);` && |\n| &&
-             `` && |\n| &&
-             `        this._filterBinding = binding;` && |\n| &&
-             `        const columns = oTable.getColumns();` && |\n| &&
-             `` && |\n| &&
-             `        for (const oFilter of aFilters) {` && |\n| &&
-             `          let sProperty = oFilter.sPath;` && |\n| &&
-             `          if (!sProperty && oFilter.aFilters?.[0]) {` && |\n| &&
-             `            sProperty = oFilter.aFilters[0].sPath;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!sProperty) continue;` && |\n| &&
-             `` && |\n| &&
-             `          const operator = oFilter.sOperator;` && |\n| &&
-             `` && |\n| &&
-             `          let vValue = oFilter.oValue1;` && |\n| &&
-             `          if (vValue === undefined) vValue = oFilter.oValue2;` && |\n| &&
-             `          if (vValue === undefined && oFilter.aFilters?.[0]) {` && |\n| &&
-             `            vValue = oFilter.aFilters[0].oValue1;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          let displayFn;` && |\n| &&
-             `          if (operator === "BT") {` && |\n| &&
-             `            displayFn = (v) => {` && |\n| &&
-             `              const from = Lib.toText(v);` && |\n| &&
-             `              const to = Lib.toText(oFilter.oValue2);` && |\n| &&
-             `              return ``${from}..${to}``;` && |\n| &&
-             `            };` && |\n| &&
-             `          } else if (filterDisplayFns[operator]) {` && |\n| &&
-             `            displayFn = filterDisplayFns[operator];` && |\n| &&
-             `          } else {` && |\n| &&
-             `            const prefix = opSymbols[operator] || "";` && |\n| &&
-             `            displayFn = (v) => ``${prefix}${Lib.toText(v)}``;` && |\n| &&
-             `          }` && |\n| &&
-             `          const display = displayFn(vValue);` && |\n| &&
-             `` && |\n| &&
-             `          for (const oCol of columns) {` && |\n| &&
-             `            if (oCol.getFilterProperty?.() === sProperty) {` && |\n| &&
-             `              oCol.setFilterValue(display);` && |\n| &&
-             `              oCol.setFiltered(Boolean(display));` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      readSort(oTable) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const binding = oTable?.getBinding();` && |\n| &&
-             `` && |\n| &&
-             `          this._sortBinding = binding;` && |\n| &&
-             `` && |\n| &&
-             `          this.aSorters = binding ? binding.aSorters : undefined;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``UITableExt.readSort failed${this._forTable()}``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _applySorters(oTable, aSorters) {` && |\n| &&
-             `        if (!aSorters) return;` && |\n| &&
-             `        const binding = oTable.getBinding();` && |\n| &&
-             `        if (!binding) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (binding === this._sortBinding) return;` && |\n| &&
-             `        binding.sort(aSorters);` && |\n| &&
-             `` && |\n| &&
-             `        this._sortBinding = binding;` && |\n| &&
-             `` && |\n| &&
-             `        const columns = oTable.getColumns();` && |\n| &&
-             `        for (const [index, sorter] of aSorters.entries()) {` && |\n| &&
-             `          for (const oCol of columns) {` && |\n| &&
-             `            if (oCol.getSortProperty?.() === sorter.sPath) {` && |\n| &&
-             `              oCol.setSorted(true);` && |\n| &&
-             `              oCol.setSortOrder(` && |\n| &&
-             `                sorter.bDescending ? "Descending" : "Ascending",` && |\n| &&
-             `              );` && |\n| &&
-             `` && |\n| &&
-             `              if (oCol.setSortIndex) oCol.setSortIndex(index);` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(UITableExt);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/cc/UploadSetExt.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const UploadSetExt = Control.extend("z2ui5.cc.UploadSetExt", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          uploadSetId: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `          },` && |\n| &&
-             `          fileData: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          fileName: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          mediaType: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          fileSize: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          removedFileName: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          checkInit: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          change: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `          remove: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
-             `      },` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this._unhook();` && |\n| &&
-             `        this._detach();` && |\n| &&
-             `        if (this._reader) this._reader.cancel();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _detach() {` && |\n| &&
-             `        const uploadSet = this._target;` && |\n| &&
-             `        this._target = null;` && |\n| &&
-             `        if (!uploadSet || Lib.isDestroyed(uploadSet)) return;` && |\n| &&
-             `        if (this._onItemAdded) {` && |\n| &&
-             `          uploadSet.detachAfterItemAdded?.(this._onItemAdded);` && |\n| &&
-             `        }` && |\n| &&
-             `        if (this._onItemRemoved) {` && |\n| &&
-             `          uploadSet.detachAfterItemRemoved?.(this._onItemRemoved);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._onItemAdded = null;` && |\n| &&
-             `        this._onItemRemoved = null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _readFile(file) {` && |\n| &&
-             `        if (!this._reader) {` && |\n| &&
-             `          this._reader = Lib.readFilesInTurn(` && |\n| &&
-             `            this,` && |\n| &&
-             `            "UploadSetExt",` && |\n| &&
-             `            (f, result) => {` && |\n| &&
-             `              this.setProperty("fileData", result, true);` && |\n| &&
-             `              this.setProperty("fileName", f.name, true);` && |\n| &&
-             `              this.setProperty("mediaType", f.type, true);` && |\n| &&
-             `              this.setProperty("fileSize", String(f.size), true);` && |\n| &&
-             `              this.fireChange();` && |\n| &&
-             `            },` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        this._reader.add([file]);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onItemAdded(oEvent) {` && |\n| &&
-             `        const file = oEvent.getParameter("item")?.getFileObject?.();` && |\n| &&
-             `        if (!file) return;` && |\n| &&
-             `        const max = this._target?.getMaxFileSize?.() || 0;` && |\n| &&
-             `        if (!Lib.withinFileSize([file], max).length) return;` && |\n| &&
-             `        this._readFile(file);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onItemRemoved(oEvent) {` && |\n| &&
-             `        const name = oEvent.getParameter("item")?.getFileName?.() ?? "";` && |\n| &&
-             `        this.setProperty("removedFileName", name, true);` && |\n| &&
-             `        this.fireRemove();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `      setControl() {` && |\n| &&
-             `        if (this.getProperty("checkInit")) return;` && |\n| &&
-             `        const uploadSet = ViewSlots.byIdOfOwner(` && |\n| &&
-             `          this,` && |\n| &&
-             `          this.getProperty("uploadSetId"),` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!Lib.claimOnce(this, uploadSet)) return;` && |\n| &&
-             `        try {` && |\n| &&
-             `          this._target = uploadSet;` && |\n| &&
-             `          this._onItemAdded = this.onItemAdded.bind(this);` && |\n| &&
-             `          uploadSet.attachAfterItemAdded(this._onItemAdded);` && |\n| &&
-             `` && |\n| &&
-             `          if (uploadSet.attachAfterItemRemoved) {` && |\n| &&
-             `            this._onItemRemoved = this.onItemRemoved.bind(this);` && |\n| &&
-             `            uploadSet.attachAfterItemRemoved(this._onItemRemoved);` && |\n| &&
-             `          } else {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              "UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported",` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``UploadSetExt.setControl: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(UploadSetExt);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/cc/Websocket.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, Context, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const RECONNECT_BASE_MS = 500;` && |\n| &&
-             `    const RECONNECT_MAX_MS = 30000;` && |\n| &&
-             `    const MAX_CONNECT_ATTEMPTS = 5;` && |\n| &&
-             `` && |\n| &&
-             `    const CONNECT_STABLE_MS = 10000;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_QUEUE = 100;` && |\n| &&
-             `` && |\n| &&
-             `    const WS_URL = /^wss?:\/\//i;` && |\n| &&
-             `    const HTTP_SCHEME = /^http/i;` && |\n| &&
-             `` && |\n| &&
-             `    const Websocket = Control.extend("z2ui5.cc.Websocket", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        properties: {` && |\n| &&
-             `          path: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          value: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
-             `          checkActive: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: true,` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          checkRepeat: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: true,` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `        events: {` && |\n| &&
-             `          received: {` && |\n| &&
-             `            allowPreventDefault: true,` && |\n| &&
-             `            parameters: {},` && |\n| &&
-             `          },` && |\n| &&
-             `` && |\n| &&
-             `          error: {` && |\n| &&
-             `            parameters: {` && |\n| &&
-             `              code: { type: "string" },` && |\n| &&
-             `              message: { type: "string" },` && |\n| &&
-             `            },` && |\n| &&
-             `          },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `      init() {` && |\n| &&
-             `        this._queue = [];` && |\n| &&
-             `        this._failedAttempts = 0;` && |\n| &&
-             `        this._dropped = 0;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        const url = this._resolveUrl();` && |\n| &&
-             `        if (url !== this._url) {` && |\n| &&
-             `          this._disconnect();` && |\n| &&
-             `` && |\n| &&
-             `          this._failedAttempts = 0;` && |\n| &&
-             `          this._doneAfterFirst = false;` && |\n| &&
-             `        }` && |\n| &&
-             `        this._url = url;` && |\n| &&
-             `        const active = this.getProperty("checkActive");` && |\n| &&
-             `` && |\n| &&
-             `        if (active && this._wasInactive) {` && |\n| &&
-             `          this._failedAttempts = 0;` && |\n| &&
-             `          this._doneAfterFirst = false;` && |\n| &&
-             `        }` && |\n| &&
-             `        this._wasInactive = !active;` && |\n| &&
-             `` && |\n| &&
-             `        if (this.getProperty("checkRepeat")) this._doneAfterFirst = false;` && |\n| &&
-             `        if (active) {` && |\n| &&
-             `          this._connect();` && |\n| &&
-             `        } else {` && |\n| &&
-             `          this._disconnect();` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        clearTimeout(this._drainId);` && |\n| &&
-             `        this._cancelWait?.();` && |\n| &&
-             `        this._cancelWait = null;` && |\n| &&
-             `        clearTimeout(this._reconnectId);` && |\n| &&
-             `        this._disconnect();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _resolveUrl() {` && |\n| &&
-             `        const path = this.getProperty("path");` && |\n| &&
-             `        if (!path) return "";` && |\n| &&
-             `        if (WS_URL.test(path)) return path;` && |\n| &&
-             `        const prefix = Context.of(this)?.state.endpointPrefix || "";` && |\n| &&
-             `        const base = HTTP_SCHEME.test(prefix)` && |\n| &&
-             `          ? prefix` && |\n| &&
-             `          : window.location.origin + prefix;` && |\n| &&
-             `` && |\n| &&
-             `        const origin = base.replace(HTTP_SCHEME, "ws");` && |\n| &&
-             `        return path.charAt(0) === "/" ? origin + path : origin + "/" + path;` && |\n| &&
-             `      },` && |\n| &&
-             `      _connect() {` && |\n| &&
-             `        if (this._ws || !this._url) return;` && |\n| &&
-             `        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (this._doneAfterFirst) return;` && |\n| &&
-             `        const url = this._url;` && |\n| &&
-             `        let ws;` && |\n| &&
-             `        try {` && |\n| &&
-             `          ws = new WebSocket(url);` && |\n| &&
-             `        } catch (err) {` && |\n| &&
-             `          const message = "Cannot open " + url + ": " + (err.message || err);` && |\n| &&
-             `          Lib.logError("Websocket: " + message, err);` && |\n| &&
-             `` && |\n| &&
-             `          this._countFailure(url);` && |\n| &&
-             `          this._report({ kind: "error", code: "CONSTRUCT", message });` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        this._ws = ws;` && |\n| &&
-             `        this._opened = false;` && |\n| &&
-             `        this._openedAt = 0;` && |\n| &&
-             `        ws.onopen = () => {` && |\n| &&
-             `          if (this._ws === ws) {` && |\n| &&
-             `            this._opened = true;` && |\n| &&
-             `` && |\n| &&
-             `            this._openedAt = Date.now();` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `        ws.onmessage = (event) => {` && |\n| &&
-             `          if (Lib.isDestroyed(this) || this._ws !== ws) return;` && |\n| &&
-             `          if (typeof event.data !== "string") {` && |\n| &&
-             `            Lib.logError("Websocket: ignored a non-text message");` && |\n|.
-    result = result &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          this._failedAttempts = 0;` && |\n| &&
-             `          if (!this.getProperty("checkRepeat")) {` && |\n| &&
-             `            this._doneAfterFirst = true;` && |\n| &&
-             `            this._disconnect();` && |\n| &&
-             `          }` && |\n| &&
-             `          this._report({ kind: "message", value: event.data });` && |\n| &&
-             `        };` && |\n| &&
-             `        ws.onerror = () => {` && |\n| &&
-             `          Lib.logError("Websocket: connection error on " + url);` && |\n| &&
-             `        };` && |\n| &&
-             `` && |\n| &&
-             `        ws.onclose = (event) => {` && |\n| &&
-             `          if (this._ws !== ws) return;` && |\n| &&
-             `          this._ws = null;` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          const cause = this._opened` && |\n| &&
-             `            ? "Connection to " + url + " was closed"` && |\n| &&
-             `            : "Connection to " + url + " could not be established";` && |\n| &&
-             `          const message = event.reason ? cause + ": " + event.reason : cause;` && |\n| &&
-             `          Lib.logError("Websocket (" + event.code + "): " + message);` && |\n| &&
-             `` && |\n| &&
-             `          if (` && |\n| &&
-             `            this._opened &&` && |\n| &&
-             `            Date.now() - this._openedAt >= CONNECT_STABLE_MS` && |\n| &&
-             `          ) {` && |\n| &&
-             `            this._failedAttempts = 0;` && |\n| &&
-             `          } else {` && |\n| &&
-             `            this._countFailure(url);` && |\n| &&
-             `          }` && |\n| &&
-             `          this._report({` && |\n| &&
-             `            kind: "error",` && |\n| &&
-             `            code: String(event.code),` && |\n| &&
-             `            message: message,` && |\n| &&
-             `          });` && |\n| &&
-             `          this._scheduleReconnect();` && |\n| &&
-             `        };` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _countFailure(url) {` && |\n| &&
-             `        this._failedAttempts += 1;` && |\n| &&
-             `        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            "Websocket: " +` && |\n| &&
-             `              MAX_CONNECT_ATTEMPTS +` && |\n| &&
-             `              " failed connection attempts to " +` && |\n| &&
-             `              url +` && |\n| &&
-             `              " - giving up until path or checkActive changes",` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _scheduleReconnect() {` && |\n| &&
-             `        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;` && |\n| &&
-             `        const delay = Math.min(` && |\n| &&
-             `          RECONNECT_MAX_MS,` && |\n| &&
-             `          RECONNECT_BASE_MS * 2 ** this._failedAttempts,` && |\n| &&
-             `        );` && |\n| &&
-             `        clearTimeout(this._reconnectId);` && |\n| &&
-             `        this._reconnectId = setTimeout(() => {` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          if (!this.getProperty("checkActive")) return;` && |\n| &&
-             `          this._connect();` && |\n| &&
-             `        }, delay);` && |\n| &&
-             `      },` && |\n| &&
-             `      _disconnect() {` && |\n| &&
-             `        const ws = this._ws;` && |\n| &&
-             `        if (!ws) return;` && |\n| &&
-             `        this._ws = null;` && |\n| &&
-             `        ws.onopen = null;` && |\n| &&
-             `        ws.onmessage = null;` && |\n| &&
-             `        ws.onerror = null;` && |\n| &&
-             `        ws.onclose = null;` && |\n| &&
-             `        try {` && |\n| &&
-             `          ws.close();` && |\n| &&
-             `        } catch (err) {` && |\n| &&
-             `          Lib.logError("Websocket: close failed", err);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _report(item) {` && |\n| &&
-             `        if (this._queue.length >= MAX_QUEUE) {` && |\n| &&
-             `          this._dropped += 1;` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            "Websocket: queue full (" +` && |\n| &&
-             `              MAX_QUEUE +` && |\n| &&
-             `              "), dropped " +` && |\n| &&
-             `              this._dropped +` && |\n| &&
-             `              " item(s) so far",` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        this._queue.push(item);` && |\n| &&
-             `        this._drain();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _drain() {` && |\n| &&
-             `        if (!this._queue.length) return;` && |\n| &&
-             `        if (Context.of(this)?.state.isBusy) {` && |\n| &&
-             `          this._scheduleDrain();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const item = this._queue.shift();` && |\n| &&
-             `        if (item.kind === "error") {` && |\n| &&
-             `          this.fireError({` && |\n| &&
-             `            code: item.code,` && |\n| &&
-             `            message: item.message,` && |\n| &&
-             `          });` && |\n| &&
-             `        } else {` && |\n| &&
-             `          this.setProperty("value", item.value, true);` && |\n| &&
-             `          this.fireReceived();` && |\n| &&
-             `        }` && |\n| &&
-             `        if (this._queue.length) this._scheduleDrain();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _scheduleDrain() {` && |\n| &&
-             `        this._cancelWait?.();` && |\n| &&
-             `        this._cancelWait = Lib.afterRoundtrip(this, () => {` && |\n| &&
-             `          this._cancelWait = null;` && |\n| &&
-             `          clearTimeout(this._drainId);` && |\n| &&
-             `          this._drainId = setTimeout(() => {` && |\n| &&
-             `            if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `            this._drain();` && |\n| &&
-             `          }, 0);` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(Websocket);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/controller/App.controller.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/mvc/Controller",` && |\n| &&
-             `    "sap/m/App",` && |\n| &&
-             `    "sap/m/NavContainer",` && |\n| &&
-             `    "z2ui5/controller/View1.controller",` && |\n| &&
-             `    "z2ui5/core/Server",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    BaseController,` && |\n| &&
-             `    App,` && |\n| &&
-             `    NavContainer,` && |\n| &&
-             `    Controller,` && |\n| &&
-             `    Server,` && |\n| &&
-             `    Context,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `    Env,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function createRoot(ctx, oController) {` && |\n| &&
-             `      const Root = ctx.state.ownsPage ? App : NavContainer;` && |\n| &&
-             `      const oRoot = Context.runAsOwner(` && |\n| &&
-             `        ctx,` && |\n| &&
-             `        () => new Root(oController.createId("app")),` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      oController.byId("rootSlot").setRoot(oRoot);` && |\n| &&
-             `      return oRoot;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function holdFirstAutoFocus(oApp) {` && |\n| &&
-             `      if (!oApp?.getAutoFocus?.()) return;` && |\n| &&
-             `      oApp.setAutoFocus(false);` && |\n| &&
-             `      const delegate = {` && |\n| &&
-             `        onAfterRendering() {` && |\n| &&
-             `          if (!oApp.getCurrentPage()) return;` && |\n| &&
-             `          oApp.removeEventDelegate(delegate);` && |\n| &&
-             `          oApp.setProperty("autoFocus", true, true);` && |\n| &&
-             `        },` && |\n| &&
-             `      };` && |\n| &&
-             `      oApp.addEventDelegate(delegate);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function launchpadClient() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const Container = sap.ui.require("sap/ushell/Container");` && |\n| &&
-             `        return Container?.getLogonSystem?.()?.getClient?.();` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const AppController = BaseController.extend("z2ui5.controller.App", {` && |\n| &&
-             `      onInit() {` && |\n| &&
-             `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
-             `        const state = ctx.state;` && |\n| &&
-             `        state.oOwnerComponent = this.getOwnerComponent();` && |\n| &&
-             `` && |\n| &&
-             `        const manifest = state.oOwnerComponent.getManifest();` && |\n| &&
-             `        const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;` && |\n| &&
-             `` && |\n| &&
-             `        state.url = Lib.withSapClient(` && |\n| &&
-             `          state.endpoint || uri,` && |\n| &&
-             `          window.location.href,` && |\n| &&
-             `          launchpadClient(),` && |\n| &&
-             `        );` && |\n| &&
-             `` && |\n| &&
-             `        state.oApp = createRoot(ctx, this);` && |\n| &&
-             `        if (!state.ownsPage) holdFirstAutoFocus(state.oApp);` && |\n| &&
-             `` && |\n| &&
-             `        this.startApp();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      startApp() {` && |\n| &&
-             `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
-             `        const state = ctx.state;` && |\n| &&
-             `` && |\n| &&
-             `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          const oController = new Controller();` && |\n| &&
-             `          oController.ctx = ctx;` && |\n| &&
-             `          state[slot.controllerProp] = oController;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        state.isBusy = true;` && |\n| &&
-             `        Server.roundtrip(ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(AppController);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/controller/View1.controller.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/mvc/Controller",` && |\n| &&
-             `    "sap/ui/core/BusyIndicator",` && |\n| &&
-             `    "z2ui5/core/Server",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/FrontendAction",` && |\n| &&
-             `    "z2ui5/core/actions/Slots",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Router",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    Controller,` && |\n| &&
-             `    BusyIndicator,` && |\n| &&
-             `    Server,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    FrontendAction,` && |\n| &&
-             `    Slots,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `    Router,` && |\n| &&
-             `    Env,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function showBusy(ctx, delay) {` && |\n| &&
-             `      if (ctx?.state?.ownsPage === false)` && |\n| &&
-             `        Lib.setComponentBusy(ctx, true, delay);` && |\n| &&
-             `      else BusyIndicator.show(delay);` && |\n| &&
-             `    }` && |\n| &&
-             `    function hideBusy(ctx) {` && |\n| &&
-             `      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);` && |\n| &&
-             `      else BusyIndicator.hide();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const RENDER_EVENT_CHAIN_MAX = 25;` && |\n| &&
-             `` && |\n| &&
-             `    const View1Controller = Controller.extend("z2ui5.controller.View1", {` && |\n| &&
-             `      onAfterRendering() {` && |\n| &&
-             `        if (this.ctx.state.oResponse) this._processAfterRendering();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async _processAfterRendering(reqSeq) {` && |\n| &&
-             `        let superseded = false;` && |\n| &&
-             `        let replaced = false;` && |\n| &&
-             `` && |\n| &&
-             `        let failed = false;` && |\n| &&
-             `` && |\n| &&
-             `        const oResponse = this.ctx.state.oResponse;` && |\n| &&
-             `        if (!oResponse || oResponse._processed) return;` && |\n| &&
-             `        oResponse._processed = true;` && |\n| &&
-             `` && |\n| &&
-             `        oResponse._processing = true;` && |\n| &&
-             `` && |\n| &&
-             `        const seq = reqSeq ?? this.ctx.server.requestSeq;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const state = this.ctx.state;` && |\n| &&
-             `          const previousApp = state.renderedApp;` && |\n| &&
-             `          if (oResponse.APP && previousApp !== oResponse.APP) {` && |\n| &&
-             `            state.oQueuedEvent = null;` && |\n| &&
-             `            state.oQueuedWindow = null;` && |\n| &&
-             `` && |\n| &&
-             `            state.aRenderEvents = [];` && |\n| &&
-             `            state.renderedApp = oResponse.APP;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (this._replacesMainOwner(oResponse, previousApp)) {` && |\n| &&
-             `            state.shortcuts = Object.create(null);` && |\n| &&
-             `            state.treeStates = Object.create(null);` && |\n| &&
-             `            state.tableStates = Object.create(null);` && |\n| &&
-             `` && |\n| &&
-             `            state.viewSizeLimits = Object.create(null);` && |\n| &&
-             `` && |\n| &&
-             `            state.hashEvent = null;` && |\n| &&
-             `            state.appHash = "";` && |\n| &&
-             `            state.pendingAppHash = null;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (oResponse.VIEWS) {` && |\n| &&
-             `            await this._applyViews(oResponse, seq);` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          const alive = Lib.isControllerAlive(this);` && |\n| &&
-             `          if (` && |\n| &&
-             `            !alive ||` && |\n| &&
-             `            seq !== this.ctx.server.requestSeq ||` && |\n| &&
-             `            oResponse !== this.ctx.state.oResponse` && |\n| &&
-             `          ) {` && |\n| &&
-             `            superseded = true;` && |\n| &&
-             `` && |\n| &&
-             `            replaced = !alive || oResponse !== this.ctx.state.oResponse;` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (oResponse.MODELPRESENT) Slots.action(this.ctx, "updateModel");` && |\n| &&
-             `` && |\n| &&
-             `          Router.sync(this.ctx, {` && |\n| &&
-             `            ...(oResponse.NAV || {}),` && |\n| &&
-             `            id: oResponse.ID,` && |\n| &&
-             `          });` && |\n| &&
-             `          Lib.runCallbacks(this.ctx.state.onAfterRendering);` && |\n| &&
-             `          Lib.runCallbacks(this.ctx.state.onRoundtripEnd);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
-             `` && |\n| &&
-             `          if (` && |\n| &&
-             `            !Lib.isControllerAlive(this) ||` && |\n| &&
-             `            seq !== this.ctx.server.requestSeq` && |\n| &&
-             `          ) {` && |\n| &&
-             `            superseded = true;` && |\n| &&
-             `            replaced =` && |\n| &&
-             `              !Lib.isControllerAlive(this) ||` && |\n| &&
-             `              oResponse !== this.ctx.state.oResponse;` && |\n| &&
-             `          } else {` && |\n| &&
-             `            failed = true;` && |\n| &&
-             `` && |\n| &&
-             `            Server.showRenderError(` && |\n| &&
-             `              this.ctx,` && |\n| &&
-             `              e,` && |\n| &&
-             `              "Unexpected Error Occurred - App Terminated",` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `        } finally {` && |\n| &&
-             `          oResponse._processing = false;` && |\n| &&
-             `          if (!superseded) {` && |\n| &&
-             `            hideBusy(this.ctx);` && |\n| &&
-             `            this.ctx.state.isBusy = false;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (!replaced && this.ctx.state.mainTransition) {` && |\n| &&
-             `            await this.ctx.state.mainTransition;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!replaced && !failed) await this._runPendingActions(oResponse);` && |\n| &&
-             `` && |\n| &&
-             `          if (` && |\n| &&
-             `            superseded &&` && |\n| &&
-             `            !replaced &&` && |\n| &&
-             `            this.ctx.server.restoreSeq === this.ctx.server.requestSeq &&` && |\n| &&
-             `            seq !== this.ctx.server.requestSeq` && |\n| &&
-             `          ) {` && |\n| &&
-             `            Lib.cancelPendingTimers(this.ctx);` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!superseded && !failed) {` && |\n| &&
-             `            this._dispatchQueuedEvent();` && |\n| &&
-             `` && |\n| &&
-             `            Router.dispatchPendingAppHash(this.ctx);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _replacesMainOwner(oResponse, previousApp) {` && |\n| &&
-             `        if (!oResponse?.APP) return false;` && |\n| &&
-             `        const main = oResponse.VIEWS?.MAIN;` && |\n| &&
-             `        if (!main || main.DESTROY) return false;` && |\n| &&
-             `        const owner = ViewSlots.getViewApp(this.ctx, "MAIN") ?? previousApp;` && |\n| &&
-             `        return owner !== oResponse.APP;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async _applyViews(oResponse, seq) {` && |\n| &&
-             `        const views = oResponse?.VIEWS;` && |\n| &&
-             `        if (!views) return;` && |\n| &&
-             `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          const entry = views[slot.key];` && |\n| &&
-             `          if (!entry) continue;` && |\n| &&
-             `` && |\n| &&
-             `          if (` && |\n| &&
-             `            !Lib.isControllerAlive(this) ||` && |\n|.
-    result = result &&
-             `            seq !== this.ctx.server.requestSeq` && |\n| &&
-             `          )` && |\n| &&
-             `            return;` && |\n| &&
-             `          await Slots.action(` && |\n| &&
-             `            this.ctx,` && |\n| &&
-             `            entry.DESTROY ? "destroy" : "display",` && |\n| &&
-             `            slot.key,` && |\n| &&
-             `            entry.XML,` && |\n| &&
-             `            entry.OPT,` && |\n| &&
-             `            seq,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _dispatchQueuedEvent() {` && |\n| &&
-             `        const state = this.ctx.state;` && |\n| &&
-             `        while (state.aRenderEvents.length) {` && |\n| &&
-             `          const queued = state.aRenderEvents.shift();` && |\n| &&
-             `          if (!Lib.isControllerAlive(queued.controller)) continue;` && |\n| &&
-             `` && |\n| &&
-             `          const key = ViewSlots.keyOfController(queued.controller);` && |\n| &&
-             `          if (ViewSlots.getViewResponse(this.ctx, key) !== queued.response) {` && |\n| &&
-             `            continue;` && |\n| &&
-             `          }` && |\n| &&
-             `          const chain = state.renderEventChain + 1;` && |\n| &&
-             `          if (chain > RENDER_EVENT_CHAIN_MAX) {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              ``eB: ${RENDER_EVENT_CHAIN_MAX} events fired while a view was being built went out in a row - '${queued.args[0]?.[0]}' and the ones behind it are dropped. An app that answers a rendering ` &&
-             `event with a new view fires it again``,` && |\n| &&
-             `            );` && |\n| &&
-             `            state.aRenderEvents = [];` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `          queued.controller.eB(...queued.args);` && |\n| &&
-             `` && |\n| &&
-             `          state.renderEventChain = chain;` && |\n| &&
-             `          break;` && |\n| &&
-             `        }` && |\n| &&
-             `        const queued = state.oQueuedEvent;` && |\n| &&
-             `        state.oQueuedEvent = null;` && |\n| &&
-             `        if (queued && Lib.isControllerAlive(queued.controller)) {` && |\n| &&
-             `          const key = ViewSlots.keyOfController(queued.controller);` && |\n| &&
-             `          if (ViewSlots.getView(this.ctx, key) === queued.view) {` && |\n| &&
-             `            queued.controller.eB(...queued.args);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        Slots.dispatchQueuedWindows(this.ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async _runPendingActions(oResponse) {` && |\n| &&
-             `        const actions = oResponse?._pendingActions;` && |\n| &&
-             `        if (oResponse) oResponse._pendingActions = null;` && |\n| &&
-             `        if (!actions) return;` && |\n| &&
-             `        if (!Lib.isControllerAlive(this)) return;` && |\n| &&
-             `        for (const item of actions) {` && |\n| &&
-             `          const result = FrontendAction.runCustom(item, this);` && |\n| &&
-             `          if (typeof result?.then === "function") {` && |\n| &&
-             `            try {` && |\n| &&
-             `              await result;` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              Lib.logError(` && |\n| &&
-             `                ``FrontendAction: async action '${item?.[0]}' failed``,` && |\n| &&
-             `                e,` && |\n| &&
-             `              );` && |\n| &&
-             `            }` && |\n| &&
-             `            if (!Lib.isControllerAlive(this)) return;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      destroyPopup() {` && |\n| &&
-             `        ViewSlots.destroy(this.ctx, "POPUP");` && |\n| &&
-             `      },` && |\n| &&
-             `      destroyPopover() {` && |\n| &&
-             `        ViewSlots.destroy(this.ctx, "POPOVER");` && |\n| &&
-             `      },` && |\n| &&
-             `      destroyNestView() {` && |\n| &&
-             `        ViewSlots.destroy(this.ctx, "NEST");` && |\n| &&
-             `      },` && |\n| &&
-             `      destroyNestView2() {` && |\n| &&
-             `        ViewSlots.destroy(this.ctx, "NEST2");` && |\n| &&
-             `      },` && |\n| &&
-             `      destroyView() {` && |\n| &&
-             `        ViewSlots.destroy(this.ctx, "MAIN");` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      eF(...args) {` && |\n| &&
-             `        return FrontendAction.execute(this, args);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      eBP(oEvent, bVeto, ...args) {` && |\n| &&
-             `        if (bVeto && typeof oEvent?.preventDefault === "function") {` && |\n| &&
-             `          oEvent.preventDefault();` && |\n| &&
-             `        }` && |\n| &&
-             `        this.eB(...args);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      textPath(oControl, sSeparator) {` && |\n| &&
-             `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      slotById(sSlot, sId) {` && |\n| &&
-             `        const control = sSlot` && |\n| &&
-             `          ? ViewSlots.byId(this.ctx, sSlot, sId)` && |\n| &&
-             `          : ViewSlots.resolveById(this.ctx, sId);` && |\n| &&
-             `        if (!control) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``slotById: no control '${sId}' in slot '${sSlot || "(any)"}'``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return null;` && |\n| &&
-             `        }` && |\n| &&
-             `        return control;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      slotValue(sSlot, sId, sMethod) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const control = sSlot` && |\n| &&
-             `            ? ViewSlots.byId(this.ctx, sSlot, sId)` && |\n| &&
-             `            : ViewSlots.resolveById(this.ctx, sId);` && |\n| &&
-             `          if (!control) {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              ``slotValue: no control '${sId}' in slot '${sSlot || "(any)"}'``,` && |\n| &&
-             `            );` && |\n| &&
-             `            return "";` && |\n| &&
-             `          }` && |\n| &&
-             `          if (typeof control[sMethod] !== "function") {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              ``slotValue: '${sMethod}' is not a method of control '${sId}'``,` && |\n| &&
-             `            );` && |\n| &&
-             `            return "";` && |\n| &&
-             `          }` && |\n| &&
-             `          const value = control[sMethod]();` && |\n| &&
-             `          return value === undefined || value === null ? "" : value;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``slotValue: '${sMethod}' on '${sId}' failed``, e);` && |\n| &&
-             `          return "";` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      eB(...args) {` && |\n| &&
-             `        if (!Array.isArray(args[0])) {` && |\n| &&
-             `          let got;` && |\n| &&
-             `          try {` && |\n| &&
-             `            got = JSON.stringify(args[0]);` && |\n| &&
-             `          } catch {` && |\n| &&
-             `            got = ``an object that is no JSON (${Object.prototype.toString.call(args[0])})``;` && |\n| &&
-             `          }` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``eB: the first argument must be the event array, got ${got}``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const { useMainModel, queueLast, noBusy } = Lib.eventOptions(args[0]);` && |\n| &&
-             `` && |\n| &&
-             `        if (this.ctx.state.isBusy) {` && |\n| &&
-             `          if (queueLast) {` && |\n| &&
-             `            this.ctx.state.oQueuedEvent = {` && |\n| &&
-             `              controller: this,` && |\n| &&
-             `` && |\n| &&
-             `              view: ViewSlots.getView(` && |\n| &&
-             `                this.ctx,` && |\n| &&
-             `                ViewSlots.keyOfController(this),` && |\n| &&
-             `              ),` && |\n| &&
-             `              args: Lib.normalizeEventArgs(args),` && |\n| &&
-             `            };` && |\n| &&
-             `          } else if (this._firedWhileBuilding()) {` && |\n| &&
-             `            this.ctx.state.aRenderEvents.push({` && |\n| &&
-             `              controller: this,` && |\n| &&
-             `` && |\n| &&
-             `              response: this.ctx.state.oResponse,` && |\n| &&
-             `              args: Lib.normalizeEventArgs(args),` && |\n| &&
-             `            });` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!noBusy) showBusy(this.ctx, 0);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this.ctx.state.renderEventChain = 0;` && |\n| &&
-             `` && |\n| &&
-             `        Lib.cancelPendingTimers(this.ctx);` && |\n| &&
-             `` && |\n| &&
-             `        this.ctx.state.isBusy = true;` && |\n| &&
-             `        if (!noBusy) showBusy(this.ctx);` && |\n| &&
-             `` && |\n| &&
-             `        const oBody = {};` && |\n| &&
-             `        this.ctx.state.oBody = oBody;` && |\n| &&
-             `` && |\n| &&
-             `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
-             `` && |\n| &&
-             `        Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);` && |\n| &&
-             `` && |\n| &&
-             `        const changedPaths = oModel?._z2ui5ChangedPaths;` && |\n| &&
-             `        if (oModel && changedPaths?.size > 0) {` && |\n| &&
-             `          const data = oModel.getData();` && |\n| &&
-             `          if (data) {` && |\n| &&
-             `            oBody.MODEL = Lib.buildDeltaFromPaths(changedPaths, data);` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          oModel._z2ui5SentValues = new Map(` && |\n| &&
-             `            Array.from(changedPaths, (path) => [` && |\n| &&
-             `              path,` && |\n| &&
-             `              oModel.getProperty(path),` && |\n| &&
-             `            ]),` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this.ctx.state.oSentModel = oModel;` && |\n| &&
-             `` && |\n| &&
-             `        oBody.ID = this.ctx.state.oResponse?.ID;` && |\n| &&
-             `` && |\n| &&
-             `        oBody.ARGUMENTS = Lib.normalizeEventArgs(args);` && |\n| &&
-             `` && |\n| &&
-             `        Server.roundtrip(this.ctx, oBody);` && |\n| &&
-             `` && |\n| &&
-             `        Lib.runCallbacks(this.ctx.state.onAfterRoundtrip);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _firedWhileBuilding() {` && |\n| &&
-             `        const oResponse = this.ctx.state.oResponse;` && |\n| &&
-             `        if (!oResponse?._processing) return false;` && |\n| &&
-             `        const key = ViewSlots.keyOfController(this);` && |\n| &&
-             `        if (!ViewSlots.getView(this.ctx, key)) return true;` && |\n| &&
-             `        return ViewSlots.getViewResponse(this.ctx, key) === oResponse;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
-             `        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);` && |\n| &&
-             `        if (!slotKey) return undefined;` && |\n| &&
-             `` && |\n| &&
-             `        const oView = ViewSlots.getView(this.ctx, slotKey);` && |\n| &&
-             `        if (!oView) return undefined;` && |\n| &&
-             `` && |\n| &&
-             `        if (Lib.isRootModelSlot(slotKey)) {` && |\n| &&
-             `          return Slots.resolveTrackedModel(oView);` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        return oView.getModel();` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `    return Env.ownClass(View1Controller);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/AppState.js": function(){sap.ui.define([], () => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  function createState() {` && |\n| &&
-             `    return {` && |\n| &&
-             `      endpoint: null,` && |\n| &&
-             `      url: null,` && |\n| &&
-             `      oConfig: {},` && |\n| &&
-             `      ccResourceRoot: null,` && |\n| &&
-             `      cccResourceRoot: null,` && |\n| &&
-             `      endpointPrefix: null,` && |\n| &&
-             `      nodePath: null,` && |\n| &&
-             `      ownsPage: false,` && |\n| &&
-             `` && |\n| &&
-             `      oApp: null,` && |\n| &&
-             `      oOwnerComponent: null,` && |\n| &&
-             `      oDeviceModel: null,` && |\n| &&
-             `      oView: null,` && |\n| &&
-             `      oViewNest: null,` && |\n| &&
-             `      oViewNest2: null,` && |\n| &&
-             `      oViewPopup: null,` && |\n| &&
-             `      oViewPopover: null,` && |\n| &&
-             `      oController: null,` && |\n| &&
-             `      oControllerNest: null,` && |\n| &&
-             `      oControllerNest2: null,` && |\n| &&
-             `      oControllerPopup: null,` && |\n| &&
-             `      oControllerPopover: null,` && |\n| &&
-             `      slotXml: {},` && |\n| &&
-             `      slotApp: {},` && |\n| &&
-             `      slotResponse: {},` && |\n| &&
-             `      oLaunchpad: null,` && |\n| &&
-             `` && |\n| &&
-             `      mainArrival: "",` && |\n| &&
-             `      mainInstance: "",` && |\n| &&
-             `      mainTransition: null,` && |\n| &&
-             `      mainLeaving: null,` && |\n| &&
-             `` && |\n| &&
-             `      oBody: null,` && |\n| &&
-             `      oResponse: null,` && |\n| &&
-             `      renderedApp: null,` && |\n| &&
-             `      responseData: null,` && |\n| &&
-             `      contextId: null,` && |\n| &&
-             `      isBusy: false,` && |\n| &&
-             `      oQueuedEvent: null,` && |\n| &&
-             `      oQueuedWindow: null,` && |\n| &&
-             `      aRenderEvents: [],` && |\n| &&
-             `      renderEventChain: 0,` && |\n| &&
-             `      oSentModel: null,` && |\n| &&
-             `      lastRequestBytes: null,` && |\n| &&
-             `      lastRoundtripMs: null,` && |\n| &&
-             `      lastMainDisplayOptions: null,` && |\n| &&
-             `` && |\n| &&
-             `      navRouting: false,` && |\n| &&
-             `      navMode: null,` && |\n| &&
-             `      currentApp: null,` && |\n| &&
-             `      currentDraftId: null,` && |\n| &&
-             `      navFromHash: false,` && |\n| &&
-             `      navDirection: "",` && |\n| &&
-             `      hashEvent: null,` && |\n| &&
-             `      appHash: "",` && |\n| &&
-             `      pendingAppHash: null,` && |\n| &&
-             `` && |\n| &&
-             `      hashPushCount: 0,` && |\n| &&
-             `` && |\n| &&
-             `      timers: Object.create(null),` && |\n| &&
-             `      shortcuts: Object.create(null),` && |\n| &&
-             `      lastScrolled: {},` && |\n| &&
-             `      odataClients: new Set(),` && |\n| &&
-             `      viewSizeLimits: Object.create(null),` && |\n| &&
-             `      treeStates: Object.create(null),` && |\n| &&
-             `      tableStates: Object.create(null),` && |\n| &&
-             `      lastError: null,` && |\n| &&
-             `` && |\n| &&
-             `      onBeforeRoundtrip: [],` && |\n| &&
-             `      onAfterRoundtrip: [],` && |\n| &&
-             `      onAfterRendering: [],` && |\n| &&
-             `` && |\n| &&
-             `      onRoundtripEnd: [],` && |\n| &&
-             `      onBeforeEventFrontend: [],` && |\n| &&
-             `      onErrorDetails: [],` && |\n| &&
-             `    };` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const COMPONENT_FIELDS = new Set([` && |\n| &&
-             `    "endpoint",` && |\n| &&
-             `    "url",` && |\n| &&
-             `    "oConfig",` && |\n| &&
-             `    "ccResourceRoot",` && |\n| &&
-             `    "cccResourceRoot",` && |\n| &&
-             `    "endpointPrefix",` && |\n| &&
-             `    "nodePath",` && |\n| &&
-             `    "ownsPage",` && |\n| &&
-             `    "oApp",` && |\n| &&
-             `    "oOwnerComponent",` && |\n| &&
-             `    "oDeviceModel",` && |\n| &&
-             `    "oLaunchpad",` && |\n| &&
-             `    "onBeforeRoundtrip",` && |\n| &&
-             `    "onAfterRoundtrip",` && |\n| &&
-             `    "onAfterRendering",` && |\n| &&
-             `    "onBeforeEventFrontend",` && |\n| &&
-             `    "onErrorDetails",` && |\n| &&
-             `  ]);` && |\n| &&
-             `` && |\n| &&
-             `  function resetApp(state) {` && |\n| &&
-             `    const fresh = createState();` && |\n| &&
-             `    for (const key of Object.keys(fresh)) {` && |\n| &&
-             `      if (!COMPONENT_FIELDS.has(key)) state[key] = fresh[key];` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return { createState, resetApp, COMPONENT_FIELDS };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/Context.js": function(){sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const byComponent = new WeakMap();` && |\n| &&
-             `` && |\n| &&
-             `  const byView = new WeakMap();` && |\n| &&
-             `` && |\n| &&
-             `  function create(component) {` && |\n| &&
-             `    const ctx = {` && |\n| &&
-             `      component: component || null,` && |\n| &&
-             `      id: typeof component?.getId === "function" ? component.getId() : "",` && |\n| &&
-             `` && |\n| &&
-             `      alive: true,` && |\n| &&
-             `      state: AppState.createState(),` && |\n| &&
-             `` && |\n| &&
-             `      server: {` && |\n| &&
-             `        requestSeq: 0,` && |\n| &&
-             `` && |\n| &&
-             `        restoreSeq: 0,` && |\n| &&
-             `        inflight: new Set(),` && |\n| &&
-             `        viewBuild: null,` && |\n| &&
-             `        csrfToken: "",` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      session: {` && |\n| &&
-             `        configSent: false,` && |\n| &&
-             `        ui5Sent: false,` && |\n| &&
-             `        liveSent: "",` && |\n| &&
-             `        pending: null,` && |\n| &&
-             `        locationSent: false,` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      router: {` && |\n| &&
-             `        navigate: null,` && |\n| &&
-             `        startRoute: null,` && |\n| &&
-             `        hashListener: null,` && |\n| &&
-             `        trail: [],` && |\n| &&
-             `        trailPos: -1,` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_03.
-
-    result = `      shortcuts: { listener: null },` && |\n| &&
-             `` && |\n| &&
-             `      variants: { activeInits: new Set() },` && |\n| &&
-             `` && |\n| &&
-             `      scroll: { target: undefined, ui5El: undefined, slotKey: undefined },` && |\n| &&
-             `` && |\n| &&
-             `      focus: { userInside: false, listener: null },` && |\n| &&
-             `` && |\n| &&
-             `      errorView: { title: "", details: "", options: {}, dialog: null },` && |\n| &&
-             `` && |\n| &&
-             `      restart: null,` && |\n| &&
-             `` && |\n| &&
-             `      devtools: {},` && |\n| &&
-             `    };` && |\n| &&
-             `    if (component) byComponent.set(component, ctx);` && |\n| &&
-             `    return ctx;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function destroy(ctx) {` && |\n| &&
-             `    if (!ctx) return;` && |\n| &&
-             `    ctx.alive = false;` && |\n| &&
-             `    ctx.state = AppState.createState();` && |\n| &&
-             `    if (ctx.component) byComponent.delete(ctx.component);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function resetApp(ctx) {` && |\n| &&
-             `    if (ctx?.state) AppState.resetApp(ctx.state);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function registerView(ctx, view) {` && |\n| &&
-             `    if (ctx && view && typeof view === "object") byView.set(view, ctx);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function runAsOwner(ctx, fn) {` && |\n| &&
-             `    const component = ctx?.component;` && |\n| &&
-             `    if (component && typeof component.runAsOwner === "function") {` && |\n| &&
-             `      return component.runAsOwner(fn);` && |\n| &&
-             `    }` && |\n| &&
-             `    return fn();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function of(anchor) {` && |\n| &&
-             `    if (!anchor || typeof anchor !== "object") return null;` && |\n| &&
-             `` && |\n| &&
-             `    if (anchor.ctx && anchor.ctx.state) return anchor.ctx;` && |\n| &&
-             `` && |\n| &&
-             `    const own = byComponent.get(anchor);` && |\n| &&
-             `    if (own) return own;` && |\n| &&
-             `` && |\n| &&
-             `    const Component = sap.ui.require?.("sap/ui/core/Component");` && |\n| &&
-             `    if (Component && typeof Component.getOwnerComponentFor === "function") {` && |\n| &&
-             `      const owner = Component.getOwnerComponentFor(anchor);` && |\n| &&
-             `      const found = owner && byComponent.get(owner);` && |\n| &&
-             `      if (found) return found;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    let node = anchor;` && |\n| &&
-             `    for (let i = 0; node && i < 200; i++) {` && |\n| &&
-             `      const found = byView.get(node);` && |\n| &&
-             `      if (found) return found;` && |\n| &&
-             `      node = typeof node.getParent === "function" ? node.getParent() : null;` && |\n| &&
-             `    }` && |\n| &&
-             `    return null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return { create, destroy, resetApp, registerView, runAsOwner, of };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/Embed.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Component", "sap/ui/core/ComponentContainer"],` && |\n| &&
-             `  (Component, ComponentContainer) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const AREA = "z2ui5EmbedArea";` && |\n| &&
-             `` && |\n| &&
-             `    const STYLE =` && |\n| &&
-             `      ``.${AREA} .sapMShell.sapMShellAppWidthLimited .sapMShellCentralBox `` +` && |\n| &&
-             `      "{ left: 0; margin-left: 0; width: 100%; }";` && |\n| &&
-             `    const STYLE_ID = "z2ui5-embed-style";` && |\n| &&
-             `` && |\n| &&
-             `    function installStyle() {` && |\n| &&
-             `      if (document.getElementById(STYLE_ID)) return;` && |\n| &&
-             `      const marker = document.createElement("meta");` && |\n| &&
-             `      marker.id = STYLE_ID;` && |\n| &&
-             `      document.head.appendChild(marker);` && |\n| &&
-             `      try {` && |\n| &&
-             `        const sheet = new CSSStyleSheet();` && |\n| &&
-             `        sheet.replaceSync(STYLE);` && |\n| &&
-             `        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        const style = document.createElement("style");` && |\n| &&
-             `        style.textContent = STYLE;` && |\n| &&
-             `        document.head.appendChild(style);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function startupParameters(params, app) {` && |\n| &&
-             `      const result = {};` && |\n| &&
-             `      for (const name of Object.keys(params || {}).sort()) {` && |\n| &&
-             `        if (name === "app_start") continue;` && |\n| &&
-             `        const value = params[name];` && |\n| &&
-             `        const values = (Array.isArray(value) ? value : [value])` && |\n| &&
-             `          .filter((v) => v != null)` && |\n| &&
-             `          .map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v)));` && |\n| &&
-             `        if (values.length) result[name] = values;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (app) result.app_start = [app];` && |\n| &&
-             `      return result;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function withHostStart(settings) {` && |\n| &&
-             `      if (settings.ownsPage !== true || !settings.host) return settings;` && |\n| &&
-             `      const owner = Component.getOwnerComponentFor(settings.host);` && |\n| &&
-             `      const data = owner && owner.getComponentData && owner.getComponentData();` && |\n| &&
-             `      const startup = (data && data.startupParameters) || {};` && |\n| &&
-             `      const first = (name) => [].concat(startup[name])[0];` && |\n| &&
-             `      const params = {};` && |\n| &&
-             `      for (const name of Object.keys(startup)) {` && |\n| &&
-             `        if (name !== "app_start" && first(name) != null) {` && |\n| &&
-             `          params[name] = first(name);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      const app = settings.app || first("app_start") || "";` && |\n| &&
-             `      return Object.assign({}, settings, {` && |\n| &&
-             `        app: String(app),` && |\n| &&
-             `        params: Object.assign(params, settings.params),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function componentData(settings, installation) {` && |\n| &&
-             `      const data = Object.assign({}, installation.componentData, {` && |\n| &&
-             `        endpoint: settings.endpoint,` && |\n| &&
-             `      });` && |\n| &&
-             `      const parameters = startupParameters(settings.params, settings.app);` && |\n| &&
-             `      if (Object.keys(parameters).length) data.startupParameters = parameters;` && |\n| &&
-             `      if (settings.ownsPage === true) data.ownsPage = true;` && |\n| &&
-             `      return data;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function createComponent(settings, installation) {` && |\n| &&
-             `      const create = () =>` && |\n| &&
-             `        Component.create({` && |\n| &&
-             `          name: installation.componentName,` && |\n| &&
-             `          manifest: true,` && |\n| &&
-             `          handleValidation: true,` && |\n| &&
-             `          componentData: componentData(settings, installation),` && |\n| &&
-             `        });` && |\n| &&
-             `      const owner =` && |\n| &&
-             `        settings.host && Component.getOwnerComponentFor(settings.host);` && |\n| &&
-             `      if (owner) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          return owner.runAsOwner(create);` && |\n| &&
-             `        } catch (e) {}` && |\n| &&
-             `      }` && |\n| &&
-             `      return create();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      startupParameters,` && |\n| &&
-             `      componentData,` && |\n| &&
-             `      withHostStart,` && |\n| &&
-             `` && |\n| &&
-             `      create(settings, installation) {` && |\n| &&
-             `        const part = settings.ownsPage !== true;` && |\n| &&
-             `        if (part) installStyle();` && |\n| &&
-             `        return Promise.resolve(` && |\n| &&
-             `          createComponent(withHostStart(settings), installation),` && |\n| &&
-             `        ).then((component) => {` && |\n| &&
-             `          const container = new ComponentContainer({` && |\n| &&
-             `            lifecycle: "Container",` && |\n| &&
-             `            propagateModel: false,` && |\n| &&
-             `            width: "100%",` && |\n| &&
-             `            height: "100%",` && |\n| &&
-             `            component,` && |\n| &&
-             `          });` && |\n| &&
-             `          if (part) container.addStyleClass(AREA);` && |\n| &&
-             `          return container;` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/Env.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Element", "sap/ui/VersionInfo", "z2ui5/core/Lib"],` && |\n| &&
-             `  (Element, VersionInfo, Lib) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function getElementById(sId) {` && |\n| &&
-             `      if (!sId) return null;` && |\n| &&
-             `      if (Element.getElementById) return Element.getElementById(sId) || null;` && |\n| &&
-             `` && |\n| &&
-             `      if (sap.ui.getCore) {` && |\n| &&
-             `        const core = sap.ui.getCore();` && |\n| &&
-             `        if (core?.byId) return core.byId(sId) || null;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    let messagingFacade = null;` && |\n| &&
-             `    function getMessaging() {` && |\n| &&
-             `      if (messagingFacade) return messagingFacade;` && |\n| &&
-             `      const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
-             `      if (Messaging) {` && |\n| &&
-             `        messagingFacade = Messaging;` && |\n| &&
-             `        return Messaging;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (sap.ui.getCore) {` && |\n| &&
-             `        const core = sap.ui.getCore();` && |\n| &&
-             `        if (core?.getMessageManager) {` && |\n| &&
-             `          messagingFacade = core.getMessageManager();` && |\n| &&
-             `          return messagingFacade;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getThemingModule() {` && |\n| &&
-             `      return sap.ui.require("sap/ui/core/Theming") || null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getTheme() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const Theming = getThemingModule();` && |\n| &&
-             `        if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
-             `` && |\n| &&
-             `        if (sap.ui.getCore) {` && |\n| &&
-             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `          if (config?.getTheme) return config.getTheme();` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Env: reading theme failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getLocale() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
-             `        if (Localization?.getLanguage) {` && |\n| &&
-             `          return {` && |\n| &&
-             `            language: Localization.getLanguage(),` && |\n| &&
-             `            rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (sap.ui.getCore) {` && |\n| &&
-             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `          if (config?.getLanguage) {` && |\n| &&
-             `            return {` && |\n| &&
-             `              language: config.getLanguage(),` && |\n| &&
-             `              rtl: Boolean(config.getRTL?.()),` && |\n| &&
-             `            };` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Env: reading locale failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return { language: "", rtl: false };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function hasMessagingModule() {` && |\n| &&
-             `      const version = ui5Version();` && |\n| &&
-             `      if (!version) return true;` && |\n| &&
-             `      const [major, minor] = version;` && |\n| &&
-             `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function ui5Version() {` && |\n| &&
-             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
-             `` && |\n| &&
-             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return null;` && |\n| &&
-             `      return [major, minor];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function fragmentLoadsSync() {` && |\n| &&
-             `      const version = ui5Version();` && |\n| &&
-             `      if (!version) return false;` && |\n| &&
-             `      const [major, minor] = version;` && |\n| &&
-             `      return major === 1 && minor < 84;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const XMLNS = /\bxmlns(?::([\w.-]+))?\s*=\s*["']([\w.]+)["']/g;` && |\n| &&
-             `    const ELEMENT = /<(?:([\w.-]+):)?([A-Z]\w*)[\s/>]/g;` && |\n| &&
-             `    function fragmentControlModules(xml) {` && |\n| &&
-             `      const text = String(xml ?? "");` && |\n| &&
-             `      const namespaces = new Map();` && |\n| &&
-             `      for (const [, prefix, namespace] of text.matchAll(XMLNS)) {` && |\n| &&
-             `        namespaces.set(prefix ?? "", namespace);` && |\n| &&
-             `      }` && |\n| &&
-             `      const result = new Set();` && |\n| &&
-             `      for (const [, prefix, name] of text.matchAll(ELEMENT)) {` && |\n| &&
-             `        const namespace = namespaces.get(prefix ?? "");` && |\n| &&
-             `        if (!namespace || name === "FragmentDefinition") continue;` && |\n| &&
-             `        result.add(``${namespace.replace(/\./g, "/")}/${name}``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return [...result];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function preloadFragmentModules(xml) {` && |\n| &&
-             `      if (!fragmentLoadsSync()) return Promise.resolve();` && |\n| &&
-             `      const modules = fragmentControlModules(xml);` && |\n| &&
-             `      if (!modules.length) return Promise.resolve();` && |\n| &&
-             `      return new Promise((resolve) => {` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          modules,` && |\n| &&
-             `          () => resolve(),` && |\n| &&
-             `          (e) => {` && |\n| &&
-             `            Lib.logError("Env: preloading the fragment's controls failed", e);` && |\n| &&
-             `            resolve();` && |\n| &&
-             `          },` && |\n| &&
-             `        );` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const LIBRARY_NAME = /^[A-Za-z_]\w*(?:\.\w+)+$/;` && |\n| &&
-             `` && |\n| &&
-             `    const namespaceLibrary = new Map();` && |\n| &&
-             `    const libraryLoads = new Map();` && |\n| &&
-             `` && |\n| &&
-             `    let distributionLibraries = null;` && |\n| &&
-             `` && |\n| &&
-             `    function viewNamespaces(xml) {` && |\n| &&
-             `      const result = new Set();` && |\n| &&
-             `      for (const [, , namespace] of String(xml ?? "").matchAll(XMLNS)) {` && |\n| &&
-             `        if (LIBRARY_NAME.test(namespace) && !namespace.startsWith("z2ui5")) {` && |\n| &&
-             `          result.add(namespace);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return [...result];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function loadDistributionLibraries() {` && |\n| &&
-             `      if (!distributionLibraries) {` && |\n| &&
-             `        distributionLibraries = Promise.resolve()` && |\n| &&
-             `          .then(() => VersionInfo?.load?.())` && |\n| &&
-             `          .then((info) =>` && |\n| &&
-             `            Array.isArray(info?.libraries)` && |\n| &&
-             `              ? info.libraries.map((lib) => lib?.name).filter(Boolean)` && |\n| &&
-             `              : null,` && |\n| &&
-             `          )` && |\n| &&
-             `          .catch(() => null);` && |\n| &&
-             `      }` && |\n| &&
-             `      return distributionLibraries;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function loadedLibraryNames() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const Library = sap.ui.require("sap/ui/core/Lib");` && |\n| &&
-             `        if (Library?.all) return new Set(Object.keys(Library.all()));` && |\n| &&
-             `` && |\n| &&
-             `        if (sap.ui.getCore) {` && |\n| &&
-             `          const loaded = sap.ui.getCore().getLoadedLibraries?.();` && |\n| &&
-             `          if (loaded) return new Set(Object.keys(loaded));` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Env: reading the loaded libraries failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return new Set();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isUnder(name, library) {` && |\n| &&
-             `      return name === library || name.startsWith(``${library}.``);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function libraryOf(namespace, libraries) {` && |\n| &&
-             `      if (!libraries) return namespace;` && |\n| &&
-             `      let best = null;` && |\n| &&
-             `      for (const library of libraries) {` && |\n| &&
-             `        if (` && |\n| &&
-             `          isUnder(namespace, library) &&` && |\n| &&
-             `          (!best || library.length > best.length)` && |\n| &&
-             `        ) {` && |\n| &&
-             `          best = library;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return best;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function loadLibrary(name) {` && |\n| &&
-             `      let load = libraryLoads.get(name);` && |\n| &&
-             `      if (load) return load;` && |\n| &&
-             `      load = new Promise((resolve) => {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const Library = sap.ui.require("sap/ui/core/Lib");` && |\n| &&
-             `          if (Library?.load) {` && |\n| &&
-             `            Library.load({ name }).then(` && |\n| &&
-             `              () => resolve(true),` && |\n| &&
-             `              () => resolve(false),` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          const core = sap.ui.getCore?.();` && |\n|.
-    result = result &&
-             `          if (core?.loadLibraries) {` && |\n| &&
-             `            core.loadLibraries([name], { async: true }).then(` && |\n| &&
-             `              () => resolve(true),` && |\n| &&
-             `              () => resolve(false),` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``Env: loading the library ${name} failed``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `        resolve(false);` && |\n| &&
-             `      });` && |\n| &&
-             `      libraryLoads.set(name, load);` && |\n| &&
-             `      return load;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function loadViewLibraries(xml) {` && |\n| &&
-             `      const namespaces = viewNamespaces(xml).filter(` && |\n| &&
-             `        (namespace) => !namespaceLibrary.has(namespace),` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!namespaces.length) return;` && |\n| &&
-             `      const libraries = await loadDistributionLibraries();` && |\n| &&
-             `      const loaded = [...loadedLibraryNames()];` && |\n| &&
-             `      const names = new Set();` && |\n| &&
-             `      for (const namespace of namespaces) {` && |\n| &&
-             `        const library = libraryOf(namespace, libraries);` && |\n| &&
-             `        namespaceLibrary.set(namespace, library);` && |\n| &&
-             `        if (!library) continue;` && |\n| &&
-             `        if (loaded.some((lib) => isUnder(library, lib))) continue;` && |\n| &&
-             `        names.add(library);` && |\n| &&
-             `      }` && |\n| &&
-             `      await Promise.all([...names].map(loadLibrary));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const ownClasses = [];` && |\n| &&
-             `    let hostPage = false;` && |\n| &&
-             `` && |\n| &&
-             `    const hostNamespaces = new WeakSet();` && |\n| &&
-             `    function collectHostNamespaces(object, depth) {` && |\n| &&
-             `      if (!object || typeof object !== "object" || depth > 3) return;` && |\n| &&
-             `      hostNamespaces.add(object);` && |\n| &&
-             `      for (const key of Object.keys(object)) {` && |\n| &&
-             `        collectHostNamespaces(object[key], depth + 1);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    collectHostNamespaces(window.z2ui5, 0);` && |\n| &&
-             `` && |\n| &&
-             `    function removeGlobal(name, value) {` && |\n| &&
-             `      if (!name || value === undefined) return;` && |\n| &&
-             `      const keys = String(name).split(".");` && |\n| &&
-             `      const leaf = keys.pop();` && |\n| &&
-             `      const chain = [window];` && |\n| &&
-             `      for (const key of keys) {` && |\n| &&
-             `        const next = chain[chain.length - 1][key];` && |\n| &&
-             `        if (!next || typeof next !== "object") return;` && |\n| &&
-             `        chain.push(next);` && |\n| &&
-             `      }` && |\n| &&
-             `      const holder = chain[chain.length - 1];` && |\n| &&
-             `      if (holder[leaf] !== value) return;` && |\n| &&
-             `      delete holder[leaf];` && |\n| &&
-             `      for (let i = keys.length - 1; i >= 0; i--) {` && |\n| &&
-             `        const namespace = chain[i + 1];` && |\n| &&
-             `        if (hostNamespaces.has(namespace) || Object.keys(namespace).length) {` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        delete chain[i][keys[i]];` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function removeClassGlobals(Class) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const metadata = Class.getMetadata();` && |\n| &&
-             `        removeGlobal(metadata.getName(), Class);` && |\n| &&
-             `` && |\n| &&
-             `        if (typeof metadata.getRendererName === "function") {` && |\n| &&
-             `          removeGlobal(metadata.getRendererName(), metadata.getRenderer());` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Env: removing a class's global export failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function ownClass(Class) {` && |\n| &&
-             `      ownClasses.push(Class);` && |\n| &&
-             `      if (hostPage) removeClassGlobals(Class);` && |\n| &&
-             `      return Class;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function dropClassGlobals() {` && |\n| &&
-             `      hostPage = true;` && |\n| &&
-             `      for (const Class of ownClasses) removeClassGlobals(Class);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function controlFilters(binding) {` && |\n| &&
-             `      if (!binding) return undefined;` && |\n| &&
-             `      if (typeof binding.getFilters === "function") {` && |\n| &&
-             `        return binding.getFilters("Control");` && |\n| &&
-             `      }` && |\n| &&
-             `      return binding.aFilters;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      getElementById,` && |\n| &&
-             `      getMessaging,` && |\n| &&
-             `      controlFilters,` && |\n| &&
-             `      getThemingModule,` && |\n| &&
-             `      getTheme,` && |\n| &&
-             `      getLocale,` && |\n| &&
-             `      hasMessagingModule,` && |\n| &&
-             `      fragmentLoadsSync,` && |\n| &&
-             `      fragmentControlModules,` && |\n| &&
-             `      preloadFragmentModules,` && |\n| &&
-             `      viewNamespaces,` && |\n| &&
-             `      loadViewLibraries,` && |\n| &&
-             `      ownClass,` && |\n| &&
-             `      dropClassGlobals,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/ErrorView.js": function(){sap.ui.define([], () => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
-             `` && |\n| &&
-             `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
-             `` && |\n| &&
-             `  const PREVIEW_SCAN_MAX = 16000;` && |\n| &&
-             `` && |\n| &&
-             `  const DEFAULT_TITLE = "Application Error - Please Restart The App";` && |\n| &&
-             `` && |\n| &&
-             `  const STYLE_ID = "z2ui5ErrorViewStyle";` && |\n| &&
-             `  const DIALOG_CLASS = "z2ui5ErrorDialog";` && |\n| &&
-             `  const MESSAGE_CLASS = "z2ui5ErrorMessage";` && |\n| &&
-             `  const HINT_CLASS = "z2ui5ErrorHint";` && |\n| &&
-             `` && |\n| &&
-             `  function fromCodePoint(raw, codePoint) {` && |\n| &&
-             `    if (!(codePoint >= 0 && codePoint <= 0x10ffff)) return raw;` && |\n| &&
-             `    return String.fromCodePoint(codePoint);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const NAMED_ENTITIES = {` && |\n| &&
-             `    nbsp: " ",` && |\n| &&
-             `    lt: "<",` && |\n| &&
-             `    gt: ">",` && |\n| &&
-             `    quot: '"',` && |\n| &&
-             `    apos: "'",` && |\n| &&
-             `    copy: String.fromCharCode(169),` && |\n| &&
-             `  };` && |\n| &&
-             `` && |\n| &&
-             `  const ENTITY = /&(?:([a-z]+)|#(\d+)|#x([0-9a-f]+));/gi;` && |\n| &&
-             `  function decodeEntities(s) {` && |\n| &&
-             `    return s` && |\n| &&
-             `      .replace(ENTITY, (raw, name, dec, hex) => {` && |\n| &&
-             `        if (name) return NAMED_ENTITIES[name.toLowerCase()] ?? raw;` && |\n| &&
-             `        if (dec) return fromCodePoint(raw, Number(dec));` && |\n| &&
-             `        return fromCodePoint(raw, parseInt(hex, 16));` && |\n| &&
-             `      })` && |\n| &&
-             `      .replace(/&amp;/gi, "&");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const cleanText = (s) =>` && |\n| &&
-             `    decodeEntities(s.replace(/<[^>]+>/g, " "))` && |\n| &&
-             `      .replace(/\s+/g, " ")` && |\n| &&
-             `      .trim();` && |\n| &&
-             `` && |\n| &&
-             `  function extractServerError(html) {` && |\n| &&
-             `    const parts = [];` && |\n| &&
-             `    const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;` && |\n| &&
-             `    let m;` && |\n| &&
-             `    while ((m = rx.exec(html))) parts.push(cleanText(m[1]));` && |\n| &&
-             `    return parts.filter((t) => t && !/^server time:/i.test(t)).join(" - ");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const ERROR_SECTION_HEADER = "--- error ---";` && |\n| &&
-             `` && |\n| &&
-             `  function extractFrameworkMessages(text) {` && |\n| &&
-             `    const lines = text.split("\n");` && |\n| &&
-             `    const start = lines.findIndex(` && |\n| &&
-             `      (line) => line.trim() === ERROR_SECTION_HEADER,` && |\n| &&
-             `    );` && |\n| &&
-             `    if (start < 0) return "";` && |\n| &&
-             `    const messages = [];` && |\n| &&
-             `    for (const line of lines.slice(start + 1)) {` && |\n| &&
-             `      if (line.trim().startsWith("---")) break;` && |\n| &&
-             `      const cleaned = cleanText(line);` && |\n| &&
-             `      if (cleaned) messages.push(cleaned);` && |\n| &&
-             `    }` && |\n| &&
-             `    return messages.join("\n");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function buildErrorPreview(text) {` && |\n| &&
-             `    if (!text) return "";` && |\n| &&
-             `    let preview = extractFrameworkMessages(text);` && |\n| &&
-             `    if (!preview) {` && |\n| &&
-             `      preview = text.slice(0, PREVIEW_SCAN_MAX);` && |\n| &&
-             `      if (/<[a-z][\s\S]*>/i.test(preview)) {` && |\n| &&
-             `        preview =` && |\n| &&
-             `          extractServerError(preview) ||` && |\n| &&
-             `          cleanText(` && |\n| &&
-             `            preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi, " "),` && |\n| &&
-             `          );` && |\n| &&
-             `      }` && |\n| &&
-             `      preview = preview.replace(/\s+/g, " ").trim();` && |\n| &&
-             `    }` && |\n| &&
-             `    return preview.length > PREVIEW_MAX_LENGTH` && |\n| &&
-             `      ? ``${preview.slice(0, PREVIEW_MAX_LENGTH)}...``` && |\n| &&
-             `      : preview;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function copyToClipboard(text) {` && |\n| &&
-             `    const value = String(text == null ? "" : text);` && |\n| &&
-             `    let copied;` && |\n| &&
-             `    const textarea = document.createElement("textarea");` && |\n| &&
-             `    textarea.value = value;` && |\n| &&
-             `` && |\n| &&
-             `    textarea.style.cssText =` && |\n| &&
-             `      "position:fixed;top:-9999px;left:-9999px;opacity:0;";` && |\n| &&
-             `    textarea.setAttribute("readonly", "");` && |\n| &&
-             `    document.body.appendChild(textarea);` && |\n| &&
-             `    try {` && |\n| &&
-             `      textarea.focus();` && |\n| &&
-             `      textarea.select();` && |\n| &&
-             `      textarea.setSelectionRange(0, value.length);` && |\n| &&
-             `      copied = document.execCommand("copy");` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      copied = false;` && |\n| &&
-             `    }` && |\n| &&
-             `    textarea.remove();` && |\n| &&
-             `    if (!copied && navigator.clipboard?.writeText) {` && |\n| &&
-             `      navigator.clipboard.writeText(value).catch(() => {});` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const DIALOG_STYLES = ``` && |\n| &&
-             `.${DIALOG_CLASS}.sapMDialog,` && |\n| &&
-             `.${DIALOG_CLASS} .sapMDialogTitleGroup,` && |\n| &&
-             `.${DIALOG_CLASS} .sapMIBar,` && |\n| &&
-             `.${DIALOG_CLASS} .sapMDialogFooter,` && |\n| &&
-             `.${DIALOG_CLASS} .sapMDialogScrollCont,` && |\n| &&
-             `.${DIALOG_CLASS} .sapMBtnInner {` && |\n| &&
-             `  border-radius: 0 !important;` && |\n| &&
-             `}` && |\n| &&
-             `.${MESSAGE_CLASS} {` && |\n| &&
-             `  display: block;` && |\n| &&
-             `  margin: 0 0 0.5rem 0;` && |\n| &&
-             `  padding: 0.5rem 0.75rem;` && |\n| &&
-             `  border-left: 0.1875rem solid var(--sapNegativeColor, #bb0000);` && |\n| &&
-             `  background: var(--sapErrorBackground, #ffebeb);` && |\n| &&
-             `  color: var(--sapTextColor, #32363a);` && |\n| &&
-             `  line-height: 1.4;` && |\n| &&
-             `  overflow-wrap: anywhere;` && |\n| &&
-             `}` && |\n| &&
-             `.${MESSAGE_CLASS}:last-of-type {` && |\n| &&
-             `  margin-bottom: 0;` && |\n| &&
-             `}` && |\n| &&
-             `.${HINT_CLASS} {` && |\n| &&
-             `  display: block;` && |\n| &&
-             `  margin-top: 0.75rem;` && |\n| &&
-             `  color: var(--sapContent_LabelColor, #6a6d70);` && |\n| &&
-             `  font-size: 0.8125rem;` && |\n| &&
-             `}` && |\n| &&
-             ```;` && |\n| &&
-             `` && |\n| &&
-             `  function ensureDialogStyles() {` && |\n| &&
-             `    try {` && |\n| &&
-             `      if (document.getElementById(STYLE_ID)) return;` && |\n| &&
-             `      const head = document.head || document.documentElement;` && |\n| &&
-             `      if (!head) return;` && |\n| &&
-             `      const style = document.createElement("style");` && |\n| &&
-             `      style.id = STYLE_ID;` && |\n| &&
-             `      style.textContent = DIALOG_STYLES;` && |\n| &&
-             `      head.appendChild(style);` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function withClass(control, className) {` && |\n| &&
-             `    if (control && typeof control.addStyleClass === "function") {` && |\n| &&
-             `      control.addStyleClass(className);` && |\n| &&
-             `    }` && |\n| &&
-             `    return control;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function createContainer() {` && |\n| &&
-             `    document.getElementById("z2ui5ServerErrorContainer")?.remove();` && |\n| &&
-             `` && |\n| &&
-             `    const container = document.createElement("div");` && |\n| &&
-             `    container.id = "z2ui5ServerErrorContainer";` && |\n| &&
-             `` && |\n| &&
-             `    container.style.cssText = ``` && |\n| &&
-             `      position: fixed;` && |\n| &&
-             `      top: 50%;` && |\n| &&
-             `      left: 50%;` && |\n| &&
-             `      transform: translate(-50%, -50%);` && |\n| &&
-             `      width: 90%;` && |\n| &&
-             `      height: 90%;` && |\n| &&
-             `      background: white;` && |\n| &&
-             `      border: 1px solid #bb0000;` && |\n| &&
-             `      border-radius: 0;` && |\n| &&
-             `      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);` && |\n| &&
-             `      z-index: 9999;` && |\n| &&
-             `      display: flex;` && |\n| &&
-             `      flex-direction: column;` && |\n| &&
-             `      font-family: "72", "72full", Arial, Helvetica, sans-serif;` && |\n| &&
-             `    ``;` && |\n| &&
-             `    document.body.appendChild(container);` && |\n| &&
-             `    return container;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function hasErrorDetails(ctx) {` && |\n| &&
-             `    return (ctx?.state?.onErrorDetails || []).length > 0;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function openErrorDetails(ctx) {` && |\n| &&
-             `    for (const fn of ctx?.state?.onErrorDetails || []) {` && |\n| &&
-             `      if (!fn) continue;` && |\n| &&
-             `      try {` && |\n| &&
-             `        fn();` && |\n| &&
-             `      } catch {}` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function restart(ctx) {` && |\n| &&
-             `    if (typeof ctx?.restart === "function") {` && |\n| &&
-             `      ctx.restart();` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    window.location.reload();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function showFriendlyDialog(ctx, title, details, options = {}) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const Dialog = sap.ui.require("sap/m/Dialog");` && |\n| &&
-             `      const Button = sap.ui.require("sap/m/Button");` && |\n| &&
-             `      const Text = sap.ui.require("sap/m/Text");` && |\n| &&
-             `      if (!Dialog || !Button || !Text) return false;` && |\n| &&
-             `      const store = ctx.errorView;` && |\n| &&
-             `      store.title = title;` && |\n| &&
-             `      store.details = details;` && |\n| &&
-             `      store.options = options;` && |\n| &&
-             `` && |\n| &&
-             `      if (store.dialog) {` && |\n| &&
-             `        store.dialog.destroy();` && |\n| &&
-             `        store.dialog = null;` && |\n| &&
-             `      }` && |\n| &&
-             `      ensureDialogStyles();` && |\n| &&
-             `` && |\n| &&
-             `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
-             `` && |\n| &&
-             `      const content = message.split("\n").map((line) => {` && |\n| &&
-             `        const text = new Text();` && |\n| &&
-             `        text.setText(line);` && |\n| &&
-             `` && |\n| &&
-             `        if (typeof text.setRenderWhitespace === "function") {` && |\n| &&
-             `          text.setRenderWhitespace(true);` && |\n| &&
-             `        }` && |\n| &&
-             `        return withClass(text, MESSAGE_CLASS);` && |\n| &&
-             `      });` && |\n| &&
-             `` && |\n| &&
-             `      if (String(details || "").trim() !== message) {` && |\n| &&
-             `        content.push(` && |\n| &&
-             `          withClass(` && |\n| &&
-             `            new Text({` && |\n| &&
-             `              text: "Choose Details for the full technical information.",` && |\n| &&
-             `            }),` && |\n| &&
-             `            HINT_CLASS,` && |\n| &&
-             `          ),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const restartButton = new Button({` && |\n| &&
-             `        text: "Restart",` && |\n| &&
-             `        type: "Emphasized",` && |\n| &&
-             `        press: () => {` && |\n| &&
-             `          dialog.close();` && |\n| &&
-             `          restart(ctx);` && |\n| &&
-             `        },` && |\n| &&
-             `      });` && |\n| &&
-             `` && |\n| &&
-             `      const copyText = ``${title || DEFAULT_TITLE}\n\n${details}``;` && |\n| &&
-             `      const copyButton = new Button({` && |\n| &&
-             `        text: "Copy",` && |\n| &&
-             `        press: () => {` && |\n| &&
-             `          copyToClipboard(copyText);` && |\n| &&
-             `          copyButton.setText("Copied");` && |\n| &&
-             `          setTimeout(() => {` && |\n| &&
-             `            if (!copyButton.bIsDestroyed) copyButton.setText("Copy");` && |\n| &&
-             `          }, 1500);` && |\n| &&
-             `        },` && |\n| &&
-             `      });` && |\n| &&
-             `` && |\n| &&
-             `      const buttons = [];` && |\n| &&
-             `` && |\n| &&
-             `      if (hasErrorDetails(ctx)) {` && |\n| &&
-             `        buttons.push(` && |\n| &&
-             `          new Button({` && |\n| &&
-             `            text: "Details",` && |\n| &&
-             `            press: () => {` && |\n|.
-    result = result &&
-             `              dialog.close();` && |\n| &&
-             `              openErrorDetails(ctx);` && |\n| &&
-             `            },` && |\n| &&
-             `          }),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      buttons.push(copyButton);` && |\n| &&
-             `      if (typeof options.onRetry === "function") {` && |\n| &&
-             `        buttons.push(` && |\n| &&
-             `          new Button({` && |\n| &&
-             `            text: "Retry",` && |\n| &&
-             `            press: () => {` && |\n| &&
-             `              dialog.close();` && |\n| &&
-             `              options.onRetry();` && |\n| &&
-             `            },` && |\n| &&
-             `          }),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      buttons.push(restartButton);` && |\n| &&
-             `` && |\n| &&
-             `      const dialog = new Dialog({` && |\n| &&
-             `        title: title || "Application Error",` && |\n| &&
-             `        type: "Message",` && |\n| &&
-             `        state: "Error",` && |\n| &&
-             `        icon: "sap-icon://message-error",` && |\n| &&
-             `` && |\n| &&
-             `        contentWidth: "36rem",` && |\n| &&
-             `` && |\n| &&
-             `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
-             `        content,` && |\n| &&
-             `        buttons,` && |\n| &&
-             `        initialFocus: restartButton,` && |\n| &&
-             `        afterClose: () => {` && |\n| &&
-             `          if (store.dialog === dialog) store.dialog = null;` && |\n| &&
-             `          dialog.destroy();` && |\n| &&
-             `        },` && |\n| &&
-             `      });` && |\n| &&
-             `      withClass(dialog, DIALOG_CLASS);` && |\n| &&
-             `      store.dialog = dialog;` && |\n| &&
-             `      dialog.open();` && |\n| &&
-             `      return true;` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      window.console?.error?.("ErrorView: friendly dialog failed", e);` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function reset(ctx) {` && |\n| &&
-             `    const store = ctx.errorView;` && |\n| &&
-             `    store.title = "";` && |\n| &&
-             `    store.details = "";` && |\n| &&
-             `    store.options = {};` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function reopenErrorDialog(ctx) {` && |\n| &&
-             `    const store = ctx.errorView;` && |\n| &&
-             `    return showFriendlyDialog(ctx, store.title, store.details, store.options);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function handleLogout(ctx) {` && |\n| &&
-             `    const fallback = () => {` && |\n| &&
-             `      window.location.href = "/sap/public/bc/icf/logoff";` && |\n| &&
-             `    };` && |\n| &&
-             `    try {` && |\n| &&
-             `      const launchpad = ctx?.state?.oLaunchpad;` && |\n| &&
-             `      if (launchpad?.Container?.logout) {` && |\n| &&
-             `        launchpad.Container.logout();` && |\n| &&
-             `      } else {` && |\n| &&
-             `        fallback();` && |\n| &&
-             `      }` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      fallback();` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function loadFriendlyDialogAsync(ctx, title, details, options) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const require = sap?.ui?.require;` && |\n| &&
-             `      if (typeof require !== "function") return false;` && |\n| &&
-             `      require(["sap/m/Dialog", "sap/m/Button", "sap/m/Text"], () => {` && |\n| &&
-             `        if (!showFriendlyDialog(ctx, title, details, options)) {` && |\n| &&
-             `          showRawOverlay(ctx, title, details, options);` && |\n| &&
-             `        }` && |\n| &&
-             `      }, () => showRawOverlay(ctx, title, details, options));` && |\n| &&
-             `      return true;` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function show(ctx, response, title, options = {}) {` && |\n| &&
-             `    const stack = response?.stack ? String(response.stack) : "";` && |\n| &&
-             `    const message = String(response);` && |\n| &&
-             `    const full = stack` && |\n| &&
-             `      ? stack.includes(message)` && |\n| &&
-             `        ? stack` && |\n| &&
-             `        : ``${message}\n${stack}``` && |\n| &&
-             `      : message;` && |\n| &&
-             `` && |\n| &&
-             `    const errorMessage =` && |\n| &&
-             `      full.length > ERROR_MAX_LENGTH` && |\n| &&
-             `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
-             `        : full;` && |\n| &&
-             `` && |\n| &&
-             `    ctx.state.lastError = {` && |\n| &&
-             `      title: title || DEFAULT_TITLE,` && |\n| &&
-             `      text: errorMessage,` && |\n| &&
-             `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    if (showFriendlyDialog(ctx, title, errorMessage, options)) return;` && |\n| &&
-             `` && |\n| &&
-             `    if (loadFriendlyDialogAsync(ctx, title, errorMessage, options)) return;` && |\n| &&
-             `` && |\n| &&
-             `    showRawOverlay(ctx, title, errorMessage, options);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function showRawOverlay(ctx, title, errorMessage, options = {}) {` && |\n| &&
-             `    const errorContainer = createContainer();` && |\n| &&
-             `` && |\n| &&
-             `    errorContainer.setAttribute("role", "alertdialog");` && |\n| &&
-             `    errorContainer.setAttribute("aria-modal", "true");` && |\n| &&
-             `    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");` && |\n| &&
-             `` && |\n| &&
-             `    const headerDiv = document.createElement("div");` && |\n| &&
-             `    headerDiv.style.cssText =` && |\n| &&
-             `      "padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";` && |\n| &&
-             `` && |\n| &&
-             `    const h3 = document.createElement("h3");` && |\n| &&
-             `    h3.id = "serverErrorTitle";` && |\n| &&
-             `    h3.textContent = title || DEFAULT_TITLE;` && |\n| &&
-             `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&
-             `    headerDiv.appendChild(h3);` && |\n| &&
-             `` && |\n| &&
-             `    const btnStyle =` && |\n| &&
-             `      "padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; font-weight: bold; white-space: nowrap;";` && |\n| &&
-             `` && |\n| &&
-             `    const actionsDiv = document.createElement("div");` && |\n| &&
-             `    actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
-             `` && |\n| &&
-             `    const addAction = (label, onClick) => {` && |\n| &&
-             `      const button = document.createElement("button");` && |\n| &&
-             `      button.type = "button";` && |\n| &&
-             `      button.textContent = label;` && |\n| &&
-             `      button.style.cssText = btnStyle;` && |\n| &&
-             `      button.addEventListener("click", onClick);` && |\n| &&
-             `      actionsDiv.appendChild(button);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    if (typeof options.onRetry === "function") {` && |\n| &&
-             `      addAction("Retry", () => {` && |\n| &&
-             `        errorContainer.remove();` && |\n| &&
-             `        options.onRetry();` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `    addAction("Refresh", () => {` && |\n| &&
-             `      errorContainer.remove();` && |\n| &&
-             `      restart(ctx);` && |\n| &&
-             `    });` && |\n| &&
-             `    addAction("Logout", () => handleLogout(ctx));` && |\n| &&
-             `` && |\n| &&
-             `    headerDiv.appendChild(actionsDiv);` && |\n| &&
-             `    errorContainer.appendChild(headerDiv);` && |\n| &&
-             `` && |\n| &&
-             `    const trapButtons = actionsDiv.querySelectorAll("button");` && |\n| &&
-             `    const firstTrap = trapButtons[0];` && |\n| &&
-             `    const lastTrap = trapButtons[trapButtons.length - 1];` && |\n| &&
-             `    errorContainer.addEventListener("keydown", (event) => {` && |\n| &&
-             `      if (event.key !== "Tab") return;` && |\n| &&
-             `      if (event.shiftKey && document.activeElement === firstTrap) {` && |\n| &&
-             `        event.preventDefault();` && |\n| &&
-             `        lastTrap.focus();` && |\n| &&
-             `      } else if (!event.shiftKey && document.activeElement === lastTrap) {` && |\n| &&
-             `        event.preventDefault();` && |\n| &&
-             `        firstTrap.focus();` && |\n| &&
-             `      }` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
-             `    let lastFocused = firstTrap;` && |\n| &&
-             `    const containFocus = (event) => {` && |\n| &&
-             `      if (!errorContainer.isConnected) {` && |\n| &&
-             `        document.removeEventListener("focusin", containFocus, true);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const target = event.target;` && |\n| &&
-             `      if (errorContainer.contains(target)) {` && |\n| &&
-             `        lastFocused = target;` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (` && |\n| &&
-             `        target?.closest?.(` && |\n| &&
-             `          '[role="dialog"], [role="alertdialog"], [aria-modal="true"]',` && |\n| &&
-             `        )` && |\n| &&
-             `      ) {` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      (lastFocused?.isConnected ? lastFocused : firstTrap)?.focus();` && |\n| &&
-             `    };` && |\n| &&
-             `    document.addEventListener("focusin", containFocus, true);` && |\n| &&
-             `` && |\n| &&
-             `    const iframe = document.createElement("iframe");` && |\n| &&
-             `    iframe.id = "errorIframe";` && |\n| &&
-             `    iframe.style.cssText = "width: 100%; height: 100%; border: none; flex: 1;";` && |\n| &&
-             `    iframe.setAttribute("sandbox", "allow-same-origin");` && |\n| &&
-             `    errorContainer.appendChild(iframe);` && |\n| &&
-             `` && |\n| &&
-             `    const createPre = (ownerDocument) => {` && |\n| &&
-             `      const pre = ownerDocument.createElement("pre");` && |\n| &&
-             `      pre.style.cssText =` && |\n| &&
-             `        "margin:0;padding:1rem;font-family:monospace;font-size:0.75rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;";` && |\n| &&
-             `      pre.textContent = errorMessage;` && |\n| &&
-             `      return pre;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const contentDocument = iframe.contentDocument;` && |\n| &&
-             `    if (contentDocument) {` && |\n| &&
-             `      const target = contentDocument.body || contentDocument.documentElement;` && |\n| &&
-             `      target.appendChild(createPre(contentDocument));` && |\n| &&
-             `    } else {` && |\n| &&
-             `      errorContainer.appendChild(createPre(document));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    if (firstTrap) firstTrap.focus();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return { show, restart, handleLogout, reopenErrorDialog, reset };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/FrontendAction.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "z2ui5/core/actions/ControlCall",` && |\n| &&
-             `    "z2ui5/core/actions/BindingCall",` && |\n| &&
-             `    "z2ui5/core/actions/Browser",` && |\n| &&
-             `    "z2ui5/core/actions/Launchpad",` && |\n| &&
-             `    "z2ui5/core/actions/Variants",` && |\n| &&
-             `    "z2ui5/core/actions/Shortcuts",` && |\n| &&
-             `    "z2ui5/core/actions/ViewOps",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    ControlCall,` && |\n| &&
-             `    BindingCall,` && |\n| &&
-             `    Browser,` && |\n| &&
-             `    Launchpad,` && |\n| &&
-             `    Variants,` && |\n| &&
-             `    Shortcuts,` && |\n| &&
-             `    ViewOps,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = Object.assign(` && |\n| &&
-             `      Object.create(null),` && |\n| &&
-             `      ControlCall.handlers,` && |\n| &&
-             `      BindingCall.handlers,` && |\n| &&
-             `      Browser.handlers,` && |\n| &&
-             `      Launchpad.handlers,` && |\n| &&
-             `      Variants.handlers,` && |\n| &&
-             `      Shortcuts.handlers,` && |\n| &&
-             `      ViewOps.handlers,` && |\n| &&
-             `    );` && |\n| &&
-             `` && |\n| &&
-             `    function execute(oController, args) {` && |\n| &&
-             `      Lib.runCallbacks(oController?.ctx?.state.onBeforeEventFrontend, args);` && |\n| &&
-             `` && |\n| &&
-             `      try {` && |\n| &&
-             `        const handler = handlers[args[0]];` && |\n| &&
-             `        if (handler) {` && |\n| &&
-             `          return handler(oController, args);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          Lib.logError(``FrontendAction: unknown action '${args[0]}'``);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function parseAction(item) {` && |\n| &&
-             `      let args = item;` && |\n| &&
-             `      if (typeof item === "string") {` && |\n| &&
-             `        try {` && |\n| &&
-             `          args = JSON.parse(item);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          args = null;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return Array.isArray(args) ? args : null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveBoundArgs(oController, args) {` && |\n| &&
-             `      let oModel;` && |\n| &&
-             `      let looked = false;` && |\n| &&
-             `      return args.map((arg, i) => {` && |\n| &&
-             `        const path = i === 0 ? null : Lib.bindingPathOf(arg);` && |\n| &&
-             `        if (!path) return arg;` && |\n| &&
-             `        if (!looked) {` && |\n| &&
-             `          looked = true;` && |\n| &&
-             `          oModel = ViewSlots.responseModel(oController?.ctx, oController);` && |\n| &&
-             `        }` && |\n| &&
-             `        const value = oModel?.getProperty(path);` && |\n| &&
-             `        if (value === undefined || value === null) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``FrontendAction: '${args[0]}' - nothing bound at '${arg}', passed on as text``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return arg;` && |\n| &&
-             `        }` && |\n| &&
-             `        return value;` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function runCustom(item, oController) {` && |\n| &&
-             `      const args = parseAction(item);` && |\n| &&
-             `      if (!args) return undefined;` && |\n| &&
-             `      try {` && |\n| &&
-             `        return oController.eF(...resolveBoundArgs(oController, args));` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``FrontendAction: custom action '${args[0]}' failed``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return { execute, runCustom };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/Lib.js": function(){sap.ui.define(["z2ui5/core/Context"], (Context) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_ERRORS = 100;` && |\n| &&
-             `` && |\n| &&
-             `  const errors = [];` && |\n| &&
-             `` && |\n| &&
-             `  function logError(message, error) {` && |\n| &&
-             `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
-             `    if (error !== undefined) entry.error = error;` && |\n| &&
-             `    errors.push(entry);` && |\n| &&
-             `    if (errors.length > MAX_ERRORS) errors.shift();` && |\n| &&
-             `    mirrorToUi5Log(message, error);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function mirrorToUi5Log(message, error) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      if (typeof sap === "undefined" || typeof sap.ui?.require !== "function")` && |\n| &&
-             `        return;` && |\n| &&
-             `      const Log = sap.ui.require("sap/base/Log");` && |\n| &&
-             `      if (typeof Log?.warning !== "function") return;` && |\n| &&
-             `      const details =` && |\n| &&
-             `        error === undefined ? undefined : String(error?.stack || error);` && |\n| &&
-             `      Log.warning(message, details, "z2ui5");` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const CONTROLLER_FIELDS = [` && |\n| &&
-             `    "oController",` && |\n| &&
-             `    "oControllerNest",` && |\n| &&
-             `    "oControllerNest2",` && |\n| &&
-             `    "oControllerPopup",` && |\n| &&
-             `    "oControllerPopover",` && |\n| &&
-             `  ];` && |\n| &&
-             `` && |\n| &&
-             `  function requireODataModel() {` && |\n| &&
-             `    const loaded = sap.ui.require("sap/ui/model/odata/v2/ODataModel");` && |\n| &&
-             `    if (loaded) return Promise.resolve(loaded);` && |\n| &&
-             `    return new Promise((resolve, reject) => {` && |\n| &&
-             `      sap.ui.require(["sap/ui/model/odata/v2/ODataModel"], resolve, reject);` && |\n| &&
-             `    });` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isControllerAlive(oController) {` && |\n| &&
-             `    const ctx = oController?.ctx;` && |\n| &&
-             `    if (!ctx?.alive) return false;` && |\n| &&
-             `    const state = ctx.state;` && |\n| &&
-             `    return CONTROLLER_FIELDS.some((field) => state[field] === oController);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function setComponentBusy(ctx, busy, delay) {` && |\n| &&
-             `    const root = ctx?.component?.getRootControl?.() || ctx?.state?.oApp || null;` && |\n| &&
-             `    if (!root || isDestroyed(root)) return;` && |\n| &&
-             `    try {` && |\n| &&
-             `      if (busy) {` && |\n| &&
-             `        root.setBusyIndicatorDelay(typeof delay === "number" ? delay : 1000);` && |\n| &&
-             `      }` && |\n| &&
-             `      root.setBusy(busy === true);` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      logError("setComponentBusy: setting the busy state failed", e);` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isDestroyed(obj) {` && |\n| &&
-             `    if (!obj) return false;` && |\n| &&
-             `` && |\n| &&
-             `    if (typeof obj.isDestroyed === "function") return obj.isDestroyed();` && |\n| &&
-             `    return Boolean(obj.bIsDestroyed);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n|.
-    result = result &&
-             `  function claimOnce(owner, target) {` && |\n| &&
-             `    if (!target || owner.getProperty("checkInit")) return false;` && |\n| &&
-             `    owner.setProperty("checkInit", true, true);` && |\n| &&
-             `    return true;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isAlive(obj) {` && |\n| &&
-             `    return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function registerCallback(ctx, name, fn) {` && |\n| &&
-             `    const state = ctx?.state;` && |\n| &&
-             `    if (!state) return;` && |\n| &&
-             `    if (!state[name]) state[name] = [];` && |\n| &&
-             `    state[name].push(fn);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function unregisterCallback(ctx, name, fn) {` && |\n| &&
-             `    const state = ctx?.state;` && |\n| &&
-             `    if (!state?.[name]) return;` && |\n| &&
-             `    state[name] = state[name].filter((f) => f !== fn);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function readFileAsDataURL(file, owner, onLoaded, errorContext, onFailed) {` && |\n| &&
-             `    const reader = new FileReader();` && |\n| &&
-             `    reader.onload = () => {` && |\n| &&
-             `      if (isDestroyed(owner)) return;` && |\n| &&
-             `      onLoaded(reader.result);` && |\n| &&
-             `    };` && |\n| &&
-             `    reader.onerror = () => {` && |\n| &&
-             `      logError(``${errorContext}: FileReader failed``, reader.error);` && |\n| &&
-             `      if (onFailed && !isDestroyed(owner)) onFailed();` && |\n| &&
-             `    };` && |\n| &&
-             `    reader.readAsDataURL(file);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function readFilesInTurn(owner, errorContext, onFile) {` && |\n| &&
-             `    const queue = [];` && |\n| &&
-             `    let reading = false;` && |\n| &&
-             `    let cancelWait = null;` && |\n| &&
-             `    let deliverId = null;` && |\n| &&
-             `` && |\n| &&
-             `    const deliver = (file, result) => {` && |\n| &&
-             `      if (isDestroyed(owner)) {` && |\n| &&
-             `        reading = false;` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (Context.of(owner)?.state.isBusy) {` && |\n| &&
-             `        cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
-             `          cancelWait = null;` && |\n| &&
-             `          deliverId = setTimeout(() => {` && |\n| &&
-             `            deliverId = null;` && |\n| &&
-             `            deliver(file, result);` && |\n| &&
-             `          }, 0);` && |\n| &&
-             `        });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      onFile(file, result);` && |\n| &&
-             `      step();` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const step = () => {` && |\n| &&
-             `      cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
-             `        cancelWait = null;` && |\n| &&
-             `        readNext();` && |\n| &&
-             `      });` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const readNext = () => {` && |\n| &&
-             `      const file = queue.shift();` && |\n| &&
-             `      if (!file || isDestroyed(owner)) {` && |\n| &&
-             `        reading = false;` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      reading = true;` && |\n| &&
-             `      readFileAsDataURL(` && |\n| &&
-             `        file,` && |\n| &&
-             `        owner,` && |\n| &&
-             `        (result) => deliver(file, result),` && |\n| &&
-             `        errorContext,` && |\n| &&
-             `` && |\n| &&
-             `        readNext,` && |\n| &&
-             `      );` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      add(files) {` && |\n| &&
-             `        for (const file of files) queue.push(file);` && |\n| &&
-             `        if (!reading) readNext();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      cancel() {` && |\n| &&
-             `        queue.length = 0;` && |\n| &&
-             `        reading = false;` && |\n| &&
-             `        if (cancelWait) {` && |\n| &&
-             `          cancelWait();` && |\n| &&
-             `          cancelWait = null;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (deliverId !== null) {` && |\n| &&
-             `          clearTimeout(deliverId);` && |\n| &&
-             `          deliverId = null;` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function cancelPendingTimers(ctx) {` && |\n| &&
-             `    const timers = ctx?.state?.timers;` && |\n| &&
-             `    if (!timers) return;` && |\n| &&
-             `    for (const key in timers) {` && |\n| &&
-             `      cancelTimer(timers[key]);` && |\n| &&
-             `      delete timers[key];` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function resolveStorageType(Storage, type, context, verb) {` && |\n| &&
-             `    const typeKey = String(type || "").toLowerCase();` && |\n| &&
-             `    const known = Storage.Type[typeKey];` && |\n| &&
-             `    const storageType = known || Storage.Type.session;` && |\n| &&
-             `    if (type && !known) {` && |\n| &&
-             `      logError(``${context}: unknown type '${type}', ${verb} the session store``);` && |\n| &&
-             `    }` && |\n| &&
-             `    return storageType;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function cancelTimer(handle) {` && |\n| &&
-             `    if (typeof handle === "function") handle();` && |\n| &&
-             `    else clearTimeout(handle);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function applyTokenUpdate(control, oEvent) {` && |\n| &&
-             `    const isRemoved = oEvent.getParameter("type") === "removed";` && |\n| &&
-             `    const rawList =` && |\n| &&
-             `      oEvent.getParameter(isRemoved ? "removedTokens" : "addedTokens") || [];` && |\n| &&
-             `    const tokens = rawList.map((item) => ({` && |\n| &&
-             `      KEY: item.getKey(),` && |\n| &&
-             `      TEXT: item.getText(),` && |\n| &&
-             `    }));` && |\n| &&
-             `` && |\n| &&
-             `    control.setProperty("addedTokens", isRemoved ? [] : tokens, true);` && |\n| &&
-             `    control.setProperty("removedTokens", isRemoved ? tokens : [], true);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function afterRoundtrip(owner, fn) {` && |\n| &&
-             `    const ctx = Context.of(owner);` && |\n| &&
-             `    if (!ctx?.state.isBusy) {` && |\n| &&
-             `      fn();` && |\n| &&
-             `      return () => {};` && |\n| &&
-             `    }` && |\n| &&
-             `    const once = () => {` && |\n| &&
-             `      unregisterCallback(ctx, "onRoundtripEnd", once);` && |\n| &&
-             `      if (isDestroyed(owner)) return;` && |\n| &&
-             `      fn();` && |\n| &&
-             `    };` && |\n| &&
-             `    registerCallback(ctx, "onRoundtripEnd", once);` && |\n| &&
-             `    return () => unregisterCallback(ctx, "onRoundtripEnd", once);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function withinFileSize(files, maxMegabytes, onTooBig) {` && |\n| &&
-             `    const list = Array.from(files || []);` && |\n| &&
-             `    const limit = Number(maxMegabytes) * 1024 * 1024;` && |\n| &&
-             `    if (!(limit > 0)) return list;` && |\n| &&
-             `    return list.filter((file) => {` && |\n| &&
-             `      if (!(Number(file?.size) > limit)) return true;` && |\n| &&
-             `      logError(` && |\n| &&
-             `        ``file '${file?.name ?? ""}' is over the limit of ${maxMegabytes} MB - not read``,` && |\n| &&
-             `      );` && |\n| &&
-             `      try {` && |\n| &&
-             `        onTooBig?.(file);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        logError("withinFileSize: the size handler failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return false;` && |\n| &&
-             `    });` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function dispatchWhenIdle(oController, args) {` && |\n| &&
-             `    const fire = () => {` && |\n| &&
-             `      if (!isControllerAlive(oController)) return;` && |\n| &&
-             `      if (oController.ctx?.state?.isBusy) {` && |\n| &&
-             `        afterRoundtrip(oController, () => setTimeout(fire, 0));` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      oController.eB(...args);` && |\n| &&
-             `    };` && |\n| &&
-             `    fire();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function runCallbacks(callbacks, ...args) {` && |\n| &&
-             `    if (!callbacks) return;` && |\n| &&
-             `    for (const fn of callbacks) {` && |\n| &&
-             `      if (!fn) continue;` && |\n| &&
-             `      try {` && |\n| &&
-             `        fn(...args);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        logError("runCallbacks: callback failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const pendingDelegates = new WeakMap();` && |\n| &&
-             `` && |\n| &&
-             `  function onNextRendering(control, fn, key) {` && |\n| &&
-             `    let byKey;` && |\n| &&
-             `    if (key) {` && |\n| &&
-             `      byKey = pendingDelegates.get(control);` && |\n| &&
-             `      if (!byKey) {` && |\n| &&
-             `        byKey = new Map();` && |\n| &&
-             `        pendingDelegates.set(control, byKey);` && |\n| &&
-             `      }` && |\n| &&
-             `      const prev = byKey.get(key);` && |\n| &&
-             `      if (prev) control.removeEventDelegate(prev);` && |\n| &&
-             `    }` && |\n| &&
-             `    const delegate = {` && |\n| &&
-             `      onAfterRendering: () => {` && |\n| &&
-             `        control.removeEventDelegate(delegate);` && |\n| &&
-             `        if (byKey) byKey.delete(key);` && |\n| &&
-             `        fn();` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `    if (byKey) byKey.set(key, delegate);` && |\n| &&
-             `    control.addEventDelegate(delegate);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function whenRendered(control, owner, fn, key) {` && |\n| &&
-             `    if (control.getDomRef()) {` && |\n| &&
-             `      if (!isDestroyed(owner)) fn();` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    onNextRendering(` && |\n| &&
-             `      control,` && |\n| &&
-             `      () => {` && |\n| &&
-             `        if (!isDestroyed(owner)) fn();` && |\n| &&
-             `      },` && |\n| &&
-             `      key,` && |\n| &&
-             `    );` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const XML_TEMPLATING = /sap\.ui\.core\.template\/1|\{\s*template>/;` && |\n| &&
-             `  function usesXmlTemplating(xml) {` && |\n| &&
-             `    return XML_TEMPLATING.test(String(xml ?? ""));` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function getTextPath(control, separator) {` && |\n| &&
-             `    const texts = [];` && |\n| &&
-             `    let node = control;` && |\n| &&
-             `` && |\n| &&
-             `    for (let i = 0; node && i < 100; i++) {` && |\n| &&
-             `      if (typeof node.getText !== "function") break;` && |\n| &&
-             `      const text = node.getText();` && |\n| &&
-             `      if (text) texts.push(text);` && |\n| &&
-             `      node = typeof node.getParent === "function" ? node.getParent() : null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return texts.reverse().join(separator || " > ");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function copyToClipboard(textToCopy) {` && |\n| &&
-             `    if (navigator.clipboard?.writeText) {` && |\n| &&
-             `      return navigator.clipboard.writeText(textToCopy).then(` && |\n| &&
-             `        () => true,` && |\n| &&
-             `        (err) => {` && |\n| &&
-             `          logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
-             `          return copyToClipboardFallback(textToCopy);` && |\n| &&
-             `        },` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `    return Promise.resolve(copyToClipboardFallback(textToCopy));` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function copyToClipboardFallback(textToCopy) {` && |\n| &&
-             `    const textarea = document.createElement("textarea");` && |\n| &&
-             `    textarea.value = textToCopy;` && |\n| &&
-             `    textarea.setAttribute("readonly", "");` && |\n| &&
-             `    textarea.style.position = "fixed";` && |\n| &&
-             `    textarea.style.top = "-1000px";` && |\n| &&
-             `    textarea.style.opacity = "0";` && |\n| &&
-             `    document.body.appendChild(textarea);` && |\n| &&
-             `    textarea.select();` && |\n| &&
-             `    try {` && |\n| &&
-             `      if (document.execCommand("copy")) return true;` && |\n| &&
-             `      logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
-             `      return false;` && |\n| &&
-             `    } catch (err) {` && |\n| &&
-             `      logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
-             `      return false;` && |\n| &&
-             `    } finally {` && |\n| &&
-             `      document.body.removeChild(textarea);` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const SAFE_PROTOCOLS = ["http:", "https:"];` && |\n| &&
-             `` && |\n| &&
-             `  function toText(val) {` && |\n| &&
-             `    return val == null ? "" : String(val);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function modelPathOf(raw) {` && |\n| &&
-             `    if (typeof raw !== "string") return null;` && |\n| &&
-             `    const path = raw` && |\n| &&
-             `      .trim()` && |\n| &&
-             `      .replace(/^\$?\{(.*)\}$/, "$1")` && |\n| &&
-             `      .trim()` && |\n| &&
-             `      .replace(/^http>/, "");` && |\n| &&
-             `    return path.startsWith("/") ? path : null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function bindingPathOf(raw) {` && |\n| &&
-             `    if (typeof raw !== "string") return null;` && |\n| &&
-             `    const m = /^\$\{\s*(?:http>)?(\/[^{}]*?)\s*\}$/.exec(raw.trim());` && |\n| &&
-             `    return m ? m[1] : null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function toCaretIndex(val) {` && |\n| &&
-             `    if (val == null || String(val).trim() === "") return null;` && |\n| &&
-             `    const n = Number(val);` && |\n| &&
-             `    return Number.isFinite(n) ? Math.max(Math.trunc(n), 0) : null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isTextInput(el) {` && |\n| &&
-             `    return Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function readCaret(el) {` && |\n| &&
-             `    if (!isTextInput(el)) return null;` && |\n| &&
-             `    try {` && |\n| &&
-             `      const start = el.selectionStart;` && |\n| &&
-             `      const end = el.selectionEnd;` && |\n| &&
-             `      if (start == null || end == null) return null;` && |\n| &&
-             `      return { start, end };` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function deriveSystemType(system) {` && |\n| &&
-             `    if (!system) return "desktop";` && |\n| &&
-             `    if (system.phone) return "phone";` && |\n| &&
-             `    if (system.tablet) return "tablet";` && |\n| &&
-             `    if (system.combi) return "combi";` && |\n| &&
-             `    return "desktop";` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function parseUrl(url) {` && |\n| &&
-             `    if (!url) return null;` && |\n| &&
-             `    try {` && |\n| &&
-             `      return new URL(url, window.location.origin);` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function hasSafeProtocol(parsed) {` && |\n| &&
-             `    if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
-             `    logError(` && |\n| &&
-             `      ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `    );` && |\n| &&
-             `    return false;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isValidRedirectURL(url) {` && |\n| &&
-             `    const parsed = parseUrl(url);` && |\n| &&
-             `    if (!parsed) return false;` && |\n| &&
-             `    if (parsed.origin !== window.location.origin) {` && |\n| &&
-             `      logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
-             `    return hasSafeProtocol(parsed);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isSafeRedirectProtocol(url) {` && |\n| &&
-             `    const parsed = parseUrl(url);` && |\n| &&
-             `    return parsed !== null && hasSafeProtocol(parsed);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isSafeDownloadURL(url) {` && |\n| &&
-             `    const parsed = parseUrl(url);` && |\n| &&
-             `    return (` && |\n| &&
-             `      parsed !== null &&` && |\n| &&
-             `      (parsed.protocol === "data:" ||` && |\n| &&
-             `        parsed.protocol === "blob:" ||` && |\n| &&
-             `        SAFE_PROTOCOLS.includes(parsed.protocol))` && |\n| &&
-             `    );` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isValidContextId(id) {` && |\n| &&
-             `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function withSapClient(url, pageHref, shellClient) {` && |\n| &&
-             `    if (typeof url !== "string" || !url) return url;` && |\n| &&
-             `    try {` && |\n| &&
-             `      const page = new URL(pageHref);` && |\n| &&
-             `      const parsed = new URL(url, page.href);` && |\n| &&
-             `      if (parsed.origin !== page.origin) return url;` && |\n| &&
-             `      if (parsed.searchParams.has("sap-client")) return url;` && |\n| &&
-             `      const client = page.searchParams.get("sap-client") || shellClient;` && |\n| &&
-             `      if (typeof client !== "string" || !/^[0-9]{3}$/.test(client)) return url;` && |\n| &&
-             `      const hashAt = url.indexOf("#");` && |\n|.
-    result = result &&
-             `      const base = hashAt < 0 ? url : url.slice(0, hashAt);` && |\n| &&
-             `      const hash = hashAt < 0 ? "" : url.slice(hashAt);` && |\n| &&
-             `      let separator = "&";` && |\n| &&
-             `      if (!base.includes("?")) separator = "?";` && |\n| &&
-             `      else if (base.endsWith("?") || base.endsWith("&")) separator = "";` && |\n| &&
-             `      return ``${base}${separator}sap-client=${client}${hash}``;` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return url;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function parseDeltaSteps(segs) {` && |\n| &&
-             `    const steps = [];` && |\n| &&
-             `    let i = 0;` && |\n| &&
-             `    while (i < segs.length) {` && |\n| &&
-             `      const row = segs[i];` && |\n| &&
-             `      if (row === "" || Number.isNaN(Number(row))) return null;` && |\n| &&
-             `      const field = segs[i + 1];` && |\n| &&
-             `      if (field === undefined || field === "" || !Number.isNaN(Number(field))) {` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      i += 2;` && |\n| &&
-             `      if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
-             `        steps.push({ row, field, leaf: true });` && |\n| &&
-             `        return steps;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      steps.push({ row, field, leaf: false });` && |\n| &&
-             `    }` && |\n| &&
-             `    return null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
-             `    const delta = {};` && |\n| &&
-             `` && |\n| &&
-             `    const nests = new WeakSet();` && |\n| &&
-             `    for (const path of paths) {` && |\n| &&
-             `      const parts = path.slice(1).split("/");` && |\n| &&
-             `      const attr = parts[0];` && |\n| &&
-             `` && |\n| &&
-             `      let depth = 1;` && |\n| &&
-             `      while (parts[depth] === "*") depth += 1;` && |\n| &&
-             `      const steps = parseDeltaSteps(parts.slice(depth));` && |\n| &&
-             `      if (!steps) {` && |\n| &&
-             `        delta[attr] = modelData[attr];` && |\n| &&
-             `        continue;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const keys = parts.slice(0, depth);` && |\n| &&
-             `      let holder = delta;` && |\n| &&
-             `      let model = modelData;` && |\n| &&
-             `      let whole = false;` && |\n| &&
-             `      for (const key of keys.slice(0, -1)) {` && |\n| &&
-             `        if (!(key in holder)) {` && |\n| &&
-             `          holder[key] = {};` && |\n| &&
-             `          nests.add(holder[key]);` && |\n| &&
-             `        } else if (!nests.has(holder[key])) {` && |\n| &&
-             `          whole = true;` && |\n| &&
-             `          break;` && |\n| &&
-             `        }` && |\n| &&
-             `        holder = holder[key];` && |\n| &&
-             `        model = model?.[key];` && |\n| &&
-             `      }` && |\n| &&
-             `      if (whole) continue;` && |\n| &&
-             `      const tableKey = keys[keys.length - 1];` && |\n| &&
-             `      if (tableKey in holder && !holder[tableKey]?.__delta) continue;` && |\n| &&
-             `      if (!holder[tableKey]?.__delta) holder[tableKey] = { __delta: {} };` && |\n| &&
-             `      let node = holder[tableKey];` && |\n| &&
-             `      model = model?.[tableKey];` && |\n| &&
-             `      for (const { row, field, leaf } of steps) {` && |\n| &&
-             `        const rows = node.__delta;` && |\n| &&
-             `        if (!rows[row]) rows[row] = {};` && |\n| &&
-             `        const rowDelta = rows[row];` && |\n| &&
-             `        model = model?.[Number(row)]?.[field];` && |\n| &&
-             `        if (leaf) {` && |\n| &&
-             `          rowDelta[field] = model;` && |\n| &&
-             `          break;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
-             `        if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
-             `        node = rowDelta[field];` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `    return delta;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const MSG_DETAIL_TAGS = new Set(["UL", "OL", "LI", "STRONG", "EM", "P"]);` && |\n| &&
-             `` && |\n| &&
-             `  const MSG_DROP_TAGS = new Set(["SCRIPT", "STYLE", "TEMPLATE"]);` && |\n| &&
-             `` && |\n| &&
-             `  let _msgParser = null;` && |\n| &&
-             `  let _sanitizeEl = null;` && |\n| &&
-             `` && |\n| &&
-             `  function escapeMessageText(text) {` && |\n| &&
-             `    _sanitizeEl.textContent = text;` && |\n| &&
-             `    return _sanitizeEl.innerHTML;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function sanitizeMessageNodes(node) {` && |\n| &&
-             `    let out = "";` && |\n| &&
-             `    for (const child of node.childNodes) {` && |\n| &&
-             `      if (child.nodeType === 3) {` && |\n| &&
-             `        out += escapeMessageText(child.nodeValue);` && |\n| &&
-             `      } else if (child.nodeType === 1) {` && |\n| &&
-             `        const tag = child.tagName.toUpperCase();` && |\n| &&
-             `        if (MSG_DROP_TAGS.has(tag)) {` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (tag === "BR") {` && |\n| &&
-             `          out += "<br>";` && |\n| &&
-             `        } else if (MSG_DETAIL_TAGS.has(tag)) {` && |\n| &&
-             `          const name = tag.toLowerCase();` && |\n| &&
-             `          out += ``<${name}>${sanitizeMessageNodes(child)}</${name}>``;` && |\n| &&
-             `        } else {` && |\n| &&
-             `          out += sanitizeMessageNodes(child);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `    return out;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function sanitizeMessageDetails(html) {` && |\n| &&
-             `    if (!_msgParser) {` && |\n| &&
-             `      _msgParser = new DOMParser();` && |\n| &&
-             `      _sanitizeEl = document.createElement("div");` && |\n| &&
-             `    }` && |\n| &&
-             `    const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `    return sanitizeMessageNodes(doc.body);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
-             `` && |\n| &&
-             `  function isRootModelSlot(slotKey) {` && |\n| &&
-             `    return ROOT_MODEL_SLOTS.includes(slotKey);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function effectiveSizeLimit(viewSizeLimits, slotKey) {` && |\n| &&
-             `    if (!isRootModelSlot(slotKey)) return viewSizeLimits[slotKey];` && |\n| &&
-             `    let max;` && |\n| &&
-             `    for (const key of ROOT_MODEL_SLOTS) {` && |\n| &&
-             `      const limit = viewSizeLimits[key];` && |\n| &&
-             `      if (limit !== undefined && (max === undefined || limit > max)) {` && |\n| &&
-             `        max = limit;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `    return max;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function renderInvisibleSpan(oRm, oControl) {` && |\n| &&
-             `    oRm.openStart("span", oControl);` && |\n| &&
-             `    oRm.style("display", "none");` && |\n| &&
-             `    oRm.openEnd();` && |\n| &&
-             `    oRm.close("span");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n| &&
-             `` && |\n| &&
-             `  function hookCallback(owner, callbackName, method) {` && |\n| &&
-             `    const bound = owner[method].bind(owner);` && |\n| &&
-             `    let ctx = Context.of(owner);` && |\n| &&
-             `    if (ctx) {` && |\n| &&
-             `      registerCallback(ctx, callbackName, bound);` && |\n| &&
-             `      return () => unregisterCallback(ctx, callbackName, bound);` && |\n| &&
-             `    }` && |\n| &&
-             `    let delegate = {` && |\n| &&
-             `      onBeforeRendering: () => {` && |\n| &&
-             `        ctx = Context.of(owner);` && |\n| &&
-             `        if (!ctx) return;` && |\n| &&
-             `        owner.removeEventDelegate(delegate);` && |\n| &&
-             `        delegate = null;` && |\n| &&
-             `        registerCallback(ctx, callbackName, bound);` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `    if (typeof owner.addEventDelegate === "function") {` && |\n| &&
-             `      owner.addEventDelegate(delegate);` && |\n| &&
-             `    }` && |\n| &&
-             `    return () => {` && |\n| &&
-             `      if (delegate) {` && |\n| &&
-             `        owner.removeEventDelegate?.(delegate);` && |\n| &&
-             `        delegate = null;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (ctx) unregisterCallback(ctx, callbackName, bound);` && |\n| &&
-             `    };` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_ARG_DEPTH = 4;` && |\n| &&
-             `` && |\n| &&
-             `  function isA(value, type) {` && |\n| &&
-             `    return (` && |\n| &&
-             `      value !== null &&` && |\n| &&
-             `      typeof value === "object" &&` && |\n| &&
-             `      typeof value.isA === "function" &&` && |\n| &&
-             `      value.isA(type)` && |\n| &&
-             `    );` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isManagedObject(value) {` && |\n| &&
-             `    return isA(value, "sap.ui.base.ManagedObject");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const pad = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
-             `` && |\n| &&
-             `  function projectValue(value) {` && |\n| &&
-             `    if (` && |\n| &&
-             `      Object.prototype.toString.call(value) === "[object Date]" &&` && |\n| &&
-             `      !isNaN(value)` && |\n| &&
-             `    ) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        ``${pad(value.getFullYear(), 4)}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`` +` && |\n| &&
-             `        ``T${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}``` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `    return value;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function projectControl(control) {` && |\n| &&
-             `    const result = { ID: control.getId() };` && |\n| &&
-             `    const properties = control.getMetadata().getAllProperties();` && |\n| &&
-             `    for (const name in properties) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const value = control.getProperty(name);` && |\n| &&
-             `        if (value !== undefined) result[name] = projectValue(value);` && |\n| &&
-             `      } catch {}` && |\n| &&
-             `    }` && |\n| &&
-             `    return result;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isContext(value) {` && |\n| &&
-             `    return isA(value, "sap.ui.model.Context");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isPlainObject(value) {` && |\n| &&
-             `    if (value === null || typeof value !== "object") return false;` && |\n| &&
-             `    const proto = Object.getPrototypeOf(value);` && |\n| &&
-             `    return proto === null || Object.getPrototypeOf(proto) === null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function projectContext(context, level, ancestors) {` && |\n| &&
-             `    const result = {};` && |\n| &&
-             `    try {` && |\n| &&
-             `      result.PATH = context.getPath();` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `    try {` && |\n| &&
-             `      const data = context.getObject();` && |\n| &&
-             `      if (data !== undefined) {` && |\n| &&
-             `        result.OBJECT = normalizeEventArg(data, level + 1, ancestors);` && |\n| &&
-             `      }` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `    return result;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function projectContainer(value, level, ancestors) {` && |\n| &&
-             `    if (ancestors.has(value)) return null;` && |\n| &&
-             `    ancestors.add(value);` && |\n| &&
-             `    try {` && |\n| &&
-             `      let copy = null;` && |\n| &&
-             `      const keys = Array.isArray(value)` && |\n| &&
-             `        ? value.map((_, i) => i)` && |\n| &&
-             `        : Object.keys(value);` && |\n| &&
-             `      for (const key of keys) {` && |\n| &&
-             `        const entry = value[key];` && |\n| &&
-             `        const next = normalizeEventArg(entry, level + 1, ancestors);` && |\n| &&
-             `        if (next !== entry && copy === null) {` && |\n| &&
-             `          copy = Array.isArray(value) ? value.slice() : { ...value };` && |\n| &&
-             `        }` && |\n| &&
-             `        if (copy !== null) copy[key] = next;` && |\n| &&
-             `      }` && |\n| &&
-             `      return copy ?? value;` && |\n| &&
-             `    } finally {` && |\n| &&
-             `      ancestors.delete(value);` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isEvent(value) {` && |\n| &&
-             `    return isA(value, "sap.ui.base.Event");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function projectEvent(event, level, ancestors) {` && |\n| &&
-             `    const result = {};` && |\n| &&
-             `    try {` && |\n| &&
-             `      result.ID = event.getId();` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `    try {` && |\n| &&
-             `      const source = event.getSource();` && |\n| &&
-             `      if (source && typeof source.getId === "function") {` && |\n| &&
-             `        result.SOURCE = source.getId();` && |\n| &&
-             `      }` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `    try {` && |\n| &&
-             `      const parameters = event.getParameters();` && |\n| &&
-             `      if (parameters !== undefined && parameters !== null) {` && |\n| &&
-             `        result.PARAMETERS = normalizeEventArg(parameters, level + 1, ancestors);` && |\n| &&
-             `      }` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `    return result;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function normalizeEventArg(value, depth, ancestors) {` && |\n| &&
-             `    const level = depth || 0;` && |\n| &&
-             `    if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
-             `    if (isEvent(value)) return projectEvent(value, level, ancestors);` && |\n| &&
-             `    if (isManagedObject(value)) return projectControl(value);` && |\n| &&
-             `    if (isContext(value)) return projectContext(value, level, ancestors);` && |\n| &&
-             `    if (Array.isArray(value) || isPlainObject(value)) {` && |\n| &&
-             `      return projectContainer(value, level, ancestors);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return projectValue(value);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const NO_EVENT_OPTIONS = Object.freeze({` && |\n| &&
-             `    useMainModel: false,` && |\n| &&
-             `    queueLast: false,` && |\n| &&
-             `    noBusy: false,` && |\n| &&
-             `  });` && |\n| &&
-             `  function eventOptions(aEvent) {` && |\n| &&
-             `    const opt = aEvent?.[1];` && |\n| &&
-             `    if (opt !== null && typeof opt === "object" && !Array.isArray(opt)) {` && |\n| &&
-             `      return {` && |\n| &&
-             `        useMainModel: Boolean(opt.useMainModel),` && |\n| &&
-             `        queueLast: Boolean(opt.queueLast),` && |\n| &&
-             `        noBusy: Boolean(opt.noBusy),` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `    if (Array.isArray(aEvent) && aEvent.slice(3).some(Boolean)) {` && |\n| &&
-             `      logError(` && |\n| &&
-             `        ``eB: the event '${aEvent[0]}' carries positional flags, which are not read any more - write them as an object in slot [1], ['${aEvent[0]}', { queueLast: true }]``,` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `    return NO_EVENT_OPTIONS;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function normalizeEventArgs(args) {` && |\n| &&
-             `    return args.map((arg) => normalizeEventArg(arg, 0, new Set()));` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function byteLength(text) {` && |\n| &&
-             `    if (typeof TextEncoder === "function") {` && |\n| &&
-             `      return new TextEncoder().encode(text).length;` && |\n| &&
-             `    }` && |\n| &&
-             `    if (typeof Blob === "function") return new Blob([text]).size;` && |\n| &&
-             `    return text.length;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function lazyByteLength(text) {` && |\n| &&
-             `    let bytes;` && |\n| &&
-             `    return () => {` && |\n| &&
-             `      if (bytes === undefined) bytes = byteLength(text);` && |\n| &&
-             `      return bytes;` && |\n| &&
-             `    };` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    errors,` && |\n| &&
-             `    logError,` && |\n| &&
-             `    isDestroyed,` && |\n| &&
-             `    setComponentBusy,` && |\n| &&
-             `    isControllerAlive,` && |\n| &&
-             `    requireODataModel,` && |\n| &&
-             `    afterRoundtrip,` && |\n| &&
-             `    dispatchWhenIdle,` && |\n| &&
-             `    withinFileSize,` && |\n| &&
-             `    isAlive,` && |\n| &&
-             `    claimOnce,` && |\n| &&
-             `    isTextInput,` && |\n| &&
-             `    readCaret,` && |\n| &&
-             `    registerCallback,` && |\n| &&
-             `    unregisterCallback,` && |\n| &&
-             `    readFilesInTurn,` && |\n| &&
-             `    cancelPendingTimers,` && |\n| &&
-             `    cancelTimer,` && |\n| &&
-             `    resolveStorageType,` && |\n| &&
-             `    applyTokenUpdate,` && |\n| &&
-             `    runCallbacks,` && |\n| &&
-             `    whenRendered,` && |\n| &&
-             `    onNextRendering,` && |\n| &&
-             `    usesXmlTemplating,` && |\n| &&
-             `    getTextPath,` && |\n| &&
-             `    copyToClipboard,` && |\n| &&
-             `    toText,` && |\n| &&
-             `    modelPathOf,` && |\n| &&
-             `    bindingPathOf,` && |\n| &&
-             `    toCaretIndex,` && |\n| &&
-             `    deriveSystemType,` && |\n| &&
-             `    isValidRedirectURL,` && |\n| &&
-             `    isSafeRedirectProtocol,` && |\n| &&
-             `    isSafeDownloadURL,` && |\n| &&
-             `    isValidContextId,` && |\n| &&
-             `    withSapClient,` && |\n| &&
-             `    buildDeltaFromPaths,` && |\n| &&
-             `    sanitizeMessageDetails,` && |\n| &&
-             `    isRootModelSlot,` && |\n| &&
-             `    effectiveSizeLimit,` && |\n| &&
-             `    renderInvisibleSpan,` && |\n| &&
-             `    EMPTY_RENDERER,` && |\n| &&
-             `    hookCallback,` && |\n| &&
-             `    normalizeEventArgs,` && |\n| &&
-             `    eventOptions,` && |\n| &&
-             `    byteLength,` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_04.
-
-    result = `    lazyByteLength,` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/RootSlot.js": function(){sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Env"], (Control, Env) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `  const RootSlot = Control.extend("z2ui5.core.RootSlot", {` && |\n| &&
-             `    metadata: {` && |\n| &&
-             `      aggregations: {` && |\n| &&
-             `        root: { type: "sap.ui.core.Control", multiple: false },` && |\n| &&
-             `      },` && |\n| &&
-             `      defaultAggregation: "root",` && |\n| &&
-             `    },` && |\n| &&
-             `    renderer: {` && |\n| &&
-             `      apiVersion: 2,` && |\n| &&
-             `      render(rm, oSlot) {` && |\n| &&
-             `        rm.openStart("div", oSlot);` && |\n| &&
-             `        rm.style("width", "100%");` && |\n| &&
-             `        rm.style("height", "100%");` && |\n| &&
-             `        rm.openEnd();` && |\n| &&
-             `        const oRoot = oSlot.getAggregation("root");` && |\n| &&
-             `        if (oRoot) rm.renderControl(oRoot);` && |\n| &&
-             `        rm.close("div");` && |\n| &&
-             `      },` && |\n| &&
-             `    },` && |\n| &&
-             `  });` && |\n| &&
-             `  return Env.ownClass(RootSlot);` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/Router.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/routing/HashChanger", "z2ui5/core/Lib"],` && |\n| &&
-             `  (HashChanger, Lib) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const APP_ROUTE_PREFIX = "/app/";` && |\n| &&
-             `` && |\n| &&
-             `    const SHELL_SEPARATOR = "&/";` && |\n| &&
-             `` && |\n| &&
-             `    function hashChanger() {` && |\n| &&
-             `      return HashChanger.getInstance();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function splitHash(sHash) {` && |\n| &&
-             `      const raw = String(sHash || "").replace(/^#/, "");` && |\n| &&
-             `` && |\n| &&
-             `      if (!raw || raw.startsWith("/")) return { shell: "", app: raw };` && |\n| &&
-             `      const i = raw.indexOf(SHELL_SEPARATOR);` && |\n| &&
-             `      if (i < 0) return { shell: "", app: raw };` && |\n| &&
-             `      let app = raw.slice(i + SHELL_SEPARATOR.length).replace(/^\/+/, "");` && |\n| &&
-             `      if (app) app = ``/${app}``;` && |\n| &&
-             `      return { shell: raw.slice(0, i), app };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function appHashOf(sHash) {` && |\n| &&
-             `      return splitHash(sHash).app;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getHash() {` && |\n| &&
-             `      return appHashNormalized(hashChanger().getHash());` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function appHashNormalized(sHash) {` && |\n| &&
-             `      const app = appHashOf(sHash);` && |\n| &&
-             `` && |\n| &&
-             `      if (app === "/") return "";` && |\n| &&
-             `      return app && !app.startsWith("/") ? ``/${app}`` : app;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getRawHash() {` && |\n| &&
-             `      return String(window.location.hash || "").replace(/^#/, "");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function patternFor(sClass, sDraftId) {` && |\n| &&
-             `      const base = ``${APP_ROUTE_PREFIX}${sClass}``;` && |\n| &&
-             `      return sDraftId ? ``${base}/${sDraftId}`` : base;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function segmentsOf(sHash) {` && |\n| &&
-             `      const app = appHashOf(sHash).replace(/^\/+/, "");` && |\n| &&
-             `      const marker = "app/";` && |\n| &&
-             `      if (!app.startsWith(marker)) return null;` && |\n| &&
-             `` && |\n| &&
-             `      return app.slice(marker.length).split(/[&?]/)[0].split("/");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function parse(sHash) {` && |\n| &&
-             `      const parts = segmentsOf(sHash);` && |\n| &&
-             `      if (!parts) return null;` && |\n| &&
-             `` && |\n| &&
-             `      if (parts[0] === "") {` && |\n| &&
-             `        if (parts.length < 3 || !parts[1] || !parts[2]) return null;` && |\n| &&
-             `        return {` && |\n| &&
-             `          app: ``/${parts[1]}/${parts[2]}``,` && |\n| &&
-             `          draft: parts.length > 3 ? parts[3] : "",` && |\n| &&
-             `        };` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!parts[0]) return null;` && |\n| &&
-             `      return { app: parts[0], draft: parts.length > 1 ? parts[1] : "" };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const APP_STATE_PARAM = "z2ui5-xapp-state=";` && |\n| &&
-             `` && |\n| &&
-             `    function appStateOf(sHash) {` && |\n| &&
-             `      const app = appHashOf(sHash).replace(/^\/+/, "");` && |\n| &&
-             `      const query = app.includes("?") ? app.slice(app.indexOf("?") + 1) : app;` && |\n| &&
-             `      for (const part of query.split("&")) {` && |\n| &&
-             `        if (part.toLowerCase().startsWith(APP_STATE_PARAM)) {` && |\n| &&
-             `          return part.slice(APP_STATE_PARAM.length);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function startRoute(sHash) {` && |\n| &&
-             `      const route = parse(sHash);` && |\n| &&
-             `      if (route) {` && |\n| &&
-             `        return route.draft` && |\n| &&
-             `          ? { APP: route.app, DRAFT: route.draft }` && |\n| &&
-             `          : { APP: route.app };` && |\n| &&
-             `      }` && |\n| &&
-             `      const appState = appStateOf(sHash);` && |\n| &&
-             `      return appState ? { APP_STATE: appState } : null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function navTo(sRoute, bReplace) {` && |\n| &&
-             `      const sHash = String(sRoute || "").replace(/^\/+/, "");` && |\n| &&
-             `      if (bReplace) {` && |\n| &&
-             `        hashChanger().replaceHash(sHash);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        hashChanger().setHash(sHash);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function trailWrite(ctx, sHash, bReplace) {` && |\n| &&
-             `      const r = ctx.router;` && |\n| &&
-             `      const h = appHashNormalized(sHash);` && |\n| &&
-             `      if (bReplace && r.trailPos >= 0) {` && |\n| &&
-             `        r.trail[r.trailPos] = h;` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      r.trail = r.trail.slice(0, r.trailPos + 1);` && |\n| &&
-             `      r.trail.push(h);` && |\n| &&
-             `      r.trailPos = r.trail.length - 1;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function write(ctx, sHash, bReplace) {` && |\n| &&
-             `      trailWrite(ctx, sHash, bReplace);` && |\n| &&
-             `      navTo(sHash, bReplace);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function trailMove(ctx, sHash) {` && |\n| &&
-             `      const r = ctx.router;` && |\n| &&
-             `      const h = appHashNormalized(sHash);` && |\n| &&
-             `      const pos = r.trailPos;` && |\n| &&
-             `      if (r.trail[pos] === h) return "";` && |\n| &&
-             `      const prev = pos > 0 && r.trail[pos - 1] === h;` && |\n| &&
-             `      const next = r.trail[pos + 1] === h;` && |\n| &&
-             `      if (prev) {` && |\n| &&
-             `        r.trailPos = pos - 1;` && |\n| &&
-             `        return next ? "" : "back";` && |\n| &&
-             `      }` && |\n| &&
-             `      if (next) {` && |\n| &&
-             `        r.trailPos = pos + 1;` && |\n| &&
-             `        return "forward";` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const before = pos > 0 ? r.trail.lastIndexOf(h, pos - 1) : -1;` && |\n| &&
-             `      if (before >= 0) {` && |\n| &&
-             `        r.trailPos = before;` && |\n| &&
-             `        return "back";` && |\n| &&
-             `      }` && |\n| &&
-             `      const after = r.trail.indexOf(h, pos + 1);` && |\n| &&
-             `      if (after >= 0) {` && |\n| &&
-             `        r.trailPos = after;` && |\n| &&
-             `        return "forward";` && |\n| &&
-             `      }` && |\n| &&
-             `      trailWrite(ctx, h, false);` && |\n| &&
-             `      return "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function writeHash(ctx, sHash, bPush) {` && |\n| &&
-             `      if (bPush) ctx.state.hashPushCount += 1;` && |\n| &&
-             `      write(ctx, sHash, !bPush);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function navBack(ctx, sFallback) {` && |\n| &&
-             `      if (!sFallback || ctx.state.hashPushCount > 0) {` && |\n| &&
-             `        window.history.back();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      write(ctx, sFallback, true);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function onHashChanged(ctx, sNewHash) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `` && |\n| &&
-             `      const direction = trailMove(ctx, sNewHash);` && |\n| &&
-             `` && |\n| &&
-             `      if (direction === "back") {` && |\n| &&
-             `        state.hashPushCount = Math.max(0, state.hashPushCount - 1);` && |\n| &&
-             `      } else if (direction === "forward") {` && |\n| &&
-             `        state.hashPushCount += 1;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (!state.navRouting) {` && |\n| &&
-             `        dispatchAppHashChange(ctx, sNewHash);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const route = parse(sNewHash);` && |\n| &&
-             `      if (!route) return;` && |\n| &&
-             `` && |\n| &&
-             `      if (route.draft) {` && |\n| &&
-             `        if (route.draft === state.currentDraftId) return;` && |\n| &&
-             `      } else if (` && |\n| &&
-             `        route.app.toUpperCase() === String(state.currentApp).toUpperCase()` && |\n| &&
-             `      ) {` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      state.navFromHash = true;` && |\n| &&
-             `` && |\n| &&
-             `      state.navDirection = direction;` && |\n| &&
-             `      if (ctx.router.navigate) ctx.router.navigate();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function applyHashEvent(ctx, mOptions) {` && |\n| &&
-             `      if (!mOptions.setHashEvent) return;` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const sEvent = String(mOptions.setHashEvent).trim();` && |\n| &&
-             `      state.hashEvent = sEvent || null;` && |\n| &&
-             `` && |\n| &&
-             `      state.appHash = appHashNormalized(getRawHash());` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function dispatchAppHashChange(ctx, sNewHash) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      if (!state.hashEvent) return;` && |\n| &&
-             `      const appHash = appHashNormalized(sNewHash);` && |\n| &&
-             `      if (appHash === state.appHash) return;` && |\n| &&
-             `      const controller = state.oController;` && |\n| &&
-             `      if (!Lib.isControllerAlive(controller)) return;` && |\n| &&
-             `` && |\n| &&
-             `      if (state.isBusy) {` && |\n| &&
-             `        state.pendingAppHash = sNewHash;` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      state.pendingAppHash = null;` && |\n| &&
-             `      state.appHash = appHash;` && |\n| &&
-             `      controller.eB([state.hashEvent]);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function dispatchPendingAppHash(ctx) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const pending = state.pendingAppHash;` && |\n| &&
-             `      if (pending == null) return;` && |\n| &&
-             `      state.pendingAppHash = null;` && |\n| &&
-             `      dispatchAppHashChange(ctx, pending);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function repointCallerEntry(ctx, mOptions, draftForRoute) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const prevApp = mOptions.navAppCallPrevApp;` && |\n| &&
-             `      const prevDraft = mOptions.navAppCallPrevId;` && |\n| &&
-             `      if (!draftForRoute || !prevApp || !prevDraft) return;` && |\n| &&
-             `      const prevRoute = patternFor(prevApp, prevDraft);` && |\n| &&
-             `      if (getHash() === prevRoute) return;` && |\n| &&
-             `` && |\n| &&
-             `      state.currentDraftId = prevDraft;` && |\n| &&
-             `      write(ctx, prevRoute, true);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function applyMode(ctx, mOptions) {` && |\n| &&
-             `      if (!mOptions.setNavRouting) return;` && |\n| &&
-             `      const mode = String(mOptions.setNavRouting).toUpperCase();` && |\n| &&
-             `      const on = mode === "KEEP" || mode === "FRESH";` && |\n| &&
-             `      ctx.state.navRouting = on;` && |\n| &&
-             `      ctx.state.navMode = on ? mode : null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function updateAppRoute(ctx, mOptions, ID, app) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `` && |\n| &&
-             `      const draftForRoute = state.navMode === "FRESH" ? null : ID;` && |\n| &&
-             `` && |\n| &&
-             `      state.currentApp = app;` && |\n| &&
-             `      state.currentDraftId = draftForRoute;` && |\n| &&
-             `` && |\n| &&
-             `      if (state.navFromHash) {` && |\n| &&
-             `        state.navFromHash = false;` && |\n| &&
-             `        state.navDirection = "";` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const route = patternFor(app, draftForRoute);` && |\n| &&
-             `      if (mOptions.checkNavAppCall) {` && |\n| &&
-             `        repointCallerEntry(ctx, mOptions, draftForRoute);` && |\n| &&
-             `        state.currentApp = app;` && |\n| &&
-             `        state.currentDraftId = draftForRoute;` && |\n| &&
-             `        write(ctx, route, false);` && |\n| &&
-             `      } else if (getHash() !== route) {` && |\n| &&
-             `        write(ctx, route, true);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function sync(ctx, mOptions) {` && |\n| &&
-             `      if (!ctx.state.ownsPage) return;` && |\n| &&
-             `      const ID = mOptions.id;` && |\n| &&
-             `      try {` && |\n| &&
-             `        applyMode(ctx, mOptions);` && |\n| &&
-             `        applyHashEvent(ctx, mOptions);` && |\n| &&
-             `` && |\n| &&
-             `        const state = ctx.state;` && |\n| &&
-             `` && |\n| &&
-             `        const sAsked = mOptions.setPushState || mOptions.setHashReplace;` && |\n| &&
-             `        const bPush = Boolean(mOptions.setPushState);` && |\n| &&
-             `        const bOwner = !state.navRouting && Boolean(state.hashEvent);` && |\n| &&
-             `        if (sAsked && !bOwner) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``Router: hash_set / hash_replace need the app to own the hash - '${sAsked}' is not written. Register a listener first (cs_event-hash_attach_changed); ${state.navRouting ? "under hash_routi` &&
-             `ng the hash is the router's" : "none is registered"}``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (state.navRouting) {` && |\n| &&
-             `          const app = state.oResponse?.APP;` && |\n| &&
-             `          if (app) updateAppRoute(ctx, mOptions, ID, app);` && |\n| &&
-             `` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (sAsked && bOwner) {` && |\n| &&
-             `          state.appHash = appHashNormalized(sAsked);` && |\n| &&
-             `          writeHash(ctx, sAsked, bPush);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (state.hashEvent) return;` && |\n| &&
-             `` && |\n| &&
-             `        const newHash = mOptions.setAppStateActive` && |\n| &&
-             `          ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
-             `          : "";` && |\n| &&
-             `        write(ctx, newHash, true);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Router.sync: history update failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function init(ctx, fnNavigate) {` && |\n| &&
-             `      ctx.router.navigate = fnNavigate;` && |\n| &&
-             `` && |\n| &&
-             `      ctx.router.startRoute = ctx.state.ownsPage` && |\n| &&
-             `        ? () => startRoute(window.location.hash)` && |\n| &&
-             `        : null;` && |\n| &&
-             `` && |\n| &&
-             `      if (!ctx.state.ownsPage) return;` && |\n| &&
-             `` && |\n| &&
-             `      const listener = (oEvent) =>` && |\n| &&
-             `        onHashChanged(ctx, oEvent.getParameter("newHash"));` && |\n| &&
-             `      ctx.router.hashListener = listener;` && |\n| &&
-             `      hashChanger().attachEvent("hashChanged", listener);` && |\n| &&
-             `` && |\n| &&
-             `      hashChanger().init();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function exit(ctx) {` && |\n| &&
-             `      const listener = ctx.router.hashListener;` && |\n| &&
-             `      if (listener) {` && |\n| &&
-             `        hashChanger().detachEvent("hashChanged", listener);` && |\n| &&
-             `        ctx.router.hashListener = null;` && |\n| &&
-             `      }` && |\n| &&
-             `      ctx.router.navigate = null;` && |\n| &&
-             `      ctx.router.startRoute = null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      init,` && |\n| &&
-             `      exit,` && |\n| &&
-             `      splitHash,` && |\n| &&
-             `      patternFor,` && |\n| &&
-             `      parse,` && |\n| &&
-             `      startRoute,` && |\n| &&
-             `      navTo,` && |\n| &&
-             `      navBack,` && |\n| &&
-             `      onHashChanged,` && |\n| &&
-             `      dispatchPendingAppHash,` && |\n| &&
-             `      sync,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/ScrollFocus.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Element",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n|.
-    result = result &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Element, Lib, Env, ViewSlots, Context) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function closestUi5Element(dom) {` && |\n| &&
-             `      if (Element.closestTo) return Element.closestTo(dom) ?? null;` && |\n| &&
-             `      let el = dom;` && |\n| &&
-             `      while (el && el.getAttribute) {` && |\n| &&
-             `        if (el.hasAttribute("data-sap-ui")) {` && |\n| &&
-             `          return Env.getElementById(el.id);` && |\n| &&
-             `        }` && |\n| &&
-             `        el = el.parentElement;` && |\n| &&
-             `      }` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function stripSlotPrefix(ctx, fullId, slot) {` && |\n| &&
-             `      const view = ViewSlots.getView(ctx, slot.key);` && |\n| &&
-             `      if (!view) return fullId;` && |\n| &&
-             `      const prefix = slot.fragmentId` && |\n| &&
-             `        ? ``${ViewSlots.fragmentIdOf(ctx, slot)}--``` && |\n| &&
-             `        : ``${view.getId()}--``;` && |\n| &&
-             `      return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function focusTextInput(active, ui5El) {` && |\n| &&
-             `      if (Lib.isTextInput(active)) return active;` && |\n| &&
-             `      const focusRef = ui5El?.getFocusDomRef?.();` && |\n| &&
-             `      if (Lib.isTextInput(focusRef)) return focusRef;` && |\n| &&
-             `      const root = ui5El?.getDomRef?.();` && |\n| &&
-             `      const inner = root?.querySelector?.("input, textarea");` && |\n| &&
-             `      return Lib.isTextInput(inner) ? inner : null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getFocusInfo(ctx) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const active = document.activeElement;` && |\n| &&
-             `        if (!active) return undefined;` && |\n| &&
-             `        const ui5El = closestUi5Element(active);` && |\n| &&
-             `        if (!ui5El) return undefined;` && |\n| &&
-             `` && |\n| &&
-             `        if (ctx?.state?.ownsPage === false && !isInComponent(ctx, active)) {` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        const fullId = ui5El.getId();` && |\n| &&
-             `        let id = fullId;` && |\n| &&
-             `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          const local = stripSlotPrefix(ctx, fullId, slot);` && |\n| &&
-             `          if (local !== fullId) {` && |\n| &&
-             `            id = local;` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        const info = { ID: id };` && |\n| &&
-             `        const caret = Lib.readCaret(focusTextInput(active, ui5El));` && |\n| &&
-             `        if (caret) {` && |\n| &&
-             `          info.SELECTION_START = caret.start;` && |\n| &&
-             `          info.SELECTION_END = caret.end;` && |\n| &&
-             `        }` && |\n| &&
-             `        return info;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("getFocusInfo: focus capture failed", e);` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isInComponent(ctx, node) {` && |\n| &&
-             `      if (!ctx || !node || node.nodeType !== 1) return false;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const root = ctx.component?.getRootControl?.()?.getDomRef?.();` && |\n| &&
-             `        if (root?.contains?.(node)) return true;` && |\n| &&
-             `        const ui5El = closestUi5Element(node);` && |\n| &&
-             `        return Boolean(ui5El) && Context.of(ui5El) === ctx;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("isInComponent: resolving the node failed", e);` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function mayMoveFocus(ctx) {` && |\n| &&
-             `      if (ctx?.state?.ownsPage !== false) return true;` && |\n| &&
-             `      const active = document.activeElement;` && |\n| &&
-             `      if (!active || active === document.body) {` && |\n| &&
-             `        return ctx.focus.userInside;` && |\n| &&
-             `      }` && |\n| &&
-             `      return isInComponent(ctx, active);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function watchFocus(ctx) {` && |\n| &&
-             `      if (ctx?.state?.ownsPage !== false || ctx.focus.listener) return;` && |\n| &&
-             `      const listener = (event) => {` && |\n| &&
-             `        ctx.focus.userInside = isInComponent(ctx, event.target);` && |\n| &&
-             `      };` && |\n| &&
-             `      ctx.focus.listener = listener;` && |\n| &&
-             `      document.addEventListener("focusin", listener, true);` && |\n| &&
-             `      document.addEventListener("pointerdown", listener, true);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function unwatchFocus(ctx) {` && |\n| &&
-             `      const listener = ctx?.focus?.listener;` && |\n| &&
-             `      if (!listener) return;` && |\n| &&
-             `      document.removeEventListener("focusin", listener, true);` && |\n| &&
-             `      document.removeEventListener("pointerdown", listener, true);` && |\n| &&
-             `      ctx.focus.listener = null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function clearScrollCache(ctx) {` && |\n| &&
-             `      const cache = ctx.scroll;` && |\n| &&
-             `      cache.target = undefined;` && |\n| &&
-             `      cache.ui5El = undefined;` && |\n| &&
-             `      cache.slotKey = undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function onScrollCapture(ctx, event) {` && |\n| &&
-             `      const target = event.target;` && |\n| &&
-             `      if (!target || target.nodeType !== 1) return;` && |\n| &&
-             `      const _scrollCache = ctx.scroll;` && |\n| &&
-             `` && |\n| &&
-             `      if (target !== _scrollCache.target) {` && |\n| &&
-             `        const ui5El = closestUi5Element(target);` && |\n| &&
-             `        _scrollCache.target = target;` && |\n| &&
-             `        _scrollCache.ui5El = ui5El;` && |\n| &&
-             `        _scrollCache.slotKey = ui5El` && |\n| &&
-             `          ? ViewSlots.containingSlotKey(ctx, ui5El)` && |\n| &&
-             `          : undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (_scrollCache.slotKey) {` && |\n| &&
-             `        ctx.state.lastScrolled[_scrollCache.slotKey] = {` && |\n| &&
-             `          control: _scrollCache.ui5El,` && |\n| &&
-             `          dom: target,` && |\n| &&
-             `        };` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getScrollInfo(ctx) {` && |\n| &&
-             `      const _scrollCache = ctx.scroll;` && |\n| &&
-             `      if (_scrollCache.target && !_scrollCache.target.isConnected) {` && |\n| &&
-             `        clearScrollCache(ctx);` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const store = ctx.state.lastScrolled;` && |\n| &&
-             `      const out = {};` && |\n| &&
-             `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        const entry = store[slot.key];` && |\n| &&
-             `        if (!entry) continue;` && |\n| &&
-             `` && |\n| &&
-             `        if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
-             `          delete store[slot.key];` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        const id = stripSlotPrefix(ctx, entry.control.getId(), slot);` && |\n| &&
-             `        out[slot.key] = {` && |\n| &&
-             `          ID: id,` && |\n| &&
-             `          X: entry.dom.scrollLeft || 0,` && |\n| &&
-             `          Y: entry.dom.scrollTop || 0,` && |\n| &&
-             `        };` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return Object.keys(out).length ? out : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function reset(ctx) {` && |\n| &&
-             `      clearScrollCache(ctx);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      getFocusInfo,` && |\n| &&
-             `      getScrollInfo,` && |\n| &&
-             `      onScrollCapture,` && |\n| &&
-             `      closestUi5Element,` && |\n| &&
-             `      focusTextInput,` && |\n| &&
-             `      isInComponent,` && |\n| &&
-             `      mayMoveFocus,` && |\n| &&
-             `      watchFocus,` && |\n| &&
-             `      unwatchFocus,` && |\n| &&
-             `      reset,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/Server.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/BusyIndicator",` && |\n| &&
-             `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Session",` && |\n| &&
-             `    "z2ui5/core/ScrollFocus",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/ErrorView",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    BusyIndicator,` && |\n| &&
-             `    VersionInfo,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    Session,` && |\n| &&
-             `    ScrollFocus,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `    ErrorView,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const REQUEST_TIMEOUT_MS = 600000;` && |\n| &&
-             `` && |\n| &&
-             `    function showBusy(ctx, delay) {` && |\n| &&
-             `      if (ctx?.state?.ownsPage === false)` && |\n| &&
-             `        Lib.setComponentBusy(ctx, true, delay);` && |\n| &&
-             `      else BusyIndicator.show(delay);` && |\n| &&
-             `    }` && |\n| &&
-             `    function hideBusy(ctx) {` && |\n| &&
-             `      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);` && |\n| &&
-             `      else BusyIndicator.hide();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      PROTOCOL: 3,` && |\n| &&
-             `` && |\n| &&
-             `      endSession(ctx) {` && |\n| &&
-             `        if (!Lib.isValidContextId(ctx.state.contextId)) return;` && |\n| &&
-             `` && |\n| &&
-             `        fetch(ctx.state.url, {` && |\n| &&
-             `          method: "HEAD",` && |\n| &&
-             `          keepalive: true,` && |\n| &&
-             `          headers: {` && |\n| &&
-             `            "sap-terminate": "session",` && |\n| &&
-             `            "sap-contextid": ctx.state.contextId,` && |\n| &&
-             `            "sap-contextid-accept": "header",` && |\n| &&
-             `          },` && |\n| &&
-             `        }).catch(() => {});` && |\n| &&
-             `        ctx.state.contextId = null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      reset(ctx) {` && |\n| &&
-             `        ctx.server.requestSeq += 1;` && |\n| &&
-             `        this._abortInflight(ctx);` && |\n| &&
-             `        ctx.server.viewBuild = null;` && |\n| &&
-             `` && |\n| &&
-             `        ctx.state.oQueuedEvent = null;` && |\n| &&
-             `        ctx.state.oQueuedWindow = null;` && |\n| &&
-             `        ctx.state.aRenderEvents = [];` && |\n| &&
-             `` && |\n| &&
-             `        ErrorView.reset(ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      restoreFromRoute(ctx) {` && |\n| &&
-             `        ctx.state.isBusy = true;` && |\n| &&
-             `        showBusy(ctx, 0);` && |\n| &&
-             `` && |\n| &&
-             `        Lib.cancelPendingTimers(ctx);` && |\n| &&
-             `` && |\n| &&
-             `        ctx.state.oQueuedEvent = null;` && |\n| &&
-             `        ctx.state.oQueuedWindow = null;` && |\n| &&
-             `        ctx.state.aRenderEvents = [];` && |\n| &&
-             `        this.roundtrip(ctx, {});` && |\n| &&
-             `` && |\n| &&
-             `        ctx.server.restoreSeq = ctx.server.requestSeq;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      roundtrip(ctx, oBody = {}) {` && |\n| &&
-             `        const state = ctx.state;` && |\n| &&
-             `` && |\n| &&
-             `        state.oBody = oBody;` && |\n| &&
-             `` && |\n| &&
-             `        const eventName = oBody.ARGUMENTS?.[0]?.[0];` && |\n| &&
-             `` && |\n| &&
-             `        const oConfig = state.oConfig;` && |\n| &&
-             `` && |\n| &&
-             `        const config = {` && |\n| &&
-             `          ...Session.config(ctx, oConfig, oBody.ID),` && |\n| &&
-             `          S_FOCUS: ScrollFocus.getFocusInfo(ctx),` && |\n| &&
-             `          S_SCROLL: ScrollFocus.getScrollInfo(ctx),` && |\n| &&
-             `        };` && |\n| &&
-             `        oBody.S_FRONT = {` && |\n| &&
-             `          ID: oBody.ID,` && |\n| &&
-             `          EVENT: eventName,` && |\n| &&
-             `` && |\n| &&
-             `          HASH: state.ownsPage ? window.location.hash : "",` && |\n| &&
-             `        };` && |\n| &&
-             `        const sFront = oBody.S_FRONT;` && |\n| &&
-             `` && |\n| &&
-             `        if (!oBody.ID) {` && |\n| &&
-             `          const route = ctx.router?.startRoute?.();` && |\n| &&
-             `          if (route) sFront.ROUTE = route;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (Object.values(config).some((v) => v !== undefined)) {` && |\n| &&
-             `          sFront.CONFIG = config;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (state.lastRoundtripMs) {` && |\n| &&
-             `          sFront.MS_CLIENT_PREV = state.lastRoundtripMs;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        Object.assign(sFront, Session.location(ctx, oBody.ID));` && |\n| &&
-             `` && |\n| &&
-             `        if (oBody.ARGUMENTS) oBody.ARGUMENTS.shift();` && |\n| &&
-             `        sFront.T_EVENT_ARG = oBody.ARGUMENTS;` && |\n| &&
-             `` && |\n| &&
-             `        delete oBody.ID;` && |\n| &&
-             `        delete oBody.ARGUMENTS;` && |\n| &&
-             `` && |\n| &&
-             `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
-             `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
-             `        if (!sFront.HASH) delete sFront.HASH;` && |\n| &&
-             `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
-             `` && |\n| &&
-             `        this.readHttp(ctx, oBody, Session.takePending(ctx));` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      createTimeoutSignal(ms) {` && |\n| &&
-             `        if (AbortSignal.timeout) {` && |\n| &&
-             `          return { signal: AbortSignal.timeout(ms), cancel: () => {} };` && |\n| &&
-             `        }` && |\n| &&
-             `        const controller = new AbortController();` && |\n| &&
-             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n| &&
-             `        return {` && |\n| &&
-             `          signal: controller.signal,` && |\n| &&
-             `          cancel: () => clearTimeout(handle),` && |\n| &&
-             `        };` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _abortInflight(ctx) {` && |\n| &&
-             `        for (const controller of ctx.server.inflight) controller.abort();` && |\n| &&
-             `        ctx.server.inflight.clear();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _combineSignals(a, b) {` && |\n| &&
-             `        if (AbortSignal.any) return AbortSignal.any([a, b]);` && |\n| &&
-             `        const controller = new AbortController();` && |\n| &&
-             `        const forward = (sig) => {` && |\n| &&
-             `          if (sig.aborted) controller.abort(sig.reason);` && |\n| &&
-             `          else {` && |\n| &&
-             `            sig.addEventListener("abort", () => controller.abort(sig.reason), {` && |\n| &&
-             `              once: true,` && |\n| &&
-             `            });` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `        forward(a);` && |\n| &&
-             `        forward(b);` && |\n| &&
-             `        return controller.signal;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async readHttp(ctx, oBody, sessionCarried) {` && |\n| &&
-             `        const { signal: timeoutSignal, cancel } =` && |\n| &&
-             `          this.createTimeoutSignal(REQUEST_TIMEOUT_MS);` && |\n| &&
-             `` && |\n| &&
-             `        const oRetry = {` && |\n| &&
-             `          onRetry: () => {` && |\n| &&
-             `            ctx.state.isBusy = true;` && |\n| &&
-             `            showBusy(ctx, 0);` && |\n| &&
-             `            this.readHttp(ctx, oBody, sessionCarried);` && |\n| &&
-             `          },` && |\n| &&
-             `        };` && |\n| &&
-             `` && |\n| &&
-             `        const reportTimeout = () =>` && |\n| &&
-             `          this.responseError(` && |\n| &&
-             `            ctx,` && |\n| &&
-             `            ``No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted``,` && |\n| &&
-             `            undefined,` && |\n| &&
-             `            oRetry,` && |\n| &&
-             `          );` && |\n| &&
-             `` && |\n| &&
-             `        const seq = ++ctx.server.requestSeq;` && |\n| &&
-             `        const isStale = () => seq !== ctx.server.requestSeq;` && |\n| &&
-             `` && |\n| &&
-             `        this._abortInflight(ctx);` && |\n| &&
-             `        const superseder = new AbortController();` && |\n| &&
-             `        ctx.server.inflight.add(superseder);` && |\n| &&
-             `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
-             `` && |\n| &&
-             `        let sentAt;` && |\n| &&
-             `` && |\n| &&
-             `        let body;` && |\n| &&
-             `        try {` && |\n| &&
-             `          body = JSON.stringify({ value: oBody });` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          ctx.server.inflight.delete(superseder);` && |\n| &&
-             `          cancel();` && |\n| &&
-             `          this.responseError(` && |\n| &&
-             `            ctx,` && |\n| &&
-             `            ``The request could not be serialized - an event argument is no plain data (${e.message})``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        try {` && |\n| &&
-             `          let response;` && |\n| &&
-             `          try {` && |\n| &&
-             `            ctx.state.lastRequestBytes = Lib.lazyByteLength(body);` && |\n| &&
-             `            sentAt = Date.now();` && |\n| &&
-             `            response = await this._post(ctx, body, signal);` && |\n| &&
-             `` && |\n| &&
-             `            if (` && |\n| &&
-             `              this._csrfTokenRequired(response) &&` && |\n| &&
-             `              (await this._fetchCsrfToken(ctx, signal)) &&` && |\n| &&
-             `              !isStale()` && |\n| &&
-             `            ) {` && |\n|.
-    result = result &&
-             `              response = await this._post(ctx, body, signal);` && |\n| &&
-             `            }` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            if (isStale()) return;` && |\n| &&
-             `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
-             `              reportTimeout();` && |\n| &&
-             `            } else {` && |\n| &&
-             `              const hint =` && |\n| &&
-             `                e.name === "TypeError"` && |\n| &&
-             `                  ? " - the backend could not be reached. Common causes: an expired " +` && |\n| &&
-             `                    "logon session redirecting to another origin (SSO), a CORS rule, " +` && |\n| &&
-             `                    "or the backend being offline."` && |\n| &&
-             `                  : "";` && |\n| &&
-             `              this.responseError(` && |\n| &&
-             `                ctx,` && |\n| &&
-             `                ``Network error: ${e.message}${hint}``,` && |\n| &&
-             `                undefined,` && |\n| &&
-             `                oRetry,` && |\n| &&
-             `              );` && |\n| &&
-             `            }` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (isStale()) return;` && |\n| &&
-             `` && |\n| &&
-             `          const contextId = response.headers.get("sap-contextid");` && |\n| &&
-             `          if (Lib.isValidContextId(contextId)) {` && |\n| &&
-             `            ctx.state.contextId = contextId;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (!response.ok) {` && |\n| &&
-             `            let text;` && |\n| &&
-             `            try {` && |\n| &&
-             `              text = await response.text();` && |\n| &&
-             `            } catch {` && |\n| &&
-             `              if (isStale()) return;` && |\n| &&
-             `              if (timeoutSignal.aborted) {` && |\n| &&
-             `                reportTimeout();` && |\n| &&
-             `                return;` && |\n| &&
-             `              }` && |\n| &&
-             `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
-             `            }` && |\n| &&
-             `            if (isStale()) return;` && |\n| &&
-             `` && |\n| &&
-             `            this.responseError(` && |\n| &&
-             `              ctx,` && |\n| &&
-             `              text || ``HTTP ${response.status}``,` && |\n| &&
-             `              undefined,` && |\n| &&
-             `              response.status >= 502 ? oRetry : undefined,` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          let responseData;` && |\n| &&
-             `          try {` && |\n| &&
-             `            responseData = await response.json();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            if (isStale()) return;` && |\n| &&
-             `            if (timeoutSignal.aborted) {` && |\n| &&
-             `              reportTimeout();` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `` && |\n| &&
-             `            const type = response.headers.get("content-type") || "";` && |\n| &&
-             `            if (type.toLowerCase().includes("text/html")) {` && |\n| &&
-             `              this.responseError(` && |\n| &&
-             `                ctx,` && |\n| &&
-             `                "The server answered with an HTML page instead of the app's data - " +` && |\n| &&
-             `                  "usually a logon page after the session expired, or the page of a " +` && |\n| &&
-             `                  "proxy in between. Restart the app, logging on again if asked.",` && |\n| &&
-             `              );` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `            this.responseError(ctx, ``Invalid JSON response: ${e.message}``);` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (isStale()) return;` && |\n| &&
-             `` && |\n| &&
-             `          if (!responseData?.S_FRONT) {` && |\n| &&
-             `            this.responseError(` && |\n| &&
-             `              ctx,` && |\n| &&
-             `              "Invalid response: missing S_FRONT - the URL probably does not reach " +` && |\n| &&
-             `                "the abap2UI5 handler. Check that the ICF service (or route) of this " +` && |\n| &&
-             `                "page calls z2ui5_cl_ui5_http_handler.",` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (` && |\n| &&
-             `            responseData.S_FRONT.PROTOCOL !== undefined &&` && |\n| &&
-             `            responseData.S_FRONT.PROTOCOL !== this.PROTOCOL` && |\n| &&
-             `          ) {` && |\n| &&
-             `            this.responseError(` && |\n| &&
-             `              ctx,` && |\n| &&
-             `              "Protocol mismatch: this frontend speaks " +` && |\n| &&
-             `                this.PROTOCOL +` && |\n| &&
-             `                ", the backend answered " +` && |\n| &&
-             `                responseData.S_FRONT.PROTOCOL +` && |\n| &&
-             `                ". Update whichever of the two is older - they ship together.",` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          ctx.state.responseData = responseData;` && |\n| &&
-             `` && |\n| &&
-             `          Session.confirmSent(ctx, sessionCarried);` && |\n| &&
-             `` && |\n| &&
-             `          ctx.state.lastRoundtripMs = Date.now() - sentAt;` && |\n| &&
-             `` && |\n| &&
-             `          this._clearSentPaths(ctx.state.oSentModel);` && |\n| &&
-             `          ctx.state.oSentModel = null;` && |\n| &&
-             `          this.responseSuccess(` && |\n| &&
-             `            ctx,` && |\n| &&
-             `            {` && |\n| &&
-             `              ID: responseData.S_FRONT.ID,` && |\n| &&
-             `` && |\n| &&
-             `              VIEWS: responseData.S_FRONT.VIEWS,` && |\n| &&
-             `              NAV: responseData.S_FRONT.NAV,` && |\n| &&
-             `              ACTIONS: responseData.S_FRONT.ACTIONS,` && |\n| &&
-             `` && |\n| &&
-             `              OVIEWMODEL: responseData.MODEL ?? {},` && |\n| &&
-             `` && |\n| &&
-             `              MODELPRESENT: responseData.MODEL !== undefined,` && |\n| &&
-             `` && |\n| &&
-             `              APP: responseData.S_FRONT.APP,` && |\n| &&
-             `            },` && |\n| &&
-             `            seq,` && |\n| &&
-             `          );` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          if (!isStale()) this.responseError(ctx, e);` && |\n| &&
-             `        } finally {` && |\n| &&
-             `          ctx.server.inflight.delete(superseder);` && |\n| &&
-             `          cancel();` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _post(ctx, body, signal) {` && |\n| &&
-             `        const headers = {` && |\n| &&
-             `          "Content-Type": "application/json",` && |\n| &&
-             `          "sap-contextid-accept": "header",` && |\n| &&
-             `        };` && |\n| &&
-             `        if (Lib.isValidContextId(ctx.state.contextId)) {` && |\n| &&
-             `          headers["sap-contextid"] = ctx.state.contextId;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (ctx.server.csrfToken) {` && |\n| &&
-             `          headers["X-CSRF-Token"] = ctx.server.csrfToken;` && |\n| &&
-             `        }` && |\n| &&
-             `        return fetch(ctx.state.url, {` && |\n| &&
-             `          method: "POST",` && |\n| &&
-             `          headers,` && |\n| &&
-             `          body,` && |\n| &&
-             `          signal,` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _csrfTokenRequired(response) {` && |\n| &&
-             `        const value = response.headers.get("x-csrf-token") || "";` && |\n| &&
-             `        return (` && |\n| &&
-             `          response.status === 403 && value.trim().toLowerCase() === "required"` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async _fetchCsrfToken(ctx, signal) {` && |\n| &&
-             `        ctx.server.csrfToken = "";` && |\n| &&
-             `        try {` && |\n| &&
-             `          const response = await fetch(ctx.state.url, {` && |\n| &&
-             `            method: "HEAD",` && |\n| &&
-             `            headers: { "X-CSRF-Token": "Fetch" },` && |\n| &&
-             `            signal,` && |\n| &&
-             `          });` && |\n| &&
-             `          const token = (response.headers.get("x-csrf-token") || "").trim();` && |\n| &&
-             `          const lower = token.toLowerCase();` && |\n| &&
-             `          if (` && |\n| &&
-             `            response.ok &&` && |\n| &&
-             `            token &&` && |\n| &&
-             `            lower !== "required" &&` && |\n| &&
-             `            lower !== "fetch"` && |\n| &&
-             `          ) {` && |\n| &&
-             `            ctx.server.csrfToken = token;` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          if (e?.name !== "AbortError" && e?.name !== "TimeoutError") {` && |\n| &&
-             `            Lib.logError("_fetchCsrfToken: token fetch failed", e);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        return ctx.server.csrfToken !== "";` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _clearSentPaths(oModel) {` && |\n| &&
-             `        const pending = oModel?._z2ui5ChangedPaths;` && |\n| &&
-             `        if (!pending) return;` && |\n| &&
-             `        const sentValues = oModel._z2ui5SentValues;` && |\n| &&
-             `        oModel._z2ui5SentValues = null;` && |\n| &&
-             `        if (!sentValues) return;` && |\n| &&
-             `        for (const path of Array.from(pending)) {` && |\n| &&
-             `          if (` && |\n| &&
-             `            sentValues.has(path) &&` && |\n| &&
-             `            sentValues.get(path) === oModel.getProperty(path)` && |\n| &&
-             `          ) {` && |\n| &&
-             `            pending.delete(path);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async responseSuccess(ctx, response, reqSeq) {` && |\n| &&
-             `        const oController = ViewSlots.getController(ctx, "MAIN");` && |\n| &&
-             `        try {` && |\n| &&
-             `          ctx.state.oResponse = response;` && |\n| &&
-             `` && |\n| &&
-             `          response._pendingActions = response.ACTIONS || null;` && |\n| &&
-             `` && |\n| &&
-             `          await oController._processAfterRendering(reqSeq);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          hideBusy(ctx);` && |\n| &&
-             `          ctx.state.isBusy = false;` && |\n| &&
-             `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
-             `          this.showRenderError(ctx, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      showRenderError(ctx, e, title) {` && |\n| &&
-             `        const msg = e?.message || "";` && |\n| &&
-             `        if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
-             `          this._checkSDKcompatibility(ctx, e);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          this.responseError(ctx, e, title);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async _checkSDKcompatibility(ctx, err) {` && |\n| &&
-             `        let gav;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const info = await VersionInfo.load();` && |\n| &&
-             `          gav = info.gav;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
-             `          this.responseError(ctx, err);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!gav?.includes("com.sap.ui5")) {` && |\n| &&
-             `          const moduleMatch = /['"]([\w./-]+)['"]/.exec(err?.message || "");` && |\n| &&
-             `          const missingModule =` && |\n| &&
-             `            err?._modules || moduleMatch?.[1] || "the requested module";` && |\n| &&
-             `          this.responseError(` && |\n| &&
-             `            ctx,` && |\n| &&
-             `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        this.responseError(ctx, err);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      responseError(ctx, response, title, oOptions) {` && |\n| &&
-             `        hideBusy(ctx);` && |\n| &&
-             `        ctx.state.isBusy = false;` && |\n| &&
-             `` && |\n| &&
-             `        ctx.state.oQueuedEvent = null;` && |\n| &&
-             `        ctx.state.oQueuedWindow = null;` && |\n| &&
-             `        ctx.state.aRenderEvents = [];` && |\n| &&
-             `        ErrorView.show(ctx, response, title, oOptions);` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/Session.js": function(){sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  let deviceStatic;` && |\n| &&
-             `  function getDeviceStatic() {` && |\n| &&
-             `    if (!deviceStatic) {` && |\n| &&
-             `      deviceStatic = {` && |\n| &&
-             `        SYSTEM: Lib.deriveSystemType(Device.system),` && |\n| &&
-             `        BROWSER: {` && |\n| &&
-             `          NAME: Device.browser.name || "",` && |\n| &&
-             `          VERSION: String(Device.browser.version || ""),` && |\n| &&
-             `        },` && |\n| &&
-             `        OS: {` && |\n| &&
-             `          NAME: Device.os.name || "",` && |\n| &&
-             `          VERSION: String(Device.os.version || ""),` && |\n| &&
-             `        },` && |\n| &&
-             `        SUPPORT: {` && |\n| &&
-             `          TOUCH: Device.support.touch || false,` && |\n| &&
-             `          POINTER: Device.support.pointer || false,` && |\n| &&
-             `          RETINA: Device.support.retina || false,` && |\n| &&
-             `        },` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `    return deviceStatic;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function getDeviceLive() {` && |\n| &&
-             `    return {` && |\n| &&
-             `      ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
-             `      RESIZE: {` && |\n| &&
-             `        WIDTH: Device.resize.width || window.innerWidth,` && |\n| &&
-             `        HEIGHT: Device.resize.height || window.innerHeight,` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function config(ctx, oConfig, draftId) {` && |\n| &&
-             `    const latches = ctx.session;` && |\n| &&
-             `    const live = getDeviceLive();` && |\n| &&
-             `    const liveKey = JSON.stringify(live);` && |\n| &&
-             `    const ui5 = oConfig?.S_UI5;` && |\n| &&
-             `    if (latches.configSent && draftId) {` && |\n| &&
-             `      const sendUi5 = Boolean(ui5) && !latches.ui5Sent;` && |\n| &&
-             `      const sendLive = liveKey !== latches.liveSent;` && |\n| &&
-             `      if (!sendUi5 && !sendLive) {` && |\n| &&
-             `        latches.pending = null;` && |\n| &&
-             `        return {};` && |\n| &&
-             `      }` && |\n| &&
-             `      latches.pending = {` && |\n| &&
-             `        ...(sendUi5 && { ui5: true }),` && |\n| &&
-             `        ...(sendLive && { live: liveKey }),` && |\n| &&
-             `      };` && |\n| &&
-             `      return {` && |\n| &&
-             `        ...(sendUi5 && { S_UI5: ui5 }),` && |\n| &&
-             `        ...(sendLive && { S_DEVICE: live }),` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `    latches.pending = { config: true, ui5: Boolean(ui5), live: liveKey };` && |\n| &&
-             `    return {` && |\n| &&
-             `      S_UI5: ui5,` && |\n| &&
-             `      ComponentData: oConfig?.ComponentData,` && |\n| &&
-             `      S_DEVICE: { ...getDeviceStatic(), ...live },` && |\n| &&
-             `    };` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function takePending(ctx) {` && |\n| &&
-             `    const p = ctx.session.pending;` && |\n| &&
-             `    ctx.session.pending = null;` && |\n| &&
-             `    return p;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function confirmSent(ctx, p) {` && |\n| &&
-             `    if (!p) return;` && |\n| &&
-             `    const latches = ctx.session;` && |\n| &&
-             `    if (p.config) latches.configSent = true;` && |\n| &&
-             `    if (p.ui5) latches.ui5Sent = true;` && |\n| &&
-             `    if (p.live !== undefined) latches.liveSent = p.live;` && |\n| &&
-             `    if (p.location) latches.locationSent = true;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function location(ctx, draftId) {` && |\n| &&
-             `    const latches = ctx.session;` && |\n| &&
-             `    if (draftId && latches.locationSent) return null;` && |\n| &&
-             `` && |\n| &&
-             `    latches.pending = { ...latches.pending, location: true };` && |\n| &&
-             `    return {` && |\n| &&
-             `      ORIGIN: window.location.origin,` && |\n| &&
-             `      PATHNAME: window.location.pathname,` && |\n| &&
-             `      SEARCH: window.location.search,` && |\n| &&
-             `    };` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function reset(ctx) {` && |\n| &&
-             `    const latches = ctx.session;` && |\n| &&
-             `    latches.configSent = false;` && |\n| &&
-             `    latches.ui5Sent = false;` && |\n| &&
-             `    latches.liveSent = "";` && |\n| &&
-             `    latches.pending = null;` && |\n| &&
-             `    latches.locationSent = false;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return { config, takePending, confirmSent, location, reset };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/ViewSlots.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Fragment",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Fragment, Lib, Env, Context) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const slots = [` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "MAIN",` && |\n| &&
-             `` && |\n| &&
-             `        ownsModel: true,` && |\n| &&
-             `` && |\n| &&
-             `        dependentSlots: ["NEST", "NEST2"],` && |\n| &&
-             `        prop: "oView",` && |\n| &&
-             `        controllerProp: "oController",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "NEST",` && |\n| &&
-             `` && |\n| &&
-             `        containedSlots: ["NEST2"],` && |\n| &&
-             `        prop: "oViewNest",` && |\n| &&
-             `        controllerProp: "oControllerNest",` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
-             `      {` && |\n| &&
-             `        key: "NEST2",` && |\n| &&
-             `        prop: "oViewNest2",` && |\n| &&
-             `        controllerProp: "oControllerNest2",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPUP",` && |\n| &&
-             `` && |\n| &&
-             `        ownsModel: true,` && |\n| &&
-             `        prop: "oViewPopup",` && |\n| &&
-             `        controllerProp: "oControllerPopup",` && |\n| &&
-             `        fragmentId: "popupId",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPOVER",` && |\n| &&
-             `` && |\n| &&
-             `        ownsModel: true,` && |\n| &&
-             `        prop: "oViewPopover",` && |\n| &&
-             `        controllerProp: "oControllerPopover",` && |\n| &&
-             `        fragmentId: "popoverId",` && |\n| &&
-             `      },` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    function ownId(ctx, localId) {` && |\n| &&
-             `      const owner = ctx?.component;` && |\n| &&
-             `      return owner?.createId ? owner.createId(localId) : localId;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function fragmentIdOf(ctx, slot) {` && |\n| &&
-             `      return slot.fragmentId ? ownId(ctx, slot.fragmentId) : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const slotsByKey = new Map(slots.map((s) => [s.key, s]));` && |\n| &&
-             `` && |\n| &&
-             `    function byKey(key) {` && |\n| &&
-             `      return slotsByKey.get(key);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getView(ctx, key) {` && |\n| &&
-             `      const slot = byKey(key);` && |\n| &&
-             `      return slot ? ctx?.state[slot.prop] : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function setView(ctx, key, view, xml) {` && |\n| &&
-             `      const slot = byKey(key);` && |\n| &&
-             `      if (!slot) return;` && |\n| &&
-             `      ctx.state[slot.prop] = view;` && |\n| &&
-             `` && |\n| &&
-             `      Context.registerView(ctx, view);` && |\n| &&
-             `      slotXmlStore(ctx)[key] = xml;` && |\n| &&
-             `` && |\n| &&
-             `      slotAppStore(ctx)[key] = ctx.state.oResponse?.APP;` && |\n| &&
-             `` && |\n| &&
-             `      ctx.state.slotResponse[key] = ctx.state.oResponse;` && |\n| &&
-             `      attachSharedModels(ctx, view);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getViewXml(ctx, key) {` && |\n| &&
-             `      return slotXmlStore(ctx)[key];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function slotXmlStore(ctx) {` && |\n| &&
-             `      return ctx.state.slotXml;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getViewApp(ctx, key) {` && |\n| &&
-             `      return slotAppStore(ctx)[key];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function slotAppStore(ctx) {` && |\n| &&
-             `      return ctx.state.slotApp;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getViewResponse(ctx, key) {` && |\n| &&
-             `      return ctx.state.slotResponse[key];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function attachSharedModels(ctx, view) {` && |\n| &&
-             `      if (!view) return;` && |\n| &&
-             `      if (ctx.state.oDeviceModel) {` && |\n| &&
-             `        view.setModel(ctx.state.oDeviceModel, "device");` && |\n| &&
-             `      }` && |\n| &&
-             `      const messaging = Env.getMessaging?.();` && |\n| &&
-             `      if (messaging) {` && |\n| &&
-             `        view.setModel(messaging.getMessageModel(), "message");` && |\n| &&
-             `        messaging.registerObject(view, true);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getController(ctx, key) {` && |\n| &&
-             `      const slot = byKey(key);` && |\n| &&
-             `      return slot ? ctx?.state[slot.controllerProp] : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function keyOfController(controller) {` && |\n| &&
-             `      const state = controller?.ctx?.state;` && |\n| &&
-             `      if (!state) return undefined;` && |\n| &&
-             `      const slot = slots.find((s) => state[s.controllerProp] === controller);` && |\n| &&
-             `      return slot ? slot.key : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function byId(ctx, key, id) {` && |\n| &&
-             `      const slot = byKey(key);` && |\n| &&
-             `      if (!slot) return undefined;` && |\n| &&
-             `      const view = ctx?.state[slot.prop];` && |\n| &&
-             `      if (!view) return undefined;` && |\n| &&
-             `      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(ctx, slot), id);` && |\n| &&
-             `      return view.byId(id);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveById(ctx, id) {` && |\n| &&
-             `      if (!id) return null;` && |\n| &&
-             `      for (const slot of slots) {` && |\n| &&
-             `        const found = byId(ctx, slot.key, id);` && |\n| &&
-             `        if (found) return found;` && |\n| &&
-             `      }` && |\n| &&
-             `      return Env.getElementById(id);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function trackedModel(owner) {` && |\n| &&
-             `      const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
-             `      if (!owner?.getModel) return undefined;` && |\n| &&
-             `      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function responseModel(ctx, oController) {` && |\n| &&
-             `      const app = ctx?.state?.oResponse?.APP;` && |\n| &&
-             `      let oView;` && |\n| &&
-             `      if (app) {` && |\n| &&
-             `        for (const slot of slots) {` && |\n| &&
-             `          if (getViewApp(ctx, slot.key) !== app) continue;` && |\n| &&
-             `          const candidate = getView(ctx, slot.key);` && |\n| &&
-             `          if (candidate) {` && |\n| &&
-             `            oView = candidate;` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!oView) oView = oController?.getView?.();` && |\n| &&
-             `      if (!oView) return undefined;` && |\n| &&
-             `      return trackedModel(oView) ?? oView.getModel?.();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function containingSlotKey(ctx, element) {` && |\n| &&
-             `      const state = ctx?.state;` && |\n| &&
-             `      if (!state) return undefined;` && |\n| &&
-             `      let current = element;` && |\n| &&
-             `      while (current) {` && |\n| &&
-             `        for (const slot of slots) {` && |\n| &&
-             `          if (state[slot.prop] === current) return slot.key;` && |\n| &&
-             `        }` && |\n| &&
-             `        current = current.getParent?.();` && |\n| &&
-             `      }` && |\n| &&
-             `      return undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function byIdOfOwner(owner, id) {` && |\n| &&
-             `      const ctx = Context.of(owner);` && |\n| &&
-             `      if (!ctx) return undefined;` && |\n| &&
-             `      return byId(ctx, containingSlotKey(ctx, owner) ?? "MAIN", id);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function destroy(ctx, key) {` && |\n| &&
-             `      const slot = byKey(key);` && |\n| &&
-             `      if (!slot || !ctx?.state) return;` && |\n| &&
-             `` && |\n| &&
-             `      for (const dep of slot.dependentSlots ?? []) destroy(ctx, dep);` && |\n| &&
-             `` && |\n| &&
-             `      delete slotXmlStore(ctx)[key];` && |\n| &&
-             `      delete slotAppStore(ctx)[key];` && |\n| &&
-             `      delete ctx.state.slotResponse[key];` && |\n| &&
-             `      const view = ctx.state[slot.prop];` && |\n| &&
-             `      if (!view) return;` && |\n| &&
-             `` && |\n| &&
-             `      for (const inner of slot.containedSlots ?? []) {` && |\n| &&
-             `        if (isInside(ctx.state[byKey(inner).prop], view)) destroy(ctx, inner);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (slot.fragmentId) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          if (view.close) view.close();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``ViewSlots.destroy: view.close() failed for ${key}``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        Env.getMessaging?.()?.unregisterObject(view);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``ViewSlots.destroy: unregisterObject failed for ${key}``,` && |\n| &&
-             `          e,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        view.destroy();` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``ViewSlots.destroy: view.destroy() failed for ${key}``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `      ctx.state[slot.prop] = null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isInside(control, container) {` && |\n| &&
-             `      let node = control?.getParent?.();` && |\n| &&
-             `      for (let depth = 0; node && depth < 200; depth++) {` && |\n| &&
-             `        if (node === container) return true;` && |\n| &&
-             `        node = node.getParent?.();` && |\n| &&
-             `      }` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function detach(ctx, key) {` && |\n| &&
-             `      const slot = byKey(key);` && |\n| &&
-             `      if (!slot || !ctx?.state) return undefined;` && |\n| &&
-             `      for (const dep of slot.dependentSlots ?? []) detach(ctx, dep);` && |\n| &&
-             `      delete slotXmlStore(ctx)[key];` && |\n| &&
-             `      delete slotAppStore(ctx)[key];` && |\n| &&
-             `      delete ctx.state.slotResponse[key];` && |\n| &&
-             `      const view = ctx.state[slot.prop];` && |\n| &&
-             `      if (!view) return undefined;` && |\n| &&
-             `      try {` && |\n| &&
-             `        Env.getMessaging?.()?.unregisterObject(view);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``ViewSlots.detach: unregisterObject failed for ${key}``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `      ctx.state[slot.prop] = null;` && |\n| &&
-             `      return view;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      slots,` && |\n| &&
-             `      getView,` && |\n| &&
-             `      getViewXml,` && |\n| &&
-             `      getViewApp,` && |\n| &&
-             `      getViewResponse,` && |\n| &&
-             `      setView,` && |\n| &&
-             `      getController,` && |\n| &&
-             `      keyOfController,` && |\n| &&
-             `      byId,` && |\n| &&
-             `      byIdOfOwner,` && |\n| &&
-             `      ownId,` && |\n| &&
-             `      fragmentIdOf,` && |\n| &&
-             `      resolveById,` && |\n| &&
-             `      containingSlotKey,` && |\n| &&
-             `      trackedModel,` && |\n| &&
-             `      responseModel,` && |\n| &&
-             `      destroy,` && |\n| &&
-             `      detach,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/WindowModel.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/model/json/JSONModel",` && |\n| &&
-             `    "sap/ui/model/json/JSONListBinding",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (JSONModel, JSONListBinding, Lib, Env) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const EVENT = "___ZZZ_WIN";` && |\n| &&
-             `` && |\n| &&
-             `    const REASON = { MORE: "MORE", SORT: "SORT", FILTER: "FILTER" };` && |\n| &&
-             `` && |\n| &&
-             `    const META = "__WINDOW";` && |\n| &&
-             `` && |\n| &&
-             `    function windowName(sPath, oContext) {` && |\n| &&
-             `      if (oContext || typeof sPath !== "string") return undefined;` && |\n| &&
-             `      const match = /^\/([^/].*?)\/?$/.exec(sPath);` && |\n| &&
-             `      return match ? match[1] : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function toArray(value) {` && |\n| &&
-             `      if (!value) return [];` && |\n| &&
-             `      return Array.isArray(value) ? value : [value];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const pad = (n) => String(n).padStart(2, "0");` && |\n| &&
-             `` && |\n| &&
-             `    function wireValue(value) {` && |\n| &&
-             `      if (Object.prototype.toString.call(value) === "[object Date]") {` && |\n| &&
-             `        return ``${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}``;` && |\n| &&
-             `      }` && |\n| &&
-             `      return value ?? null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isSimple(oFilter) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        !!oFilter &&` && |\n| &&
-             `        !oFilter.aFilters &&` && |\n| &&
-             `        !oFilter.fnTest &&` && |\n| &&
-             `        typeof oFilter.sPath === "string"` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function filterRow(oFilter) {` && |\n| &&
-             `      return [` && |\n| &&
-             `        oFilter.sPath,` && |\n| &&
-             `        oFilter.sOperator,` && |\n| &&
-             `        wireValue(oFilter.oValue1),` && |\n| &&
-             `        wireValue(oFilter.oValue2),` && |\n| &&
-             `      ];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function filterGroups(aFilters) {` && |\n| &&
-             `      const groups = [];` && |\n| &&
-             `      const byPath = new Map();` && |\n| &&
-             `      const unsupported = () =>` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          "WINDOW: a filter of this shape is not sent to the server",` && |\n| &&
-             `        );` && |\n| &&
-             `      for (const oFilter of toArray(aFilters)) {` && |\n| &&
-             `        if (isSimple(oFilter)) {` && |\n| &&
-             `          if (!byPath.has(oFilter.sPath)) {` && |\n| &&
-             `            const group = [];` && |\n| &&
-             `            byPath.set(oFilter.sPath, group);` && |\n| &&
-             `            groups.push(group);` && |\n| &&
-             `          }` && |\n| &&
-             `          byPath.get(oFilter.sPath).push(filterRow(oFilter));` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        const children = Array.isArray(oFilter?.aFilters)` && |\n| &&
-             `          ? oFilter.aFilters` && |\n| &&
-             `          : null;` && |\n| &&
-             `        if (!children) {` && |\n| &&
-             `          unsupported();` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!oFilter.bAnd) {` && |\n| &&
-             `          if (children.every(isSimple)) groups.push(children.map(filterRow));` && |\n| &&
-             `          else unsupported();` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        for (const child of children) {` && |\n| &&
-             `          if (isSimple(child)) groups.push([filterRow(child)]);` && |\n| &&
-             `          else if (` && |\n| &&
-             `            Array.isArray(child?.aFilters) &&` && |\n| &&
-             `            !child.bAnd &&` && |\n| &&
-             `            child.aFilters.every(isSimple)` && |\n| &&
-             `          )` && |\n| &&
-             `            groups.push(child.aFilters.map(filterRow));` && |\n| &&
-             `          else unsupported();` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return groups.filter((group) => group.length);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function sortWire(aSorters) {` && |\n| &&
-             `      return toArray(aSorters)` && |\n| &&
-             `        .filter((oSorter) => typeof oSorter?.sPath === "string")` && |\n| &&
-             `        .map((oSorter) => ({` && |\n| &&
-             `          PATH: oSorter.sPath,` && |\n| &&
-             `          DESCENDING: !!oSorter.bDescending,` && |\n| &&
-             `        }));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const WindowListBinding = Env.ownClass(` && |\n| &&
-             `      JSONListBinding.extend("z2ui5.core.WindowListBinding", {` && |\n| &&
-             `        constructor: function (` && |\n| &&
-             `          oModel,` && |\n| &&
-             `          sPath,` && |\n| &&
-             `          oContext,` && |\n| &&
-             `          aSorters,` && |\n| &&
-             `          aFilters,` && |\n| &&
-             `          mParameters,` && |\n| &&
-             `        ) {` && |\n| &&
-             `          this._z2ui5Name = windowName(sPath, oContext);` && |\n| &&
-             `          this._z2ui5Wanted = 0;` && |\n| &&
-             `` && |\n| &&
-             `          JSONListBinding.call(` && |\n| &&
-             `            this,` && |\n| &&
-             `            oModel,` && |\n| &&
-             `            sPath,` && |\n| &&
-             `            oContext,` && |\n| &&
-             `            undefined,` && |\n| &&
-             `            undefined,` && |\n| &&
-             `            mParameters,` && |\n| &&
-             `          );` && |\n| &&
-             `        },` && |\n| &&
-             `      }),` && |\n| &&
-             `    );` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Meta = function () {` && |\n| &&
-             `      if (!this._z2ui5Name) return undefined;` && |\n| &&
-             `      return this.oModel.getProperty(``/${META}/${this._z2ui5Name}``);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.applyFilter = function (...args) {` && |\n| &&
-             `      if (!this._z2ui5Meta()) {` && |\n| &&
-             `        return JSONListBinding.prototype.applyFilter.apply(this, args);` && |\n| &&
-             `      }` && |\n| &&
-             `      this.iLength = this.aIndices.length;` && |\n| &&
-             `      return undefined;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.applySort = function (...args) {` && |\n| &&
-             `      if (!this._z2ui5Meta()) {` && |\n| &&
-             `        return JSONListBinding.prototype.applySort.apply(this, args);` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
-             `      return undefined;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.update = function (...args) {` && |\n| &&
-             `      this._z2ui5Wanted = 0;` && |\n| &&
-             `      return JSONListBinding.prototype.update.apply(this, args);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.getLength = function (...args) {` && |\n| &&
-             `      const meta = this._z2ui5Meta();` && |\n| &&
-             `      if (!meta) return JSONListBinding.prototype.getLength.apply(this, args);` && |\n| &&
-             `      return Math.max(Number(meta.TOTAL) || 0, this.aIndices.length);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.isLengthFinal = function () {` && |\n| &&
-             `      return true;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.getContexts = function (...args) {` && |\n| &&
-             `      const meta = this._z2ui5Meta();` && |\n| &&
-             `      if (meta) {` && |\n| &&
-             `        const [iStart, iLength, iThreshold] = args;` && |\n| &&
-             `        this._z2ui5Ensure(` && |\n| &&
-             `          meta,` && |\n| &&
-             `          (iStart || 0) + (iLength || 0) + (iThreshold || 0),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return JSONListBinding.prototype.getContexts.apply(this, args);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Ensure = function (meta, need) {` && |\n| &&
-             `      const loaded = this.aIndices.length;` && |\n| &&
-             `      const total = Number(meta.TOTAL) || 0;` && |\n| &&
-             `      const size = Number(meta.SIZE) || 1;` && |\n| &&
-             `      if (need <= loaded || loaded >= total) return;` && |\n| &&
-             `      const wanted = Math.min(total, Math.ceil(need / size) * size);` && |\n| &&
-             `      if (wanted <= this._z2ui5Wanted) return;` && |\n| &&
-             `      this._z2ui5Wanted = wanted;` && |\n| &&
-             `      this._z2ui5Send(meta, REASON.MORE, loaded, wanted - loaded, true);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.sort = function (aSorters, ...rest) {` && |\n| &&
-             `      const meta = this._z2ui5Meta();` && |\n| &&
-             `      if (!meta) {` && |\n| &&
-             `        return JSONListBinding.prototype.sort.call(this, aSorters, ...rest);` && |\n| &&
-             `      }` && |\n| &&
-             `      this.aSorters = toArray(aSorters);` && |\n| &&
-             `      this._z2ui5Restart(meta, REASON.SORT);` && |\n| &&
-             `      return this;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype.filter = function (aFilters, sFilterType) {` && |\n| &&
-             `      const meta = this._z2ui5Meta();` && |\n| &&
-             `      if (!meta) {` && |\n| &&
-             `        return JSONListBinding.prototype.filter.call(` && |\n| &&
-             `          this,` && |\n| &&
-             `          aFilters,` && |\n| &&
-             `          sFilterType,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      const list = toArray(aFilters);` && |\n| &&
-             `      if (sFilterType === "Application") {` && |\n| &&
-             `        this.aApplicationFilters = list;` && |\n| &&
-             `      } else if (sFilterType === "Control") {` && |\n| &&
-             `        this.aFilters = list;` && |\n| &&
-             `      } else {` && |\n| &&
-             `        this.aFilters = list;` && |\n| &&
-             `        this.aApplicationFilters = [];` && |\n| &&
-             `      }` && |\n| &&
-             `      this._z2ui5Restart(meta, REASON.FILTER);` && |\n| &&
-             `      return this;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Restart = function (meta, reason) {` && |\n| &&
-             `      this._z2ui5Wanted = Number(meta.SIZE) || 0;` && |\n| &&
-             `      this._z2ui5Send(meta, reason, 0, this._z2ui5Wanted, false);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Send = function (` && |\n| &&
-             `      meta,` && |\n| &&
-             `      reason,` && |\n| &&
-             `      skip,` && |\n| &&
-             `      top,` && |\n| &&
-             `      noBusy,` && |\n| &&
-             `    ) {` && |\n| &&
-             `      const send = this.oModel._z2ui5WindowSend;` && |\n| &&
-             `      if (typeof send !== "function") {` && |\n| &&
-             `        Lib.logError(``WINDOW: no way to the server for /${this._z2ui5Name}``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const event = typeof meta.EVENT === "string" ? meta.EVENT : "";` && |\n| &&
-             `      if (!event) {` && |\n| &&
-             `        Lib.logError(``WINDOW: no app event for /${this._z2ui5Name}``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const args = [` && |\n| &&
-             `        ``/${this._z2ui5Name}``,` && |\n| &&
-             `        event,` && |\n| &&
-             `        reason,` && |\n| &&
-             `        String(skip),` && |\n| &&
-             `        String(top),` && |\n| &&
-             `      ];` && |\n| &&
-             `      if (reason !== REASON.MORE) {` && |\n| &&
-             `        args.push(JSON.stringify(sortWire(this.aSorters)));` && |\n| &&
-             `` && |\n| &&
-             `        args.push(` && |\n| &&
-             `          JSON.stringify([` && |\n| &&
-             `            ...filterGroups(this.aFilters),` && |\n| &&
-             `            ...filterGroups(this.aApplicationFilters),` && |\n| &&
-             `          ]),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      send(args, noBusy);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    function keepRestart(args, kept) {` && |\n| &&
-             `      if (!Array.isArray(kept) || kept[0] !== args[0]) return args;` && |\n| &&
-             `      if (args[2] === REASON.MORE && kept[2] && kept[2] !== REASON.MORE) {` && |\n| &&
-             `        return kept;` && |\n| &&
-             `      }` && |\n| &&
-             `      return args;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const WindowModel = Env.ownClass(` && |\n| &&
-             `      JSONModel.extend("z2ui5.core.WindowModel", {` && |\n| &&
-             `        bindList(sPath, oContext, aSorters, aFilters, mParameters) {` && |\n| &&
-             `          const name = windowName(sPath, oContext);` && |\n| &&
-             `          if (name && this.getProperty(``/${META}/${name}``)) {` && |\n| &&
-             `            return new WindowListBinding(` && |\n| &&
-             `              this,` && |\n| &&
-             `              sPath,` && |\n| &&
-             `              oContext,` && |\n| &&
-             `              aSorters,` && |\n| &&
-             `              aFilters,` && |\n| &&
-             `              mParameters,` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `          return JSONModel.prototype.bindList.call(` && |\n| &&
-             `            this,` && |\n| &&
-             `            sPath,` && |\n| &&
-             `            oContext,` && |\n| &&
-             `            aSorters,` && |\n| &&
-             `            aFilters,` && |\n| &&
-             `            mParameters,` && |\n| &&
-             `          );` && |\n| &&
-             `        },` && |\n| &&
-             `      }),` && |\n| &&
-             `    );` && |\n| &&
-             `` && |\n| &&
-             `    WindowModel.EVENT = EVENT;` && |\n| &&
-             `` && |\n| &&
-             `    WindowModel.filterGroups = filterGroups;` && |\n| &&
-             `    WindowModel.sortWire = sortWire;` && |\n| &&
-             `    WindowModel.keepRestart = keepRestart;` && |\n| &&
-             `    WindowModel.REASON = REASON;` && |\n| &&
-             `` && |\n| &&
-             `    return WindowModel;` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/BindingCall.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/model/Filter",` && |\n| &&
-             `    "sap/ui/model/FilterOperator",` && |\n| &&
-             `    "sap/ui/model/Sorter",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/actions/ControlCall",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Filter, FilterOperator, Sorter, Lib, ViewSlots, ControlCall) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const FILTER_OPERATORS = new Set([` && |\n| &&
-             `      "BT",` && |\n| &&
-             `      "Contains",` && |\n| &&
-             `      "EndsWith",` && |\n| &&
-             `      "EQ",` && |\n| &&
-             `      "GE",` && |\n| &&
-             `      "GT",` && |\n| &&
-             `      "LE",` && |\n| &&
-             `      "LT",` && |\n| &&
-             `      "NB",` && |\n| &&
-             `      "NE",` && |\n| &&
-             `      "NotContains",` && |\n| &&
-             `      "NotEndsWith",` && |\n| &&
-             `      "NotStartsWith",` && |\n| &&
-             `      "StartsWith",` && |\n| &&
-             `    ]);` && |\n| &&
-             `` && |\n| &&
-             `    const isEmpty = (v) => v == null || v === "";` && |\n| &&
-             `` && |\n| &&
-             `    function buildFilterGroups(binding, json) {` && |\n| &&
-             `      let groups = json;` && |\n| &&
-             `      if (typeof json === "string") {` && |\n| &&
-             `        try {` && |\n| &&
-             `          groups = JSON.parse(json);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!Array.isArray(groups)) {` && |\n| &&
-             `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      groups = groups.filter((g) => Array.isArray(g) && g.length);` && |\n| &&
-             `      if (!groups.length) {` && |\n| &&
-             `        binding.filter([]);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const outer = [];` && |\n| &&
-             `      for (const group of groups) {` && |\n| &&
-             `        const inner = [];` && |\n| &&
-             `        for (const row of group) {` && |\n| &&
-             `          const [path, operator, value1, value2] = Array.isArray(row)` && |\n| &&
-             `            ? row` && |\n| &&
-             `            : [];` && |\n| &&
-             `          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              ``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``,` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          inner.push(` && |\n| &&
-             `            new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        outer.push(new Filter(inner, false));` && |\n| &&
-             `      }` && |\n| &&
-             `      binding.filter([new Filter(outer, true)]);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const BINDING_METHODS = {` && |\n| &&
-             `      filter(binding, params) {` && |\n| &&
-             `        const [path, operator, value1, value2] = params;` && |\n| &&
-             `` && |\n| &&
-             `        if (` && |\n| &&
-             `          params.length === 1 &&` && |\n| &&
-             `          (Array.isArray(path) ||` && |\n| &&
-             `            (typeof path === "string" && path.trimStart().startsWith("[")))` && |\n| &&
-             `        ) {` && |\n| &&
-             `          buildFilterGroups(binding, path);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (isEmpty(value1) && isEmpty(value2)) {` && |\n| &&
-             `          binding.filter([]);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!FILTER_OPERATORS.has(operator)) {` && |\n| &&
-             `          Lib.logError(``BINDING_CALL: operator '${operator}' not allowed``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        binding.filter([` && |\n| &&
-             `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
-             `        ]);` && |\n| &&
-             `      },` && |\n| &&
-             `      sort(binding, [path, descending, group]) {` && |\n| &&
-             `        binding.sort([` && |\n| &&
-             `          new Sorter(` && |\n| &&
-             `            path,` && |\n| &&
-             `            ControlCall.castArg("bool", descending),` && |\n| &&
-             `            ControlCall.castArg("bool", group),` && |\n| &&
-             `          ),` && |\n| &&
-             `        ]);` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    Object.setPrototypeOf(BINDING_METHODS, null);` && |\n| &&
-             `` && |\n| &&
-             `    function evBindingCall(oController, args) {` && |\n| &&
-             `      const [, id, aggregation, method] = args;` && |\n| &&
-             `      const build = BINDING_METHODS[method];` && |\n| &&
-             `      if (!build) {` && |\n| &&
-             `        Lib.logError(``BINDING_CALL: method '${method}' not allowed``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const binding = ViewSlots.resolveById(oController?.ctx, id)?.getBinding?.(` && |\n| &&
-             `        aggregation,` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!binding || typeof binding[method] !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``BINDING_CALL: no '${aggregation}' binding with '${method}' on control '${id}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      build(binding, args.slice(4));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      BINDING_CALL: evBindingCall,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/Browser.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/m/MessageBox",` && |\n| &&
-             `    "sap/m/library",` && |\n| &&
-             `    "sap/ui/util/Storage",` && |\n| &&
-             `    "z2ui5/core/Router",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
-             `` && |\n| &&
-             `    function evClipboardCopy(oController, args) {` && |\n| &&
-             `      const value = args[1];` && |\n| &&
-             `      Lib.copyToClipboard(` && |\n| &&
-             `        value !== null && typeof value === "object"` && |\n| &&
-             `          ? JSON.stringify(value)` && |\n| &&
-             `          : value,` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const ACTIVE_DATA_MIME =` && |\n| &&
-             `      /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i;` && |\n| &&
-             `` && |\n| &&
-             `    const UNSAFE_FILENAME_CHARS = /[\\/:*?"<>|\x00-\x1f]/g;` && |\n| &&
-             `` && |\n| &&
-             `    function evDownloadB64File(oController, args) {` && |\n| &&
-             `      if (!Lib.isSafeDownloadURL(args[1])) {` && |\n| &&
-             `        Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const href = new URL(args[1], window.location.origin).href;` && |\n| &&
-             `      if (ACTIVE_DATA_MIME.test(href)) {` && |\n| &&
-             `        Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const a = document.createElement("a");` && |\n| &&
-             `      a.href = args[1];` && |\n| &&
-             `` && |\n| &&
-             `      a.download = String(args[2] || "").replace(UNSAFE_FILENAME_CHARS, "_");` && |\n| &&
-             `` && |\n| &&
-             `      document.body.appendChild(a);` && |\n| &&
-             `      a.click();` && |\n| &&
-             `      document.body.removeChild(a);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function boundPayload(oController, raw, action) {` && |\n| &&
-             `      if (raw == null || typeof raw !== "string") return raw;` && |\n| &&
-             `` && |\n| &&
-             `      const path = Lib.modelPathOf(raw);` && |\n| &&
-             `      if (!path) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``${action}: '${raw}' is neither a payload nor a model path``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const oModel = ViewSlots.responseModel(oController?.ctx, oController);` && |\n| &&
-             `      const value = oModel?.getProperty(path);` && |\n| &&
-             `      if (value == null) {` && |\n| &&
-             `        Lib.logError(``${action}: nothing bound at the model path '${path}'``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return value;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evStoreData(oController, args) {` && |\n| &&
-             `      const payload = boundPayload(oController, args[1], "STORE_DATA");` && |\n| &&
-             `` && |\n| &&
-             `      if (payload == null) {` && |\n| &&
-             `        if (args[1] == null) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            "STORE_DATA: no payload - pass the storage structure or its model path",` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const { TYPE, PREFIX, VALUE, KEY } = payload;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const storageType = Lib.resolveStorageType(` && |\n| &&
-             `          Storage,` && |\n| &&
-             `          TYPE,` && |\n| &&
-             `          "STORE_DATA",` && |\n| &&
-             `          "writing to",` && |\n| &&
-             `        );` && |\n| &&
-             `        const oStorage = new Storage(storageType, PREFIX);` && |\n| &&
-             `        if (VALUE === "" || VALUE == null) {` && |\n| &&
-             `          oStorage.remove(KEY);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          oStorage.put(KEY, VALUE);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``STORE_DATA: storage operation failed for key '${KEY}'``,` && |\n| &&
-             `          e,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_05.
-
-    result = `    function evHashBack(oController, args) {` && |\n| &&
-             `      Router.navBack(oController?.ctx, args ? args[1] : undefined);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evLocationReload(oController, args) {` && |\n| &&
-             `      if (Lib.isValidRedirectURL(args[1])) {` && |\n| &&
-             `        window.location.href = args[1];` && |\n| &&
-             `      } else {` && |\n| &&
-             `        MessageBox.error(` && |\n| &&
-             `          "Invalid redirect URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evSystemLogout(oController, args) {` && |\n| &&
-             `      const explicitUrl = args[1];` && |\n| &&
-             `      const logoutUrl = explicitUrl || "/sap/public/bc/icf/logoff";` && |\n| &&
-             `      try {` && |\n| &&
-             `        const container = oController?.ctx?.state.oLaunchpad?.Container;` && |\n| &&
-             `` && |\n| &&
-             `        if (container?.logout && !explicitUrl) {` && |\n| &&
-             `          container.logout();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      logoutViaBspTerminate(logoutUrl);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function logoutViaBspTerminate(logoutUrl) {` && |\n| &&
-             `      const path = window.location.pathname;` && |\n| &&
-             `      if (!path.startsWith("/sap/bc/bsp/")) {` && |\n| &&
-             `        redirectToLogout(logoutUrl);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const bspKill = ``${path}?sap-sessioncmd=logoff``;` && |\n| &&
-             `      let done = false;` && |\n| &&
-             `      let frame;` && |\n| &&
-             `      const finish = () => {` && |\n| &&
-             `        if (done) return;` && |\n| &&
-             `        done = true;` && |\n| &&
-             `` && |\n| &&
-             `        if (frame) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            frame.remove();` && |\n| &&
-             `          } catch {}` && |\n| &&
-             `          frame = null;` && |\n| &&
-             `        }` && |\n| &&
-             `        redirectToLogout(logoutUrl);` && |\n| &&
-             `      };` && |\n| &&
-             `      try {` && |\n| &&
-             `        frame = document.createElement("iframe");` && |\n| &&
-             `        frame.style.display = "none";` && |\n| &&
-             `        frame.src = bspKill;` && |\n| &&
-             `        frame.addEventListener("load", finish);` && |\n| &&
-             `        document.body.appendChild(frame);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed", e);` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      setTimeout(finish, 1500);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function redirectToLogout(logoutUrl) {` && |\n| &&
-             `      if (Lib.isValidRedirectURL(logoutUrl)) {` && |\n| &&
-             `        window.location.href = logoutUrl;` && |\n| &&
-             `      } else {` && |\n| &&
-             `        MessageBox.error(` && |\n| &&
-             `          "Invalid logout URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evOpenNewTab(oController, args) {` && |\n| &&
-             `      if (!Lib.isValidRedirectURL(args[1])) {` && |\n| &&
-             `        MessageBox.error(` && |\n| &&
-             `          "Invalid URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      window.open(args[1], "_blank", "noopener,noreferrer");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evUrlHelper(oController, args) {` && |\n| &&
-             `      const params =` && |\n| &&
-             `        typeof args[2] === "string"` && |\n| &&
-             `          ? boundPayload(oController, args[2], "URLHELPER")` && |\n| &&
-             `          : (args[2] ?? {});` && |\n| &&
-             `      if (params == null) return;` && |\n| &&
-             `` && |\n| &&
-             `      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
-             `      if (Object.values(params).some(hasCrLf)) {` && |\n| &&
-             `        Lib.logError("URLHELPER: blocked CR/LF in parameters");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const actions = {` && |\n| &&
-             `        REDIRECT: () => {` && |\n| &&
-             `          if (!Lib.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
-             `            MessageBox.error(` && |\n| &&
-             `              "Invalid redirect URL. Only http/https protocols are allowed.",` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (params.NEW_WINDOW) {` && |\n| &&
-             `            window.open(params.URL, "_blank", "noopener,noreferrer");` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          _URLHelper.redirect(params.URL, false);` && |\n| &&
-             `        },` && |\n| &&
-             `        TRIGGER_EMAIL: () =>` && |\n| &&
-             `          _URLHelper.triggerEmail(` && |\n| &&
-             `            params.EMAIL,` && |\n| &&
-             `            params.SUBJECT,` && |\n| &&
-             `            params.BODY,` && |\n| &&
-             `            params.CC,` && |\n| &&
-             `            params.BCC,` && |\n| &&
-             `            params.NEW_WINDOW,` && |\n| &&
-             `          ),` && |\n| &&
-             `        TRIGGER_SMS: () =>` && |\n| &&
-             `          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),` && |\n| &&
-             `        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),` && |\n| &&
-             `      };` && |\n| &&
-             `      Object.setPrototypeOf(actions, null);` && |\n| &&
-             `      try {` && |\n| &&
-             `        const fn = actions[args[1]];` && |\n| &&
-             `        if (fn) fn();` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function ownsPage(oController) {` && |\n| &&
-             `      return oController?.ctx?.state?.ownsPage !== false;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evSetTitle(oController, args) {` && |\n| &&
-             `      if (!ownsPage(oController)) return;` && |\n| &&
-             `      const title = Lib.toText(args[1]);` && |\n| &&
-             `      try {` && |\n| &&
-             `        document.title = title;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("SET_TITLE: setting document.title failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evSetFavicon(oController, args) {` && |\n| &&
-             `      if (!ownsPage(oController)) return;` && |\n| &&
-             `      const href = Lib.toText(args[1]);` && |\n| &&
-             `` && |\n| &&
-             `      if (!Lib.isSafeDownloadURL(href)) {` && |\n| &&
-             `        Lib.logError(``SET_FAVICON: refused unsafe URL "${href}"``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        const existing = document.head.querySelector('link[rel~="icon"]');` && |\n| &&
-             `        if (existing) {` && |\n| &&
-             `          existing.href = href;` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const link = document.createElement("link");` && |\n| &&
-             `        link.rel = "icon";` && |\n| &&
-             `        link.href = href;` && |\n| &&
-             `        document.head.appendChild(link);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("SET_FAVICON: setting the favicon failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evPlayAudio(oController, args) {` && |\n| &&
-             `      if (!Lib.isSafeDownloadURL(args[1])) {` && |\n| &&
-             `        Lib.logError("PLAY_AUDIO: blocked unsafe audio URL");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        const playing = new Audio(args[1]).play();` && |\n| &&
-             `` && |\n| &&
-             `        if (playing?.catch) {` && |\n| &&
-             `          playing.catch((e) =>` && |\n| &&
-             `            Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e),` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
-             `      DOWNLOAD_B64_FILE: evDownloadB64File,` && |\n| &&
-             `      STORE_DATA: evStoreData,` && |\n| &&
-             `      HASH_BACK: evHashBack,` && |\n| &&
-             `      LOCATION_RELOAD: evLocationReload,` && |\n| &&
-             `      SYSTEM_LOGOUT: evSystemLogout,` && |\n| &&
-             `      OPEN_NEW_TAB: evOpenNewTab,` && |\n| &&
-             `      URLHELPER: evUrlHelper,` && |\n| &&
-             `      SET_TITLE: evSetTitle,` && |\n| &&
-             `      SET_FAVICON: evSetFavicon,` && |\n| &&
-             `      PLAY_AUDIO: evPlayAudio,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/ControlCall.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/m/MessageBox",` && |\n| &&
-             `    "sap/ui/core/BusyIndicator",` && |\n| &&
-             `    "sap/ui/core/Popup",` && |\n| &&
-             `    "z2ui5/core/Router",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/ScrollFocus",` && |\n| &&
-             `    "z2ui5/core/actions/Slots",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    MessageBox,` && |\n| &&
-             `    BusyIndicator,` && |\n| &&
-             `    CorePopup,` && |\n| &&
-             `    Router,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    Env,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `    ScrollFocus,` && |\n| &&
-             `    Slots,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    let MessageToast;` && |\n| &&
-             `    sap.ui.require(["sap/m/MessageToast"], (MT) => {` && |\n| &&
-             `      MessageToast = MT;` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
-             `    function applyToastClass(sClass) {` && |\n| &&
-             `      const classes = sClass.trim().split(/\s+/).filter(Boolean);` && |\n| &&
-             `      if (!classes.length) return;` && |\n| &&
-             `      const apply = () => {` && |\n| &&
-             `        const toasts = document.querySelectorAll(".sapMMessageToast");` && |\n| &&
-             `        const toastEl = toasts[toasts.length - 1];` && |\n| &&
-             `        if (toastEl) toastEl.classList.add(...classes);` && |\n| &&
-             `        return Boolean(toastEl);` && |\n| &&
-             `      };` && |\n| &&
-             `      if (!apply()) requestAnimationFrame(apply);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function showToast(sText, mOptions, oController) {` && |\n| &&
-             `      const o = { ...(mOptions || {}) };` && |\n| &&
-             `      const sClass = o.class;` && |\n| &&
-             `      delete o.class;` && |\n| &&
-             `      if (o.onClose) {` && |\n| &&
-             `        const sEvent = o.onClose;` && |\n| &&
-             `` && |\n| &&
-             `        o.onClose = () => Lib.dispatchWhenIdle(oController, [[sEvent]]);` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (Object.keys(o).length) MessageToast.show(sText, o);` && |\n| &&
-             `      else MessageToast.show(sText);` && |\n| &&
-             `      if (sClass) applyToastClass(sClass);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    let iBoxNo = 0;` && |\n| &&
-             `` && |\n| &&
-             `    function expandBoxDetails(sDialogId, sDetails) {` && |\n| &&
-             `      const oDialog = Env.getElementById(sDialogId);` && |\n| &&
-             `      const oLayout = oDialog?.getContent?.()[0];` && |\n| &&
-             `      if (!oLayout?.getItems) return;` && |\n| &&
-             `      for (const oItem of oLayout.getItems()) {` && |\n| &&
-             `        if (!oItem?.isA) continue;` && |\n| &&
-             `` && |\n| &&
-             `        if (oItem.isA("sap.m.FormattedText")) {` && |\n| &&
-             `          if (!oItem.getHtmlText()) oItem.setHtmlText(sDetails);` && |\n| &&
-             `          oDialog.addAriaLabelledBy?.(oItem);` && |\n| &&
-             `          oItem.setVisible(true);` && |\n| &&
-             `        } else if (oItem.isA("sap.m.Link")) oItem.setVisible(false);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const escapeSetting = (v) =>` && |\n| &&
-             `      typeof v === "string" ? v.replace(/[\\{}]/g, (c) => ``\\${c}``) : v;` && |\n| &&
-             `` && |\n| &&
-             `    function showBox(sType, sText, mOptions, oController) {` && |\n| &&
-             `      const o = { ...(mOptions || {}) };` && |\n| &&
-             `      if (o.title !== undefined) o.title = escapeSetting(o.title);` && |\n| &&
-             `` && |\n| &&
-             `      const actionOf = new Map();` && |\n| &&
-             `      if (Array.isArray(o.actions)) {` && |\n| &&
-             `        o.actions = o.actions.map((a) => {` && |\n| &&
-             `          const escaped = escapeSetting(a);` && |\n| &&
-             `          if (escaped !== a) actionOf.set(escaped, a);` && |\n| &&
-             `          return escaped;` && |\n| &&
-             `        });` && |\n| &&
-             `        for (const key of ["emphasizedAction", "initialFocus"]) {` && |\n| &&
-             `          if (typeof o[key] === "string") o[key] = escapeSetting(o[key]);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (o.onClose) {` && |\n| &&
-             `        const sEvent = o.onClose;` && |\n| &&
-             `` && |\n| &&
-             `        o.onClose = (sAction) =>` && |\n| &&
-             `          Lib.dispatchWhenIdle(oController, [` && |\n| &&
-             `            [sEvent],` && |\n| &&
-             `            actionOf.get(sAction) ?? sAction,` && |\n| &&
-             `          ]);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (o.details) {` && |\n| &&
-             `        o.details = Lib.sanitizeMessageDetails(o.details);` && |\n| &&
-             `        if (!o.id) o.id = ``z2ui5MessageBox${++iBoxNo}``;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (o.dependentOn) {` && |\n| &&
-             `        const oDependentOn = ViewSlots.resolveById(` && |\n| &&
-             `          oController?.ctx,` && |\n| &&
-             `          o.dependentOn,` && |\n| &&
-             `        );` && |\n| &&
-             `        if (oDependentOn) o.dependentOn = oDependentOn;` && |\n| &&
-             `        else delete o.dependentOn;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      let showFn = MessageBox[sType];` && |\n| &&
-             `      if (typeof showFn !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``ControlCall: unknown message box type '${sType}', shown via show()``,` && |\n| &&
-             `        );` && |\n| &&
-             `        showFn = MessageBox.show;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (Object.keys(o).length) showFn(sText, o);` && |\n| &&
-             `      else showFn(sText);` && |\n| &&
-             `` && |\n| &&
-             `      if (o.details) expandBoxDetails(o.id, o.details);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const CONTROL_METHODS = {` && |\n| &&
-             `      to: ["pageId", "string"],` && |\n| &&
-             `      back: [],` && |\n| &&
-             `` && |\n| &&
-             `      backToPage: ["pageId"],` && |\n| &&
-             `      toDetail: ["controlId"],` && |\n| &&
-             `      toMaster: ["controlId"],` && |\n| &&
-             `      backDetail: [],` && |\n| &&
-             `      backMaster: [],` && |\n| &&
-             `      setMode: ["string"],` && |\n| &&
-             `      navigateBack: [],` && |\n| &&
-             `      focus: [],` && |\n| &&
-             `      scrollToIndex: ["int"],` && |\n| &&
-             `      scrollTo: ["int", "int"],` && |\n| &&
-             `      open: ["string"],` && |\n| &&
-             `      close: [],` && |\n| &&
-             `      setExpanded: ["bool"],` && |\n| &&
-             `      discardProgress: ["controlId"],` && |\n| &&
-             `      setNextStep: ["controlId"],` && |\n| &&
-             `      setCurrentStep: ["controlId"],` && |\n| &&
-             `      goToStep: ["controlId", "bool"],` && |\n| &&
-             `      openBy: ["anchor"],` && |\n| &&
-             `      toggleBy: ["anchor"],` && |\n| &&
-             `      setActivePage: ["controlId"],` && |\n| &&
-             `      expandToLevel: ["int"],` && |\n| &&
-             `      collapseAll: [],` && |\n| &&
-             `      expandSelected: [],` && |\n| &&
-             `      collapseSelected: [],` && |\n| &&
-             `      setHiddenInPopin: ["object"],` && |\n| &&
-             `      setSticky: ["object"],` && |\n| &&
-             `      setSelectedSection: ["controlIdOrNull"],` && |\n| &&
-             `      setSelectedItem: ["controlIdOrNull"],` && |\n| &&
-             `      setP13nData: ["object"],` && |\n| &&
-             `` && |\n| &&
-             `      setBadgeMinValue: ["int"],` && |\n| &&
-             `      setBadgeMaxValue: ["int"],` && |\n| &&
-             `` && |\n| &&
-             `      css: ["string", "string"],` && |\n| &&
-             `      enablePostButton: ["bool"],` && |\n| &&
-             `      addStyleClass: ["string"],` && |\n| &&
-             `      removeStyleClass: ["string"],` && |\n| &&
-             `      toggleStyleClass: ["string"],` && |\n| &&
-             `      setAsyncURLHandler: ["string"],` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    Object.setPrototypeOf(CONTROL_METHODS, null);` && |\n| &&
-             `` && |\n| &&
-             `    const URL_POLICIES = {` && |\n| &&
-             `      ALLOW_ALL: () => true,` && |\n| &&
-             `` && |\n| &&
-             `      RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),` && |\n| &&
-             `      DENY_ALL: () => false,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const CSS_PROPERTIES = [` && |\n| &&
-             `      "width",` && |\n| &&
-             `      "min-width",` && |\n| &&
-             `      "max-width",` && |\n| &&
-             `      "height",` && |\n| &&
-             `      "min-height",` && |\n|.
-    result = result &&
-             `      "max-height",` && |\n| &&
-             `      "color",` && |\n| &&
-             `      "background-color",` && |\n| &&
-             `      "font-size",` && |\n| &&
-             `      "opacity",` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const URL_PROBE_BASE = new URL("https://z2ui5.invalid/");` && |\n| &&
-             `    function isAbsoluteUrl(url) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return (` && |\n| &&
-             `          new URL(String(url ?? ""), URL_PROBE_BASE).origin !==` && |\n| &&
-             `          URL_PROBE_BASE.origin` && |\n| &&
-             `        );` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return true;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const CONTROL_METHOD_DENY_EXACT = [` && |\n| &&
-             `      "destroy",` && |\n| &&
-             `      "exit",` && |\n| &&
-             `      "fireEvent",` && |\n| &&
-             `      "clone",` && |\n| &&
-             `      "applySettings",` && |\n| &&
-             `      "setAggregation",` && |\n| &&
-             `      "addAggregation",` && |\n| &&
-             `      "insertAggregation",` && |\n| &&
-             `      "removeAggregation",` && |\n| &&
-             `      "removeAllAggregation",` && |\n| &&
-             `      "destroyAggregation",` && |\n| &&
-             `      "setAssociation",` && |\n| &&
-             `      "addAssociation",` && |\n| &&
-             `      "removeAssociation",` && |\n| &&
-             `      "removeAllAssociation",` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const CONTROL_METHOD_DENY_PREFIXES = [` && |\n| &&
-             `      "_",` && |\n| &&
-             `      "bind",` && |\n| &&
-             `      "unbind",` && |\n| &&
-             `      "attach",` && |\n| &&
-             `      "detach",` && |\n| &&
-             `      "addDependent",` && |\n| &&
-             `      "placeAt",` && |\n| &&
-             `      "rerender",` && |\n| &&
-             `      "invalidate",` && |\n| &&
-             `      "setModel",` && |\n| &&
-             `      "setBinding",` && |\n| &&
-             `      "setParent",` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const CONTROL_METHOD_DENY = new RegExp(` && |\n| &&
-             `      "^(" + CONTROL_METHOD_DENY_PREFIXES.join("|") + ")",` && |\n| &&
-             `    );` && |\n| &&
-             `` && |\n| &&
-             `    const CONTROL_METHOD_DENY_SET = new Set(CONTROL_METHOD_DENY_EXACT);` && |\n| &&
-             `` && |\n| &&
-             `    function isSafeControlMethod(method) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        typeof method === "string" &&` && |\n| &&
-             `        method.length > 0 &&` && |\n| &&
-             `        !CONTROL_METHOD_DENY_SET.has(method) &&` && |\n| &&
-             `        !CONTROL_METHOD_DENY.test(method)` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const GLOBAL_TARGETS = {` && |\n| &&
-             `      MESSAGE_TOAST: {` && |\n| &&
-             `        get: () => MessageToast,` && |\n| &&
-             `        methods: { show: ["string"] },` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
-             `          showToast(aArgs[0], mOptions, oController),` && |\n| &&
-             `      },` && |\n| &&
-             `      MESSAGE_BOX: {` && |\n| &&
-             `        get: () => MessageBox,` && |\n| &&
-             `` && |\n| &&
-             `        methods: {` && |\n| &&
-             `          show: ["string"],` && |\n| &&
-             `          alert: ["string"],` && |\n| &&
-             `          confirm: ["string"],` && |\n| &&
-             `          information: ["string"],` && |\n| &&
-             `          warning: ["string"],` && |\n| &&
-             `          error: ["string"],` && |\n| &&
-             `          success: ["string"],` && |\n| &&
-             `        },` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
-             `          showBox(method, aArgs[0], mOptions, oController),` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      VIEW_SLOTS: {` && |\n| &&
-             `        get: () => ViewSlots,` && |\n| &&
-             `` && |\n| &&
-             `        methods: {` && |\n| &&
-             `          destroy: ["string"],` && |\n| &&
-             `          display: ["string", "string"],` && |\n| &&
-             `` && |\n| &&
-             `          updateModel: [],` && |\n| &&
-             `        },` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
-             `          Slots.action(oController?.ctx, method, aArgs[0], aArgs[1], mOptions),` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      ROUTER: {` && |\n| &&
-             `        get: () => Router,` && |\n| &&
-             `        methods: { sync: [] },` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
-             `          Router.sync(oController?.ctx, mOptions),` && |\n| &&
-             `      },` && |\n| &&
-             `      BUSY_INDICATOR: {` && |\n| &&
-             `        get: () => BusyIndicator,` && |\n| &&
-             `        methods: { show: ["int"], hide: [] },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      ICON_POOL: {` && |\n| &&
-             `        get: () => sap.ui.require("sap/ui/core/IconPool"),` && |\n| &&
-             `        methods: { registerFont: ["string", "string"] },` && |\n| &&
-             `` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions, oIconPool) =>` && |\n| &&
-             `          registerIconFont(oIconPool, aArgs[0], aArgs[1]),` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      THEMING: {` && |\n| &&
-             `        get: () => Env.getThemingModule(),` && |\n| &&
-             `        methods: { setTheme: ["string"] },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      POPUP: {` && |\n| &&
-             `        get: () => CorePopup,` && |\n| &&
-             `        methods: { setWithinArea: ["within"] },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      INVISIBLE_MESSAGE: {` && |\n| &&
-             `        get: () => {` && |\n| &&
-             `          const IM = sap.ui.require("sap/ui/core/InvisibleMessage");` && |\n| &&
-             `          return IM ? IM.getInstance() : undefined;` && |\n| &&
-             `        },` && |\n| &&
-             `        methods: { announce: ["string", "string"] },` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      FORMATTING: {` && |\n| &&
-             `        get: () => sap.ui.require("sap/base/i18n/Formatting"),` && |\n| &&
-             `        methods: {` && |\n| &&
-             `          setCustomCurrencies: ["object"],` && |\n| &&
-             `          addCustomCurrencies: ["object"],` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    Object.setPrototypeOf(GLOBAL_TARGETS, null);` && |\n| &&
-             `` && |\n| &&
-             `    const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;` && |\n| &&
-             `` && |\n| &&
-             `    function resolveControl(raw, view, ctx) {` && |\n| &&
-             `      const byId = (id) =>` && |\n| &&
-             `        (view && ViewSlots.byId(ctx, view.toUpperCase(), id)) ||` && |\n| &&
-             `        ViewSlots.resolveById(ctx, id);` && |\n| &&
-             `` && |\n| &&
-             `      const m = AGG_ITEM.exec(String(raw ?? ""));` && |\n| &&
-             `      if (!m) return byId(raw);` && |\n| &&
-             `` && |\n| &&
-             `      const owner = byId(m[1]);` && |\n| &&
-             `      if (!owner || typeof owner.getAggregation !== "function") {` && |\n| &&
-             `        Lib.logError(``aggregation item '${raw}': no control '${m[1]}'``);` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      const items = owner.getAggregation(m[2]);` && |\n| &&
-             `      if (!Array.isArray(items)) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``aggregation item '${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      const item = items[Number(m[3])];` && |\n| &&
-             `      if (!item) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      return item;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveControlOrNull(raw, view, ctx) {` && |\n| &&
-             `      if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
-             `      return resolveControl(raw, view, ctx) || null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function castArg(kind, raw, view, ctx) {` && |\n| &&
-             `      switch (kind) {` && |\n| &&
-             `        case "int":` && |\n| &&
-             `          return Number(raw);` && |\n| &&
-             `        case "bool":` && |\n| &&
-             `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
-             `        case "controlId":` && |\n| &&
-             `          return resolveControl(raw, view, ctx);` && |\n| &&
-             `        case "pageId": {` && |\n| &&
-             `          const page = resolveControl(raw, view, ctx);` && |\n| &&
-             `          if (page && typeof page.getId === "function") return page.getId();` && |\n| &&
-             `` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_CALL: no control '${raw}' for the page argument``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return raw;` && |\n| &&
-             `        }` && |\n| &&
-             `        case "controlIdOrNull":` && |\n| &&
-             `          return resolveControlOrNull(raw, view, ctx);` && |\n| &&
-             `        case "anchor":` && |\n| &&
-             `          return resolveControl(raw, view, ctx);` && |\n| &&
-             `        case "within":` && |\n| &&
-             `          return resolveControlOrNull(raw, view, ctx);` && |\n| &&
-             `        case "object":` && |\n| &&
-             `          if (raw && typeof raw === "object") return raw;` && |\n| &&
-             `          try {` && |\n| &&
-             `            return JSON.parse(raw);` && |\n| &&
-             `          } catch {` && |\n| &&
-             `            Lib.logError(``CONTROL_CALL: malformed object argument '${raw}'``);` && |\n| &&
-             `            return {};` && |\n| &&
-             `          }` && |\n| &&
-             `        default:` && |\n| &&
-             `          return raw;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function castArgAuto(raw) {` && |\n| &&
-             `      if (raw === "X" || raw === "true") return true;` && |\n| &&
-             `      if (raw === "" || raw === " " || raw === "false") return false;` && |\n| &&
-             `      return raw;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function setsStringProperty(control, method) {` && |\n| &&
-             `      if (!control || typeof method !== "string" || !/^set[A-Z]/.test(method))` && |\n| &&
-             `        return false;` && |\n| &&
-             `      const prop = control.getMetadata?.()?.getAllProperties?.()[` && |\n| &&
-             `        method.charAt(3).toLowerCase() + method.slice(4)` && |\n| &&
-             `      ];` && |\n| &&
-             `      if (!prop) return false;` && |\n| &&
-             `      const primitive = prop.getType?.()?.getPrimitiveType?.()?.getName?.();` && |\n| &&
-             `      return primitive ? primitive === "string" : prop.type === "string";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const NULLABLE_KINDS = ["controlIdOrNull"];` && |\n| &&
-             `` && |\n| &&
-             `    function castArgs(kinds, rawArgs, view, target, ctx) {` && |\n| &&
-             `      if (kinds === null) {` && |\n| &&
-             `        const keepString = setsStringProperty(target?.control, target?.method);` && |\n| &&
-             `        return rawArgs.map((raw, i) =>` && |\n| &&
-             `          i === 0 && keepString ? raw : castArgAuto(raw),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      let count = rawArgs.length;` && |\n| &&
-             `      while (count < kinds.length && NULLABLE_KINDS.includes(kinds[count]))` && |\n| &&
-             `        count++;` && |\n| &&
-             `      return kinds` && |\n| &&
-             `        .slice(0, count)` && |\n| &&
-             `        .map((kind, i) => castArg(kind, rawArgs[i], view, ctx));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const registeredIconFonts = new Set();` && |\n| &&
-             `` && |\n| &&
-             `    function registerIconFont(IconPool, fontFamily, fontURI) {` && |\n| &&
-             `      if (!fontFamily || !fontURI) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          "ICON_POOL: registerFont needs a fontFamily AND a fontURI",` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (registeredIconFonts.has(fontFamily)) return;` && |\n| &&
-             `` && |\n| &&
-             `      const uri = /^(?:[a-z]+:)?\/\//i.test(fontURI)` && |\n| &&
-             `        ? fontURI` && |\n| &&
-             `        : sap.ui.require.toUrl(fontURI);` && |\n| &&
-             `      IconPool.registerFont({ fontFamily, fontURI: uri });` && |\n| &&
-             `      registeredIconFonts.add(fontFamily);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function selectedIndicesOf(control) {` && |\n| &&
-             `      if (typeof control.getSelectedIndices === "function") {` && |\n| &&
-             `        return control.getSelectedIndices();` && |\n| &&
-             `      }` && |\n| &&
-             `      if (` && |\n| &&
-             `        typeof control.getSelectedItems === "function" &&` && |\n| &&
-             `        typeof control.indexOfItem === "function"` && |\n| &&
-             `      ) {` && |\n| &&
-             `        return control` && |\n| &&
-             `          .getSelectedItems()` && |\n| &&
-             `          .map((item) => control.indexOfItem(item))` && |\n| &&
-             `          .filter((i) => i >= 0);` && |\n| &&
-             `      }` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function whenAnchorRendered(anchor, oController, fn) {` && |\n| &&
-             `      const guarded = () => {` && |\n| &&
-             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `        fn();` && |\n| &&
-             `      };` && |\n| &&
-             `      if (anchor && typeof anchor.getDomRef === "function") {` && |\n| &&
-             `        Lib.whenRendered(anchor, oController, guarded, "open");` && |\n| &&
-             `      } else {` && |\n| &&
-             `        guarded();` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pseudoToggleBy({ control, id, view, kinds, args, oController }) {` && |\n| &&
-             `      if (!control || typeof control.openBy !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const anchor = castArgs(` && |\n| &&
-             `        kinds,` && |\n| &&
-             `        args.slice(4),` && |\n| &&
-             `        view,` && |\n| &&
-             `        undefined,` && |\n| &&
-             `        oController?.ctx,` && |\n| &&
-             `      )[0];` && |\n| &&
-             `` && |\n| &&
-             `      whenAnchorRendered(anchor, oController, () => {` && |\n| &&
-             `        if (control.isOpen?.()) control.close();` && |\n| &&
-             `        else control.openBy(anchor);` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pseudoOpenBy({ control, id, view, kinds, args, oController }) {` && |\n| &&
-             `      if (` && |\n| &&
-             `        !control ||` && |\n| &&
-             `        (typeof control.openBy !== "function" &&` && |\n| &&
-             `          typeof control.open !== "function")` && |\n| &&
-             `      ) {` && |\n| &&
-             `        Lib.logError(``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const anchor = castArgs(` && |\n| &&
-             `        kinds,` && |\n| &&
-             `        args.slice(4),` && |\n| &&
-             `        view,` && |\n| &&
-             `        undefined,` && |\n| &&
-             `        oController?.ctx,` && |\n| &&
-             `      )[0];` && |\n| &&
-             `` && |\n| &&
-             `      whenAnchorRendered(anchor, oController, () => {` && |\n| &&
-             `        if (typeof control.openBy === "function") control.openBy(anchor);` && |\n| &&
-             `        else control.open(false, anchor, "begin top", "begin bottom", anchor);` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pseudoCss({ control, id, args }) {` && |\n| &&
-             `      const prop = String(args[4] ?? "").toLowerCase();` && |\n| &&
-             `      if (!CSS_PROPERTIES.includes(prop)) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const el = control?.getDomRef?.();` && |\n| &&
-             `      if (!el) {` && |\n| &&
-             `        Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      el.style.setProperty(prop, String(args[5] ?? ""));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pseudoExpandCollapse({ control, id, method }) {` && |\n| &&
-             `      const op = method === "expandSelected" ? "expand" : "collapse";` && |\n| &&
-             `      if (!control || typeof control[op] !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const indices = selectedIndicesOf(control);` && |\n| &&
-             `      if (indices === null) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (indices.length) control[op](indices);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pseudoSetAsyncURLHandler({ control, id, args }) {` && |\n| &&
-             `      const policy = String(args[4] ?? "").toUpperCase();` && |\n| &&
-             `      const isAllowed = URL_POLICIES[policy];` && |\n| &&
-             `      if (!isAllowed) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!control || typeof control.setAsyncURLHandler !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      control.setAsyncURLHandler((config) => {` && |\n|.
-    result = result &&
-             `        config?.promise?.resolve({` && |\n| &&
-             `          allowed: isAllowed(config.url),` && |\n| &&
-             `          id: config.id,` && |\n| &&
-             `        });` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isRootPrototypeMethod(obj, method) {` && |\n| &&
-             `      let owner = obj;` && |\n| &&
-             `      while (` && |\n| &&
-             `        owner !== null &&` && |\n| &&
-             `        owner !== undefined &&` && |\n| &&
-             `        !Object.prototype.hasOwnProperty.call(owner, method)` && |\n| &&
-             `      ) {` && |\n| &&
-             `        owner = Object.getPrototypeOf(owner);` && |\n| &&
-             `      }` && |\n| &&
-             `      return !!owner && Object.getPrototypeOf(owner) === null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const PSEUDO_METHODS = Object.assign(Object.create(null), {` && |\n| &&
-             `      toggleBy: pseudoToggleBy,` && |\n| &&
-             `      openBy: pseudoOpenBy,` && |\n| &&
-             `      css: pseudoCss,` && |\n| &&
-             `      expandSelected: pseudoExpandCollapse,` && |\n| &&
-             `      collapseSelected: pseudoExpandCollapse,` && |\n| &&
-             `      setAsyncURLHandler: pseudoSetAsyncURLHandler,` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
-             `    function evControlCallById(oController, args) {` && |\n| &&
-             `      const [, id, view, method] = args;` && |\n| &&
-             `      let kinds = CONTROL_METHODS[method];` && |\n| &&
-             `      if (!kinds) {` && |\n| &&
-             `        if (!isSafeControlMethod(method)) {` && |\n| &&
-             `          Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        kinds = null;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const ctx = oController?.ctx;` && |\n| &&
-             `` && |\n| &&
-             `      if (method === "focus" && !ScrollFocus.mayMoveFocus(ctx)) return;` && |\n| &&
-             `      const control = resolveControl(id, view, ctx);` && |\n| &&
-             `      const pseudo = PSEUDO_METHODS[method];` && |\n| &&
-             `      if (pseudo) {` && |\n| &&
-             `        pseudo({ control, id, view, method, kinds, args, oController });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (!control) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: no control '${id}'${view ? `` in view '${view}'`` : ""} - '${method}' not called``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const inherited =` && |\n| &&
-             `        method === "constructor" || isRootPrototypeMethod(control, method);` && |\n| &&
-             `      if (inherited || typeof control[method] !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      control[method](` && |\n| &&
-             `        ...castArgs(kinds, args.slice(4), view, { control, method }, ctx),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evControlCall(oController, args) {` && |\n| &&
-             `      const [, name, method] = args;` && |\n| &&
-             `      const target = GLOBAL_TARGETS[name];` && |\n| &&
-             `` && |\n| &&
-             `      const kinds =` && |\n| &&
-             `        target && Object.prototype.hasOwnProperty.call(target.methods, method)` && |\n| &&
-             `          ? target.methods[method]` && |\n| &&
-             `          : undefined;` && |\n| &&
-             `      if (!kinds) {` && |\n| &&
-             `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not allowed``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const obj = target.get();` && |\n| &&
-             `      if (!obj) {` && |\n| &&
-             `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      let raw = args.slice(3);` && |\n| &&
-             `` && |\n| &&
-             `      let mOptions;` && |\n| &&
-             `      if (target.display) {` && |\n| &&
-             `        const last = raw[raw.length - 1];` && |\n| &&
-             `        if (last && typeof last === "object") {` && |\n| &&
-             `          mOptions = last;` && |\n| &&
-             `          raw = raw.slice(0, -1);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {` && |\n| &&
-             `        raw = [formatTemplate(String(raw[0]), raw.slice(1))];` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (target.display) {` && |\n| &&
-             `        return target.display(oController, method, raw, mOptions || {}, obj);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (typeof obj[method] !== "function") {` && |\n| &&
-             `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      obj[method](` && |\n| &&
-             `        ...castArgs(kinds, raw, undefined, undefined, oController?.ctx),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatTemplate(tpl, values) {` && |\n| &&
-             `      return tpl.replace(` && |\n| &&
-             `        /\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,` && |\n| &&
-             `        (m, i, tText, fText) => {` && |\n| &&
-             `          const n = Number(i);` && |\n| &&
-             `          if (n >= values.length) return m;` && |\n| &&
-             `          const v = String(values[n]);` && |\n| &&
-             `          if (tText === undefined) return v;` && |\n| &&
-             `          const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);` && |\n| &&
-             `          return truthy ? tText : fText;` && |\n| &&
-             `        },` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      CONTROL_BY_ID: evControlCallById,` && |\n| &&
-             `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    for (const name of Object.keys(GLOBAL_TARGETS)) {` && |\n| &&
-             `      handlers[name] = (oController, args) =>` && |\n| &&
-             `        evControlCall(oController, ["CONTROL_GLOBAL", ...args]);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return { handlers, castArg };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/Launchpad.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/m/library", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (mobileLibrary, Lib, ViewSlots) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
-             `` && |\n| &&
-             `    function withCrossAppNavigator(oController, callback) {` && |\n| &&
-             `      const nav = oController?.ctx?.state.oLaunchpad?.CrossAppNavigator;` && |\n| &&
-             `      if (!nav) {` && |\n| &&
-             `        Lib.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        callback(nav);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("CrossAppNav: callback failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evCrossAppNavToPrevApp(oController) {` && |\n| &&
-             `      withCrossAppNavigator(oController, (nav) => nav.backToPreviousApp());` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function boundArg(oController, raw, what) {` && |\n| &&
-             `      if (raw == null || raw === "") return undefined;` && |\n| &&
-             `      const path = Lib.modelPathOf(raw);` && |\n| &&
-             `      if (!path) return raw;` && |\n| &&
-             `` && |\n| &&
-             `      const oModel = ViewSlots.responseModel(oController?.ctx, oController);` && |\n| &&
-             `      const value = oModel?.getProperty(path);` && |\n| &&
-             `      if (value == null) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CROSS_APP_NAV_TO_EXT: nothing bound at the model path '${path}' (${what})``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      return value;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function navTarget(oController, raw) {` && |\n| &&
-             `      const target = boundArg(oController, raw, "target");` && |\n| &&
-             `      if (typeof target === "string" && target.trim().startsWith("{")) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``CROSS_APP_NAV_TO_EXT: target '${target}' is no object - spell it as JSON ({"semanticObject":"...","action":"..."}) or pass its model path``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      return target;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evCrossAppNavToExt(oController, args) {` && |\n| &&
-             `      withCrossAppNavigator(oController, (nav) => {` && |\n| &&
-             `        const target = navTarget(oController, args[1]);` && |\n| &&
-             `        if (target === null) return;` && |\n| &&
-             `        const params = boundArg(oController, args[2], "params");` && |\n| &&
-             `        if (params === null) return;` && |\n| &&
-             `        const hash = nav.hrefForExternal({ target, params }) || "";` && |\n| &&
-             `        if (args[3] === "EXT") {` && |\n| &&
-             `          const base = window.location.href.split("#")[0];` && |\n| &&
-             `          const url = ``${base}${hash}``;` && |\n| &&
-             `          if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
-             `            Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          _URLHelper.redirect(url, true);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          nav.toExternal({ target: { shellHash: hash } });` && |\n| &&
-             `        }` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function splitIntent(sIntent) {` && |\n| &&
-             `      const m = /^#?([^-?&#]+)-([^?&#~]+)(?:\?(.*))?$/.exec(sIntent || "");` && |\n| &&
-             `      if (!m) return {};` && |\n| &&
-             `      const params = {};` && |\n| &&
-             `      for (const pair of (m[3] || "").split("&")) {` && |\n| &&
-             `        if (!pair) continue;` && |\n| &&
-             `        const i = pair.indexOf("=");` && |\n| &&
-             `        const key = decodeURIComponent(i < 0 ? pair : pair.slice(0, i));` && |\n| &&
-             `        if (key.startsWith("sap-")) continue;` && |\n| &&
-             `        params[key] = i < 0 ? "" : decodeURIComponent(pair.slice(i + 1));` && |\n| &&
-             `      }` && |\n| &&
-             `      return { semanticObject: m[1], action: m[2], params };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evCrossAppNavGetLinks(oController, args) {` && |\n| &&
-             `      withCrossAppNavigator(oController, (nav) => {` && |\n| &&
-             `        const target = navTarget(oController, args[1]);` && |\n| &&
-             `        if (target === null) return;` && |\n| &&
-             `        const params = boundArg(oController, args[2], "params");` && |\n| &&
-             `        if (params === null) return;` && |\n| &&
-             `        const sEvent = Lib.toText(args[3]);` && |\n| &&
-             `        if (!target?.semanticObject || !sEvent) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            "CROSS_APP_NAV_GET_LINKS: needs a target with a semanticObject and a callback event",` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const query = { semanticObject: target.semanticObject };` && |\n| &&
-             `        if (target.action) query.action = target.action;` && |\n| &&
-             `        if (params) query.params = params;` && |\n| &&
-             `` && |\n| &&
-             `        Promise.resolve(nav.getLinks(query))` && |\n| &&
-             `          .then((links) => {` && |\n| &&
-             `            const result = (links || []).map((l) => ({` && |\n| &&
-             `              intent: l.intent,` && |\n| &&
-             `              text: l.text || "",` && |\n| &&
-             `              subTitle: l.subTitle || "",` && |\n| &&
-             `              ...splitIntent(l.intent),` && |\n| &&
-             `            }));` && |\n| &&
-             `` && |\n| &&
-             `            Lib.dispatchWhenIdle(oController, [` && |\n| &&
-             `              [sEvent],` && |\n| &&
-             `              JSON.stringify(result),` && |\n| &&
-             `            ]);` && |\n| &&
-             `          })` && |\n| &&
-             `          .catch((e) =>` && |\n| &&
-             `            Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed", e),` && |\n| &&
-             `          );` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
-             `      const title = Lib.toText(args[1]);` && |\n| &&
-             `      try {` && |\n| &&
-             `        const shell = oController?.ctx?.state.oLaunchpad?.ShellUIService;` && |\n| &&
-             `        if (shell?.setTitle) {` && |\n| &&
-             `          const result = shell.setTitle(title);` && |\n| &&
-             `          if (result?.catch) {` && |\n| &&
-             `            result.catch((e) =>` && |\n| &&
-             `              Lib.logError(` && |\n| &&
-             `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
-             `                e,` && |\n| &&
-             `              ),` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evSetAppFullWidth(oController, args) {` && |\n| &&
-             `      const launchpad = oController?.ctx?.state.oLaunchpad;` && |\n| &&
-             `      if (!launchpad) return;` && |\n| &&
-             `      const raw = args[1];` && |\n| &&
-             `      const fullWidth = raw === true || raw === "X" || raw === "true";` && |\n| &&
-             `      const guarded = (call) => {` && |\n| &&
-             `        try {` && |\n| &&
-             `          call();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      };` && |\n| &&
-             `      const shell = launchpad.ShellUIService;` && |\n| &&
-             `      if (shell?.setApplicationFullWidth) {` && |\n| &&
-             `        guarded(() => shell.setApplicationFullWidth(fullWidth));` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const viaAppConfiguration = (ac) =>` && |\n| &&
-             `        guarded(() => ac.setApplicationFullWidth(fullWidth));` && |\n| &&
-             `` && |\n| &&
-             `      if (launchpad.AppConfiguration) {` && |\n| &&
-             `        viaAppConfiguration(launchpad.AppConfiguration);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      sap.ui.require(` && |\n| &&
-             `        ["sap/ushell/services/AppConfiguration"],` && |\n| &&
-             `        viaAppConfiguration,` && |\n| &&
-             `        (e) =>` && |\n| &&
-             `          Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      CROSS_APP_NAV_TO_PREV_APP: evCrossAppNavToPrevApp,` && |\n| &&
-             `      CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,` && |\n| &&
-             `      CROSS_APP_NAV_GET_LINKS: evCrossAppNavGetLinks,` && |\n| &&
-             `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
-             `      SET_APP_FULL_WIDTH: evSetAppFullWidth,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/Shortcuts.js": function(){sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/core/ViewSlots", "z2ui5/core/ScrollFocus"],` && |\n| &&
-             `  (Lib, ViewSlots, ScrollFocus) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const SHORTCUT_MODIFIERS = ["ctrl", "shift", "alt", "meta"];` && |\n| &&
-             `` && |\n| &&
-             `    const SHORTCUT_ALIASES = {` && |\n| &&
-             `      control: "ctrl",` && |\n| &&
-             `      cmd: "meta",` && |\n| &&
-             `      command: "meta",` && |\n| &&
-             `      option: "alt",` && |\n| &&
-             `      esc: "escape",` && |\n| &&
-             `      del: "delete",` && |\n| &&
-             `      ins: "insert",` && |\n| &&
-             `      return: "enter",` && |\n| &&
-             `      space: " ",` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    function shortcutToken(part) {` && |\n| &&
-             `      const t = part.trim().toLowerCase();` && |\n| &&
-             `` && |\n| &&
-             `      return Object.prototype.hasOwnProperty.call(SHORTCUT_ALIASES, t)` && |\n| &&
-             `        ? SHORTCUT_ALIASES[t]` && |\n| &&
-             `        : t;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function normalizeShortcut(combo) {` && |\n| &&
-             `      const tokens = String(combo ?? "").split("+");` && |\n| &&
-             `      const plusKey =` && |\n| &&
-             `        tokens.length >= 2 &&` && |\n| &&
-             `        tokens[tokens.length - 1].trim() === "" &&` && |\n| &&
-             `        tokens[tokens.length - 2].trim() === "";` && |\n| &&
-             `      const parts = tokens.map(shortcutToken).filter((p) => p !== "");` && |\n| &&
-             `      const mods = SHORTCUT_MODIFIERS.filter((m) => parts.includes(m));` && |\n| &&
-             `      const keys = parts.filter((p) => !SHORTCUT_MODIFIERS.includes(p));` && |\n| &&
-             `      if (plusKey) keys.push("+");` && |\n| &&
-             `      if (keys.length === 0) return "";` && |\n| &&
-             `      return [...mods, keys[keys.length - 1]].join("+");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function shortcutFromEvent(oEvent) {` && |\n| &&
-             `      const key = String(oEvent.key ?? "").toLowerCase();` && |\n| &&
-             `` && |\n| &&
-             `      if (key === "" || SHORTCUT_MODIFIERS.includes(shortcutToken(key)))` && |\n| &&
-             `        return "";` && |\n| &&
-             `      const mods = [];` && |\n| &&
-             `      if (oEvent.ctrlKey) mods.push("ctrl");` && |\n| &&
-             `      if (oEvent.shiftKey) mods.push("shift");` && |\n| &&
-             `      if (oEvent.altKey) mods.push("alt");` && |\n| &&
-             `      if (oEvent.metaKey) mods.push("meta");` && |\n| &&
-             `      return [...mods, key].join("+");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function shortcutCandidates(oEvent) {` && |\n| &&
-             `      const exact = shortcutFromEvent(oEvent);` && |\n| &&
-             `      const key = String(oEvent.key ?? "");` && |\n| &&
-             `      if (` && |\n| &&
-             `        exact === "" ||` && |\n| &&
-             `        !oEvent.shiftKey ||` && |\n| &&
-             `        key.length !== 1 ||` && |\n| &&
-             `        key === " " ||` && |\n| &&
-             `        key.toLowerCase() !== key.toUpperCase()` && |\n| &&
-             `      ) {` && |\n| &&
-             `        return [exact];` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return [` && |\n| &&
-             `        exact,` && |\n| &&
-             `        shortcutFromEvent({` && |\n| &&
-             `          key: oEvent.key,` && |\n|.
-    result = result &&
-             `          ctrlKey: oEvent.ctrlKey,` && |\n| &&
-             `          shiftKey: false,` && |\n| &&
-             `          altKey: oEvent.altKey,` && |\n| &&
-             `          metaKey: oEvent.metaKey,` && |\n| &&
-             `        }),` && |\n| &&
-             `      ];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
-             `` && |\n| &&
-             `    const SHORTCUT_GLOBAL = "";` && |\n| &&
-             `` && |\n| &&
-             `    function scopeControlOpen(ctx, id) {` && |\n| &&
-             `      const c = ViewSlots.resolveById(ctx, id);` && |\n| &&
-             `      if (!c) return false;` && |\n| &&
-             `      if (typeof c.isOpen === "function") return !!c.isOpen();` && |\n| &&
-             `      return typeof c.getVisible === "function"` && |\n| &&
-             `        ? c.getVisible() !== false` && |\n| &&
-             `        : true;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function shortcutEntry(ctx, combo) {` && |\n| &&
-             `      const shortcuts = ctx.state.shortcuts;` && |\n| &&
-             `      if (!Object.prototype.hasOwnProperty.call(shortcuts, combo)) {` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `      const scopes = shortcuts[combo];` && |\n| &&
-             `      for (const key of Object.keys(scopes)) {` && |\n| &&
-             `        if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;` && |\n| &&
-             `        if (scopeControlOpen(ctx, key)) return scopes[key];` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      for (const key of SHORTCUT_SLOTS) {` && |\n| &&
-             `        if (scopes[key] && ViewSlots.getView(ctx, key)) {` && |\n| &&
-             `          const own = ViewSlots.getController(ctx, key);` && |\n| &&
-             `          return own ? { ...scopes[key], controller: own } : scopes[key];` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return scopes[SHORTCUT_GLOBAL];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function commitFocusedValue() {` && |\n| &&
-             `      if (typeof document === "undefined") return;` && |\n| &&
-             `      const active = document.activeElement;` && |\n| &&
-             `      if (!active || active === document.body) return;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const control = ScrollFocus.closestUi5Element(active);` && |\n| &&
-             `        if (` && |\n| &&
-             `          control?.isA?.("sap.m.InputBase") &&` && |\n| &&
-             `          typeof control.onChange === "function"` && |\n| &&
-             `        ) {` && |\n| &&
-             `          control.onChange();` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          "KEYBOARD_SHORTCUT: committing the focused field failed",` && |\n| &&
-             `          e,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function installShortcutListener(ctx) {` && |\n| &&
-             `      if (ctx.shortcuts.listener || typeof document === "undefined") return;` && |\n| &&
-             `      const listener = (oEvent) => {` && |\n| &&
-             `        try {` && |\n| &&
-             `          let entry;` && |\n| &&
-             `          for (const combo of shortcutCandidates(oEvent)) {` && |\n| &&
-             `            entry = shortcutEntry(ctx, combo);` && |\n| &&
-             `            if (entry) break;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!entry) return;` && |\n| &&
-             `` && |\n| &&
-             `          if (!Lib.isControllerAlive(entry.controller)) return;` && |\n| &&
-             `` && |\n| &&
-             `          oEvent.preventDefault();` && |\n| &&
-             `          const wasBusy = ctx.state.isBusy;` && |\n| &&
-             `          commitFocusedValue();` && |\n| &&
-             `` && |\n| &&
-             `          if (!wasBusy && ctx.state.isBusy) {` && |\n| &&
-             `            const controller = entry.controller;` && |\n| &&
-             `            Lib.afterRoundtrip(controller, () =>` && |\n| &&
-             `              setTimeout(() => {` && |\n| &&
-             `                if (Lib.isControllerAlive(controller)) {` && |\n| &&
-             `                  controller.eB([entry.event]);` && |\n| &&
-             `                }` && |\n| &&
-             `              }, 0),` && |\n| &&
-             `            );` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          entry.controller.eB([entry.event]);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("KEYBOARD_SHORTCUT: dispatch failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      };` && |\n| &&
-             `      ctx.shortcuts.listener = listener;` && |\n| &&
-             `      document.addEventListener("keydown", listener);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function reset(ctx) {` && |\n| &&
-             `      const listener = ctx?.shortcuts?.listener;` && |\n| &&
-             `      if (!listener || typeof document === "undefined") return;` && |\n| &&
-             `      document.removeEventListener("keydown", listener);` && |\n| &&
-             `      ctx.shortcuts.listener = null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evKeyboardShortcut(oController, args) {` && |\n| &&
-             `      const ctx = oController?.ctx;` && |\n| &&
-             `      if (!ctx) {` && |\n| &&
-             `        Lib.logError("KEYBOARD_SHORTCUT: no context to register in");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const combo = normalizeShortcut(args[1]);` && |\n| &&
-             `      if (!combo) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const raw = String(args[3] ?? "");` && |\n| &&
-             `      const upper = raw.toUpperCase();` && |\n| &&
-             `      const scope = SHORTCUT_SLOTS.includes(upper) ? upper : raw;` && |\n| &&
-             `      const shortcuts = ctx.state.shortcuts;` && |\n| &&
-             `` && |\n| &&
-             `      if (combo in Object.prototype) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const scopes =` && |\n| &&
-             `        shortcuts[combo] ?? (shortcuts[combo] = Object.create(null));` && |\n| &&
-             `      if (!args[2]) {` && |\n| &&
-             `        delete scopes[scope];` && |\n| &&
-             `` && |\n| &&
-             `        if (Object.keys(scopes).length === 0) delete shortcuts[combo];` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      scopes[scope] = { event: args[2], controller: oController };` && |\n| &&
-             `      installShortcutListener(ctx);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      handlers,` && |\n| &&
-             `      reset,` && |\n| &&
-             `      normalizeShortcut,` && |\n| &&
-             `      shortcutFromEvent,` && |\n| &&
-             `      shortcutCandidates,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/Slots.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/mvc/XMLView",` && |\n| &&
-             `    "sap/ui/core/Fragment",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
-             `    "z2ui5/core/WindowModel",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (XMLView, Fragment, Lib, Env, ViewSlots, Context, WindowModel) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function applyStoredSizeLimit(ctx, viewKey, oModel) {` && |\n| &&
-             `      if (!oModel) return;` && |\n| &&
-             `` && |\n| &&
-             `      const limit = Lib.effectiveSizeLimit(ctx.state.viewSizeLimits, viewKey);` && |\n| &&
-             `      if (limit !== undefined) oModel.setSizeLimit(limit);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function trackChanges(oModel) {` && |\n| &&
-             `      oModel._z2ui5Tracked = true;` && |\n| &&
-             `` && |\n| &&
-             `      oModel._z2ui5ChangedPaths = new Set();` && |\n| &&
-             `      oModel.attachPropertyChange((e) => {` && |\n| &&
-             `        const params = e.getParameters();` && |\n| &&
-             `        const raw = params.path;` && |\n| &&
-             `        const ctx = params.context;` && |\n| &&
-             `        if (!raw) return;` && |\n| &&
-             `` && |\n| &&
-             `        const changedPath =` && |\n| &&
-             `          ctx && !raw.startsWith("/") ? ``${ctx.getPath()}/${raw}`` : raw;` && |\n| &&
-             `        if (changedPath.startsWith("/")) {` && |\n| &&
-             `          oModel._z2ui5ChangedPaths.add(changedPath);` && |\n| &&
-             `        }` && |\n| &&
-             `      });` && |\n| &&
-             `      return oModel;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveTrackedModel(oView) {` && |\n| &&
-             `      return ViewSlots.trackedModel(oView);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function dataForSlot(slotKey, data) {` && |\n| &&
-             `      if (!data || Lib.isRootModelSlot(slotKey)) return data;` && |\n| &&
-             `      if (typeof structuredClone === "function") return structuredClone(data);` && |\n| &&
-             `      return JSON.parse(JSON.stringify(data));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function keepWindowRequest(ctx, oModel, slotKey, args, noBusy) {` && |\n| &&
-             `      const path = String(args[0]);` && |\n| &&
-             `      const windows = ctx.state.oQueuedWindow || {};` && |\n| &&
-             `      const kept = windows[path];` && |\n| &&
-             `      windows[path] = {` && |\n| &&
-             `        model: oModel,` && |\n| &&
-             `        slotKey,` && |\n| &&
-             `        args:` && |\n| &&
-             `          kept?.model === oModel` && |\n| &&
-             `            ? WindowModel.keepRestart(args, kept.args)` && |\n| &&
-             `            : args,` && |\n| &&
-             `        noBusy: !!noBusy,` && |\n| &&
-             `      };` && |\n| &&
-             `      ctx.state.oQueuedWindow = windows;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function slotModel(ctx, slotKey) {` && |\n| &&
-             `      const oView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
-             `      if (!oView) return undefined;` && |\n| &&
-             `      return Lib.isRootModelSlot(slotKey)` && |\n| &&
-             `        ? resolveTrackedModel(oView)` && |\n| &&
-             `        : oView.getModel();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function dispatchQueuedWindows(ctx) {` && |\n| &&
-             `      const windows = ctx.state.oQueuedWindow;` && |\n| &&
-             `      if (!windows) return;` && |\n| &&
-             `      for (const path of Object.keys(windows)) {` && |\n| &&
-             `        if (ctx.state.isBusy) break;` && |\n| &&
-             `        const queued = windows[path];` && |\n| &&
-             `        delete windows[path];` && |\n| &&
-             `        const oController = ViewSlots.getController(ctx, queued.slotKey);` && |\n| &&
-             `        if (!Lib.isControllerAlive(oController)) continue;` && |\n| &&
-             `        if (slotModel(ctx, queued.slotKey) !== queued.model) continue;` && |\n| &&
-             `        oController.eB(` && |\n| &&
-             `          [WindowModel.EVENT, { noBusy: queued.noBusy }],` && |\n| &&
-             `          ...queued.args,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!Object.keys(windows).length) ctx.state.oQueuedWindow = null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function createViewModel(` && |\n| &&
-             `      ctx,` && |\n| &&
-             `      slotKey = "MAIN",` && |\n| &&
-             `      data = ctx.state.oResponse?.OVIEWMODEL,` && |\n| &&
-             `    ) {` && |\n| &&
-             `      const oModel = trackChanges(new WindowModel(dataForSlot(slotKey, data)));` && |\n| &&
-             `` && |\n| &&
-             `      oModel._z2ui5WindowSend = (args, noBusy) => {` && |\n| &&
-             `        const oController = ViewSlots.getController(ctx, slotKey);` && |\n| &&
-             `        if (typeof oController?.eB !== "function") {` && |\n| &&
-             `          Lib.logError(``WINDOW: slot ${slotKey} has no controller``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (ctx.state.isBusy) {` && |\n| &&
-             `          keepWindowRequest(ctx, oModel, slotKey, args, noBusy);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        oController.eB([WindowModel.EVENT, { noBusy: !!noBusy }], ...args);` && |\n| &&
-             `      };` && |\n| &&
-             `` && |\n| &&
-             `      if (data && data === ctx.state.oResponse?.OVIEWMODEL) {` && |\n| &&
-             `        oModel._z2ui5BuiltFrom = ctx.state.oResponse;` && |\n| &&
-             `      }` && |\n| &&
-             `      return oModel;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isSuperseded(ctx, seq) {` && |\n| &&
-             `      return seq !== undefined && seq !== ctx.server.requestSeq;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function loadSlotFragment(ctx, slotKey, fragmentId, xml, seq) {` && |\n| &&
-             `      const oModel = createViewModel(ctx, slotKey);` && |\n| &&
-             `      applyStoredSizeLimit(ctx, slotKey, oModel);` && |\n| &&
-             `` && |\n| &&
-             `      await Env.loadViewLibraries(xml);` && |\n| &&
-             `` && |\n| &&
-             `      await Env.preloadFragmentModules(xml);` && |\n| &&
-             `` && |\n| &&
-             `      const oFragment = await Context.runAsOwner(ctx, () =>` && |\n| &&
-             `        Fragment.load({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          controller: ViewSlots.getController(ctx, slotKey),` && |\n| &&
-             `          id: ViewSlots.ownId(ctx, fragmentId),` && |\n| &&
-             `        }),` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!Lib.isAlive(ctx.state.oApp) || isSuperseded(ctx, seq)) {` && |\n| &&
-             `        oFragment.destroy();` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `      oFragment.setModel(oModel);` && |\n| &&
-             `      return oFragment;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function displayFragment(ctx, xml, seq) {` && |\n| &&
-             `      const oFragment = await loadSlotFragment(` && |\n| &&
-             `        ctx,` && |\n| &&
-             `        "POPUP",` && |\n| &&
-             `        "popupId",` && |\n| &&
-             `        xml,` && |\n| &&
-             `        seq,` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!oFragment) return;` && |\n| &&
-             `` && |\n| &&
-             `      ViewSlots.setView(ctx, "POPUP", oFragment, xml);` && |\n| &&
-             `      oFragment.open();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function displayPopover(ctx, xml, openById, seq) {` && |\n| &&
-             `      const oFragment = await loadSlotFragment(` && |\n| &&
-             `        ctx,` && |\n| &&
-             `        "POPOVER",` && |\n| &&
-             `        "popoverId",` && |\n| &&
-             `        xml,` && |\n| &&
-             `        seq,` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!oFragment) return;` && |\n| &&
-             `` && |\n| &&
-             `      const oControl = ViewSlots.resolveById(ctx, openById);` && |\n| &&
-             `` && |\n| &&
-             `      if (!oControl) {` && |\n| &&
-             `        Lib.logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
-             `        oFragment.destroy();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      ViewSlots.setView(ctx, "POPOVER", oFragment, xml);` && |\n| &&
-             `` && |\n| &&
-             `      Lib.whenRendered(oControl, oFragment, () => oFragment.openBy(oControl));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function templatePreprocessors(xml, oTemplateModel) {` && |\n| &&
-             `      if (!Lib.usesXmlTemplating(xml)) return undefined;` && |\n| &&
-             `      return { xml: { models: { template: oTemplateModel } } };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function displayNestedView(ctx, xml, slotKey, mOptions, seq) {` && |\n| &&
-             `      const oMainView = ViewSlots.getView(ctx, "MAIN");` && |\n| &&
-             `      const oTemplateModel =` && |\n| &&
-             `        oMainView?.getModel("http") ?? oMainView?.getModel();` && |\n| &&
-             `` && |\n| &&
-             `      await Env.loadViewLibraries(xml);` && |\n| &&
-             `      const oView = await Context.runAsOwner(ctx, () =>` && |\n| &&
-             `        XMLView.create({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          controller: ViewSlots.getController(ctx, slotKey),` && |\n| &&
-             `          preprocessors: templatePreprocessors(xml, oTemplateModel),` && |\n| &&
-             `        }),` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      if (!Lib.isAlive(ctx.state.oApp) || isSuperseded(ctx, seq)) {` && |\n| &&
-             `        oView.destroy();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const {` && |\n| &&
-             `        id: ID,` && |\n| &&
-             `        methodDestroy: METHOD_DESTROY,` && |\n| &&
-             `        methodInsert: METHOD_INSERT,` && |\n| &&
-             `      } = mOptions;` && |\n| &&
-             `` && |\n| &&
-             `      const oParent =` && |\n| &&
-             `        ViewSlots.byId(ctx, "MAIN", ID) ??` && |\n| &&
-             `        (slotKey === "NEST2" ? ViewSlots.byId(ctx, "NEST", ID) : undefined);` && |\n| &&
-             `      if (!oParent) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
-             `        );` && |\n| &&
-             `        oView.destroy();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (METHOD_DESTROY) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          oParent[METHOD_DESTROY]();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``displayNestedView: parent destroy method '${METHOD_DESTROY}' failed``,` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        oParent[METHOD_INSERT](oView);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("displayNestedView: parent insert method failed", e);` && |\n| &&
-             `        oView.destroy();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      ViewSlots.setView(ctx, slotKey, oView, xml);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n|.
-    result = result &&
-             `    const MAIN_VIEW_ID = "mainView";` && |\n| &&
-             `    const MAIN_VIEW_ID_ALT = "mainView2";` && |\n| &&
-             `` && |\n| &&
-             `    function freeMainViewId(ctx, oOld) {` && |\n| &&
-             `      return oOld && oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)` && |\n| &&
-             `        ? MAIN_VIEW_ID_ALT` && |\n| &&
-             `        : MAIN_VIEW_ID;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function displayView(` && |\n| &&
-             `      ctx,` && |\n| &&
-             `      xml,` && |\n| &&
-             `      viewModel,` && |\n| &&
-             `      mOptions = {},` && |\n| &&
-             `      place = swapAlone,` && |\n| &&
-             `      localId = MAIN_VIEW_ID,` && |\n| &&
-             `    ) {` && |\n| &&
-             `      const oViewModel = createViewModel(ctx, "MAIN", viewModel);` && |\n| &&
-             `` && |\n| &&
-             `      const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
-             `` && |\n| &&
-             `      let oModel;` && |\n| &&
-             `      if (switchPath) {` && |\n| &&
-             `        const ODataModel = await Lib.requireODataModel();` && |\n| &&
-             `        oModel = new ODataModel({` && |\n| &&
-             `          serviceUrl: switchPath,` && |\n| &&
-             `          annotationURI: mOptions.switchDefaultModelAnnoUri || "",` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        ctx.state.odataClients.add(oModel);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        oModel = oViewModel;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      applyStoredSizeLimit(ctx, "MAIN", oViewModel);` && |\n| &&
-             `      if (switchPath) applyStoredSizeLimit(ctx, "MAIN", oModel);` && |\n| &&
-             `` && |\n| &&
-             `      await Env.loadViewLibraries(xml);` && |\n| &&
-             `      const oView = await Context.runAsOwner(ctx, () =>` && |\n| &&
-             `        XMLView.create({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          models: oModel,` && |\n| &&
-             `          controller: ViewSlots.getController(ctx, "MAIN"),` && |\n| &&
-             `` && |\n| &&
-             `          id: ViewSlots.ownId(ctx, localId),` && |\n| &&
-             `          preprocessors: templatePreprocessors(xml, oViewModel),` && |\n| &&
-             `        }),` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      const discardBuild = () => {` && |\n| &&
-             `        oView.destroy();` && |\n| &&
-             `` && |\n| &&
-             `        ctx.state.odataClients.delete(oModel);` && |\n| &&
-             `        oModel.destroy();` && |\n| &&
-             `        if (switchPath) oViewModel.destroy();` && |\n| &&
-             `      };` && |\n| &&
-             `` && |\n| &&
-             `      if (!Lib.isAlive(ctx.state.oApp)) {` && |\n| &&
-             `        discardBuild();` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      ViewSlots.setView(ctx, "MAIN", oView, xml);` && |\n| &&
-             `      if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
-             `      return place(ctx, oView);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function swapAlone(ctx, oView, oOld, aOldClients) {` && |\n| &&
-             `      const oApp = ctx.state.oApp;` && |\n| &&
-             `      oApp.removeAllPages();` && |\n| &&
-             `      oApp.insertPage(oView);` && |\n| &&
-             `      if (oOld) leaveOnceRendered(ctx, oView, oOld, aOldClients);` && |\n| &&
-             `      return true;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const SWAP_TIMEOUT = 3000;` && |\n| &&
-             `` && |\n| &&
-             `    function leaveOnceRendered(ctx, oView, oOld, aOldClients) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      let timer = null;` && |\n| &&
-             `      const finish = () => {` && |\n| &&
-             `        if (state.mainLeaving !== finish) return;` && |\n| &&
-             `        state.mainLeaving = null;` && |\n| &&
-             `        clearTimeout(timer);` && |\n| &&
-             `        leavePage(ctx, oOld, aOldClients);` && |\n| &&
-             `      };` && |\n| &&
-             `      state.mainLeaving = finish;` && |\n| &&
-             `      freezePage(oOld);` && |\n| &&
-             `      timer = setTimeout(finish, SWAP_TIMEOUT);` && |\n| &&
-             `      Lib.whenRendered(oView, oView, finish);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const TRANSITION_OPTIONS = [` && |\n| &&
-             `      "transition",` && |\n| &&
-             `      "transitionBack",` && |\n| &&
-             `      "navBack",` && |\n| &&
-             `      "appInstance",` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const TRANSITION_TIMEOUT = 3000;` && |\n| &&
-             `` && |\n| &&
-             `    function isSameOwner(ctx, options) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const instance = options.appInstance || "";` && |\n| &&
-             `      if (instance && state.mainInstance) {` && |\n| &&
-             `        return instance === state.mainInstance;` && |\n| &&
-             `      }` && |\n| &&
-             `      const pageApp = ViewSlots.getViewApp(ctx, "MAIN");` && |\n| &&
-             `      return Boolean(pageApp) && pageApp === state.oResponse?.APP;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function transitionPlan(ctx, options) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const oCurrent = ViewSlots.getView(ctx, "MAIN");` && |\n| &&
-             `` && |\n| &&
-             `      if (!oCurrent?.getDomRef?.() || !state.oApp?.getDomRef?.()) return null;` && |\n| &&
-             `` && |\n| &&
-             `      const explicitBack = options.transitionBack === true;` && |\n| &&
-             `      const recognizedBack =` && |\n| &&
-             `        options.navBack === true ||` && |\n| &&
-             `        (state.navFromHash && state.navDirection === "back");` && |\n| &&
-             `      if (explicitBack || recognizedBack) {` && |\n| &&
-             `        if (!state.mainArrival) return null;` && |\n| &&
-             `` && |\n| &&
-             `        if (!explicitBack && isSameOwner(ctx, options)) return null;` && |\n| &&
-             `        return { back: true, name: state.mainArrival };` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!options.transition) return null;` && |\n| &&
-             `      return { back: false, name: String(options.transition) };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function rememberPlainArrival(ctx, options, bSameOwner) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      if (!bSameOwner || options.transition) {` && |\n| &&
-             `        state.mainArrival = String(options.transition || "");` && |\n| &&
-             `      }` && |\n| &&
-             `      state.mainInstance =` && |\n| &&
-             `        options.appInstance || (bSameOwner ? state.mainInstance : "");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function freezePage(oPage) {` && |\n| &&
-             `      const dom = oPage?.getDomRef?.();` && |\n| &&
-             `      if (dom?.style) dom.style.pointerEvents = "none";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function leavePage(ctx, oOld, aOldClients) {` && |\n| &&
-             `      const oApp = ctx.state.oApp;` && |\n| &&
-             `      try {` && |\n| &&
-             `        if (Lib.isAlive(oApp) && Lib.isAlive(oOld)) oApp.removePage(oOld);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Slots: removing the page that left failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        if (Lib.isAlive(oOld)) oOld.destroy();` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Slots: destroying the page that left failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const oClient of aOldClients) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          oClient.destroy();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("displayMain: destroying an OData client failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function navigatePage(ctx, oOld, oView, plan, mOptions, aOldClients) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const oApp = state.oApp;` && |\n| &&
-             `      let settle;` && |\n| &&
-             `      let timer = null;` && |\n| &&
-             `      const change = new Promise((resolve) => {` && |\n| &&
-             `        settle = resolve;` && |\n| &&
-             `      });` && |\n| &&
-             `` && |\n| &&
-             `      const onAfterNavigate = (oEvent) => {` && |\n| &&
-             `        if (oEvent.getParameter("toId") === oView.getId()) finish();` && |\n| &&
-             `      };` && |\n| &&
-             `      const finish = () => {` && |\n| &&
-             `        if (!settle) return;` && |\n| &&
-             `        const fnSettle = settle;` && |\n| &&
-             `        settle = null;` && |\n| &&
-             `        clearTimeout(timer);` && |\n| &&
-             `` && |\n| &&
-             `        if (Lib.isAlive(oApp)) oApp.detachAfterNavigate(onAfterNavigate);` && |\n| &&
-             `        leavePage(ctx, oOld, aOldClients);` && |\n| &&
-             `        if (state.mainTransition === change) state.mainTransition = null;` && |\n| &&
-             `        fnSettle();` && |\n| &&
-             `      };` && |\n| &&
-             `      state.mainTransition = change;` && |\n| &&
-             `      oApp.attachAfterNavigate(onAfterNavigate);` && |\n| &&
-             `` && |\n| &&
-             `      timer = setTimeout(finish, TRANSITION_TIMEOUT);` && |\n| &&
-             `` && |\n| &&
-             `      state.mainArrival = plan.back` && |\n| &&
-             `        ? String(mOptions.transition || "")` && |\n| &&
-             `        : plan.name;` && |\n| &&
-             `      state.mainInstance = mOptions.appInstance || "";` && |\n| &&
-             `` && |\n| &&
-             `      oApp.addPage(oView);` && |\n| &&
-             `      try {` && |\n| &&
-             `        if (plan.back) {` && |\n| &&
-             `          oApp.to(oOld.getId(), plan.name);` && |\n| &&
-             `          oApp.insertPreviousPage(` && |\n| &&
-             `            oView.getId(),` && |\n| &&
-             `            mOptions.transition || plan.name,` && |\n| &&
-             `          );` && |\n| &&
-             `          oApp.backToPage(oView.getId());` && |\n| &&
-             `        } else {` && |\n| &&
-             `          oApp.to(oView.getId(), plan.name);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("Slots: the page transition failed", e);` && |\n| &&
-             `        finish();` && |\n| &&
-             `      }` && |\n| &&
-             `      return true;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function displayPaged(ctx, xml, mOptions, plan) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `` && |\n| &&
-             `      const oOld = ViewSlots.detach(ctx, "MAIN");` && |\n| &&
-             `` && |\n| &&
-             `      const aOldClients = [...state.odataClients];` && |\n| &&
-             `      state.odataClients.clear();` && |\n| &&
-             `` && |\n| &&
-             `      ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
-             `      ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
-             `      freezePage(oOld);` && |\n| &&
-             `      const localId = freeMainViewId(ctx, oOld);` && |\n| &&
-             `      let bPlaced;` && |\n| &&
-             `      try {` && |\n| &&
-             `        bPlaced = await displayView(` && |\n| &&
-             `          ctx,` && |\n| &&
-             `          xml,` && |\n| &&
-             `          state.oResponse?.OVIEWMODEL,` && |\n| &&
-             `          mOptions,` && |\n| &&
-             `          (c, oView) =>` && |\n| &&
-             `            navigatePage(c, oOld, oView, plan, mOptions, aOldClients),` && |\n| &&
-             `          localId,` && |\n| &&
-             `        );` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        leavePage(ctx, oOld, aOldClients);` && |\n| &&
-             `        throw e;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (!bPlaced) leavePage(ctx, oOld, aOldClients);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function chainBuild(ctx, seq, build) {` && |\n| &&
-             `      ctx.server.viewBuild = Promise.resolve(ctx.server.viewBuild)` && |\n| &&
-             `        .catch(() => {})` && |\n| &&
-             `        .then(() => {` && |\n| &&
-             `          if (isSuperseded(ctx, seq)) {` && |\n| &&
-             `            return undefined;` && |\n| &&
-             `          }` && |\n| &&
-             `          return build();` && |\n| &&
-             `        });` && |\n| &&
-             `      return ctx.server.viewBuild;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function displayMain(ctx, xml, mOptions, seq) {` && |\n| &&
-             `      return chainBuild(ctx, seq, async () => {` && |\n| &&
-             `        if (ctx.state.mainTransition) {` && |\n| &&
-             `          await ctx.state.mainTransition;` && |\n| &&
-             `          if (isSuperseded(ctx, seq)) return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        ctx.state.mainLeaving?.();` && |\n| &&
-             `        const plan = transitionPlan(ctx, mOptions);` && |\n| &&
-             `        if (plan) return displayPaged(ctx, xml, mOptions, plan);` && |\n| &&
-             `` && |\n| &&
-             `        rememberPlainArrival(ctx, mOptions, isSameOwner(ctx, mOptions));` && |\n| &&
-             `` && |\n| &&
-             `        const oOld = ViewSlots.detach(ctx, "MAIN");` && |\n| &&
-             `` && |\n| &&
-             `        const aOldClients = [...ctx.state.odataClients];` && |\n| &&
-             `        ctx.state.odataClients.clear();` && |\n| &&
-             `` && |\n| &&
-             `        ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
-             `        ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
-             `        const localId = freeMainViewId(ctx, oOld);` && |\n| &&
-             `        let bPlaced;` && |\n| &&
-             `        try {` && |\n| &&
-             `          bPlaced = await displayView(` && |\n| &&
-             `            ctx,` && |\n| &&
-             `            xml,` && |\n| &&
-             `            ctx.state.oResponse?.OVIEWMODEL,` && |\n| &&
-             `            mOptions,` && |\n| &&
-             `            (c, oView) => swapAlone(c, oView, oOld, aOldClients),` && |\n| &&
-             `            localId,` && |\n| &&
-             `          );` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          if (oOld) leavePage(ctx, oOld, aOldClients);` && |\n| &&
-             `          throw e;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (!bPlaced && oOld) leavePage(ctx, oOld, aOldClients);` && |\n| &&
-             `        return bPlaced;` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function displayStandalone(ctx, slotKey, xml, mOptions, seq) {` && |\n| &&
-             `      return chainBuild(ctx, seq, () => {` && |\n| &&
-             `        ViewSlots.destroy(ctx, slotKey);` && |\n| &&
-             `        if (slotKey === "POPUP") return displayFragment(ctx, xml, seq);` && |\n| &&
-             `        return displayPopover(ctx, xml, mOptions.openById, seq);` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function updateModelIfRequired(ctx, slotKey) {` && |\n| &&
-             `      const oView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
-             `      if (!oView) return;` && |\n| &&
-             `` && |\n| &&
-             `      const sSlotApp = ViewSlots.getViewApp(ctx, slotKey);` && |\n| &&
-             `      const sResponseApp = ctx.state.oResponse?.APP;` && |\n| &&
-             `      if (sSlotApp && sResponseApp && sSlotApp !== sResponseApp) return;` && |\n| &&
-             `` && |\n| &&
-             `      const tracked = resolveTrackedModel(oView);` && |\n| &&
-             `      if (tracked) {` && |\n| &&
-             `        if (` && |\n| &&
-             `          tracked._z2ui5BuiltFrom &&` && |\n| &&
-             `          tracked._z2ui5BuiltFrom === ctx.state.oResponse` && |\n| &&
-             `        ) {` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        applyStoredSizeLimit(ctx, slotKey, tracked);` && |\n| &&
-             `` && |\n| &&
-             `        const pending = tracked._z2ui5ChangedPaths;` && |\n| &&
-             `        const keep = [];` && |\n| &&
-             `        if (pending?.size) {` && |\n| &&
-             `          for (const path of pending) {` && |\n| &&
-             `            const value = tracked.getProperty(path);` && |\n| &&
-             `` && |\n| &&
-             `            if (value !== undefined) keep.push([path, value]);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        tracked.setData(dataForSlot(slotKey, ctx.state.oResponse?.OVIEWMODEL));` && |\n| &&
-             `` && |\n| &&
-             `        keep.forEach(([path, value], i) => {` && |\n| &&
-             `          tracked.setProperty(path, value, undefined, i < keep.length - 1);` && |\n| &&
-             `        });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const oModel = createViewModel(ctx, slotKey);` && |\n| &&
-             `      applyStoredSizeLimit(ctx, slotKey, oModel);` && |\n| &&
-             `      oView.setModel(oModel);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function action(ctx, method, slotKey, xml, mOptions, seq) {` && |\n| &&
-             `      const options = mOptions || {};` && |\n| &&
-             `      if (method === "destroy") {` && |\n| &&
-             `        ViewSlots.destroy(ctx, slotKey);` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (method === "updateModel") {` && |\n| &&
-             `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          if (slot.ownsModel) updateModelIfRequired(ctx, slot.key);` && |\n| &&
-             `        }` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (isSuperseded(ctx, seq)) return undefined;` && |\n| &&
-             `` && |\n| &&
-             `      if (slotKey === "MAIN") {` && |\n| &&
-             `        const reusable = { ...options };` && |\n| &&
-             `        for (const key of TRANSITION_OPTIONS) delete reusable[key];` && |\n| &&
-             `        ctx.state.lastMainDisplayOptions = reusable;` && |\n| &&
-             `        return displayMain(ctx, xml, options, seq);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (slotKey === "POPUP" || slotKey === "POPOVER") {` && |\n| &&
-             `        return displayStandalone(ctx, slotKey, xml, options, seq);` && |\n| &&
-             `      }` && |\n| &&
-             `      ViewSlots.destroy(ctx, slotKey);` && |\n| &&
-             `      return displayNestedView(ctx, xml, slotKey, options, seq);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      action,` && |\n| &&
-             `      resolveTrackedModel,` && |\n| &&
-             `      dispatchQueuedWindows,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/Variants.js": function(){sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const SMART_VARIANT_INIT_TRIES = 50;` && |\n| &&
-             `  const SMART_VARIANT_INIT_DELAY = 100;` && |\n| &&
-             `` && |\n| &&
-             `  function anchorPersoControl(oSVM, target) {` && |\n| &&
-             `    if (oSVM._oPersoControl) return;` && |\n| &&
-             `    if (typeof oSVM.setPersControler === "function") {` && |\n| &&
-             `      oSVM.setPersControler(target);` && |\n| &&
-             `    } else {` && |\n| &&
-             `      oSVM._oPersoControl = target;` && |\n| &&
-             `    }` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_06.
-
-    result = `  }` && |\n| &&
-             `` && |\n| &&
-             `  function ensureInitialised(oSVM, target, attempt, fnCallback) {` && |\n| &&
-             `    if (Lib.isDestroyed(oSVM)) return;` && |\n| &&
-             `    const wrapper = oSVM._getControlWrapper` && |\n| &&
-             `      ? oSVM._getControlWrapper(target)` && |\n| &&
-             `      : null;` && |\n| &&
-             `    if (!wrapper) {` && |\n| &&
-             `      if (attempt < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
-             `        setTimeout(` && |\n| &&
-             `          () => ensureInitialised(oSVM, target, attempt + 1, fnCallback),` && |\n| &&
-             `          SMART_VARIANT_INIT_DELAY,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    if (wrapper.bInitialized) return;` && |\n| &&
-             `    oSVM.initialise(fnCallback || (() => {}), target);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function activeInitsOf(oController, action) {` && |\n| &&
-             `    const ctx = oController?.ctx;` && |\n| &&
-             `    if (!ctx) {` && |\n| &&
-             `      Lib.logError(``${action}: no context to register in``);` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `    return ctx.variants.activeInits;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function evSmartVariantInit(oController, args) {` && |\n| &&
-             `    const [, svmId, controlId] = args;` && |\n| &&
-             `    const activeInits = activeInitsOf(oController, "SMART_VARIANT_INIT");` && |\n| &&
-             `    if (!activeInits) return;` && |\n| &&
-             `    const key = ``${svmId}|${controlId || ""}``;` && |\n| &&
-             `    if (activeInits.has(key)) return;` && |\n| &&
-             `    activeInits.add(key);` && |\n| &&
-             `    const finish = () => activeInits.delete(key);` && |\n| &&
-             `    let tries = 0;` && |\n| &&
-             `    const run = () => {` && |\n| &&
-             `      if (!Lib.isControllerAlive(oController)) {` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const oSVM = ViewSlots.resolveById(oController?.ctx, svmId);` && |\n| &&
-             `      const control = controlId` && |\n| &&
-             `        ? ViewSlots.resolveById(oController?.ctx, controlId)` && |\n| &&
-             `        : null;` && |\n| &&
-             `      if (!oSVM || (controlId && !control)) {` && |\n| &&
-             `        if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
-             `          setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``SMART_VARIANT_INIT: '${controlId ? ``${svmId}' / '${controlId}`` : svmId}' not found``,` && |\n| &&
-             `        );` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      let target = control;` && |\n| &&
-             `      if (!target) {` && |\n| &&
-             `        const registered = oSVM.getPersonalizableControls` && |\n| &&
-             `          ? oSVM.getPersonalizableControls()` && |\n| &&
-             `          : [];` && |\n| &&
-             `        if (!registered.length) {` && |\n| &&
-             `          if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
-             `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``,` && |\n| &&
-             `          );` && |\n| &&
-             `          finish();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        target = ViewSlots.resolveById(` && |\n| &&
-             `          oController?.ctx,` && |\n| &&
-             `          registered[0].getControl(),` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!target) {` && |\n| &&
-             `          finish();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      anchorPersoControl(oSVM, target);` && |\n| &&
-             `      ensureInitialised(oSVM, target, 0);` && |\n| &&
-             `` && |\n| &&
-             `      finish();` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    run();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const FILTER_BAR_WIRED = "_z2ui5FilterBarVariantWired";` && |\n| &&
-             `` && |\n| &&
-             `  function filterItemControl(item) {` && |\n| &&
-             `    return item && typeof item.getControl === "function"` && |\n| &&
-             `      ? item.getControl()` && |\n| &&
-             `      : null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function filterItemValue(item) {` && |\n| &&
-             `    const control = filterItemControl(item);` && |\n| &&
-             `    return control && typeof control.getValue === "function"` && |\n| &&
-             `      ? control.getValue()` && |\n| &&
-             `      : "";` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function registerFilterBarCallbacks(oFilterBar) {` && |\n| &&
-             `    oFilterBar.registerFetchData(() =>` && |\n| &&
-             `      oFilterBar.getAllFilterItems().map((item) => ({` && |\n| &&
-             `        groupName: item.getGroupName(),` && |\n| &&
-             `        fieldName: item.getName(),` && |\n| &&
-             `        fieldData: filterItemValue(item),` && |\n| &&
-             `      })),` && |\n| &&
-             `    );` && |\n| &&
-             `    oFilterBar.registerApplyData((data) => {` && |\n| &&
-             `      (data || []).forEach((entry) => {` && |\n| &&
-             `        const control = oFilterBar.determineControlByName(` && |\n| &&
-             `          entry.fieldName,` && |\n| &&
-             `          entry.groupName,` && |\n| &&
-             `        );` && |\n| &&
-             `` && |\n| &&
-             `        if (control && typeof control.setValue === "function") {` && |\n| &&
-             `          control.setValue(entry.fieldData);` && |\n| &&
-             `        }` && |\n| &&
-             `      });` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
-             `    oFilterBar.registerGetFiltersWithValues(() =>` && |\n| &&
-             `      oFilterBar` && |\n| &&
-             `        .getAllFilterItems()` && |\n| &&
-             `        .filter((item) => String(filterItemValue(item)).length > 0),` && |\n| &&
-             `    );` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function attachFilterBarChange(oSVM, oFilterBar) {` && |\n| &&
-             `    oFilterBar.getAllFilterItems().forEach((item) => {` && |\n| &&
-             `      const control = filterItemControl(item);` && |\n| &&
-             `      if (!control || typeof control.attachChange !== "function") return;` && |\n| &&
-             `      control.attachChange((oEvent) => {` && |\n| &&
-             `        if (typeof oSVM.currentVariantSetModified === "function") {` && |\n| &&
-             `          oSVM.currentVariantSetModified(true);` && |\n| &&
-             `        }` && |\n| &&
-             `        if (typeof oFilterBar.fireFilterChange === "function") {` && |\n| &&
-             `          oFilterBar.fireFilterChange(oEvent);` && |\n| &&
-             `        }` && |\n| &&
-             `      });` && |\n| &&
-             `    });` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function withPersonalizableInfo(callback) {` && |\n| &&
-             `    const name = "sap/ui/comp/smartvariants/PersonalizableInfo";` && |\n| &&
-             `` && |\n| &&
-             `    if (` && |\n| &&
-             `      typeof sap === "undefined" ||` && |\n| &&
-             `      !sap.ui ||` && |\n| &&
-             `      typeof sap.ui.require !== "function"` && |\n| &&
-             `    ) {` && |\n| &&
-             `      Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    const loaded = sap.ui.require(name);` && |\n| &&
-             `    if (loaded) {` && |\n| &&
-             `      callback(loaded);` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    sap.ui.require([name], callback, () =>` && |\n| &&
-             `      Lib.logError(` && |\n| &&
-             `        "FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available",` && |\n| &&
-             `      ),` && |\n| &&
-             `    );` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function evFilterBarVariantInit(oController, args) {` && |\n| &&
-             `    const [, svmId, filterBarId] = args;` && |\n| &&
-             `` && |\n| &&
-             `    const activeInits = activeInitsOf(oController, "FILTER_BAR_VARIANT_INIT");` && |\n| &&
-             `    if (!activeInits) return;` && |\n| &&
-             `    const key = ``${svmId}|${filterBarId || ""}``;` && |\n| &&
-             `    if (activeInits.has(key)) return;` && |\n| &&
-             `    activeInits.add(key);` && |\n| &&
-             `    const finish = () => activeInits.delete(key);` && |\n| &&
-             `    let tries = 0;` && |\n| &&
-             `    const run = () => {` && |\n| &&
-             `      if (!Lib.isControllerAlive(oController)) {` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const oSVM = ViewSlots.resolveById(oController?.ctx, svmId);` && |\n| &&
-             `      const oFilterBar = ViewSlots.resolveById(oController?.ctx, filterBarId);` && |\n| &&
-             `      if (!oSVM || !oFilterBar) {` && |\n| &&
-             `        if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
-             `          setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``,` && |\n| &&
-             `        );` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (` && |\n| &&
-             `        Lib.isDestroyed(oSVM) ||` && |\n| &&
-             `        typeof oSVM.addPersonalizableControl !== "function"` && |\n| &&
-             `      ) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (typeof oFilterBar.registerFetchData !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (oFilterBar[FILTER_BAR_WIRED]) {` && |\n| &&
-             `        finish();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      oFilterBar[FILTER_BAR_WIRED] = true;` && |\n| &&
-             `` && |\n| &&
-             `      finish();` && |\n| &&
-             `` && |\n| &&
-             `      registerFilterBarCallbacks(oFilterBar);` && |\n| &&
-             `      attachFilterBarChange(oSVM, oFilterBar);` && |\n| &&
-             `      withPersonalizableInfo((PersonalizableInfo) => {` && |\n| &&
-             `        oSVM.addPersonalizableControl(` && |\n| &&
-             `          new PersonalizableInfo({` && |\n| &&
-             `            type: "filterBar",` && |\n| &&
-             `            keyName: "persistencyKey",` && |\n| &&
-             `            dataSource: "",` && |\n| &&
-             `            control: oFilterBar,` && |\n| &&
-             `          }),` && |\n| &&
-             `        );` && |\n| &&
-             `        anchorPersoControl(oSVM, oFilterBar);` && |\n| &&
-             `` && |\n| &&
-             `        ensureInitialised(oSVM, oFilterBar, 0, () => {` && |\n| &&
-             `          if (typeof oSVM.currentVariantSetModified === "function") {` && |\n| &&
-             `            oSVM.currentVariantSetModified(false);` && |\n| &&
-             `          }` && |\n| &&
-             `        });` && |\n| &&
-             `      });` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    run();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const handlers = {` && |\n| &&
-             `    SMART_VARIANT_INIT: evSmartVariantInit,` && |\n| &&
-             `    FILTER_BAR_VARIANT_INIT: evFilterBarVariantInit,` && |\n| &&
-             `  };` && |\n| &&
-             `` && |\n| &&
-             `  return { handlers };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/ViewOps.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/ScrollFocus",` && |\n| &&
-             `    "z2ui5/core/actions/ControlCall",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Lib, ViewSlots, ScrollFocus, ControlCall) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
-             `` && |\n| &&
-             `    function evSetSizeLimit(oController, args) {` && |\n| &&
-             `      const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
-             `      const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
-             `      const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
-             `` && |\n| &&
-             `      const isValidLimit = Number.isFinite(limit) && limit > 0;` && |\n| &&
-             `      const previous = oController.ctx.state.viewSizeLimits[viewKey];` && |\n| &&
-             `      if (isValidLimit) {` && |\n| &&
-             `        oController.ctx.state.viewSizeLimits[viewKey] = limit;` && |\n| &&
-             `      } else {` && |\n| &&
-             `        delete oController.ctx.state.viewSizeLimits[viewKey];` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (previous === oController.ctx.state.viewSizeLimits[viewKey]) return;` && |\n| &&
-             `` && |\n| &&
-             `      const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;` && |\n| &&
-             `` && |\n| &&
-             `      const view = ViewSlots.getView(oController.ctx, modelKey);` && |\n| &&
-             `      const model = view` && |\n| &&
-             `        ? (ViewSlots.trackedModel(view) ?? view.getModel())` && |\n| &&
-             `        : undefined;` && |\n| &&
-             `      if (model) {` && |\n| &&
-             `        const effective = Lib.effectiveSizeLimit(` && |\n| &&
-             `          oController.ctx.state.viewSizeLimits,` && |\n| &&
-             `          viewKey,` && |\n| &&
-             `        );` && |\n| &&
-             `` && |\n| &&
-             `        model.setSizeLimit(effective ?? 100);` && |\n| &&
-             `        model.refresh(true);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function evSetODataModel(oController, args) {` && |\n| &&
-             `      let oModel;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const ODataModel = await Lib.requireODataModel();` && |\n| &&
-             `        oModel = new ODataModel({` && |\n| &&
-             `          serviceUrl: args[1],` && |\n| &&
-             `          annotationURI: args[3] || "",` && |\n| &&
-             `        });` && |\n| &&
-             `        const oView = ViewSlots.getView(oController.ctx, "MAIN");` && |\n| &&
-             `        if (oView) {` && |\n| &&
-             `          const name = args[2] || undefined;` && |\n| &&
-             `` && |\n| &&
-             `          const previous = oView.getModel(name);` && |\n| &&
-             `          oView.setModel(oModel, name);` && |\n| &&
-             `          oController.ctx.state.odataClients.add(oModel);` && |\n| &&
-             `` && |\n| &&
-             `          if (` && |\n| &&
-             `            previous !== oModel &&` && |\n| &&
-             `            oController.ctx.state.odataClients.has(previous)` && |\n| &&
-             `          ) {` && |\n| &&
-             `            oController.ctx.state.odataClients.delete(previous);` && |\n| &&
-             `            previous.destroy();` && |\n| &&
-             `          }` && |\n| &&
-             `        } else {` && |\n| &&
-             `          oModel.destroy();` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
-             `` && |\n| &&
-             `        oController.ctx.state.odataClients.delete(oModel);` && |\n| &&
-             `        oModel?.destroy?.();` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evBindElement(oController, args) {` && |\n| &&
-             `      const slot = args[1] || "MAIN";` && |\n| &&
-             `      const view = ViewSlots.getView(oController.ctx, slot);` && |\n| &&
-             `      if (!view) {` && |\n| &&
-             `        Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const path = String(args[3] ?? "")` && |\n| &&
-             `        .replace(/[{}]/g, "")` && |\n| &&
-             `        .replace(/^\$/, "");` && |\n| &&
-             `      if (!path) {` && |\n| &&
-             `        Lib.logError("BIND_ELEMENT: empty binding path");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const index = String(args[2] ?? "");` && |\n| &&
-             `      if (!/^\d+$/.test(index.trim())) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``BIND_ELEMENT: '${args[2] ?? ""}' is no row index of '${path}' - the view is not rebound``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      view.bindElement(``${path}/${index.trim()}``);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evStartTimer(oController, args) {` && |\n| &&
-             `      const timerKey = args[0];` && |\n| &&
-             `      const callbackEvent = args[1];` && |\n| &&
-             `      const delay = Number(args[2]) || 0;` && |\n| &&
-             `` && |\n| &&
-             `      const noBusy = ControlCall.castArg("bool", args[3]);` && |\n| &&
-             `      const timers = oController.ctx.state.timers;` && |\n| &&
-             `      Lib.cancelTimer(timers[timerKey]);` && |\n| &&
-             `      const fire = () => {` && |\n| &&
-             `        delete timers[timerKey];` && |\n| &&
-             `` && |\n| &&
-             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (oController.ctx.state.isBusy) {` && |\n| &&
-             `          const cancel = Lib.afterRoundtrip(oController, () => {` && |\n| &&
-             `            timers[timerKey] = setTimeout(fire, 0);` && |\n| &&
-             `          });` && |\n| &&
-             `          if (!(timerKey in timers)) timers[timerKey] = cancel;` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        oController.eB(` && |\n| &&
-             `          noBusy ? [callbackEvent, { noBusy: true }] : [callbackEvent],` && |\n| &&
-             `        );` && |\n| &&
-             `      };` && |\n| &&
-             `      timers[timerKey] = setTimeout(fire, delay);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveTarget(oController, action, id) {` && |\n| &&
-             `      const oElement = ViewSlots.resolveById(oController?.ctx, id);` && |\n|.
-    result = result &&
-             `      if (!oElement) Lib.logError(``${action}: no control '${id}'``);` && |\n| &&
-             `      return oElement;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evSetFocus(oController, args) {` && |\n| &&
-             `      const oElement = resolveTarget(oController, "SET_FOCUS", args[1]);` && |\n| &&
-             `      if (!oElement) return;` && |\n| &&
-             `` && |\n| &&
-             `      const applyFocus = () => {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const info = oElement.getFocusInfo();` && |\n| &&
-             `` && |\n| &&
-             `          const start = Lib.toCaretIndex(args[2]);` && |\n| &&
-             `          const end = Lib.toCaretIndex(args[3]);` && |\n| &&
-             `          if (start !== null) info.selectionStart = start;` && |\n| &&
-             `          if (end !== null) info.selectionEnd = end;` && |\n| &&
-             `          oElement.applyFocusInfo(info);` && |\n| &&
-             `` && |\n| &&
-             `          const from = start ?? end;` && |\n| &&
-             `          const to = end ?? start;` && |\n| &&
-             `          const field = oElement.getFocusDomRef?.();` && |\n| &&
-             `          const caret = from === null ? null : Lib.readCaret(field);` && |\n| &&
-             `          if (` && |\n| &&
-             `            caret &&` && |\n| &&
-             `            document.activeElement === field &&` && |\n| &&
-             `            (caret.start !== from || caret.end !== to)` && |\n| &&
-             `          ) {` && |\n| &&
-             `            field.setSelectionRange(from, to);` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      };` && |\n| &&
-             `` && |\n| &&
-             `      Lib.whenRendered(` && |\n| &&
-             `        oElement,` && |\n| &&
-             `        oController,` && |\n| &&
-             `        () => {` && |\n| &&
-             `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `` && |\n| &&
-             `          if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;` && |\n| &&
-             `          applyFocus();` && |\n| &&
-             `          if (oElement.getDomRef()?.contains(document.activeElement)) return;` && |\n| &&
-             `` && |\n| &&
-             `          const prevActive = document.activeElement;` && |\n| &&
-             `` && |\n| &&
-             `          const samePlace = (el) =>` && |\n| &&
-             `            el == null ||` && |\n| &&
-             `            el === document.body ||` && |\n| &&
-             `            el === prevActive ||` && |\n| &&
-             `            Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
-             `` && |\n| &&
-             `          Lib.onNextRendering(` && |\n| &&
-             `            oElement,` && |\n| &&
-             `            () => {` && |\n| &&
-             `              setTimeout(() => {` && |\n| &&
-             `                if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `` && |\n| &&
-             `                if (!samePlace(document.activeElement)) return;` && |\n| &&
-             `                if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;` && |\n| &&
-             `                applyFocus();` && |\n| &&
-             `              }, 0);` && |\n| &&
-             `            },` && |\n| &&
-             `            "focusRetry",` && |\n| &&
-             `          );` && |\n| &&
-             `        },` && |\n| &&
-             `        "focus",` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evScrollTo(oController, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const oElement = resolveTarget(oController, "SCROLL_TO", args[1]);` && |\n| &&
-             `        if (!oElement) return;` && |\n| &&
-             `        const y = Number(args[2]) || 0;` && |\n| &&
-             `        const x = Number(args[3]) || 0;` && |\n| &&
-             `        const behavior = args[4] || "auto";` && |\n| &&
-             `        const smooth = behavior === "smooth";` && |\n| &&
-             `` && |\n| &&
-             `        let handled = false;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const delegate = oElement.getScrollDelegate?.();` && |\n| &&
-             `          if (delegate?.scrollTo) {` && |\n| &&
-             `            delegate.scrollTo(x, y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
-             `            handled = true;` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch {}` && |\n| &&
-             `` && |\n| &&
-             `        if (!handled) {` && |\n| &&
-             `          const dom =` && |\n| &&
-             `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
-             `            oElement.getDomRef();` && |\n| &&
-             `          if (dom?.scrollTo) {` && |\n| &&
-             `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
-             `          } else if (dom) {` && |\n| &&
-             `            dom.scrollTop = y;` && |\n| &&
-             `            dom.scrollLeft = x;` && |\n| &&
-             `          } else if (oElement.scrollTo) {` && |\n| &&
-             `            oElement.scrollTo(y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evScrollIntoView(oController, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const oElement = resolveTarget(` && |\n| &&
-             `          oController,` && |\n| &&
-             `          "SCROLL_INTO_VIEW",` && |\n| &&
-             `          args[1],` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!oElement) return;` && |\n| &&
-             `        const dom = oElement.getDomRef();` && |\n| &&
-             `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
-             `        dom.scrollIntoView({` && |\n| &&
-             `          behavior: args[2] || "smooth",` && |\n| &&
-             `          block: args[3] || "start",` && |\n| &&
-             `          inline: args[4] || "nearest",` && |\n| &&
-             `        });` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
-             `      SET_ODATA_MODEL: evSetODataModel,` && |\n| &&
-             `      BIND_ELEMENT: evBindElement,` && |\n| &&
-             `      START_TIMER: evStartTimer,` && |\n| &&
-             `      SET_FOCUS: evSetFocus,` && |\n| &&
-             `      SCROLL_TO: evScrollTo,` && |\n| &&
-             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/core/actions/ViewOps.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/ScrollFocus","z2ui5/core/actions/ControlCall"],(Lib,ViewSlots,ScrollFocus,ControlCa` &&
+             `ll)=>{"use strict";const SMOOTH_SCROLL_MS=300;function evSetSizeLimit(oController,args){const hasLimit=args[2]!==undefined&&args[2]!=="";const viewKey=hasLimit?args[2]:args[1];const limit=hasLimit?Num` &&
+             `ber(args[1]):NaN;const isValidLimit=Number.isFinite(limit)&&limit>0;const previous=oController.ctx.state.viewSizeLimits[viewKey];if(isValidLimit){oController.ctx.state.viewSizeLimits[viewKey]=limit}el` &&
+             `se{delete oController.ctx.state.viewSizeLimits[viewKey]}if(previous===oController.ctx.state.viewSizeLimits[viewKey])return;const modelKey=Lib.isRootModelSlot(viewKey)?"MAIN":viewKey;const view=ViewSlo` &&
+             `ts.getView(oController.ctx,modelKey);const model=view?ViewSlots.trackedModel(view)??view.getModel():undefined;if(model){const effective=Lib.effectiveSizeLimit(oController.ctx.state.viewSizeLimits,view` &&
+             `Key);model.setSizeLimit(effective??100);model.refresh(true)}}async function evSetODataModel(oController,args){let oModel;try{const ODataModel=await Lib.requireODataModel();oModel=new ODataModel({servi` &&
+             `ceUrl:args[1],annotationURI:args[3]||""});const oView=ViewSlots.getView(oController.ctx,"MAIN");if(oView){const name=args[2]||undefined;const previous=oView.getModel(name);oView.setModel(oModel,name);` &&
+             `oController.ctx.state.odataClients.add(oModel);if(previous!==oModel&&oController.ctx.state.odataClients.has(previous)){oController.ctx.state.odataClients.delete(previous);previous.destroy()}}else{oMod` &&
+             `el.destroy()}}catch(e){Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``,e);oController.ctx.state.odataClients.delete(oModel);oModel?.destroy?.()}}function evBindElement(oController,args){const ` &&
+             `slot=args[1]||"MAIN";const view=ViewSlots.getView(oController.ctx,slot);if(!view){Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);return}const path=String(args[3]??"").replace(/[{}]/g,"").rep` &&
+             `lace(/^\$/,"");if(!path){Lib.logError("BIND_ELEMENT: empty binding path");return}const index=String(args[2]??"");if(!/^\d+$/.test(index.trim())){Lib.logError(``BIND_ELEMENT: '${args[2]??""}' is no row ` &&
+             `index of '${path}' - the view is not rebound``);return}view.bindElement(``${path}/${index.trim()}``)}function evStartTimer(oController,args){const timerKey=args[0];const callbackEvent=args[1];const delay` &&
+             `=Number(args[2])||0;const noBusy=ControlCall.castArg("bool",args[3]);const timers=oController.ctx.state.timers;Lib.cancelTimer(timers[timerKey]);const fire=()=>{delete timers[timerKey];if(!Lib.isContr` &&
+             `ollerAlive(oController))return;if(oController.ctx.state.isBusy){const cancel=Lib.afterRoundtrip(oController,()=>{timers[timerKey]=setTimeout(fire,0)});if(!(timerKey in timers))timers[timerKey]=cancel;` &&
+             `return}oController.eB(noBusy?[callbackEvent,{noBusy:true}]:[callbackEvent])};timers[timerKey]=setTimeout(fire,delay)}function resolveTarget(oController,action,id){const oElement=ViewSlots.resolveById(` &&
+             `oController?.ctx,id);if(!oElement)Lib.logError(``${action}: no control '${id}'``);return oElement}function evSetFocus(oController,args){const oElement=resolveTarget(oController,"SET_FOCUS",args[1]);if(!` &&
+             `oElement)return;const applyFocus=()=>{try{const info=oElement.getFocusInfo();const start=Lib.toCaretIndex(args[2]);const end=Lib.toCaretIndex(args[3]);if(start!==null)info.selectionStart=start;if(end!` &&
+             `==null)info.selectionEnd=end;oElement.applyFocusInfo(info);const from=start??end;const to=end??start;const field=oElement.getFocusDomRef?.();const caret=from===null?null:Lib.readCaret(field);if(caret&` &&
+             `&document.activeElement===field&&(caret.start!==from||caret.end!==to)){field.setSelectionRange(from,to)}}catch(e){Lib.logError(``SET_FOCUS: failed for '${args[1]}'``,e)}};Lib.whenRendered(oElement,oCont` &&
+             `roller,()=>{if(!Lib.isControllerAlive(oController))return;if(!ScrollFocus.mayMoveFocus(oController.ctx))return;applyFocus();if(oElement.getDomRef()?.contains(document.activeElement))return;const prevA` &&
+             `ctive=document.activeElement;const samePlace=el=>el==null||el===document.body||el===prevActive||Boolean(el.id&&prevActive&&el.id===prevActive.id);Lib.onNextRendering(oElement,()=>{setTimeout(()=>{if(!` &&
+             `Lib.isControllerAlive(oController))return;if(!samePlace(document.activeElement))return;if(!ScrollFocus.mayMoveFocus(oController.ctx))return;applyFocus()},0)},"focusRetry")},"focus")}function evScrollT` &&
+             `o(oController,args){try{const oElement=resolveTarget(oController,"SCROLL_TO",args[1]);if(!oElement)return;const y=Number(args[2])||0;const x=Number(args[3])||0;const behavior=args[4]||"auto";const smo` &&
+             `oth=behavior==="smooth";let handled=false;try{const delegate=oElement.getScrollDelegate?.();if(delegate?.scrollTo){delegate.scrollTo(x,y,smooth?SMOOTH_SCROLL_MS:0);handled=true}}catch{}if(!handled){co` &&
+             `nst dom=document.getElementById(``${oElement.getId()}-inner``)||oElement.getDomRef();if(dom?.scrollTo){dom.scrollTo({top:y,left:x,behavior})}else if(dom){dom.scrollTop=y;dom.scrollLeft=x}else if(oElemen` &&
+             `t.scrollTo){oElement.scrollTo(y,smooth?SMOOTH_SCROLL_MS:0)}}}catch(e){Lib.logError(``SCROLL_TO: failed for '${args[1]}'``,e)}}function evScrollIntoView(oController,args){try{const oElement=resolveTarget` &&
+             `(oController,"SCROLL_INTO_VIEW",args[1]);if(!oElement)return;const dom=oElement.getDomRef();if(!dom||!dom.scrollIntoView)return;dom.scrollIntoView({behavior:args[2]||"smooth",block:args[3]||"start",in` &&
+             `line:args[4]||"nearest"})}catch(e){Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``,e)}}const handlers={SET_SIZE_LIMIT:evSetSizeLimit,SET_ODATA_MODEL:evSetODataModel,BIND_ELEMENT:evBindElement` &&
+             `,START_TIMER:evStartTimer,SET_FOCUS:evSetFocus,SCROLL_TO:evScrollTo,SCROLL_INTO_VIEW:evScrollIntoView};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/css/style.css": '/* Enter your custom styles here */',` && |\n| &&
-             `      "z2ui5/devtools/Console.js": function(){sap.ui.define(["z2ui5/devtools/Persist"], (Persist) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+             `      "z2ui5/devtools/Console.js": function(){sap.ui.define(["z2ui5/devtools/Persist"],Persist=>{"use strict";const MAX_ENTRIES=300;const MAX_TEXT_CHARS=2e3;const MAX_DEPTH=4;const MAX_ITEMS=20;const ` &&
+             `MAX_NODES=1e3;const RELOAD_KEY="z2ui5.devtools.console";const RELOAD_MAX_ENTRIES=40;const ALERT_KEY="z2ui5.devtools.openOnError";const METHODS=["log","info","warn","error","debug"];let entries=[];let ` &&
+             `dropped=0;const originals={};let users=0;let ui5Listener=null;let onWindowError=null;let onRejection=null;let onPageHide=null;const onErrorEntry=new Set;let capturing=false;let pendingUi5Echo=null;fun` &&
+             `ction push(level,source,text){if(entries.length>=MAX_ENTRIES){entries.shift();dropped+=1}let body=text;if(body.length>MAX_TEXT_CHARS){body=``${body.slice(0,MAX_TEXT_CHARS)}... (${body.length} chars)``}c` &&
+             `onst entry={ts:(new Date).toISOString(),level,source,text:body};entries.push(entry);if(level==="error"&&onErrorEntry.size&&isAlertOnError()){for(const fn of onErrorEntry){try{fn(entry)}catch{}}}}funct` &&
+             `ion addOnError(fn){if(typeof fn==="function")onErrorEntry.add(fn)}function removeOnError(fn){onErrorEntry.delete(fn)}function isAlertOnError(){return Persist.readFlag(ALERT_KEY)}function setAlertOnErr` &&
+             `or(enabled){Persist.writeFlag(ALERT_KEY,enabled)}function persist(){const errors=entries.filter(entry=>entry.level==="error").slice(-RELOAD_MAX_ENTRIES).map(entry=>({...entry,previousLoad:true}));Pers` &&
+             `ist.saveList(RELOAD_KEY,errors)}function restore(){const stored=Persist.takeList(RELOAD_KEY);if(stored.length)entries=stored.slice(-RELOAD_MAX_ENTRIES)}function isErrorLike(value){if(!value||typeof va` &&
+             `lue!=="object")return false;if(Object.prototype.toString.call(value)==="[object Error]")return true;return typeof value.stack==="string"&&typeof value.message==="string"}function renderArg(value){if(v` &&
+             `alue===undefined)return"undefined";if(value===null)return"null";const type=typeof value;if(type==="string")return value;if(type==="number"||type==="boolean"||type==="bigint"){return String(value)}if(t` &&
+             `ype==="function")return``[function ${value.name||"anonymous"}]``;if(type==="symbol")return String(value);if(isErrorLike(value)){return value.stack||``${value.name||"Error"}: ${value.message}``}try{const a` &&
+             `ncestors=[];const walked=new WeakMap;let nodes=0;return JSON.stringify(value,function replace(key,val){if(typeof val==="object"&&val!==null){if(++nodes>MAX_NODES)return"[...]";const holder=walked.get(` &&
+             `this)||this;while(ancestors.length>0&&ancestors[ancestors.length-1]!==holder){ancestors.pop()}if(ancestors.includes(val))return"[Circular]";if(ancestors.length>=MAX_DEPTH)return"[...]";ancestors.push(` &&
+             `val);if(Array.isArray(val)&&val.length>MAX_ITEMS){const head=val.slice(0,MAX_ITEMS);head.push(``[... ${val.length-MAX_ITEMS} more]``);walked.set(head,val);return head}const keys=Object.keys(val);if(keys` &&
+             `.length>MAX_ITEMS){const head={};for(const k of keys.slice(0,MAX_ITEMS))head[k]=val[k];head[``... ${keys.length-MAX_ITEMS} more``]="[...]";walked.set(head,val);return head}}if(isErrorLike(val))return va` &&
+             `l.stack||String(val);return val})}catch{try{return String(value)}catch{return"[unrenderable]"}}}function renderArgs(args){return args.map(renderArg).join(" ")}function captureConsole(level,args){if(ca` &&
+             `pturing)return;capturing=true;try{const text=renderArgs(args);const echo=pendingUi5Echo;pendingUi5Echo=null;if(echo&&(text===echo||text.startsWith(``${echo} ``)))return;push(level,"console",text)}catch{` &&
+             `}finally{capturing=false}}const UI5_LEVELS={0:"error",1:"error",2:"warn",3:"info",4:"debug",5:"debug"};function captureUi5(logEntry){try{const level=UI5_LEVELS[logEntry?.level]||"info";const component` &&
+             `=logEntry?.component?``[${logEntry.component}] ``:"";const details=logEntry?.details?`` - ${logEntry.details}``:"";if(logEntry?.component!=="z2ui5"){push(level,"ui5",``${component}${logEntry?.message||""}$` &&
+             `{details}``)}pendingUi5Echo=``${logEntry?.date||""} ${logEntry?.time||""} ``+``${logEntry?.message||""} - ${logEntry?.details||""} ``+``${logEntry?.component||""}``}catch{}}function installConsole(){for(cons` &&
+             `t name of METHODS){const original=window.console?.[name];if(typeof original!=="function")continue;originals[name]=original;window.console[name]=function(...args){try{original.apply(window.console,args` &&
+             `)}finally{captureConsole(name,args)}}}}function uninstallConsole(){for(const[name,original]of Object.entries(originals)){window.console[name]=original;delete originals[name]}}function installUi5Log(){` &&
+             `const Log=sap.ui.require("sap/base/Log");if(!Log?.addLogListener)return;ui5Listener={onLogEntry:captureUi5};try{Log.addLogListener(ui5Listener)}catch{ui5Listener=null}}function uninstallUi5Log(){if(!u` &&
+             `i5Listener)return;const Log=sap.ui.require("sap/base/Log");try{Log?.removeLogListener?.(ui5Listener)}catch{}ui5Listener=null}function install(){users+=1;if(users>1)return;restore();onWindowError=event` &&
+             `=>{const stack=event?.error?.stack;if(stack){push("error","uncaught",stack);return}const where=event?.filename?`` (${event.filename}:${event.lineno||0}:${event.colno||0})``:"";push("error","uncaught",``$` &&
+             `{event?.message||"unknown error"}${where}``)};onRejection=event=>{const reason=event?.reason;push("error","rejection",reason?.stack||renderArg(reason)||"unhandled rejection")};onPageHide=persist;window` &&
+             `.addEventListener("error",onWindowError);window.addEventListener("unhandledrejection",onRejection);window.addEventListener("pagehide",onPageHide);installUi5Log();installConsole()}function uninstall(){` &&
+             `if(!users)return;users-=1;if(users)return;uninstallConsole();uninstallUi5Log();if(onWindowError)window.removeEventListener("error",onWindowError);if(onRejection){window.removeEventListener("unhandledr` &&
+             `ejection",onRejection)}if(onPageHide)window.removeEventListener("pagehide",onPageHide);onWindowError=null;onRejection=null;onPageHide=null;onErrorEntry.clear();pendingUi5Echo=null;entries=[];dropped=0` &&
+             `}function getEntries(){return entries}function getDropped(){return dropped}return{install,uninstall,addOnError,removeOnError,isAlertOnError,setAlertOnError,getEntries,getDropped,_internals:{renderArg,` &&
+             `MAX_ENTRIES,MAX_TEXT_CHARS,MAX_ITEMS,MAX_NODES}}});` && |\n| &&
              `` && |\n| &&
-             `  const MAX_ENTRIES = 300;` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_TEXT_CHARS = 2000;` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_DEPTH = 4;` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_ITEMS = 20;` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_NODES = 1000;` && |\n| &&
-             `` && |\n| &&
-             `  const RELOAD_KEY = "z2ui5.devtools.console";` && |\n| &&
-             `  const RELOAD_MAX_ENTRIES = 40;` && |\n| &&
-             `` && |\n| &&
-             `  const ALERT_KEY = "z2ui5.devtools.openOnError";` && |\n| &&
-             `` && |\n| &&
-             `  const METHODS = ["log", "info", "warn", "error", "debug"];` && |\n| &&
-             `` && |\n| &&
-             `  let entries = [];` && |\n| &&
-             `  let dropped = 0;` && |\n| &&
-             `` && |\n| &&
-             `  const originals = {};` && |\n| &&
-             `` && |\n| &&
-             `  let users = 0;` && |\n| &&
-             `  let ui5Listener = null;` && |\n| &&
-             `  let onWindowError = null;` && |\n| &&
-             `  let onRejection = null;` && |\n| &&
-             `  let onPageHide = null;` && |\n| &&
-             `` && |\n| &&
-             `  const onErrorEntry = new Set();` && |\n| &&
-             `` && |\n| &&
-             `  let capturing = false;` && |\n| &&
-             `` && |\n| &&
-             `  let pendingUi5Echo = null;` && |\n| &&
-             `` && |\n| &&
-             `  function push(level, source, text) {` && |\n| &&
-             `    if (entries.length >= MAX_ENTRIES) {` && |\n| &&
-             `      entries.shift();` && |\n| &&
-             `      dropped += 1;` && |\n| &&
-             `    }` && |\n| &&
-             `    let body = text;` && |\n| &&
-             `    if (body.length > MAX_TEXT_CHARS) {` && |\n| &&
-             `      body = ``${body.slice(0, MAX_TEXT_CHARS)}... (${body.length} chars)``;` && |\n| &&
-             `    }` && |\n| &&
-             `    const entry = {` && |\n| &&
-             `      ts: new Date().toISOString(),` && |\n| &&
-             `      level,` && |\n| &&
-             `      source,` && |\n| &&
-             `      text: body,` && |\n| &&
-             `    };` && |\n| &&
-             `    entries.push(entry);` && |\n| &&
-             `    if (level === "error" && onErrorEntry.size && isAlertOnError()) {` && |\n| &&
-             `      for (const fn of onErrorEntry) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          fn(entry);` && |\n| &&
-             `        } catch {}` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function addOnError(fn) {` && |\n| &&
-             `    if (typeof fn === "function") onErrorEntry.add(fn);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function removeOnError(fn) {` && |\n| &&
-             `    onErrorEntry.delete(fn);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isAlertOnError() {` && |\n| &&
-             `    return Persist.readFlag(ALERT_KEY);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function setAlertOnError(enabled) {` && |\n| &&
-             `    Persist.writeFlag(ALERT_KEY, enabled);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function persist() {` && |\n| &&
-             `    const errors = entries` && |\n| &&
-             `      .filter((entry) => entry.level === "error")` && |\n| &&
-             `      .slice(-RELOAD_MAX_ENTRIES)` && |\n| &&
-             `      .map((entry) => ({ ...entry, previousLoad: true }));` && |\n| &&
-             `    Persist.saveList(RELOAD_KEY, errors);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function restore() {` && |\n| &&
-             `    const stored = Persist.takeList(RELOAD_KEY);` && |\n| &&
-             `    if (stored.length) entries = stored.slice(-RELOAD_MAX_ENTRIES);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isErrorLike(value) {` && |\n| &&
-             `    if (!value || typeof value !== "object") return false;` && |\n| &&
-             `    if (Object.prototype.toString.call(value) === "[object Error]") return true;` && |\n| &&
-             `    return typeof value.stack === "string" && typeof value.message === "string";` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function renderArg(value) {` && |\n| &&
-             `    if (value === undefined) return "undefined";` && |\n| &&
-             `    if (value === null) return "null";` && |\n| &&
-             `    const type = typeof value;` && |\n| &&
-             `    if (type === "string") return value;` && |\n| &&
-             `    if (type === "number" || type === "boolean" || type === "bigint") {` && |\n| &&
-             `      return String(value);` && |\n| &&
-             `    }` && |\n| &&
-             `    if (type === "function") return ``[function ${value.name || "anonymous"}]``;` && |\n| &&
-             `    if (type === "symbol") return String(value);` && |\n| &&
-             `    if (isErrorLike(value)) {` && |\n| &&
-             `      return value.stack || ``${value.name || "Error"}: ${value.message}``;` && |\n| &&
-             `    }` && |\n| &&
-             `    try {` && |\n| &&
-             `      const ancestors = [];` && |\n| &&
-             `      const walked = new WeakMap();` && |\n| &&
-             `      let nodes = 0;` && |\n| &&
-             `      return JSON.stringify(value, function replace(key, val) {` && |\n| &&
-             `        if (typeof val === "object" && val !== null) {` && |\n| &&
-             `          if (++nodes > MAX_NODES) return "[...]";` && |\n| &&
-             `          const holder = walked.get(this) || this;` && |\n| &&
-             `          while (` && |\n| &&
-             `            ancestors.length > 0 &&` && |\n| &&
-             `            ancestors[ancestors.length - 1] !== holder` && |\n| &&
-             `          ) {` && |\n| &&
-             `            ancestors.pop();` && |\n| &&
-             `          }` && |\n| &&
-             `          if (ancestors.includes(val)) return "[Circular]";` && |\n| &&
-             `` && |\n| &&
-             `          if (ancestors.length >= MAX_DEPTH) return "[...]";` && |\n| &&
-             `          ancestors.push(val);` && |\n| &&
-             `          if (Array.isArray(val) && val.length > MAX_ITEMS) {` && |\n| &&
-             `            const head = val.slice(0, MAX_ITEMS);` && |\n| &&
-             `            head.push(``[... ${val.length - MAX_ITEMS} more]``);` && |\n| &&
-             `            walked.set(head, val);` && |\n| &&
-             `            return head;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          const keys = Object.keys(val);` && |\n| &&
-             `          if (keys.length > MAX_ITEMS) {` && |\n| &&
-             `            const head = {};` && |\n| &&
-             `            for (const k of keys.slice(0, MAX_ITEMS)) head[k] = val[k];` && |\n| &&
-             `            head[``... ${keys.length - MAX_ITEMS} more``] = "[...]";` && |\n| &&
-             `            walked.set(head, val);` && |\n| &&
-             `            return head;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        if (isErrorLike(val)) return val.stack || String(val);` && |\n| &&
-             `        return val;` && |\n| &&
-             `      });` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return String(value);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "[unrenderable]";` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function renderArgs(args) {` && |\n| &&
-             `    return args.map(renderArg).join(" ");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function captureConsole(level, args) {` && |\n| &&
-             `    if (capturing) return;` && |\n| &&
-             `    capturing = true;` && |\n| &&
-             `    try {` && |\n| &&
-             `      const text = renderArgs(args);` && |\n| &&
-             `` && |\n| &&
-             `      const echo = pendingUi5Echo;` && |\n| &&
-             `      pendingUi5Echo = null;` && |\n| &&
-             `` && |\n| &&
-             `      if (echo && (text === echo || text.startsWith(``${echo} ``))) return;` && |\n| &&
-             `      push(level, "console", text);` && |\n| &&
-             `    } catch {` && |\n| &&
-             `    } finally {` && |\n| &&
-             `      capturing = false;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const UI5_LEVELS = {` && |\n| &&
-             `    0: "error",` && |\n| &&
-             `    1: "error",` && |\n| &&
-             `    2: "warn",` && |\n| &&
-             `    3: "info",` && |\n| &&
-             `    4: "debug",` && |\n| &&
-             `    5: "debug",` && |\n| &&
-             `  };` && |\n| &&
-             `` && |\n| &&
-             `  function captureUi5(logEntry) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const level = UI5_LEVELS[logEntry?.level] || "info";` && |\n| &&
-             `      const component = logEntry?.component ? ``[${logEntry.component}] `` : "";` && |\n| &&
-             `      const details = logEntry?.details ? `` - ${logEntry.details}`` : "";` && |\n| &&
-             `` && |\n| &&
-             `      if (logEntry?.component !== "z2ui5") {` && |\n| &&
-             `        push(level, "ui5", ``${component}${logEntry?.message || ""}${details}``);` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      pendingUi5Echo =` && |\n| &&
-             `        ``${logEntry?.date || ""} ${logEntry?.time || ""} `` +` && |\n| &&
-             `        ``${logEntry?.message || ""} - ${logEntry?.details || ""} `` +` && |\n| &&
-             `        ``${logEntry?.component || ""}``;` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function installConsole() {` && |\n| &&
-             `    for (const name of METHODS) {` && |\n| &&
-             `      const original = window.console?.[name];` && |\n| &&
-             `      if (typeof original !== "function") continue;` && |\n| &&
-             `      originals[name] = original;` && |\n| &&
-             `` && |\n| &&
-             `      window.console[name] = function (...args) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          original.apply(window.console, args);` && |\n| &&
-             `        } finally {` && |\n| &&
-             `          captureConsole(name, args);` && |\n| &&
-             `        }` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function uninstallConsole() {` && |\n| &&
-             `    for (const [name, original] of Object.entries(originals)) {` && |\n| &&
-             `      window.console[name] = original;` && |\n| &&
-             `      delete originals[name];` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function installUi5Log() {` && |\n| &&
-             `    const Log = sap.ui.require("sap/base/Log");` && |\n| &&
-             `    if (!Log?.addLogListener) return;` && |\n| &&
-             `    ui5Listener = { onLogEntry: captureUi5 };` && |\n| &&
-             `    try {` && |\n| &&
-             `      Log.addLogListener(ui5Listener);` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      ui5Listener = null;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function uninstallUi5Log() {` && |\n| &&
-             `    if (!ui5Listener) return;` && |\n| &&
-             `    const Log = sap.ui.require("sap/base/Log");` && |\n| &&
-             `    try {` && |\n| &&
-             `      Log?.removeLogListener?.(ui5Listener);` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `    ui5Listener = null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function install() {` && |\n| &&
-             `    users += 1;` && |\n| &&
-             `    if (users > 1) return;` && |\n| &&
-             `    restore();` && |\n| &&
-             `` && |\n| &&
-             `    onWindowError = (event) => {` && |\n| &&
-             `      const stack = event?.error?.stack;` && |\n| &&
-             `` && |\n| &&
-             `      if (stack) {` && |\n| &&
-             `        push("error", "uncaught", stack);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n|.
+             `},` && |\n| &&
+             `      "z2ui5/devtools/DevTools.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/devtools/Console","z2ui5/devtools/Recorder"],(Lib,Console,Recorder)=>{"use strict";const AUTO_OPEN_PARAM="z2ui5-de` &&
+             `vtools";const BUNDLE_PARAM="z2ui5-bundle";const BUNDLE_DEVTOOLS="devtools";const DIALOG_MODULE="z2ui5/devtools/DeveloperTools";const PICKER_MODULE="z2ui5/devtools/Picker";const JOURNEY_MODULE="z2ui5/d` &&
+             `evtools/Journey";function recordOf(ctx){return ctx?.devtools||null}function bundleUrl(ctx){const base=ctx?.state?.url;if(!base)return null;try{const url=new URL(base,window.location.href);url.hash="";` &&
+             `url.searchParams.set(BUNDLE_PARAM,BUNDLE_DEVTOOLS);return url.href}catch{return null}}function loadScript(url){return new Promise((resolve,reject)=>{const script=document.createElement("script");scrip` &&
+             `t.src=url;script.async=true;script.onload=()=>resolve();script.onerror=()=>reject(new Error(``the devtools bundle could not be loaded: ${url}``));document.head.appendChild(script)})}function requireModu` &&
+             `les(names){return new Promise((resolve,reject)=>{sap.ui.require(names,(...modules)=>resolve(modules),reject)})}function requireDialog(ctx){const record=recordOf(ctx);if(!record)return Promise.resolve(` &&
+             `null);const loaded=sap.ui.require(DIALOG_MODULE);if(loaded)return Promise.resolve(loaded);if(!record.loading){const fromBundle=()=>{const url=bundleUrl(ctx);return url?loadScript(url):Promise.reject(n` &&
+             `ew Error("no endpoint to load the devtools bundle from"))};const plain=()=>requireModules([DIALOG_MODULE]).then(([Dialog])=>Dialog);record.loading=fromBundle().then(plain).catch(e=>{Lib.logError("DevT` &&
+             `ools: loading the developer tools failed",e);return null}).then(Dialog=>{record.loading=null;return Dialog})}return record.loading}function get(ctx){const record=recordOf(ctx);if(!record)return Promis` &&
+             `e.resolve(null);if(record.tools)return Promise.resolve(record.tools);return requireDialog(ctx).then(DeveloperTools=>{if(!DeveloperTools||!record.keydown)return null;if(!record.tools){const tools=new D` &&
+             `eveloperTools;tools.ctx=ctx;record.tools=tools}return record.tools})}function toggle(ctx){return get(ctx).then(tools=>tools?.toggle())}function show(ctx,tabKey){return get(ctx).then(tools=>tools?.show` &&
+             `(tabKey))}function searchParams(){try{return new URLSearchParams(window.location.search)}catch{return null}}function isAutoOpenRequested(){return Boolean(searchParams()?.has(AUTO_OPEN_PARAM))}function` &&
+             ` autoOpenTab(){const value=searchParams()?.get(AUTO_OPEN_PARAM);if(value===null||value===undefined)return"";const key=value.toUpperCase();return key==="1"||key==="X"?"":key}function onErrorDetails(ctx` &&
+             `){return get(ctx).then(dialog=>{if(!dialog)return;dialog.reopenErrorOnClose=true;dialog.show("ERROR")})}function install(ctx){const record=recordOf(ctx);if(!record||record.keydown)return;Recorder.inst` &&
+             `all(ctx);if(ctx.state?.ownsPage){Console.install();record.console=true;record.onConsoleError=()=>{if(record.tools?.oDialog?.isOpen?.())return;show(ctx,"LOG")};Console.addOnError(record.onConsoleError)` &&
+             `}record.errorDetailsHook=()=>onErrorDetails(ctx);Lib.registerCallback(ctx,"onErrorDetails",record.errorDetailsHook);record.keydown=event=>{if(event.ctrlKey&&event.key==="F12")toggle(ctx)};document.add` &&
+             `EventListener("keydown",record.keydown);if(isAutoOpenRequested())show(ctx,autoOpenTab()||undefined)}function exit(ctx){const record=recordOf(ctx);if(!record)return;if(record.keydown){document.removeEv` &&
+             `entListener("keydown",record.keydown);record.keydown=null}if(record.errorDetailsHook){Lib.unregisterCallback(ctx,"onErrorDetails",record.errorDetailsHook);record.errorDetailsHook=null}if(record.onCons`.
     result = result &&
-             `      const where = event?.filename` && |\n| &&
-             `        ? `` (${event.filename}:${event.lineno || 0}:${event.colno || 0})``` && |\n| &&
-             `        : "";` && |\n| &&
-             `      push("error", "uncaught", ``${event?.message || "unknown error"}${where}``);` && |\n| &&
-             `    };` && |\n| &&
-             `    onRejection = (event) => {` && |\n| &&
-             `      const reason = event?.reason;` && |\n| &&
-             `      push(` && |\n| &&
-             `        "error",` && |\n| &&
-             `        "rejection",` && |\n| &&
-             `        reason?.stack || renderArg(reason) || "unhandled rejection",` && |\n| &&
-             `      );` && |\n| &&
-             `    };` && |\n| &&
-             `    onPageHide = persist;` && |\n| &&
-             `    window.addEventListener("error", onWindowError);` && |\n| &&
-             `    window.addEventListener("unhandledrejection", onRejection);` && |\n| &&
-             `    window.addEventListener("pagehide", onPageHide);` && |\n| &&
-             `` && |\n| &&
-             `    installUi5Log();` && |\n| &&
-             `    installConsole();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function uninstall() {` && |\n| &&
-             `    if (!users) return;` && |\n| &&
-             `    users -= 1;` && |\n| &&
-             `    if (users) return;` && |\n| &&
-             `    uninstallConsole();` && |\n| &&
-             `    uninstallUi5Log();` && |\n| &&
-             `    if (onWindowError) window.removeEventListener("error", onWindowError);` && |\n| &&
-             `    if (onRejection) {` && |\n| &&
-             `      window.removeEventListener("unhandledrejection", onRejection);` && |\n| &&
-             `    }` && |\n| &&
-             `    if (onPageHide) window.removeEventListener("pagehide", onPageHide);` && |\n| &&
-             `    onWindowError = null;` && |\n| &&
-             `    onRejection = null;` && |\n| &&
-             `    onPageHide = null;` && |\n| &&
-             `    onErrorEntry.clear();` && |\n| &&
-             `    pendingUi5Echo = null;` && |\n| &&
-             `    entries = [];` && |\n| &&
-             `    dropped = 0;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function getEntries() {` && |\n| &&
-             `    return entries;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function getDropped() {` && |\n| &&
-             `    return dropped;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    install,` && |\n| &&
-             `    uninstall,` && |\n| &&
-             `    addOnError,` && |\n| &&
-             `    removeOnError,` && |\n| &&
-             `    isAlertOnError,` && |\n| &&
-             `    setAlertOnError,` && |\n| &&
-             `    getEntries,` && |\n| &&
-             `    getDropped,` && |\n| &&
-             `` && |\n| &&
-             `    _internals: {` && |\n| &&
-             `      renderArg,` && |\n| &&
-             `      MAX_ENTRIES,` && |\n| &&
-             `      MAX_TEXT_CHARS,` && |\n| &&
-             `      MAX_ITEMS,` && |\n| &&
-             `      MAX_NODES,` && |\n| &&
-             `    },` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
+             `oleError){Console.removeOnError(record.onConsoleError);record.onConsoleError=null}if(record.tools){record.tools.destroy();record.tools=null}if(record.console){record.console=false;Console.uninstall()}` &&
+             `Recorder.uninstall(ctx);sap.ui.require(PICKER_MODULE)?.stop(ctx);sap.ui.require(JOURNEY_MODULE)?.stop(ctx);record.loading=null}return{install,exit,toggle,show,isAutoOpenRequested,autoOpenTab}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/DevTools.js": function(){sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n| &&
-             `  (Lib, Console, Recorder) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const AUTO_OPEN_PARAM = "z2ui5-devtools";` && |\n| &&
-             `` && |\n| &&
-             `    const BUNDLE_PARAM = "z2ui5-bundle";` && |\n| &&
-             `    const BUNDLE_DEVTOOLS = "devtools";` && |\n| &&
-             `` && |\n| &&
-             `    const DIALOG_MODULE = "z2ui5/devtools/DeveloperTools";` && |\n| &&
-             `    const PICKER_MODULE = "z2ui5/devtools/Picker";` && |\n| &&
-             `    const JOURNEY_MODULE = "z2ui5/devtools/Journey";` && |\n| &&
-             `` && |\n| &&
-             `    function recordOf(ctx) {` && |\n| &&
-             `      return ctx?.devtools || null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function bundleUrl(ctx) {` && |\n| &&
-             `      const base = ctx?.state?.url;` && |\n| &&
-             `      if (!base) return null;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const url = new URL(base, window.location.href);` && |\n| &&
-             `        url.hash = "";` && |\n| &&
-             `        url.searchParams.set(BUNDLE_PARAM, BUNDLE_DEVTOOLS);` && |\n| &&
-             `        return url.href;` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function loadScript(url) {` && |\n| &&
-             `      return new Promise((resolve, reject) => {` && |\n| &&
-             `        const script = document.createElement("script");` && |\n| &&
-             `        script.src = url;` && |\n| &&
-             `        script.async = true;` && |\n| &&
-             `        script.onload = () => resolve();` && |\n| &&
-             `        script.onerror = () =>` && |\n| &&
-             `          reject(new Error(``the devtools bundle could not be loaded: ${url}``));` && |\n| &&
-             `        document.head.appendChild(script);` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function requireModules(names) {` && |\n| &&
-             `      return new Promise((resolve, reject) => {` && |\n| &&
-             `        sap.ui.require(names, (...modules) => resolve(modules), reject);` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function requireDialog(ctx) {` && |\n| &&
-             `      const record = recordOf(ctx);` && |\n| &&
-             `      if (!record) return Promise.resolve(null);` && |\n| &&
-             `      const loaded = sap.ui.require(DIALOG_MODULE);` && |\n| &&
-             `      if (loaded) return Promise.resolve(loaded);` && |\n| &&
-             `      if (!record.loading) {` && |\n| &&
-             `        const fromBundle = () => {` && |\n| &&
-             `          const url = bundleUrl(ctx);` && |\n| &&
-             `          return url` && |\n| &&
-             `            ? loadScript(url)` && |\n| &&
-             `            : Promise.reject(` && |\n| &&
-             `                new Error("no endpoint to load the devtools bundle from"),` && |\n| &&
-             `              );` && |\n| &&
-             `        };` && |\n| &&
-             `        const plain = () =>` && |\n| &&
-             `          requireModules([DIALOG_MODULE]).then(([Dialog]) => Dialog);` && |\n| &&
-             `        record.loading = fromBundle()` && |\n| &&
-             `          .then(plain)` && |\n| &&
-             `          .catch((e) => {` && |\n| &&
-             `            Lib.logError("DevTools: loading the developer tools failed", e);` && |\n| &&
-             `            return null;` && |\n| &&
-             `          })` && |\n| &&
-             `          .then((Dialog) => {` && |\n| &&
-             `            record.loading = null;` && |\n| &&
-             `            return Dialog;` && |\n| &&
-             `          });` && |\n| &&
-             `      }` && |\n| &&
-             `      return record.loading;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function get(ctx) {` && |\n| &&
-             `      const record = recordOf(ctx);` && |\n| &&
-             `      if (!record) return Promise.resolve(null);` && |\n| &&
-             `      if (record.tools) return Promise.resolve(record.tools);` && |\n| &&
-             `      return requireDialog(ctx).then((DeveloperTools) => {` && |\n| &&
-             `        if (!DeveloperTools || !record.keydown) return null;` && |\n| &&
-             `        if (!record.tools) {` && |\n| &&
-             `          const tools = new DeveloperTools();` && |\n| &&
-             `          tools.ctx = ctx;` && |\n| &&
-             `          record.tools = tools;` && |\n| &&
-             `        }` && |\n| &&
-             `        return record.tools;` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function toggle(ctx) {` && |\n| &&
-             `      return get(ctx).then((tools) => tools?.toggle());` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function show(ctx, tabKey) {` && |\n| &&
-             `      return get(ctx).then((tools) => tools?.show(tabKey));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function searchParams() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return new URLSearchParams(window.location.search);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isAutoOpenRequested() {` && |\n| &&
-             `      return Boolean(searchParams()?.has(AUTO_OPEN_PARAM));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function autoOpenTab() {` && |\n| &&
-             `      const value = searchParams()?.get(AUTO_OPEN_PARAM);` && |\n| &&
-             `      if (value === null || value === undefined) return "";` && |\n| &&
-             `      const key = value.toUpperCase();` && |\n| &&
-             `      return key === "1" || key === "X" ? "" : key;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function onErrorDetails(ctx) {` && |\n| &&
-             `      return get(ctx).then((dialog) => {` && |\n| &&
-             `        if (!dialog) return;` && |\n| &&
-             `        dialog.reopenErrorOnClose = true;` && |\n| &&
-             `        dialog.show("ERROR");` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function install(ctx) {` && |\n| &&
-             `      const record = recordOf(ctx);` && |\n| &&
-             `      if (!record || record.keydown) return;` && |\n| &&
-             `` && |\n| &&
-             `      Recorder.install(ctx);` && |\n| &&
-             `` && |\n| &&
-             `      if (ctx.state?.ownsPage) {` && |\n| &&
-             `        Console.install();` && |\n| &&
-             `        record.console = true;` && |\n| &&
-             `` && |\n| &&
-             `        record.onConsoleError = () => {` && |\n| &&
-             `          if (record.tools?.oDialog?.isOpen?.()) return;` && |\n| &&
-             `          show(ctx, "LOG");` && |\n| &&
-             `        };` && |\n| &&
-             `        Console.addOnError(record.onConsoleError);` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      record.errorDetailsHook = () => onErrorDetails(ctx);` && |\n| &&
-             `      Lib.registerCallback(ctx, "onErrorDetails", record.errorDetailsHook);` && |\n| &&
-             `` && |\n| &&
-             `      record.keydown = (event) => {` && |\n| &&
-             `        if (event.ctrlKey && event.key === "F12") toggle(ctx);` && |\n| &&
-             `      };` && |\n| &&
-             `      document.addEventListener("keydown", record.keydown);` && |\n| &&
-             `` && |\n| &&
-             `      if (isAutoOpenRequested()) show(ctx, autoOpenTab() || undefined);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function exit(ctx) {` && |\n| &&
-             `      const record = recordOf(ctx);` && |\n| &&
-             `      if (!record) return;` && |\n| &&
-             `      if (record.keydown) {` && |\n| &&
-             `        document.removeEventListener("keydown", record.keydown);` && |\n| &&
-             `        record.keydown = null;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (record.errorDetailsHook) {` && |\n| &&
-             `        Lib.unregisterCallback(ctx, "onErrorDetails", record.errorDetailsHook);` && |\n| &&
-             `        record.errorDetailsHook = null;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (record.onConsoleError) {` && |\n| &&
-             `        Console.removeOnError(record.onConsoleError);` && |\n| &&
-             `        record.onConsoleError = null;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (record.tools) {` && |\n| &&
-             `        record.tools.destroy();` && |\n| &&
-             `        record.tools = null;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (record.console) {` && |\n| &&
-             `        record.console = false;` && |\n| &&
-             `        Console.uninstall();` && |\n| &&
-             `      }` && |\n| &&
-             `      Recorder.uninstall(ctx);` && |\n| &&
-             `` && |\n| &&
-             `      sap.ui.require(PICKER_MODULE)?.stop(ctx);` && |\n| &&
-             `` && |\n| &&
-             `      sap.ui.require(JOURNEY_MODULE)?.stop(ctx);` && |\n| &&
-             `` && |\n| &&
-             `      record.loading = null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      install,` && |\n| &&
-             `      exit,` && |\n| &&
-             `      toggle,` && |\n| &&
-             `      show,` && |\n| &&
-             `      isAutoOpenRequested,` && |\n| &&
-             `      autoOpenTab,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/devtools/Diff.js": function(){sap.ui.define([],()=>{"use strict";const MAX_DIFF_ENTRIES=200;const MAX_DIFF_DEPTH=12;const MAX_DIFF_LINES=4e3;const DIFF_LOOKAHEAD=25;function isPlainObject` &&
+             `(value){return value!==null&&typeof value==="object"&&!Array.isArray(value)}function walk(before,after,path,out,depth){if(out.length>=MAX_DIFF_ENTRIES)return;if(before===after)return;if(depth>MAX_DIFF` &&
+             `_DEPTH){out.push({path,type:"changed",before:"(too deep)",after:""});return}const bothObjects=isPlainObject(before)&&isPlainObject(after);const bothArrays=Array.isArray(before)&&Array.isArray(after);i` &&
+             `f(bothObjects){const keys=new Set([...Object.keys(before),...Object.keys(after)]);for(const key of keys){walk(before[key],after[key],``${path}/${key}``,out,depth+1)}return}if(bothArrays){const length=Ma` &&
+             `th.max(before.length,after.length);for(let i=0;i<length;i++){walk(before[i],after[i],``${path}/${i}``,out,depth+1)}return}if(before===undefined){out.push({path,type:"added",before:undefined,after});retu` &&
+             `rn}if(after===undefined){out.push({path,type:"removed",before,after:undefined});return}out.push({path,type:"changed",before,after})}function collectDiff(before,after){const out=[];walk(before,after,""` &&
+             `,out,0);return out}function diffLines(beforeText,afterText){const a=beforeText.split("\n").slice(0,MAX_DIFF_LINES);const b=afterText.split("\n").slice(0,MAX_DIFF_LINES);const out=[];let i=0;let j=0;wh` &&
+             `ile((i<a.length||j<b.length)&&out.length<MAX_DIFF_ENTRIES){if(i<a.length&&j<b.length&&a[i]===b[j]){i+=1;j+=1;continue}let addedRun=-1;let removedRun=-1;for(let k=1;k<=DIFF_LOOKAHEAD;k+=1){if(addedRun<` &&
+             `0&&i<a.length&&j+k<b.length&&a[i]===b[j+k]){addedRun=k}if(removedRun<0&&j<b.length&&i+k<a.length&&b[j]===a[i+k]){removedRun=k}if(addedRun>=0||removedRun>=0)break}if(addedRun>=0&&(removedRun<0||addedRu` &&
+             `n<=removedRun)){for(let k=0;k<addedRun;k+=1){out.push({type:"+",line:b[j+k],number:j+k+1})}j+=addedRun}else if(removedRun>=0){for(let k=0;k<removedRun;k+=1){out.push({type:"-",line:a[i+k],number:i+k+1` &&
+             `})}i+=removedRun}else{if(i<a.length){out.push({type:"-",line:a[i],number:i+1});i+=1}if(j<b.length){out.push({type:"+",line:b[j],number:j+1});j+=1}}}return out}return{collectDiff,diffLines,MAX_DIFF_ENT` &&
+             `RIES,_internals:{MAX_DIFF_DEPTH,MAX_DIFF_LINES,DIFF_LOOKAHEAD}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Diff.js": function(){sap.ui.define([], () => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_DIFF_ENTRIES = 200;` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_DIFF_DEPTH = 12;` && |\n| &&
-             `` && |\n| &&
-             `  const MAX_DIFF_LINES = 4000;` && |\n| &&
-             `` && |\n| &&
-             `  const DIFF_LOOKAHEAD = 25;` && |\n| &&
-             `` && |\n| &&
-             `  function isPlainObject(value) {` && |\n| &&
-             `    return value !== null && typeof value === "object" && !Array.isArray(value);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function walk(before, after, path, out, depth) {` && |\n| &&
-             `    if (out.length >= MAX_DIFF_ENTRIES) return;` && |\n| &&
-             `    if (before === after) return;` && |\n| &&
-             `    if (depth > MAX_DIFF_DEPTH) {` && |\n| &&
-             `      out.push({ path, type: "changed", before: "(too deep)", after: "" });` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const bothObjects = isPlainObject(before) && isPlainObject(after);` && |\n| &&
-             `    const bothArrays = Array.isArray(before) && Array.isArray(after);` && |\n| &&
-             `` && |\n| &&
-             `    if (bothObjects) {` && |\n| &&
-             `      const keys = new Set([...Object.keys(before), ...Object.keys(after)]);` && |\n| &&
-             `      for (const key of keys) {` && |\n| &&
-             `        walk(before[key], after[key], ``${path}/${key}``, out, depth + 1);` && |\n| &&
-             `      }` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    if (bothArrays) {` && |\n| &&
-             `      const length = Math.max(before.length, after.length);` && |\n| &&
-             `      for (let i = 0; i < length; i++) {` && |\n| &&
-             `        walk(before[i], after[i], ``${path}/${i}``, out, depth + 1);` && |\n| &&
-             `      }` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    if (before === undefined) {` && |\n| &&
-             `      out.push({ path, type: "added", before: undefined, after });` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    if (after === undefined) {` && |\n| &&
-             `      out.push({ path, type: "removed", before, after: undefined });` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    out.push({ path, type: "changed", before, after });` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function collectDiff(before, after) {` && |\n| &&
-             `    const out = [];` && |\n| &&
-             `    walk(before, after, "", out, 0);` && |\n| &&
-             `    return out;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function diffLines(beforeText, afterText) {` && |\n| &&
-             `    const a = beforeText.split("\n").slice(0, MAX_DIFF_LINES);` && |\n| &&
-             `    const b = afterText.split("\n").slice(0, MAX_DIFF_LINES);` && |\n| &&
-             `    const out = [];` && |\n| &&
-             `    let i = 0;` && |\n| &&
-             `    let j = 0;` && |\n| &&
-             `    while ((i < a.length || j < b.length) && out.length < MAX_DIFF_ENTRIES) {` && |\n| &&
-             `      if (i < a.length && j < b.length && a[i] === b[j]) {` && |\n| &&
-             `        i += 1;` && |\n| &&
-             `        j += 1;` && |\n| &&
-             `        continue;` && |\n| &&
-             `      }` && |\n| &&
-             `      let addedRun = -1;` && |\n| &&
-             `      let removedRun = -1;` && |\n| &&
-             `      for (let k = 1; k <= DIFF_LOOKAHEAD; k += 1) {` && |\n| &&
-             `        if (` && |\n| &&
-             `          addedRun < 0 &&` && |\n| &&
-             `          i < a.length &&` && |\n| &&
-             `          j + k < b.length &&` && |\n| &&
-             `          a[i] === b[j + k]` && |\n| &&
-             `        ) {` && |\n| &&
-             `          addedRun = k;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (` && |\n| &&
-             `          removedRun < 0 &&` && |\n| &&
-             `          j < b.length &&` && |\n| &&
-             `          i + k < a.length &&` && |\n| &&
-             `          b[j] === a[i + k]` && |\n| &&
-             `        ) {` && |\n| &&
-             `          removedRun = k;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (addedRun >= 0 || removedRun >= 0) break;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (addedRun >= 0 && (removedRun < 0 || addedRun <= removedRun)) {` && |\n| &&
-             `        for (let k = 0; k < addedRun; k += 1) {` && |\n| &&
-             `          out.push({ type: "+", line: b[j + k], number: j + k + 1 });` && |\n| &&
-             `        }` && |\n| &&
-             `        j += addedRun;` && |\n| &&
-             `      } else if (removedRun >= 0) {` && |\n| &&
-             `        for (let k = 0; k < removedRun; k += 1) {` && |\n| &&
-             `          out.push({ type: "-", line: a[i + k], number: i + k + 1 });` && |\n| &&
-             `        }` && |\n| &&
-             `        i += removedRun;` && |\n| &&
-             `      } else {` && |\n| &&
-             `        if (i < a.length) {` && |\n| &&
-             `          out.push({ type: "-", line: a[i], number: i + 1 });` && |\n| &&
-             `          i += 1;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (j < b.length) {` && |\n| &&
-             `          out.push({ type: "+", line: b[j], number: j + 1 });` && |\n| &&
-             `          j += 1;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `    return out;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    collectDiff,` && |\n| &&
-             `    diffLines,` && |\n| &&
-             `    MAX_DIFF_ENTRIES,` && |\n| &&
-             `` && |\n| &&
-             `    _internals: { MAX_DIFF_DEPTH, MAX_DIFF_LINES, DIFF_LOOKAHEAD },` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n|.
-    result = result &&
-             `      "z2ui5/devtools/Format.js": function(){sap.ui.define([], () => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const INDENT_UNIT = 3;` && |\n| &&
-             `` && |\n| &&
-             `  function toJson(val) {` && |\n| &&
-             `    const safe = val === undefined ? null : val;` && |\n| &&
-             `` && |\n| &&
-             `    const ancestors = [];` && |\n| &&
-             `    try {` && |\n| &&
-             `      return JSON.stringify(` && |\n| &&
-             `        safe,` && |\n| &&
-             `        function (key, value) {` && |\n| &&
-             `          if (typeof value === "object" && value !== null) {` && |\n| &&
-             `            while (` && |\n| &&
-             `              ancestors.length > 0 &&` && |\n| &&
-             `              ancestors[ancestors.length - 1] !== this` && |\n| &&
-             `            ) {` && |\n| &&
-             `              ancestors.pop();` && |\n| &&
-             `            }` && |\n| &&
-             `            if (ancestors.includes(value)) return "[Circular]";` && |\n| &&
-             `            ancestors.push(value);` && |\n| &&
-             `          }` && |\n| &&
-             `          return value;` && |\n| &&
-             `        },` && |\n| &&
-             `        INDENT_UNIT,` && |\n| &&
-             `      );` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return String(safe);` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const XML_INDENT_UNIT = 2;` && |\n| &&
-             `` && |\n| &&
-             `  const ELEMENT_NODE = 1;` && |\n| &&
-             `  const TEXT_NODE = 3;` && |\n| &&
-             `  const CDATA_SECTION_NODE = 4;` && |\n| &&
-             `  const PROCESSING_INSTRUCTION_NODE = 7;` && |\n| &&
-             `  const COMMENT_NODE = 8;` && |\n| &&
-             `` && |\n| &&
-             `  let _domParser = null;` && |\n| &&
-             `` && |\n| &&
-             `  function getDomParser() {` && |\n| &&
-             `    if (!_domParser) _domParser = new DOMParser();` && |\n| &&
-             `    return _domParser;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function escapeText(text) {` && |\n| &&
-             `    return text` && |\n| &&
-             `      .replace(/&/g, "&amp;")` && |\n| &&
-             `      .replace(/</g, "&lt;")` && |\n| &&
-             `      .replace(/]]>/g, "]]&gt;");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function escapeAttribute(value) {` && |\n| &&
-             `    return value` && |\n| &&
-             `      .replace(/&/g, "&amp;")` && |\n| &&
-             `      .replace(/</g, "&lt;")` && |\n| &&
-             `      .replace(/"/g, "&quot;")` && |\n| &&
-             `      .replace(/\t/g, "&#9;")` && |\n| &&
-             `      .replace(/\n/g, "&#10;")` && |\n| &&
-             `      .replace(/\r/g, "&#13;");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isTextLike(node) {` && |\n| &&
-             `    return node.nodeType === TEXT_NODE || node.nodeType === CDATA_SECTION_NODE;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isBlank(node) {` && |\n| &&
-             `    return isTextLike(node) && !/\S/.test(node.nodeValue);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function serializeNode(node, depth, indented) {` && |\n| &&
-             `    const pad = indented ? " ".repeat(depth * XML_INDENT_UNIT) : "";` && |\n| &&
-             `    switch (node.nodeType) {` && |\n| &&
-             `      case ELEMENT_NODE:` && |\n| &&
-             `        return pad + serializeElement(node, depth, indented);` && |\n| &&
-             `      case TEXT_NODE:` && |\n| &&
-             `        return pad + escapeText(node.nodeValue);` && |\n| &&
-             `      case CDATA_SECTION_NODE:` && |\n| &&
-             `        return ``${pad}<![CDATA[${node.nodeValue}]]>``;` && |\n| &&
-             `      case COMMENT_NODE:` && |\n| &&
-             `        return ``${pad}<!--${node.nodeValue}-->``;` && |\n| &&
-             `      case PROCESSING_INSTRUCTION_NODE:` && |\n| &&
-             `        return ``${pad}<?${node.target} ${node.data}?>``;` && |\n| &&
-             `` && |\n| &&
-             `      default:` && |\n| &&
-             `        return "";` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function serializeElement(el, depth, indented) {` && |\n| &&
-             `    let open = ``<${el.nodeName}``;` && |\n| &&
-             `    const attrs = el.attributes || [];` && |\n| &&
-             `    for (let i = 0; i < attrs.length; i++) {` && |\n| &&
-             `      open += `` ${attrs[i].name}="${escapeAttribute(attrs[i].value)}"``;` && |\n| &&
-             `    }` && |\n| &&
-             `    const children = Array.prototype.slice.call(el.childNodes || []);` && |\n| &&
-             `    if (children.length === 0) return ``${open}/>``;` && |\n| &&
-             `    const close = ``</${el.nodeName}>``;` && |\n| &&
-             `` && |\n| &&
-             `    const mixed = children.some((c) => isTextLike(c) && !isBlank(c));` && |\n| &&
-             `    if (mixed || !indented) {` && |\n| &&
-             `      return ``${open}>${children` && |\n| &&
-             `        .map((c) => serializeNode(c, 0, false))` && |\n| &&
-             `        .join("")}${close}``;` && |\n| &&
-             `    }` && |\n| &&
-             `    const kept = children.filter((c) => !isBlank(c));` && |\n| &&
-             `    if (kept.length === 0) return ``${open}/>``;` && |\n| &&
-             `    const pad = " ".repeat(depth * XML_INDENT_UNIT);` && |\n| &&
-             `    return ``${open}>\n${kept` && |\n| &&
-             `      .map((c) => serializeNode(c, depth + 1, true))` && |\n| &&
-             `      .join("\n")}\n${pad}${close}``;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function prettifyXml(sourceXml) {` && |\n| &&
-             `    if (!sourceXml) return "";` && |\n| &&
-             `    try {` && |\n| &&
-             `      const xmlDoc = getDomParser().parseFromString(` && |\n| &&
-             `        sourceXml,` && |\n| &&
-             `        "application/xml",` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!xmlDoc || !xmlDoc.documentElement) return sourceXml;` && |\n| &&
-             `      if (` && |\n| &&
-             `        xmlDoc.documentElement.nodeName === "parsererror" ||` && |\n| &&
-             `        xmlDoc.getElementsByTagName("parsererror").length > 0` && |\n| &&
-             `      ) {` && |\n| &&
-             `        return sourceXml;` && |\n| &&
-             `      }` && |\n| &&
-             `      return Array.prototype.slice` && |\n| &&
-             `        .call(xmlDoc.childNodes)` && |\n| &&
-             `        .filter((node) => !isBlank(node))` && |\n| &&
-             `        .map((node) => serializeNode(node, 0, true))` && |\n| &&
-             `        .join("\n");` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return sourceXml;` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function truncate(text, max) {` && |\n| &&
-             `    const str = String(text);` && |\n| &&
-             `    if (str.length <= max) return str;` && |\n| &&
-             `    return ``${str.slice(0, max)}... (${str.length} chars)``;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function formatBytes(bytes) {` && |\n| &&
-             `    if (bytes === null || bytes === undefined) return "-";` && |\n| &&
-             `    if (bytes < 1024) return ``${bytes} B``;` && |\n| &&
-             `    if (bytes < 1024 * 1024) return ``${Math.round(bytes / 1024)} KB``;` && |\n| &&
-             `    return ``${(bytes / (1024 * 1024)).toFixed(1)} MB``;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function section(title) {` && |\n| &&
-             `    return ``\n${title}\n${"-".repeat(title.length)}``;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function renderValue(value, max) {` && |\n| &&
-             `    if (value === undefined) return "(absent)";` && |\n| &&
-             `    if (value === null) return "null";` && |\n| &&
-             `    let text;` && |\n| &&
-             `    if (typeof value === "object") {` && |\n| &&
-             `      try {` && |\n| &&
-             `        text = JSON.stringify(value);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        text = String(value);` && |\n| &&
-             `      }` && |\n| &&
-             `    } else {` && |\n| &&
-             `      text = String(value);` && |\n| &&
-             `    }` && |\n| &&
-             `    return truncate(text, max);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function describeValue(` && |\n| &&
-             `    value,` && |\n| &&
-             `    { max = 60, typed = false, absent = "(absent)", empty = "(empty)" } = {},` && |\n| &&
-             `  ) {` && |\n| &&
-             `    if (value === null) return "null";` && |\n| &&
-             `    if (value === undefined) return absent;` && |\n| &&
-             `    if (Array.isArray(value)) return ``table, ${value.length} row(s)``;` && |\n| &&
-             `    if (typeof value === "object") {` && |\n| &&
-             `      return ``structure, ${Object.keys(value).length} field(s)``;` && |\n| &&
-             `    }` && |\n| &&
-             `    if (value === "") return typed ? ``${typeof value} ${empty}`` : empty;` && |\n| &&
-             `    const preview = truncate(value, max);` && |\n| &&
-             `    return typed ? ``${typeof value}  ${preview}`` : preview;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const FRAMEWORK_CALL =` && |\n| &&
-             `    /\b(eB|eBP|eF)\s*\((?:[^[)"'&]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    toJson,` && |\n| &&
-             `    prettifyXml,` && |\n| &&
-             `    truncate,` && |\n| &&
-             `    formatBytes,` && |\n| &&
-             `    section,` && |\n| &&
-             `    renderValue,` && |\n| &&
-             `    describeValue,` && |\n| &&
-             `    FRAMEWORK_CALL,` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
+             `      "z2ui5/devtools/Format.js": function(){sap.ui.define([],()=>{"use strict";const INDENT_UNIT=3;function toJson(val){const safe=val===undefined?null:val;const ancestors=[];try{return JSON.stringif` &&
+             `y(safe,function(key,value){if(typeof value==="object"&&value!==null){while(ancestors.length>0&&ancestors[ancestors.length-1]!==this){ancestors.pop()}if(ancestors.includes(value))return"[Circular]";anc` &&
+             `estors.push(value)}return value},INDENT_UNIT)}catch{return String(safe)}}const XML_INDENT_UNIT=2;const ELEMENT_NODE=1;const TEXT_NODE=3;const CDATA_SECTION_NODE=4;const PROCESSING_INSTRUCTION_NODE=7;c` &&
+             `onst COMMENT_NODE=8;let _domParser=null;function getDomParser(){if(!_domParser)_domParser=new DOMParser;return _domParser}function escapeText(text){return text.replace(/&/g,"&amp;").replace(/</g,"&lt;` &&
+             `").replace(/]]>/g,"]]&gt;")}function escapeAttribute(value){return value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;").replace(/\t/g,"&#9;").replace(/\n/g,"&#10;").replace(/\r/g,"&` &&
+             `#13;")}function isTextLike(node){return node.nodeType===TEXT_NODE||node.nodeType===CDATA_SECTION_NODE}function isBlank(node){return isTextLike(node)&&!/\S/.test(node.nodeValue)}function serializeNode(` &&
+             `node,depth,indented){const pad=indented?" ".repeat(depth*XML_INDENT_UNIT):"";switch(node.nodeType){case ELEMENT_NODE:return pad+serializeElement(node,depth,indented);case TEXT_NODE:return pad+escapeTe` &&
+             `xt(node.nodeValue);case CDATA_SECTION_NODE:return``${pad}<![CDATA[${node.nodeValue}]]>``;case COMMENT_NODE:return``${pad}\x3c!--${node.nodeValue}--\x3e``;case PROCESSING_INSTRUCTION_NODE:return``${pad}<?${` &&
+             `node.target} ${node.data}?>``;default:return""}}function serializeElement(el,depth,indented){let open=``<${el.nodeName}``;const attrs=el.attributes||[];for(let i=0;i<attrs.length;i++){open+=`` ${attrs[i].` &&
+             `name}="${escapeAttribute(attrs[i].value)}"``}const children=Array.prototype.slice.call(el.childNodes||[]);if(children.length===0)return``${open}/>``;const close=``</${el.nodeName}>``;const mixed=children.s` &&
+             `ome(c=>isTextLike(c)&&!isBlank(c));if(mixed||!indented){return``${open}>${children.map(c=>serializeNode(c,0,false)).join("")}${close}``}const kept=children.filter(c=>!isBlank(c));if(kept.length===0)retu` &&
+             `rn``${open}/>``;const pad=" ".repeat(depth*XML_INDENT_UNIT);return``${open}>\n${kept.map(c=>serializeNode(c,depth+1,true)).join("\n")}\n${pad}${close}``}function prettifyXml(sourceXml){if(!sourceXml)retur` &&
+             `n"";try{const xmlDoc=getDomParser().parseFromString(sourceXml,"application/xml");if(!xmlDoc||!xmlDoc.documentElement)return sourceXml;if(xmlDoc.documentElement.nodeName==="parsererror"||xmlDoc.getElem` &&
+             `entsByTagName("parsererror").length>0){return sourceXml}return Array.prototype.slice.call(xmlDoc.childNodes).filter(node=>!isBlank(node)).map(node=>serializeNode(node,0,true)).join("\n")}catch{return ` &&
+             `sourceXml}}function truncate(text,max){const str=String(text);if(str.length<=max)return str;return``${str.slice(0,max)}... (${str.length} chars)``}function formatBytes(bytes){if(bytes===null||bytes===un` &&
+             `defined)return"-";if(bytes<1024)return``${bytes} B``;if(bytes<1024*1024)return``${Math.round(bytes/1024)} KB``;return``${(bytes/(1024*1024)).toFixed(1)} MB``}function section(title){return``\n${title}\n${"-"` &&
+             `.repeat(title.length)}``}function renderValue(value,max){if(value===undefined)return"(absent)";if(value===null)return"null";let text;if(typeof value==="object"){try{text=JSON.stringify(value)}catch{tex` &&
+             `t=String(value)}}else{text=String(value)}return truncate(text,max)}function describeValue(value,{max=60,typed=false,absent="(absent)",empty="(empty)"}={}){if(value===null)return"null";if(value===undef` &&
+             `ined)return absent;if(Array.isArray(value))return``table, ${value.length} row(s)``;if(typeof value==="object"){return``structure, ${Object.keys(value).length} field(s)``}if(value==="")return typed?``${type` &&
+             `of value} ${empty}``:empty;const preview=truncate(value,max);return typed?``${typeof value}  ${preview}``:preview}const FRAMEWORK_CALL=/\b(eB|eBP|eF)\s*\((?:[^[)"'&]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z` &&
+             `0-9_.-]+)/;return{toJson,prettifyXml,truncate,formatBytes,section,renderValue,describeValue,FRAMEWORK_CALL}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Persist.js": function(){sap.ui.define([], () => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  function read(key) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      return window.sessionStorage?.getItem(key) || "";` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return "";` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function write(key, value) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      window.sessionStorage?.setItem(key, value);` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function remove(key) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      window.sessionStorage?.removeItem(key);` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function readFlag(key) {` && |\n| &&
-             `    return read(key) === "X";` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function writeFlag(key, enabled) {` && |\n| &&
-             `    if (enabled) {` && |\n| &&
-             `      write(key, "X");` && |\n| &&
-             `    } else {` && |\n| &&
-             `      remove(key);` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function saveList(key, list) {` && |\n| &&
-             `    if (!list.length) return;` && |\n| &&
-             `    try {` && |\n| &&
-             `      window.sessionStorage?.setItem(key, JSON.stringify(list));` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function takeList(key) {` && |\n| &&
-             `    let stored;` && |\n| &&
-             `    try {` && |\n| &&
-             `      stored = window.sessionStorage?.getItem(key);` && |\n| &&
-             `      window.sessionStorage?.removeItem(key);` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return [];` && |\n| &&
-             `    }` && |\n| &&
-             `    if (!stored) return [];` && |\n| &&
-             `    try {` && |\n| &&
-             `      const parsed = JSON.parse(stored);` && |\n| &&
-             `      return Array.isArray(parsed) ? parsed : [];` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return [];` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return { read, write, remove, readFlag, writeFlag, saveList, takeList };` && |\n| &&
-             `});` && |\n| &&
+             `      "z2ui5/devtools/Persist.js": function(){sap.ui.define([],()=>{"use strict";function read(key){try{return window.sessionStorage?.getItem(key)||""}catch{return""}}function write(key,value){try{win` &&
+             `dow.sessionStorage?.setItem(key,value)}catch{}}function remove(key){try{window.sessionStorage?.removeItem(key)}catch{}}function readFlag(key){return read(key)==="X"}function writeFlag(key,enabled){if(` &&
+             `enabled){write(key,"X")}else{remove(key)}}function saveList(key,list){if(!list.length)return;try{window.sessionStorage?.setItem(key,JSON.stringify(list))}catch{}}function takeList(key){let stored;try{` &&
+             `stored=window.sessionStorage?.getItem(key);window.sessionStorage?.removeItem(key)}catch{return[]}if(!stored)return[];try{const parsed=JSON.parse(stored);return Array.isArray(parsed)?parsed:[]}catch{re` &&
+             `turn[]}}return{read,write,remove,readFlag,writeFlag,saveList,takeList}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Recorder.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/devtools/Format",` && |\n| &&
-             `    "z2ui5/devtools/Persist",` && |\n| &&
-             `    "z2ui5/devtools/Diff",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Lib, Format, Persist, Diff) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const { formatBytes, renderValue } = Format;` && |\n| &&
-             `    const { collectDiff, diffLines, MAX_DIFF_ENTRIES } = Diff;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_RECORDS = 50;` && |\n| &&
-             `` && |\n| &&
-             `    const PAYLOAD_BUDGET_BYTES = 2 * 1024 * 1024;` && |\n| &&
-             `` && |\n| &&
-             `    const PAYLOAD_FLAG_KEY = "z2ui5.devtools.recordPayloads";` && |\n| &&
-             `` && |\n| &&
-             `    const RELOAD_KEY = "z2ui5.devtools.history";` && |\n| &&
-             `    const RELOAD_MAX_RECORDS = 30;` && |\n| &&
-             `` && |\n| &&
-             `    const UNPAIRED_FLUSH_MS = 5000;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_MESSAGE_CHARS = 500;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_DIFF_VALUE_CHARS = 120;` && |\n| &&
-             `` && |\n| &&
-             `    function recorderOf(ctx) {` && |\n| &&
-             `      return ctx?.devtools?.recorder || null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function createRecorder() {` && |\n| &&
-             `      return {` && |\n| &&
-             `        records: [],` && |\n| &&
-             `        nextSeq: 1,` && |\n| &&
-             `        unpaired: [],` && |\n| &&
-             `        lastEntryStart: -1,` && |\n| &&
-             `        payloadBytes: 0,` && |\n| &&
-             `        observer: null,` && |\n| &&
-             `        afterRenderingHook: null,` && |\n| &&
-             `        onPageHide: null,` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function backendUrl(ctx) {` && |\n| &&
-             `      const url = ctx?.state?.url;` && |\n| &&
-             `      if (!url) return "";` && |\n| &&
-             `      try {` && |\n| &&
-             `        return new URL(url, window.location.href).href;` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "";` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function wallClockIso(mark) {` && |\n| &&
-             `      const origin =` && |\n| &&
-             `        typeof performance !== "undefined" ? performance.timeOrigin : undefined;` && |\n| &&
-             `      if (typeof origin === "number" && typeof mark === "number") {` && |\n| &&
-             `        return new Date(origin + mark).toISOString();` && |\n| &&
-             `      }` && |\n| &&
-             `      return new Date().toISOString();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function now() {` && |\n| &&
-             `      return typeof performance !== "undefined" && performance.now` && |\n| &&
-             `        ? performance.now()` && |\n| &&
-             `        : 0;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function acceptEntry(rec, entry) {` && |\n| &&
-             `      if (!entry || entry.startTime <= rec.lastEntryStart) return;` && |\n| &&
-             `      rec.lastEntryStart = entry.startTime;` && |\n| &&
-             `      rec.unpaired.push({` && |\n| &&
-             `        start: entry.startTime,` && |\n| &&
-             `        end: entry.responseEnd || entry.startTime,` && |\n| &&
-             `` && |\n| &&
-             `        bytes: entry.decodedBodySize || null,` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function sweepEntries(ctx, rec) {` && |\n| &&
-             `      if (typeof performance === "undefined" || !performance.getEntriesByName) {` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const url = backendUrl(ctx);` && |\n| &&
-             `      if (!url) return;` && |\n| &&
-             `      let entries;` && |\n| &&
-             `      try {` && |\n| &&
-             `        entries = performance.getEntriesByName(url, "resource");` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const fresh = [];` && |\n| &&
-             `      for (let i = entries.length - 1; i >= 0; i -= 1) {` && |\n| &&
-             `        if (entries[i].startTime <= rec.lastEntryStart) break;` && |\n| &&
-             `        fresh.push(entries[i]);` && |\n| &&
-             `      }` && |\n| &&
-             `      for (let i = fresh.length - 1; i >= 0; i -= 1) acceptEntry(rec, fresh[i]);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function takeNetworkFor(rec, tRendered) {` && |\n| &&
-             `      const unpaired = rec.unpaired;` && |\n| &&
-             `      let index = -1;` && |\n| &&
-             `      for (let i = unpaired.length - 1; i >= 0; i--) {` && |\n| &&
-             `        if (unpaired[i].end <= tRendered) {` && |\n| &&
-             `          index = i;` && |\n| &&
-             `          break;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (index === -1) return null;` && |\n| &&
-             `      const stale = unpaired.slice(0, index);` && |\n| &&
-             `      const match = unpaired[index];` && |\n| &&
-             `      rec.unpaired = unpaired.slice(index + 1);` && |\n| &&
-             `      for (const entry of stale) pushUnrendered(rec, entry);` && |\n| &&
-             `      return match;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function flushStaleUnpaired(rec) {` && |\n| &&
-             `      if (!rec.unpaired.length) return;` && |\n| &&
-             `      const cutoff = now() - UNPAIRED_FLUSH_MS;` && |\n| &&
-             `      const stale = rec.unpaired.filter((entry) => entry.end < cutoff);` && |\n| &&
-             `      if (!stale.length) return;` && |\n| &&
-             `      rec.unpaired = rec.unpaired.filter((entry) => entry.end >= cutoff);` && |\n| &&
-             `      for (const entry of stale) pushUnrendered(rec, entry);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pushUnrendered(rec, entry) {` && |\n| &&
-             `      pushRecord(rec, {` && |\n| &&
-             `        ts: wallClockIso(entry.start),` && |\n| &&
-             `        event: "",` && |\n| &&
-             `        idSent: "",` && |\n| &&
-             `        idReceived: "",` && |\n|.
-    result = result &&
-             `        app: "",` && |\n| &&
-             `        reqBytes: null,` && |\n| &&
-             `        respBytes: entry.bytes,` && |\n| &&
-             `        backendMs: Math.round(entry.end - entry.start),` && |\n| &&
-             `        renderMs: null,` && |\n| &&
-             `        totalMs: null,` && |\n| &&
-             `        systemActions: 0,` && |\n| &&
-             `        customActions: 0,` && |\n| &&
-             `        messages: [],` && |\n| &&
-             `        rendered: false,` && |\n| &&
-             `        request: null,` && |\n| &&
-             `        response: null,` && |\n| &&
-             `      });` && |\n| &&
-             `` && |\n| &&
-             `      rec.records.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function extractMessages(response) {` && |\n| &&
-             `      const custom = response?.S_FRONT?.ACTIONS;` && |\n| &&
-             `      if (!Array.isArray(custom)) return [];` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      for (const item of custom) {` && |\n| &&
-             `        if (!Array.isArray(item)) continue;` && |\n| &&
-             `        const call = item[0] === "CONTROL_GLOBAL" ? item.slice(1) : item;` && |\n| &&
-             `        const target = call[0];` && |\n| &&
-             `        if (target !== "MESSAGE_TOAST" && target !== "MESSAGE_BOX") continue;` && |\n| &&
-             `        let text = typeof call[2] === "string" ? call[2] : "";` && |\n| &&
-             `        if (text.length > MAX_MESSAGE_CHARS) {` && |\n| &&
-             `          text = ``${text.slice(0, MAX_MESSAGE_CHARS)}...``;` && |\n| &&
-             `        }` && |\n| &&
-             `        out.push({ target, method: call[1] || "", text });` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function recordBytes(record) {` && |\n| &&
-             `      if (!record.request && !record.response) return 0;` && |\n| &&
-             `      return (record.reqBytes || 0) + (record.respBytes || 0);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function enforcePayloadBudget(rec) {` && |\n| &&
-             `      for (const record of rec.records) {` && |\n| &&
-             `        if (rec.payloadBytes <= PAYLOAD_BUDGET_BYTES) return;` && |\n| &&
-             `        if (!record.request && !record.response) continue;` && |\n| &&
-             `        rec.payloadBytes -= recordBytes(record);` && |\n| &&
-             `        record.request = null;` && |\n| &&
-             `        record.response = null;` && |\n| &&
-             `        record.payloadEvicted = true;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pushRecord(rec, record) {` && |\n| &&
-             `      record.seq = rec.nextSeq++;` && |\n| &&
-             `      rec.records.push(record);` && |\n| &&
-             `      rec.payloadBytes += recordBytes(record);` && |\n| &&
-             `      while (rec.records.length > MAX_RECORDS) {` && |\n| &&
-             `        const dropped = rec.records.shift();` && |\n| &&
-             `        rec.payloadBytes -= recordBytes(dropped);` && |\n| &&
-             `      }` && |\n| &&
-             `      enforcePayloadBudget(rec);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isRecordingPayloads() {` && |\n| &&
-             `      return Persist.readFlag(PAYLOAD_FLAG_KEY);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function setRecordingPayloads(ctx, enabled) {` && |\n| &&
-             `      Persist.writeFlag(PAYLOAD_FLAG_KEY, enabled);` && |\n| &&
-             `      if (!enabled) dropAllPayloads(recorderOf(ctx));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function dropAllPayloads(rec) {` && |\n| &&
-             `      if (!rec) return;` && |\n| &&
-             `      for (const record of rec.records) {` && |\n| &&
-             `        record.request = null;` && |\n| &&
-             `        record.response = null;` && |\n| &&
-             `      }` && |\n| &&
-             `      rec.payloadBytes = 0;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function measureRequest(ctx, oBody) {` && |\n| &&
-             `      if (!oBody) return null;` && |\n| &&
-             `      const known = ctx.state.lastRequestBytes;` && |\n| &&
-             `      if (typeof known === "function") return known();` && |\n| &&
-             `      if (typeof known === "number") return known;` && |\n| &&
-             `      try {` && |\n| &&
-             `        return Lib.byteLength(JSON.stringify({ value: oBody }));` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function onAfterRendering(ctx) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const rec = recorderOf(ctx);` && |\n| &&
-             `        if (!rec) return;` && |\n| &&
-             `        const state = ctx.state;` && |\n| &&
-             `        const tRendered = now();` && |\n| &&
-             `        sweepEntries(ctx, rec);` && |\n| &&
-             `        const net = takeNetworkFor(rec, tRendered);` && |\n| &&
-             `        const response = state.responseData;` && |\n| &&
-             `        const sFront = response?.S_FRONT;` && |\n| &&
-             `        const keepPayloads = isRecordingPayloads();` && |\n| &&
-             `        const reqBytes = measureRequest(ctx, state.oBody);` && |\n| &&
-             `` && |\n| &&
-             `        pushRecord(rec, {` && |\n| &&
-             `          ts: new Date().toISOString(),` && |\n| &&
-             `          event: state.oBody?.S_FRONT?.EVENT || "",` && |\n| &&
-             `          idSent: state.oBody?.S_FRONT?.ID || "",` && |\n| &&
-             `          idReceived: sFront?.ID || "",` && |\n| &&
-             `          app: sFront?.APP || "",` && |\n| &&
-             `          reqBytes: reqBytes,` && |\n| &&
-             `          respBytes: net?.bytes ?? null,` && |\n| &&
-             `          backendMs: net ? Math.round(net.end - net.start) : null,` && |\n| &&
-             `          renderMs: net ? Math.round(tRendered - net.end) : null,` && |\n| &&
-             `          totalMs: net ? Math.round(tRendered - net.start) : null,` && |\n| &&
-             `` && |\n| &&
-             `          systemActions: Object.keys(sFront?.VIEWS || {}).length,` && |\n| &&
-             `          customActions: sFront?.ACTIONS?.length || 0,` && |\n| &&
-             `` && |\n| &&
-             `          messages: extractMessages(response),` && |\n| &&
-             `          rendered: true,` && |\n| &&
-             `` && |\n| &&
-             `          request: keepPayloads ? state.oBody : null,` && |\n| &&
-             `          response: keepPayloads ? response : null,` && |\n| &&
-             `        });` && |\n| &&
-             `        flushStaleUnpaired(rec);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools Recorder: onAfterRendering failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function withoutPayloads(record) {` && |\n| &&
-             `      const copy = { ...record };` && |\n| &&
-             `      delete copy.request;` && |\n| &&
-             `      delete copy.response;` && |\n| &&
-             `      return copy;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function persist(rec) {` && |\n| &&
-             `      const slim = rec.records.slice(-RELOAD_MAX_RECORDS).map((record) => ({` && |\n| &&
-             `        ...withoutPayloads(record),` && |\n| &&
-             `        previousLoad: true,` && |\n| &&
-             `      }));` && |\n| &&
-             `      Persist.saveList(RELOAD_KEY, slim);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function restore(rec) {` && |\n| &&
-             `      const stored = Persist.takeList(RELOAD_KEY);` && |\n| &&
-             `      if (!stored.length) return;` && |\n| &&
-             `      rec.records = stored.slice(-RELOAD_MAX_RECORDS);` && |\n| &&
-             `` && |\n| &&
-             `      rec.nextSeq = (rec.records[rec.records.length - 1]?.seq || 0) + 1;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function install(ctx) {` && |\n| &&
-             `      if (!ctx?.devtools || recorderOf(ctx)) return;` && |\n| &&
-             `      const rec = createRecorder();` && |\n| &&
-             `      ctx.devtools.recorder = rec;` && |\n| &&
-             `      restore(rec);` && |\n| &&
-             `      rec.afterRenderingHook = () => onAfterRendering(ctx);` && |\n| &&
-             `      Lib.registerCallback(ctx, "onAfterRendering", rec.afterRenderingHook);` && |\n| &&
-             `` && |\n| &&
-             `      rec.onPageHide = () => persist(rec);` && |\n| &&
-             `      window.addEventListener("pagehide", rec.onPageHide);` && |\n| &&
-             `` && |\n| &&
-             `      if (typeof PerformanceObserver === "undefined") return;` && |\n| &&
-             `      try {` && |\n| &&
-             `        rec.observer = new PerformanceObserver((list) => {` && |\n| &&
-             `          const url = backendUrl(ctx);` && |\n| &&
-             `          if (!url) return;` && |\n| &&
-             `          for (const entry of list.getEntries()) {` && |\n| &&
-             `            if (entry.name === url) acceptEntry(rec, entry);` && |\n| &&
-             `          }` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        rec.observer.observe({ type: "resource", buffered: true });` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        rec.observer = null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function uninstall(ctx) {` && |\n| &&
-             `      const rec = recorderOf(ctx);` && |\n| &&
-             `      if (!rec) return;` && |\n| &&
-             `      ctx.devtools.recorder = null;` && |\n| &&
-             `      Lib.unregisterCallback(ctx, "onAfterRendering", rec.afterRenderingHook);` && |\n| &&
-             `      rec.afterRenderingHook = null;` && |\n| &&
-             `      if (rec.onPageHide) {` && |\n| &&
-             `        window.removeEventListener("pagehide", rec.onPageHide);` && |\n| &&
-             `        rec.onPageHide = null;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (rec.observer) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          rec.observer.disconnect();` && |\n| &&
-             `        } catch {}` && |\n| &&
-             `        rec.observer = null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getRecords(ctx) {` && |\n| &&
-             `      const rec = recorderOf(ctx);` && |\n| &&
-             `      if (!rec) return [];` && |\n| &&
-             `      flushStaleUnpaired(rec);` && |\n| &&
-             `      return rec.records;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function pad(value, width, right) {` && |\n| &&
-             `      const text = value === null || value === undefined ? "-" : String(value);` && |\n| &&
-             `      if (text.length >= width) return text;` && |\n| &&
-             `      const fill = " ".repeat(width - text.length);` && |\n| &&
-             `      return right ? fill + text : text + fill;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatMs(ms) {` && |\n| &&
-             `      return ms === null || ms === undefined ? "-" : ``${ms} ms``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function shortId(id) {` && |\n| &&
-             `      if (!id) return "-";` && |\n| &&
-             `      return id.length > 8 ? ``..${id.slice(-6)}`` : id;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function navigationLines(list) {` && |\n| &&
-             `      const hops = [];` && |\n| &&
-             `      let previous = null;` && |\n| &&
-             `      for (const record of list) {` && |\n| &&
-             `        if (!record.app || record.app === previous) continue;` && |\n| &&
-             `        hops.push({` && |\n| &&
-             `          seq: record.seq,` && |\n| &&
-             `          from: previous,` && |\n| &&
-             `          to: record.app,` && |\n| &&
-             `          event: record.event,` && |\n| &&
-             `          draft: record.idReceived,` && |\n| &&
-             `        });` && |\n| &&
-             `        previous = record.app;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (hops.length < 2) return [];` && |\n| &&
-             `      const out = ["App navigation observed this session"];` && |\n| &&
-             `      for (const hop of hops) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``  #${String(hop.seq).padEnd(4)}`` +` && |\n| &&
-             `            ``${hop.from ? ``${hop.from} -> `` : "start "}${hop.to}`` +` && |\n| &&
-             `            ``${hop.event ? ``   via ${hop.event}`` : ""}`` +` && |\n| &&
-             `            ``   draft ${shortId(hop.draft)}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function summaryLines(list) {` && |\n| &&
-             `      const timed = list.filter((r) => r.backendMs !== null);` && |\n| &&
-             `      if (!timed.length) return [];` && |\n| &&
-             `      const out = ["Summary"];` && |\n| &&
-             `      const backend = timed.map((r) => r.backendMs);` && |\n| &&
-             `      const avg = Math.round(` && |\n| &&
-             `        backend.reduce((a, b) => a + b, 0) / backend.length,` && |\n| &&
-             `      );` && |\n| &&
-             `      const slowest = timed.reduce((a, b) =>` && |\n| &&
-             `        b.backendMs > a.backendMs ? b : a,` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        ``  Backend: avg ${avg} ms over ${timed.length} roundtrip(s),`` +` && |\n| &&
-             `          `` slowest #${slowest.seq} ${slowest.event || "(start)"}`` +` && |\n| &&
-             `          `` at ${slowest.backendMs} ms``,` && |\n| &&
-             `      );` && |\n| &&
-             `      const sized = list.filter((r) => r.respBytes !== null);` && |\n| &&
-             `      if (sized.length) {` && |\n| &&
-             `        const biggest = sized.reduce((a, b) =>` && |\n| &&
-             `          b.respBytes > a.respBytes ? b : a,` && |\n| &&
-             `        );` && |\n| &&
-             `        const total = sized.reduce((sum, r) => sum + r.respBytes, 0);` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``  Response: ${formatBytes(total)} total,`` +` && |\n| &&
-             `            `` largest #${biggest.seq} ${biggest.event || "(start)"}`` +` && |\n| &&
-             `            `` at ${formatBytes(biggest.respBytes)}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      const failed = list.filter((r) => !r.rendered).length;` && |\n| &&
-             `      if (failed) {` && |\n| &&
-             `        out.push(``  ${failed} roundtrip(s) never reached the render phase.``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatHistory(ctx) {` && |\n| &&
-             `      const list = getRecords(ctx);` && |\n| &&
-             `      const lines = [];` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        ``Roundtrip history - ${list.length} of max ${MAX_RECORDS} records``,` && |\n| &&
-             `      );` && |\n| &&
-             `      const recording = isRecordingPayloads();` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        ``Payload recording: ${recording ? "ON" : "OFF"}`` +` && |\n| &&
-             `          `` (retained ${formatBytes(recorderOf(ctx)?.payloadBytes || 0)} of `` +` && |\n| &&
-             `          ``${formatBytes(PAYLOAD_BUDGET_BYTES)} budget)``,` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!recording) {` && |\n| &&
-             `        lines.push(` && |\n| &&
-             `          ``Switch "Record Payloads" on to keep request/response bodies and`` +` && |\n| &&
-             `            `` enable the Model Diff and View Diff tabs.``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      lines.push("");` && |\n| &&
-             `      if (!list.length) {` && |\n| &&
-             `        lines.push("(no roundtrip recorded yet)");` && |\n| &&
-             `        return lines.join("\n");` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        pad("#", 5) +` && |\n| &&
-             `          pad("TIME", 14) +` && |\n| &&
-             `          pad("EVENT", 22) +` && |\n| &&
-             `          pad("TOTAL", 10, true) +` && |\n| &&
-             `          pad("BACKEND", 10, true) +` && |\n| &&
-             `          pad("RENDER", 10, true) +` && |\n| &&
-             `          pad("REQ", 10, true) +` && |\n| &&
-             `          pad("RESP", 10, true) +` && |\n| &&
-             `          "  " +` && |\n| &&
-             `          pad("DRAFT", 10) +` && |\n| &&
-             `          pad("ACT", 8) +` && |\n| &&
-             `          "PAYLOAD",` && |\n| &&
-             `      );` && |\n| &&
-             `      lines.push("-".repeat(118));` && |\n| &&
-             `` && |\n| &&
-             `      for (const record of list) {` && |\n| &&
-             `        const time = record.ts.slice(11, 23);` && |\n| &&
-             `        const actions = ``${record.systemActions}/${record.customActions}``;` && |\n| &&
-             `        let payload = "-";` && |\n| &&
-             `        if (record.request || record.response) payload = "kept";` && |\n| &&
-             `        else if (record.payloadEvicted) payload = "evicted";` && |\n| &&
-             `        lines.push(` && |\n| &&
-             `          pad(record.previousLoad ? ``${record.seq}*`` : record.seq, 5) +` && |\n| &&
-             `            pad(time, 14) +` && |\n| &&
-             `            pad(` && |\n| &&
-             `              record.rendered ? record.event || "(start)" : "(no render)",` && |\n| &&
-             `              22,` && |\n| &&
-             `            ) +` && |\n| &&
-             `            pad(formatMs(record.totalMs), 10, true) +` && |\n| &&
-             `            pad(formatMs(record.backendMs), 10, true) +` && |\n| &&
-             `            pad(formatMs(record.renderMs), 10, true) +` && |\n| &&
-             `            pad(formatBytes(record.reqBytes), 10, true) +` && |\n| &&
-             `            pad(formatBytes(record.respBytes), 10, true) +` && |\n| &&
-             `            "  " +` && |\n| &&
-             `            pad(shortId(record.idReceived), 10) +` && |\n| &&
-             `            pad(actions, 8) +` && |\n| &&
-             `            payload,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      lines.push("");` && |\n| &&
-             `      lines.push(...navigationLines(list));` && |\n| &&
-             `      lines.push(...summaryLines(list));` && |\n| &&
-             `      lines.push("");` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        "TOTAL = request start to rendered, BACKEND = network + ABAP," +` && |\n| &&
-             `          " RENDER = response end to rendered.",` && |\n| &&
-             `      );` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        "ACT = system/custom action counts. A '(no render)' row is a" +` && |\n| &&
-             `          " roundtrip that never reached the render phase",` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        "(error response, aborted request, or a parallel request whose" +` && |\n| &&
-             `          " result was discarded as stale).",` && |\n| &&
-             `      );` && |\n| &&
-             `      if (list.some((record) => record.previousLoad)) {` && |\n| &&
-             `        lines.push(` && |\n| &&
-             `          "A '*' after the number marks a roundtrip of the PREVIOUS page" +` && |\n| &&
-             `            " load, carried across the reload.",` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return lines.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function displayedXml(response, slotKey) {` && |\n| &&
-             `      const xml = response?.S_FRONT?.VIEWS?.[slotKey]?.XML;` && |\n| &&
-             `      return typeof xml === "string" ? xml : "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function lastTwoViews(ctx, slotKey) {` && |\n| &&
-             `      const records = getRecords(ctx);` && |\n| &&
-             `      const withView = [];` && |\n| &&
-             `      for (let i = records.length - 1; i >= 0 && withView.length < 2; i--) {` && |\n| &&
-             `        const xml = displayedXml(records[i].response, slotKey);` && |\n| &&
-             `        if (xml) withView.unshift({ record: records[i], xml });` && |\n| &&
-             `      }` && |\n| &&
-             `      return withView.length < 2 ? null : withView;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatViewDiff(ctx) {` && |\n| &&
-             `      if (!isRecordingPayloads()) {` && |\n| &&
-             `        return (` && |\n| &&
-             `          "View diff needs payload recording.\n\n" +` && |\n| &&
-             `          'Switch "Record Payloads" on in the Roundtrips action bar, then' +` && |\n| &&
-             `          " trigger at least two roundtrips that rebuild the view - the diff\n" +` && |\n| &&
-             `          "compares the view XML of the two most recently recorded rebuilds."` && |\n| &&
-             `        );` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_07.
-
-    result = `      }` && |\n| &&
-             `` && |\n| &&
-             `      const pair = lastTwoViews(ctx, "MAIN");` && |\n| &&
-             `      if (!pair) {` && |\n| &&
-             `        return (` && |\n| &&
-             `          "Not enough recorded view rebuilds yet - the diff needs two.\n\n" +` && |\n| &&
-             `          "Only a response that actually rebuilt the MAIN view counts; a\n" +` && |\n| &&
-             `          "roundtrip that only pushed the model does not."` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      const [previous, current] = pair;` && |\n| &&
-             `      const out = [` && |\n| &&
-             `        ``View XML diff: roundtrip #${previous.record.seq}`` +` && |\n| &&
-             `          `` (${previous.record.event || "(start)"}) ->`` +` && |\n| &&
-             `          `` #${current.record.seq} (${current.record.event || "(start)"})``,` && |\n| &&
-             `        "",` && |\n| &&
-             `      ];` && |\n| &&
-             `      const changes = diffLines(` && |\n| &&
-             `        prettifyForDiff(previous.xml),` && |\n| &&
-             `        prettifyForDiff(current.xml),` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!changes.length) {` && |\n| &&
-             `        out.push("(the two rebuilds produced identical view XML)");` && |\n| &&
-             `        return out.join("\n");` && |\n| &&
-             `      }` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        ``${changes.length}${changes.length >= MAX_DIFF_ENTRIES ? "+" : ""} changed line(s):``,` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      for (const change of changes) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``  ${change.type} ${String(change.number).padStart(5)}  `` +` && |\n| &&
-             `            ``${change.line.trim()}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      if (changes.length >= MAX_DIFF_ENTRIES) {` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `        out.push(``(stopped after ${MAX_DIFF_ENTRIES} changes)``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function prettifyForDiff(xml) {` && |\n| &&
-             `      return xml.replace(/></g, ">\n<");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function lastTwoResponses(ctx) {` && |\n| &&
-             `      const withPayload = getRecords(ctx).filter(` && |\n| &&
-             `        (record) => record.response?.MODEL !== undefined,` && |\n| &&
-             `      );` && |\n| &&
-             `      if (withPayload.length < 2) return null;` && |\n| &&
-             `      return withPayload.slice(-2);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatModelDiff(ctx) {` && |\n| &&
-             `      if (!isRecordingPayloads()) {` && |\n| &&
-             `        return (` && |\n| &&
-             `          "Model diff needs payload recording.\n\n" +` && |\n| &&
-             `          'Switch "Record Payloads" on in the Roundtrips action bar, then' +` && |\n| &&
-             `          " trigger at least two roundtrips - the diff compares the MODEL of\n" +` && |\n| &&
-             `          "the two most recently recorded responses."` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      const pair = lastTwoResponses(ctx);` && |\n| &&
-             `      if (!pair) {` && |\n| &&
-             `        return (` && |\n| &&
-             `          "Not enough recorded responses yet - the diff needs two.\n\n" +` && |\n| &&
-             `          "Trigger another roundtrip and reopen this tab."` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      const [previous, current] = pair;` && |\n| &&
-             `      const out = collectDiff(` && |\n| &&
-             `        previous.response?.MODEL,` && |\n| &&
-             `        current.response?.MODEL,` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      const header = [` && |\n| &&
-             `        ``Model diff: roundtrip #${previous.seq} (${previous.event || "(start)"})`` +` && |\n| &&
-             `          `` -> #${current.seq} (${current.event || "(start)"})``,` && |\n| &&
-             `        "",` && |\n| &&
-             `      ];` && |\n| &&
-             `      if (!out.length) {` && |\n| &&
-             `        header.push("(the two responses carry an identical MODEL)");` && |\n| &&
-             `        return header.join("\n");` && |\n| &&
-             `      }` && |\n| &&
-             `      header.push(` && |\n| &&
-             `        ``${out.length}${out.length >= MAX_DIFF_ENTRIES ? "+" : ""}`` +` && |\n| &&
-             `          `` differing path(s):``,` && |\n| &&
-             `      );` && |\n| &&
-             `      header.push("");` && |\n| &&
-             `      for (const entry of out) {` && |\n| &&
-             `        const path = entry.path || "/";` && |\n| &&
-             `        if (entry.type === "added") {` && |\n| &&
-             `          header.push(``+ ${path}``);` && |\n| &&
-             `          header.push(``    ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}``);` && |\n| &&
-             `        } else if (entry.type === "removed") {` && |\n| &&
-             `          header.push(``- ${path}``);` && |\n| &&
-             `          header.push(``    ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}``);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          header.push(``~ ${path}``);` && |\n| &&
-             `          header.push(` && |\n| &&
-             `            ``    before: ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}``,` && |\n| &&
-             `          );` && |\n| &&
-             `          header.push(` && |\n| &&
-             `            ``    after:  ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (out.length >= MAX_DIFF_ENTRIES) {` && |\n| &&
-             `        header.push("");` && |\n| &&
-             `        header.push(``(stopped after ${MAX_DIFF_ENTRIES} differences)``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return header.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function exportJson(ctx) {` && |\n| &&
-             `      const records = getRecords(ctx);` && |\n| &&
-             `      const payload = {` && |\n| &&
-             `        exportedAt: new Date().toISOString(),` && |\n| &&
-             `        payloadsRecorded: isRecordingPayloads(),` && |\n| &&
-             `        records,` && |\n| &&
-             `      };` && |\n| &&
-             `      try {` && |\n| &&
-             `        return JSON.stringify(payload, null, 2);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        const metaOnly = records.map(withoutPayloads);` && |\n| &&
-             `        return JSON.stringify({ ...payload, records: metaOnly }, null, 2);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      install,` && |\n| &&
-             `      uninstall,` && |\n| &&
-             `      getRecords,` && |\n| &&
-             `      exportJson,` && |\n| &&
-             `      isRecordingPayloads,` && |\n| &&
-             `      setRecordingPayloads,` && |\n| &&
-             `      formatHistory,` && |\n| &&
-             `      formatModelDiff,` && |\n| &&
-             `      formatViewDiff,` && |\n| &&
-             `` && |\n| &&
-             `      extractMessages,` && |\n| &&
-             `      displayedXml,` && |\n| &&
-             `` && |\n| &&
-             `      _internals: { MAX_RECORDS, PAYLOAD_BUDGET_BYTES, PAYLOAD_FLAG_KEY },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/devtools/Recorder.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/devtools/Format","z2ui5/devtools/Persist","z2ui5/devtools/Diff"],(Lib,Format,Persist,Diff)=>{"use strict";const{fo` &&
+             `rmatBytes,renderValue}=Format;const{collectDiff,diffLines,MAX_DIFF_ENTRIES}=Diff;const MAX_RECORDS=50;const PAYLOAD_BUDGET_BYTES=2*1024*1024;const PAYLOAD_FLAG_KEY="z2ui5.devtools.recordPayloads";cons` &&
+             `t RELOAD_KEY="z2ui5.devtools.history";const RELOAD_MAX_RECORDS=30;const UNPAIRED_FLUSH_MS=5e3;const MAX_MESSAGE_CHARS=500;const MAX_DIFF_VALUE_CHARS=120;function recorderOf(ctx){return ctx?.devtools?.` &&
+             `recorder||null}function createRecorder(){return{records:[],nextSeq:1,unpaired:[],lastEntryStart:-1,payloadBytes:0,observer:null,afterRenderingHook:null,onPageHide:null}}function backendUrl(ctx){const ` &&
+             `url=ctx?.state?.url;if(!url)return"";try{return new URL(url,window.location.href).href}catch{return""}}function wallClockIso(mark){const origin=typeof performance!=="undefined"?performance.timeOrigin:` &&
+             `undefined;if(typeof origin==="number"&&typeof mark==="number"){return new Date(origin+mark).toISOString()}return(new Date).toISOString()}function now(){return typeof performance!=="undefined"&&perform` &&
+             `ance.now?performance.now():0}function acceptEntry(rec,entry){if(!entry||entry.startTime<=rec.lastEntryStart)return;rec.lastEntryStart=entry.startTime;rec.unpaired.push({start:entry.startTime,end:entry` &&
+             `.responseEnd||entry.startTime,bytes:entry.decodedBodySize||null})}function sweepEntries(ctx,rec){if(typeof performance==="undefined"||!performance.getEntriesByName){return}const url=backendUrl(ctx);if` &&
+             `(!url)return;let entries;try{entries=performance.getEntriesByName(url,"resource")}catch{return}const fresh=[];for(let i=entries.length-1;i>=0;i-=1){if(entries[i].startTime<=rec.lastEntryStart)break;fr` &&
+             `esh.push(entries[i])}for(let i=fresh.length-1;i>=0;i-=1)acceptEntry(rec,fresh[i])}function takeNetworkFor(rec,tRendered){const unpaired=rec.unpaired;let index=-1;for(let i=unpaired.length-1;i>=0;i--){` &&
+             `if(unpaired[i].end<=tRendered){index=i;break}}if(index===-1)return null;const stale=unpaired.slice(0,index);const match=unpaired[index];rec.unpaired=unpaired.slice(index+1);for(const entry of stale)pu` &&
+             `shUnrendered(rec,entry);return match}function flushStaleUnpaired(rec){if(!rec.unpaired.length)return;const cutoff=now()-UNPAIRED_FLUSH_MS;const stale=rec.unpaired.filter(entry=>entry.end<cutoff);if(!s` &&
+             `tale.length)return;rec.unpaired=rec.unpaired.filter(entry=>entry.end>=cutoff);for(const entry of stale)pushUnrendered(rec,entry)}function pushUnrendered(rec,entry){pushRecord(rec,{ts:wallClockIso(entr` &&
+             `y.start),event:"",idSent:"",idReceived:"",app:"",reqBytes:null,respBytes:entry.bytes,backendMs:Math.round(entry.end-entry.start),renderMs:null,totalMs:null,viewCount:0,actionCount:0,messages:[],render` &&
+             `ed:false,request:null,response:null});rec.records.sort((a,b)=>a.ts<b.ts?-1:a.ts>b.ts?1:0)}function extractMessages(response){const custom=response?.S_FRONT?.ACTIONS;if(!Array.isArray(custom))return[];` &&
+             `const out=[];for(const item of custom){if(!Array.isArray(item))continue;const call=item[0]==="CONTROL_GLOBAL"?item.slice(1):item;const target=call[0];if(target!=="MESSAGE_TOAST"&&target!=="MESSAGE_BOX` &&
+             `")continue;let text=typeof call[2]==="string"?call[2]:"";if(text.length>MAX_MESSAGE_CHARS){text=``${text.slice(0,MAX_MESSAGE_CHARS)}...``}out.push({target,method:call[1]||"",text})}return out}function r` &&
+             `ecordBytes(record){if(!record.request&&!record.response)return 0;return(record.reqBytes||0)+(record.respBytes||0)}function enforcePayloadBudget(rec){for(const record of rec.records){if(rec.payloadByte` &&
+             `s<=PAYLOAD_BUDGET_BYTES)return;if(!record.request&&!record.response)continue;rec.payloadBytes-=recordBytes(record);record.request=null;record.response=null;record.payloadEvicted=true}}function pushRec` &&
+             `ord(rec,record){record.seq=rec.nextSeq++;rec.records.push(record);rec.payloadBytes+=recordBytes(record);while(rec.records.length>MAX_RECORDS){const dropped=rec.records.shift();rec.payloadBytes-=record` &&
+             `Bytes(dropped)}enforcePayloadBudget(rec)}function isRecordingPayloads(){return Persist.readFlag(PAYLOAD_FLAG_KEY)}function setRecordingPayloads(ctx,enabled){Persist.writeFlag(PAYLOAD_FLAG_KEY,enabled)` &&
+             `;if(!enabled)dropAllPayloads(recorderOf(ctx))}function dropAllPayloads(rec){if(!rec)return;for(const record of rec.records){record.request=null;record.response=null}rec.payloadBytes=0}function measure` &&
+             `Request(ctx,oBody){if(!oBody)return null;const known=ctx.state.lastRequestBytes;if(typeof known==="function")return known();if(typeof known==="number")return known;try{return Lib.byteLength(JSON.strin` &&
+             `gify({value:oBody}))}catch{return null}}function onAfterRendering(ctx){try{const rec=recorderOf(ctx);if(!rec)return;const state=ctx.state;const tRendered=now();sweepEntries(ctx,rec);const net=takeNetw` &&
+             `orkFor(rec,tRendered);const response=state.responseData;const sFront=response?.S_FRONT;const keepPayloads=isRecordingPayloads();const reqBytes=measureRequest(ctx,state.oBody);pushRecord(rec,{ts:(new D` &&
+             `ate).toISOString(),event:state.oBody?.S_FRONT?.EVENT||"",idSent:state.oBody?.S_FRONT?.ID||"",idReceived:sFront?.ID||"",app:sFront?.APP||"",reqBytes,respBytes:net?.bytes??null,backendMs:net?Math.round(` &&
+             `net.end-net.start):null,renderMs:net?Math.round(tRendered-net.end):null,totalMs:net?Math.round(tRendered-net.start):null,viewCount:Object.keys(sFront?.VIEWS||{}).length,actionCount:sFront?.ACTIONS?.le` &&
+             `ngth||0,messages:extractMessages(response),rendered:true,request:keepPayloads?state.oBody:null,response:keepPayloads?response:null});flushStaleUnpaired(rec)}catch(e){Lib.logError("DevTools Recorder: o` &&
+             `nAfterRendering failed",e)}}function withoutPayloads(record){const copy={...record};delete copy.request;delete copy.response;return copy}function persist(rec){const slim=rec.records.slice(-RELOAD_MAX_` &&
+             `RECORDS).map(record=>({...withoutPayloads(record),previousLoad:true}));Persist.saveList(RELOAD_KEY,slim)}function restore(rec){const stored=Persist.takeList(RELOAD_KEY);if(!stored.length)return;rec.re` &&
+             `cords=stored.slice(-RELOAD_MAX_RECORDS);rec.nextSeq=(rec.records[rec.records.length-1]?.seq||0)+1}function install(ctx){if(!ctx?.devtools||recorderOf(ctx))return;const rec=createRecorder();ctx.devtool` &&
+             `s.recorder=rec;restore(rec);rec.afterRenderingHook=()=>onAfterRendering(ctx);Lib.registerCallback(ctx,"onAfterRendering",rec.afterRenderingHook);rec.onPageHide=()=>persist(rec);window.addEventListener` &&
+             `("pagehide",rec.onPageHide);if(typeof PerformanceObserver==="undefined")return;try{rec.observer=new PerformanceObserver(list=>{const url=backendUrl(ctx);if(!url)return;for(const entry of list.getEntri` &&
+             `es()){if(entry.name===url)acceptEntry(rec,entry)}});rec.observer.observe({type:"resource",buffered:true})}catch{rec.observer=null}}function uninstall(ctx){const rec=recorderOf(ctx);if(!rec)return;ctx.` &&
+             `devtools.recorder=null;Lib.unregisterCallback(ctx,"onAfterRendering",rec.afterRenderingHook);rec.afterRenderingHook=null;if(rec.onPageHide){window.removeEventListener("pagehide",rec.onPageHide);rec.on` &&
+             `PageHide=null}if(rec.observer){try{rec.observer.disconnect()}catch{}rec.observer=null}}function getRecords(ctx){const rec=recorderOf(ctx);if(!rec)return[];flushStaleUnpaired(rec);return rec.records}fu` &&
+             `nction pad(value,width,right){const text=value===null||value===undefined?"-":String(value);if(text.length>=width)return text;const fill=" ".repeat(width-text.length);return right?fill+text:text+fill}f` &&
+             `unction formatMs(ms){return ms===null||ms===undefined?"-":``${ms} ms``}function shortId(id){if(!id)return"-";return id.length>8?``..${id.slice(-6)}``:id}function navigationLines(list){const hops=[];let pr` &&
+             `evious=null;for(const record of list){if(!record.app||record.app===previous)continue;hops.push({seq:record.seq,from:previous,to:record.app,event:record.event,draft:record.idReceived});previous=record.` &&
+             `app}if(hops.length<2)return[];const out=["App navigation observed this session"];for(const hop of hops){out.push(``  #${String(hop.seq).padEnd(4)}``+``${hop.from?``${hop.from} -> ``:"start "}${hop.to}``+``${` &&
+             `hop.event?``   via ${hop.event}``:""}``+``   draft ${shortId(hop.draft)}``)}out.push("");return out}function summaryLines(list){const timed=list.filter(r=>r.backendMs!==null);if(!timed.length)return[];cons` &&
+             `t out=["Summary"];const backend=timed.map(r=>r.backendMs);const avg=Math.round(backend.reduce((a,b)=>a+b,0)/backend.length);const slowest=timed.reduce((a,b)=>b.backendMs>a.backendMs?b:a);out.push(``  B` &&
+             `ackend: avg ${avg} ms over ${timed.length} roundtrip(s),``+`` slowest #${slowest.seq} ${slowest.event||"(start)"}``+`` at ${slowest.backendMs} ms``);const sized=list.filter(r=>r.respBytes!==null);if(sized.` &&
+             `length){const biggest=sized.reduce((a,b)=>b.respBytes>a.respBytes?b:a);const total=sized.reduce((sum,r)=>sum+r.respBytes,0);out.push(``  Response: ${formatBytes(total)} total,``+`` largest #${biggest.seq` &&
+             `} ${biggest.event||"(start)"}``+`` at ${formatBytes(biggest.respBytes)}``)}const failed=list.filter(r=>!r.rendered).length;if(failed){out.push(``  ${failed} roundtrip(s) never reached the render phase.``)}` &&
+             `return out}function formatHistory(ctx){const list=getRecords(ctx);const lines=[];lines.push(``Roundtrip history - ${list.length} of max ${MAX_RECORDS} records``);const recording=isRecordingPayloads();li` &&
+             `nes.push(``Payload recording: ${recording?"ON":"OFF"}``+`` (retained ${formatBytes(recorderOf(ctx)?.payloadBytes||0)} of ``+``${formatBytes(PAYLOAD_BUDGET_BYTES)} budget)``);if(!recording){lines.push(``Switc` &&
+             `h "Record Payloads" on to keep request/response bodies and``+`` enable the Model Diff and View Diff tabs.``)}lines.push("");if(!list.length){lines.push("(no roundtrip recorded yet)");return lines.join("\` &&
+             `n")}lines.push(pad("#",5)+pad("TIME",14)+pad("EVENT",22)+pad("TOTAL",10,true)+pad("BACKEND",10,true)+pad("RENDER",10,true)+pad("REQ",10,true)+pad("RESP",10,true)+"  "+pad("DRAFT",10)+pad("ACT",8)+"PAY` &&
+             `LOAD");lines.push("-".repeat(118));for(const record of list){const time=record.ts.slice(11,23);const actions=``${record.viewCount}/${record.actionCount}``;let payload="-";if(record.request||record.respo` &&
+             `nse)payload="kept";else if(record.payloadEvicted)payload="evicted";lines.push(pad(record.previousLoad?``${record.seq}*``:record.seq,5)+pad(time,14)+pad(record.rendered?record.event||"(start)":"(no rende` &&
+             `r)",22)+pad(formatMs(record.totalMs),10,true)+pad(formatMs(record.backendMs),10,true)+pad(formatMs(record.renderMs),10,true)+pad(formatBytes(record.reqBytes),10,true)+pad(formatBytes(record.respBytes)` &&
+             `,10,true)+"  "+pad(shortId(record.idReceived),10)+pad(actions,8)+payload)}lines.push("");lines.push(...navigationLines(list));lines.push(...summaryLines(list));lines.push("");lines.push("TOTAL = reque` &&
+             `st start to rendered, BACKEND = network + ABAP,"+" RENDER = response end to rendered.");lines.push("ACT = slots changed / actions queued. A '(no render)' row is a"+" roundtrip that never reached the r` &&
+             `ender phase");lines.push("(error response, aborted request, or a parallel request whose"+" result was discarded as stale).");if(list.some(record=>record.previousLoad)){lines.push("A '*' after the numb` &&
+             `er marks a roundtrip of the PREVIOUS page"+" load, carried across the reload.")}return lines.join("\n")}function displayedXml(response,slotKey){const xml=response?.S_FRONT?.VIEWS?.[slotKey]?.XML;retur` &&
+             `n typeof xml==="string"?xml:""}function lastTwoViews(ctx,slotKey){const records=getRecords(ctx);const withView=[];for(let i=records.length-1;i>=0&&withView.length<2;i--){const xml=displayedXml(records` &&
+             `[i].response,slotKey);if(xml)withView.unshift({record:records[i],xml})}return withView.length<2?null:withView}function formatViewDiff(ctx){if(!isRecordingPayloads()){return"View diff needs payload rec` &&
+             `ording.\n\n"+'Switch "Record Payloads" on in the Roundtrips action bar, then'+" trigger at least two roundtrips that rebuild the view - the diff\n"+"compares the view XML of the two most recently reco` &&
+             `rded rebuilds."}const pair=lastTwoViews(ctx,"MAIN");if(!pair){return"Not enough recorded view rebuilds yet - the diff needs two.\n\n"+"Only a response that actually rebuilt the MAIN view counts; a\n"+` &&
+             `"roundtrip that only pushed the model does not."}const[previous,current]=pair;const out=[``View XML diff: roundtrip #${previous.record.seq}``+`` (${previous.record.event||"(start)"}) ->``+`` #${current.rec` &&
+             `ord.seq} (${current.record.event||"(start)"})``,""];const changes=diffLines(prettifyForDiff(previous.xml),prettifyForDiff(current.xml));if(!changes.length){out.push("(the two rebuilds produced identica` &&
+             `l view XML)");return out.join("\n")}out.push(``${changes.length}${changes.length>=MAX_DIFF_ENTRIES?"+":""} changed line(s):``);out.push("");for(const change of changes){out.push(``  ${change.type} ${Stri` &&
+             `ng(change.number).padStart(5)}  ``+``${change.line.trim()}``)}if(changes.length>=MAX_DIFF_ENTRIES){out.push("");out.push(``(stopped after ${MAX_DIFF_ENTRIES} changes)``)}return out.join("\n")}function pret` &&
+             `tifyForDiff(xml){return xml.replace(/></g,">\n<")}function lastTwoResponses(ctx){const withPayload=getRecords(ctx).filter(record=>record.response?.MODEL!==undefined);if(withPayload.length<2)return nul` &&
+             `l;return withPayload.slice(-2)}function formatModelDiff(ctx){if(!isRecordingPayloads()){return"Model diff needs payload recording.\n\n"+'Switch "Record Payloads" on in the Roundtrips action bar, then'` &&
+             `+" trigger at least two roundtrips - the diff compares the MODEL of\n"+"the two most recently recorded responses."}const pair=lastTwoResponses(ctx);if(!pair){return"Not enough recorded responses yet -` &&
+             ` the diff needs two.\n\n"+"Trigger another roundtrip and reopen this tab."}const[previous,current]=pair;const out=collectDiff(previous.response?.MODEL,current.response?.MODEL);const header=[``Model dif` &&
+             `f: roundtrip #${previous.seq} (${previous.event||"(start)"})``+`` -> #${current.seq} (${current.event||"(start)"})``,""];if(!out.length){header.push("(the two responses carry an identical MODEL)");return` &&
+             ` header.join("\n")}header.push(``${out.length}${out.length>=MAX_DIFF_ENTRIES?"+":""}``+`` differing path(s):``);header.push("");for(const entry of out){const path=entry.path||"/";if(entry.type==="added"){` &&
+             `header.push(``+ ${path}``);header.push(``    ${renderValue(entry.after,MAX_DIFF_VALUE_CHARS)}``)}else if(entry.type==="removed"){header.push(``- ${path}``);header.push(``    ${renderValue(entry.before,MAX_DI` &&
+             `FF_VALUE_CHARS)}``)}else{header.push(``~ ${path}``);header.push(``    before: ${renderValue(entry.before,MAX_DIFF_VALUE_CHARS)}``);header.push(``    after:  ${renderValue(entry.after,MAX_DIFF_VALUE_CHARS)}``` &&
+             `)}}if(out.length>=MAX_DIFF_ENTRIES){header.push("");header.push(``(stopped after ${MAX_DIFF_ENTRIES} differences)``)}return header.join("\n")}function exportJson(ctx){const records=getRecords(ctx);const` &&
+             ` payload={exportedAt:(new Date).toISOString(),payloadsRecorded:isRecordingPayloads(),records};try{return JSON.stringify(payload,null,2)}catch{const metaOnly=records.map(withoutPayloads);return JSON.st` &&
+             `ringify({...payload,records:metaOnly},null,2)}}return{install,uninstall,getRecords,exportJson,isRecordingPayloads,setRecordingPayloads,formatHistory,formatModelDiff,formatViewDiff,extractMessages,disp` &&
+             `layedXml,_internals:{MAX_RECORDS,PAYLOAD_BUDGET_BYTES,PAYLOAD_FLAG_KEY}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/manifest.json": '{  "_version": "1.65.0",  "sap.app": {    "id": "z2ui5",    "type": "application",    "applicationVersion": {      "version": "0.0.1"    },    "title": "abap2UI5",    "de` &&
@@ -12305,172 +1400,28 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `e,    "dependencies": {      "minUI5Version": "1.71.0",      "libs": {        "sap.m": {},        "sap.ui.core": {}      }    },    "contentDensities": {      "compact": true,      "cozy": true    }, ` &&
              `   "services": {      "ShellUIService": {        "factoryName": "sap.ushell.ui5service.ShellUIService",        "lazy": true      }    },    "rootView": {      "viewName": "z2ui5.view.App",      "type"` &&
              `: "XML",      "async": true,      "id": "App"    },    "resourceRoots": {      "z2ui5_cci": "../z2ui5_cci/",      "z2ui5_ccc": "../z2ui5_ccc/"    }  }}',` && |\n| &&
-             `      "z2ui5/model/clipboard.js": function(){sap.ui.define(["sap/base/strings/formatMessage"], (formatMessage) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  function toCellValue(v) {` && |\n| &&
-             `    return v === undefined || v === null ? "" : v;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function contextOf(oContextOrRow) {` && |\n| &&
-             `    if (!oContextOrRow) return null;` && |\n| &&
-             `    if (typeof oContextOrRow.getProperty === "function") return oContextOrRow;` && |\n| &&
-             `    if (typeof oContextOrRow.getBindingContext === "function") {` && |\n| &&
-             `      return oContextOrRow.getBindingContext() || null;` && |\n| &&
-             `    }` && |\n| &&
-             `    return null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    extractData(oContextOrRow, oColumn, bIncludeHtmlMimeType) {` && |\n| &&
-             `      const sBindings =` && |\n| &&
-             `        oColumn && typeof oColumn.data === "function"` && |\n| &&
-             `          ? oColumn.data("bindings")` && |\n| &&
-             `          : null;` && |\n| &&
-             `      if (!sBindings) return undefined;` && |\n| &&
-             `      const oContext = contextOf(oContextOrRow);` && |\n| &&
-             `      const aCellData = String(sBindings)` && |\n| &&
-             `        .split(",")` && |\n| &&
-             `        .map((sPath) => sPath.trim())` && |\n| &&
-             `        .filter(Boolean)` && |\n| &&
-             `        .map((sPath) =>` && |\n| &&
-             `          toCellValue(oContext ? oContext.getProperty(sPath) : undefined),` && |\n| &&
-             `        );` && |\n| &&
-             `      if (!bIncludeHtmlMimeType) return aCellData;` && |\n| &&
-             `      return {` && |\n| &&
-             `        text: aCellData,` && |\n| &&
-             `        html: formatMessage(oColumn.data("template") || "{0}", aCellData),` && |\n| &&
-             `      };` && |\n| &&
-             `    },` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
+             `      "z2ui5/model/clipboard.js": function(){sap.ui.define(["sap/base/strings/formatMessage"],formatMessage=>{"use strict";function toCellValue(v){return v===undefined||v===null?"":v}function contextO` &&
+             `f(oContextOrRow){if(!oContextOrRow)return null;if(typeof oContextOrRow.getProperty==="function")return oContextOrRow;if(typeof oContextOrRow.getBindingContext==="function"){return oContextOrRow.getBin` &&
+             `dingContext()||null}return null}return{extractData(oContextOrRow,oColumn,bIncludeHtmlMimeType){const sBindings=oColumn&&typeof oColumn.data==="function"?oColumn.data("bindings"):null;if(!sBindings)ret` &&
+             `urn undefined;const oContext=contextOf(oContextOrRow);const aCellData=String(sBindings).split(",").map(sPath=>sPath.trim()).filter(Boolean).map(sPath=>toCellValue(oContext?oContext.getProperty(sPath):` &&
+             `undefined));if(!bIncludeHtmlMimeType)return aCellData;return{text:aCellData,html:formatMessage(oColumn.data("template")||"{0}",aCellData)}}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/model/formatter.js": function(){sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  function parseYmd(value) {` && |\n| &&
-             `    const d = abapDigits(value, ISO_DAY);` && |\n| &&
-             `    return [` && |\n| &&
-             `      Number(d.slice(0, 4)),` && |\n| &&
-             `      Number(d.slice(4, 6)) - 1,` && |\n| &&
-             `      Number(d.slice(6, 8)),` && |\n| &&
-             `    ];` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function abapDigits(value, pattern) {` && |\n| &&
-             `    const s = String(value ?? "");` && |\n| &&
-             `    return pattern.test(s) ? s.replace(/[-:]/g, "") : s;` && |\n| &&
-             `  }` && |\n| &&
-             `  const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;` && |\n| &&
-             `  const ISO_TIME = /^\d{2}:\d{2}:\d{2}$/;` && |\n| &&
-             `` && |\n| &&
-             `  function localDay(value) {` && |\n| &&
-             `    const [year, month, day] = parseYmd(value);` && |\n| &&
-             `    const date = new Date(2000, 0, 1);` && |\n| &&
-             `    date.setFullYear(year, month, day);` && |\n| &&
-             `    if (` && |\n| &&
-             `      date.getFullYear() !== year ||` && |\n| &&
-             `      date.getMonth() !== month ||` && |\n| &&
-             `      date.getDate() !== day` && |\n| &&
-             `    ) {` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `    return date;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function isNoAbapDate(d) {` && |\n| &&
-             `    const s = abapDigits(d, ISO_DAY);` && |\n| &&
-             `    if (!/^\d{8}$/.test(s)) return true;` && |\n| &&
-             `` && |\n| &&
-             `    return (` && |\n| &&
-             `      s.slice(0, 4) === "0000" ||` && |\n| &&
-             `      s.slice(4, 6) === "00" ||` && |\n| &&
-             `      s.slice(6, 8) === "00"` && |\n| &&
-             `    );` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    DateCreateObject(s) {` && |\n| &&
-             `      if (!s) return null;` && |\n| &&
-             `      if (ISO_DAY.test(String(s))) return localDay(s);` && |\n| &&
-             `` && |\n| &&
-             `      const date = new Date(s);` && |\n| &&
-             `      return Number.isNaN(date.getTime()) ? null : date;` && |\n| &&
-             `    },` && |\n| &&
-             `    DateAbapDateToDateObject(d) {` && |\n| &&
-             `      if (isNoAbapDate(d)) return null;` && |\n| &&
-             `      return localDay(d);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    DateAbapDateTimeToDateObject(d, t) {` && |\n| &&
-             `      if (isNoAbapDate(d)) return null;` && |\n| &&
-             `      const date = localDay(d);` && |\n| &&
-             `      if (!date) return null;` && |\n| &&
-             `      const time = t ? abapDigits(t, ISO_TIME) : "000000";` && |\n| &&
-             `      date.setHours(` && |\n| &&
-             `        Number(time.slice(0, 2)),` && |\n| &&
-             `        Number(time.slice(2, 4)),` && |\n| &&
-             `        Number(time.slice(4, 6)),` && |\n| &&
-             `      );` && |\n| &&
-             `      return date;` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    expandInlineIcons(text) {` && |\n| &&
-             `      if (!text) return "";` && |\n| &&
-             `      return String(text).replace(` && |\n| &&
-             `        /%%icon:(sap-icon:\/\/[^%]+)%%/g,` && |\n| &&
-             `        (match, uri) => {` && |\n| &&
-             `          const info = IconPool.getIconInfo(uri);` && |\n| &&
-             `          if (!info) return "";` && |\n| &&
-             `          return ``<span class="sapMMsgStripInlineIcon" style="font-family:'${info.fontFamily}'">${info.content}</span>``;` && |\n| &&
-             `        },` && |\n| &&
-             `      );` && |\n| &&
-             `    },` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
+             `      "z2ui5/model/formatter.js": function(){sap.ui.define(["sap/ui/core/IconPool"],IconPool=>{"use strict";function parseYmd(value){const d=abapDigits(value,ISO_DAY);return[Number(d.slice(0,4)),Numbe` &&
+             `r(d.slice(4,6))-1,Number(d.slice(6,8))]}function abapDigits(value,pattern){const s=String(value??"");return pattern.test(s)?s.replace(/[-:]/g,""):s}const ISO_DAY=/^\d{4}-\d{2}-\d{2}$/;const ISO_TIME=/` &&
+             `^\d{2}:\d{2}:\d{2}$/;function localDay(value){const[year,month,day]=parseYmd(value);const date=new Date(2e3,0,1);date.setFullYear(year,month,day);if(date.getFullYear()!==year||date.getMonth()!==month|` &&
+             `|date.getDate()!==day){return null}return date}function isNoAbapDate(d){const s=abapDigits(d,ISO_DAY);if(!/^\d{8}$/.test(s))return true;return s.slice(0,4)==="0000"||s.slice(4,6)==="00"||s.slice(6,8)=` &&
+             `=="00"}return{DateCreateObject(s){if(!s)return null;if(ISO_DAY.test(String(s)))return localDay(s);const date=new Date(s);return Number.isNaN(date.getTime())?null:date},DateAbapDateToDateObject(d){if(i` &&
+             `sNoAbapDate(d))return null;return localDay(d)},DateAbapDateTimeToDateObject(d,t){if(isNoAbapDate(d))return null;const date=localDay(d);if(!date)return null;const time=t?abapDigits(t,ISO_TIME):"000000"` &&
+             `;date.setHours(Number(time.slice(0,2)),Number(time.slice(2,4)),Number(time.slice(4,6)));return date},expandInlineIcons(text){if(!text)return"";return String(text).replace(/%%icon:(sap-icon:\/\/[^%]+)%` &&
+             `%/g,(match,uri)=>{const info=IconPool.getIconInfo(uri);if(!info)return"";return``<span class="sapMMsgStripInlineIcon" style="font-family:'${info.fontFamily}'">${info.content}</span>``})}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/model/models.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/model/json/JSONModel", "sap/ui/Device"],` && |\n| &&
-             `  (JSONModel, Device) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const RANGE_SET = "Std";` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      createDeviceModel() {` && |\n| &&
-             `        const oModel = new JSONModel(Device);` && |\n| &&
-             `        oModel.setDefaultBindingMode("OneWay");` && |\n| &&
-             `` && |\n| &&
-             `        if (!Device.media.hasRangeSet(RANGE_SET)) {` && |\n| &&
-             `          Device.media.initRangeSet(RANGE_SET);` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        const refresh = () => {` && |\n| &&
-             `          const oRange = Device.media.getCurrentRange(RANGE_SET);` && |\n| &&
-             `          oModel.setProperty("/media/range", oRange ? oRange.name : "");` && |\n| &&
-             `` && |\n| &&
-             `          oModel.checkUpdate();` && |\n| &&
-             `        };` && |\n| &&
-             `` && |\n| &&
-             `        Device.resize.attachHandler(refresh);` && |\n| &&
-             `        Device.orientation.attachHandler(refresh);` && |\n| &&
-             `        Device.media.attachHandler(refresh, null, RANGE_SET);` && |\n| &&
-             `        refresh();` && |\n| &&
-             `` && |\n| &&
-             `        oModel.destroy = function () {` && |\n| &&
-             `          Device.resize.detachHandler(refresh);` && |\n| &&
-             `          Device.orientation.detachHandler(refresh);` && |\n| &&
-             `          Device.media.detachHandler(refresh, null, RANGE_SET);` && |\n| &&
-             `          JSONModel.prototype.destroy.apply(this, arguments);` && |\n| &&
-             `        };` && |\n| &&
-             `` && |\n| &&
-             `        return oModel;` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/model/models.js": function(){sap.ui.define(["sap/ui/model/json/JSONModel","sap/ui/Device"],(JSONModel,Device)=>{"use strict";const RANGE_SET="Std";return{createDeviceModel(){const oModel=` &&
+             `new JSONModel(Device);oModel.setDefaultBindingMode("OneWay");if(!Device.media.hasRangeSet(RANGE_SET)){Device.media.initRangeSet(RANGE_SET)}const refresh=()=>{const oRange=Device.media.getCurrentRange(` &&
+             `RANGE_SET);oModel.setProperty("/media/range",oRange?oRange.name:"");oModel.checkUpdate()};Device.resize.attachHandler(refresh);Device.orientation.attachHandler(refresh);Device.media.attachHandler(refr` &&
+             `esh,null,RANGE_SET);refresh();oModel.destroy=function(){Device.resize.detachHandler(refresh);Device.orientation.detachHandler(refresh);Device.media.detachHandler(refresh,null,RANGE_SET);JSONModel.prot` &&
+             `otype.destroy.apply(this,arguments)};return oModel}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/view/App.view.xml": '\x3cmvc:View controllerName="z2ui5.controller.App"    xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5core="z2ui5.core"    displayBlock="true" height="100%">    \x3c!-- The ro` &&
@@ -12483,32 +1434,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    "z2ui5/embed/frontend/manifest.json": entries["z2ui5/manifest.json"]` && |\n| &&
              `  });` && |\n| &&
              `})();` && |\n| &&
-             `sap.ui.define("z2ui5/embed", function () {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  var installation = {` && |\n| &&
-             `    componentName: "z2ui5.embed.frontend",` && |\n| &&
-             `` && |\n| &&
-             `    componentData: {` && |\n| &&
-             `      nodePath: "@z2ui5-node-path@",` && |\n| &&
-             `      ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` && |\n| &&
-             `      cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc",` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    create: function (settings) {` && |\n| &&
-             `      return new Promise(function (resolve, reject) {` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ["z2ui5/core/Embed"],` && |\n| &&
-             `          function (Embed) {` && |\n| &&
-             `            resolve(Embed.create(settings, installation));` && |\n| &&
-             `          },` && |\n| &&
-             `          reject,` && |\n| &&
-             `        );` && |\n| &&
-             `      });` && |\n| &&
-             `    },` && |\n| &&
-             `  };` && |\n| &&
-             `  return installation;` && |\n| &&
-             `});` && |\n| &&
+             `sap.ui.define("z2ui5/embed",function(){"use strict";var installation={componentName:"z2ui5.embed.frontend",componentData:{nodePath:"@z2ui5-node-path@",ccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_cci",cc` &&
+             `cResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_ccc"},create:function(settings){return new Promise(function(resolve,reject){sap.ui.require(["z2ui5/core/Embed"],function(Embed){resolve(Embed.create(settings,i` &&
+             `nstallation))},reject)})}};return installation});` && |\n| &&
              `` && |\n|.
 
   ENDMETHOD.

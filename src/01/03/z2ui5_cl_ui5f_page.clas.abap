@@ -44,285 +44,35 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
              `    sap.ui.require.preload({` && |\n| &&
              `      "abap2ui5/page/view/Main.view.xml": '\x3cmvc:View    xmlns:mvc="sap.ui.core.mvc"    xmlns:z2ui5="z2ui5.embed"    displayBlock="true"    height="100%">    \x3cz2ui5:Container        endpoint="{st` &&
              `art>/endpoint}"        bundleVersion="{start>/bundleVersion}"        ownsPage="true"        height="100%"/>\x3c/mvc:View>',` && |\n| &&
-             `      "z2ui5/Component.js": function(){sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel"],` && |\n| &&
-             `  (UIComponent, JSONModel) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
-             `      metadata: {` && |\n| &&
-             `        manifest: "json",` && |\n| &&
-             `        interfaces: ["sap.ui.core.IAsyncContentCreation"],` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      init() {` && |\n| &&
-             `        UIComponent.prototype.init.apply(this, arguments);` && |\n| &&
-             `` && |\n| &&
-             `        const data = this.getComponentData() || {};` && |\n| &&
-             `        const local = data.checkLocal === true;` && |\n| &&
-             `` && |\n| &&
-             `        const http = this.getManifestEntry("/sap.app/dataSources/http") || {};` && |\n| &&
-             `        this.setModel(` && |\n| &&
-             `          new JSONModel({` && |\n| &&
-             `            endpoint: local ? window.location.pathname : http.uri || "",` && |\n| &&
-             `            bundleVersion: local && data.bundle ? String(data.bundle) : "",` && |\n| &&
-             `          }),` && |\n| &&
-             `          "start",` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `    });` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/Component.js": function(){sap.ui.define(["sap/ui/core/UIComponent","sap/ui/model/json/JSONModel"],(UIComponent,JSONModel)=>{"use strict";return UIComponent.extend("z2ui5.Component",{metad` &&
+             `ata:{manifest:"json",interfaces:["sap.ui.core.IAsyncContentCreation"]},init(){UIComponent.prototype.init.apply(this,arguments);const data=this.getComponentData()||{};const local=data.checkLocal===true` &&
+             `;const http=this.getManifestEntry("/sap.app/dataSources/http")||{};this.setModel(new JSONModel({endpoint:local?window.location.pathname:http.uri||"",bundleVersion:local&&data.bundle?String(data.bundle` &&
+             `):""}),"start")}})});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/embed/Container.js": function(){sap.ui.define(["sap/ui/core/Control", "sap/base/Log"], (Control, Log) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const DEFAULT_ENDPOINT = "/sap/bc/z2ui5";` && |\n| &&
-             `` && |\n| &&
-             `  function sameOriginUrl(endpoint) {` && |\n| &&
-             `    let url;` && |\n| &&
-             `    try {` && |\n| &&
-             `      url = new URL(endpoint, window.location.href);` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `    if (url.protocol !== "http:" && url.protocol !== "https:") return null;` && |\n| &&
-             `    if (url.origin !== window.location.origin) return null;` && |\n| &&
-             `    if (url.search || url.hash) return null;` && |\n| &&
-             `    if (url.pathname.startsWith("//")) return null;` && |\n| &&
-             `    return url.origin + (url.pathname.replace(/\/+$/, "") || "/");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function loadedFrontend() {` && |\n| &&
-             `    const embed = sap.ui.require("z2ui5/embed");` && |\n| &&
-             `    return embed && typeof embed.create === "function" ? embed : null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  let frontend = null;` && |\n| &&
-             `` && |\n| &&
-             `  function loadFrontend(endpoint, version) {` && |\n| &&
-             `    if (!frontend && loadedFrontend()) {` && |\n| &&
-             `      frontend = Promise.resolve(loadedFrontend());` && |\n| &&
-             `    }` && |\n| &&
-             `    if (!frontend) {` && |\n| &&
-             `      frontend = new Promise((resolve, reject) => {` && |\n| &&
-             `        const url =` && |\n| &&
-             `          ``${endpoint}?z2ui5-bundle`` +` && |\n| &&
-             `          (version ? ``=${encodeURIComponent(version)}`` : "");` && |\n| &&
-             `        const script = document.createElement("script");` && |\n| &&
-             `        const fail = () => {` && |\n| &&
-             `          frontend = null;` && |\n| &&
-             `          script.remove();` && |\n| &&
-             `          reject(` && |\n| &&
-             `            new Error(` && |\n| &&
-             `              ``no abap2UI5 frontend at ${url} - is the service active, `` +` && |\n| &&
-             `                "the session valid and abap2UI5 recent enough?",` && |\n| &&
-             `            ),` && |\n| &&
-             `          );` && |\n| &&
-             `        };` && |\n| &&
-             `        script.src = url;` && |\n| &&
-             `        script.onerror = fail;` && |\n| &&
-             `` && |\n| &&
-             `        script.onload = () =>` && |\n| &&
-             `          setTimeout(() => {` && |\n| &&
-             `            const embed = loadedFrontend();` && |\n| &&
-             `            if (embed) resolve(embed);` && |\n| &&
-             `            else fail();` && |\n| &&
-             `          }, 0);` && |\n| &&
-             `        document.head.appendChild(script);` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `    return frontend;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const globalBefore = window.z2ui5;` && |\n| &&
-             `` && |\n| &&
-             `  const embedBefore = globalBefore && globalBefore.embed;` && |\n| &&
-             `` && |\n| &&
-             `  const Container = Control.extend("z2ui5.embed.Container", {` && |\n| &&
-             `    metadata: {` && |\n| &&
-             `      properties: {` && |\n| &&
-             `        app: { type: "string", defaultValue: "" },` && |\n| &&
-             `` && |\n| &&
-             `        endpoint: { type: "string", defaultValue: "" },` && |\n| &&
-             `` && |\n| &&
-             `        params: { type: "object", defaultValue: null },` && |\n| &&
-             `` && |\n| &&
-             `        ownsPage: { type: "boolean", defaultValue: false },` && |\n| &&
-             `` && |\n| &&
-             `        bundleVersion: { type: "string", defaultValue: "" },` && |\n| &&
-             `` && |\n| &&
-             `        width: { type: "sap.ui.core.CSSSize", defaultValue: "100%" },` && |\n| &&
-             `` && |\n| &&
-             `        height: { type: "sap.ui.core.CSSSize", defaultValue: "100%" },` && |\n| &&
-             `      },` && |\n| &&
-             `      aggregations: {` && |\n| &&
-             `        _app: {` && |\n| &&
-             `          type: "sap.ui.core.Control",` && |\n| &&
-             `          multiple: false,` && |\n| &&
-             `          visibility: "hidden",` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `      events: {` && |\n| &&
-             `        componentCreated: {` && |\n| &&
-             `          parameters: { component: { type: "sap.ui.core.UIComponent" } },` && |\n| &&
-             `        },` && |\n| &&
-             `` && |\n| &&
-             `        componentFailed: {` && |\n| &&
-             `          parameters: { reason: { type: "object" } },` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    renderer: {` && |\n| &&
-             `      apiVersion: 2,` && |\n| &&
-             `      render(rm, control) {` && |\n| &&
-             `        rm.openStart("div", control);` && |\n| &&
-             `` && |\n| &&
-             `        rm.attr("data-sap-ui-root-content", "true");` && |\n| &&
-             `` && |\n| &&
-             `        rm.class("z2ui5EmbedContainer");` && |\n| &&
-             `` && |\n| &&
-             `        rm.style("position", "relative");` && |\n| &&
-             `        rm.style("overflow", "hidden");` && |\n| &&
-             `        rm.style("width", control.getWidth());` && |\n| &&
-             `        rm.style("height", control.getHeight());` && |\n| &&
-             `        rm.openEnd();` && |\n| &&
-             `        const app = control.getAggregation("_app");` && |\n| &&
-             `        if (app) rm.renderControl(app);` && |\n| &&
-             `        rm.close("div");` && |\n| &&
-             `      },` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    setWidth(value) {` && |\n| &&
-             `      return this._setSize("width", value);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    setHeight(value) {` && |\n| &&
-             `      return this._setSize("height", value);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    _setSize(name, value) {` && |\n| &&
-             `      this.setProperty(name, value, true);` && |\n| &&
-             `      const dom = this.getDomRef();` && |\n| &&
-             `      if (dom) dom.style[name] = this.getProperty(name);` && |\n| &&
-             `      return this;` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    setApp(value) {` && |\n| &&
-             `      return this._setStart("app", value);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    setEndpoint(value) {` && |\n| &&
-             `      return this._setStart("endpoint", value);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    setParams(value) {` && |\n| &&
-             `      return this._setStart("params", value);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    setOwnsPage(value) {` && |\n| &&
-             `      return this._setStart("ownsPage", value);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    restart() {` && |\n| &&
-             `      this.destroyAggregation("_app");` && |\n| &&
-             `      this._start = null;` && |\n| &&
-             `` && |\n| &&
-             `      this.invalidate();` && |\n| &&
-             `      return this;` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    _setStart(name, value) {` && |\n| &&
-             `      this.setProperty(name, value);` && |\n| &&
-             `      if (this._start && this._start.key !== this._startKey()) this.restart();` && |\n| &&
-             `      return this;` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    _startKey() {` && |\n| &&
-             `      return JSON.stringify([` && |\n| &&
-             `        this.getApp(),` && |\n| &&
-             `        sameOriginUrl(this._endpoint()) || this._endpoint(),` && |\n| &&
-             `        this.getParams(),` && |\n| &&
-             `        this.getOwnsPage() === true,` && |\n| &&
-             `      ]);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    _endpoint() {` && |\n| &&
-             `      return this.getEndpoint() || DEFAULT_ENDPOINT;` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    onBeforeRendering() {` && |\n| &&
-             `      if (!this.getVisible()) return;` && |\n| &&
-             `` && |\n| &&
-             `      if (!this.getApp() && this.getOwnsPage() !== true) return;` && |\n| &&
-             `      if (this.getAggregation("_app") || this._start) return;` && |\n| &&
-             `      const start = (this._start = { key: this._startKey() });` && |\n| &&
-             `      const stale = () => this._exited || this._start !== start;` && |\n| &&
-             `` && |\n| &&
-             `      const endpoint = sameOriginUrl(this._endpoint());` && |\n| &&
-             `      const load = endpoint` && |\n| &&
-             `        ? loadFrontend(endpoint, this.getBundleVersion())` && |\n| &&
-             `        : Promise.reject(` && |\n| &&
-             `            new Error(` && |\n| &&
-             `              ``endpoint '${this._endpoint()}' is not a path on this server, `` +` && |\n| &&
-             `                "without a query or a fragment - the abap2UI5 frontend is " +` && |\n| &&
-             `                "only loaded from there",` && |\n| &&
-             `            ),` && |\n| &&
-             `          );` && |\n| &&
-             `      load` && |\n| &&
-             `        .then((embed) =>` && |\n| &&
-             `          stale()` && |\n| &&
-             `            ? null` && |\n| &&
-             `            : embed.create({` && |\n| &&
-             `                app: this.getApp(),` && |\n| &&
-             `                endpoint,` && |\n| &&
-             `                params: this.getParams(),` && |\n| &&
-             `                ownsPage: this.getOwnsPage() === true,` && |\n| &&
-             `                host: this,` && |\n| &&
-             `              }),` && |\n| &&
-             `        )` && |\n| &&
-             `        .then(` && |\n| &&
-             `          (app) => {` && |\n| &&
-             `            if (!app) return;` && |\n| &&
-             `            if (stale()) {` && |\n| &&
-             `              app.destroy();` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `            this.setAggregation("_app", app);` && |\n| &&
-             `            this.fireComponentCreated({` && |\n| &&
-             `              component: app.getComponentInstance(),` && |\n| &&
-             `            });` && |\n| &&
-             `          },` && |\n| &&
-             `          (reason) => {` && |\n| &&
-             `            if (!stale()) this.fireComponentFailed({ reason });` && |\n| &&
-             `          },` && |\n| &&
-             `        )` && |\n| &&
-             `` && |\n| &&
-             `        .catch((error) =>` && |\n| &&
-             `          Log.error(` && |\n| &&
-             `            ``z2ui5.embed.Container ${this.getId()}: a handler of `` +` && |\n| &&
-             `              "componentCreated or componentFailed failed",` && |\n| &&
-             `            String((error && error.stack) || error),` && |\n| &&
-             `          ),` && |\n| &&
-             `        );` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    exit() {` && |\n| &&
-             `      this._exited = true;` && |\n| &&
-             `    },` && |\n| &&
-             `  });` && |\n| &&
-             `` && |\n| &&
-             `  if (!globalBefore) delete window.z2ui5;` && |\n| &&
-             `  else if (!embedBefore) delete globalBefore.embed;` && |\n| &&
-             `  else {` && |\n| &&
-             `    delete embedBefore.Container;` && |\n| &&
-             `    delete embedBefore.ContainerRenderer;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return Container;` && |\n| &&
-             `});` && |\n| &&
+             `      "z2ui5/embed/Container.js": function(){sap.ui.define(["sap/ui/core/Control","sap/base/Log"],(Control,Log)=>{"use strict";const DEFAULT_ENDPOINT="/sap/bc/z2ui5";function sameOriginUrl(endpoint){l` &&
+             `et url;try{url=new URL(endpoint,window.location.href)}catch(e){return null}if(url.protocol!=="http:"&&url.protocol!=="https:")return null;if(url.origin!==window.location.origin)return null;if(url.sear` &&
+             `ch||url.hash)return null;if(url.pathname.startsWith("//"))return null;return url.origin+(url.pathname.replace(/\/+$/,"")||"/")}function loadedFrontend(){const embed=sap.ui.require("z2ui5/embed");retur` &&
+             `n embed&&typeof embed.create==="function"?embed:null}let frontend=null;function loadFrontend(endpoint,version){if(!frontend&&loadedFrontend()){frontend=Promise.resolve(loadedFrontend())}if(!frontend){` &&
+             `frontend=new Promise((resolve,reject)=>{const url=``${endpoint}?z2ui5-bundle``+(version?``=${encodeURIComponent(version)}``:"");const script=document.createElement("script");const fail=()=>{frontend=null;` &&
+             `script.remove();reject(new Error(``no abap2UI5 frontend at ${url} - is the service active, ``+"the session valid and abap2UI5 recent enough?"))};script.src=url;script.onerror=fail;script.onload=()=>setT` &&
+             `imeout(()=>{const embed=loadedFrontend();if(embed)resolve(embed);else fail()},0);document.head.appendChild(script)})}return frontend}const globalBefore=window.z2ui5;const embedBefore=globalBefore&&glo` &&
+             `balBefore.embed;const Container=Control.extend("z2ui5.embed.Container",{metadata:{properties:{app:{type:"string",defaultValue:""},endpoint:{type:"string",defaultValue:""},params:{type:"object",default` &&
+             `Value:null},ownsPage:{type:"boolean",defaultValue:false},bundleVersion:{type:"string",defaultValue:""},width:{type:"sap.ui.core.CSSSize",defaultValue:"100%"},height:{type:"sap.ui.core.CSSSize",default` &&
+             `Value:"100%"}},aggregations:{_app:{type:"sap.ui.core.Control",multiple:false,visibility:"hidden"}},events:{componentCreated:{parameters:{component:{type:"sap.ui.core.UIComponent"}}},componentFailed:{p` &&
+             `arameters:{reason:{type:"object"}}}}},renderer:{apiVersion:2,render(rm,control){rm.openStart("div",control);rm.attr("data-sap-ui-root-content","true");rm.class("z2ui5EmbedContainer");rm.style("positio` &&
+             `n","relative");rm.style("overflow","hidden");rm.style("width",control.getWidth());rm.style("height",control.getHeight());rm.openEnd();const app=control.getAggregation("_app");if(app)rm.renderControl(a` &&
+             `pp);rm.close("div")}},setWidth(value){return this._setSize("width",value)},setHeight(value){return this._setSize("height",value)},_setSize(name,value){this.setProperty(name,value,true);const dom=this.` &&
+             `getDomRef();if(dom)dom.style[name]=this.getProperty(name);return this},setApp(value){return this._setStart("app",value)},setEndpoint(value){return this._setStart("endpoint",value)},setParams(value){re` &&
+             `turn this._setStart("params",value)},setOwnsPage(value){return this._setStart("ownsPage",value)},restart(){this.destroyAggregation("_app");this._start=null;this.invalidate();return this},_setStart(nam` &&
+             `e,value){this.setProperty(name,value);if(this._start&&this._start.key!==this._startKey())this.restart();return this},_startKey(){return JSON.stringify([this.getApp(),sameOriginUrl(this._endpoint())||t` &&
+             `his._endpoint(),this.getParams(),this.getOwnsPage()===true])},_endpoint(){return this.getEndpoint()||DEFAULT_ENDPOINT},onBeforeRendering(){if(!this.getVisible())return;if(!this.getApp()&&this.getOwnsP` &&
+             `age()!==true)return;if(this.getAggregation("_app")||this._start)return;const start=this._start={key:this._startKey()};const stale=()=>this._exited||this._start!==start;const endpoint=sameOriginUrl(thi` &&
+             `s._endpoint());const load=endpoint?loadFrontend(endpoint,this.getBundleVersion()):Promise.reject(new Error(``endpoint '${this._endpoint()}' is not a path on this server, ``+"without a query or a fragmen` &&
+             `t - the abap2UI5 frontend is "+"only loaded from there"));load.then(embed=>stale()?null:embed.create({app:this.getApp(),endpoint,params:this.getParams(),ownsPage:this.getOwnsPage()===true,host:this}))` &&
+             `.then(app=>{if(!app)return;if(stale()){app.destroy();return}this.setAggregation("_app",app);this.fireComponentCreated({component:app.getComponentInstance()})},reason=>{if(!stale())this.fireComponentFa` &&
+             `iled({reason})}).catch(error=>Log.error(``z2ui5.embed.Container ${this.getId()}: a handler of ``+"componentCreated or componentFailed failed",String(error&&error.stack||error)))},exit(){this._exited=tru` &&
+             `e}});if(!globalBefore)delete window.z2ui5;else if(!embedBefore)delete globalBefore.embed;else{delete embedBefore.Container;delete embedBefore.ContainerRenderer}return Container});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/manifest.json": '{  "_version": "1.12.0",  "sap.app": {    "id": "z2ui5",    "type": "application",    "applicationVersion": {      "version": "1.0.0"    },    "title": "abap2UI5",    "da` &&

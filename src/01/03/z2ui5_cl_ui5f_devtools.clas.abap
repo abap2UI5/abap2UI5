@@ -31,10 +31,6 @@ CLASS z2ui5_cl_ui5f_devtools DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS part_02
-      RETURNING
-        VALUE(result) TYPE string.
-
 ENDCLASS.
 
 
@@ -42,268 +38,44 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
 
   METHOD get.
 
-    result = part_01( ) &&
-             part_02( ).
+    result = part_01( ).
 
   ENDMETHOD.
 
   METHOD part_01.
 
     result = `sap.ui.require.preload({` && |\n| &&
-             `      "z2ui5/devtools/AbapSource.js": function(){sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  let cache = null;` && |\n| &&
-             `` && |\n| &&
-             `  function appName(ctx) {` && |\n| &&
-             `    return ctx?.state?.responseData?.S_FRONT?.APP || "";` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function systemOrigin(ctx) {` && |\n| &&
-             `    const endpoint = ctx?.state?.endpoint;` && |\n| &&
-             `    if (endpoint) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return new URL(endpoint, window.location.href).origin;` && |\n| &&
-             `      } catch {}` && |\n| &&
-             `    }` && |\n| &&
-             `    return window.location.origin;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function sourceUrl(ctx) {` && |\n| &&
-             `    const name = appName(ctx);` && |\n| &&
-             `    if (!name) return "";` && |\n| &&
-             `    return ``${systemOrigin(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function adtUrl(ctx) {` && |\n| &&
-             `    const url = sourceUrl(ctx);` && |\n| &&
-             `    if (!url) return "";` && |\n| &&
-             `    const event = ctx?.state?.oBody?.S_FRONT?.EVENT;` && |\n| &&
-             `    if (!event || cache?.app !== appName(ctx) || !cache?.source) return url;` && |\n| &&
-             `    const lineNumber = Inspect.findEventLine(cache.source, event);` && |\n| &&
-             `    return lineNumber ? ``${url}#start=${lineNumber},1`` : url;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function openInAdt(ctx) {` && |\n| &&
-             `    const url = adtUrl(ctx);` && |\n| &&
-             `    if (!url) return;` && |\n| &&
-             `    window.open(url, "_blank", "noopener,noreferrer");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function iframeHtml(ctx) {` && |\n| &&
-             `    const url = sourceUrl(ctx);` && |\n| &&
-             `    if (!url) return "";` && |\n| &&
-             `    const iframe = document.createElement("iframe");` && |\n| &&
-             `    iframe.setAttribute("src", url);` && |\n| &&
-             `    iframe.setAttribute("style", "width:100%;height:85vh;border:none;");` && |\n| &&
-             `    return iframe.outerHTML;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  async function fetchSource(ctx) {` && |\n| &&
-             `    const url = sourceUrl(ctx);` && |\n| &&
-             `    if (!url) return "";` && |\n| &&
-             `    const name = appName(ctx);` && |\n| &&
-             `    if (cache?.app === name) return cache.source;` && |\n| &&
-             `    let source = "";` && |\n| &&
-             `    try {` && |\n| &&
-             `      const response = await fetch(url, {` && |\n| &&
-             `        headers: { Accept: "text/plain" },` && |\n| &&
-             `        credentials: "same-origin",` && |\n| &&
-             `      });` && |\n| &&
-             `      if (response.ok) source = await response.text();` && |\n| &&
-             `    } catch {}` && |\n| &&
-             `` && |\n| &&
-             `    if (source) cache = { app: name, source };` && |\n| &&
-             `    return source;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function cachedSource(ctx) {` && |\n| &&
-             `    const name = appName(ctx);` && |\n| &&
-             `    return name && cache?.app === name ? cache.source : null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    appName,` && |\n| &&
-             `    sourceUrl,` && |\n| &&
-             `    adtUrl,` && |\n| &&
-             `    openInAdt,` && |\n| &&
-             `    iframeHtml,` && |\n| &&
-             `    fetchSource,` && |\n| &&
-             `    cachedSource,` && |\n| &&
-             `` && |\n| &&
-             `    _setCache: (value) => {` && |\n| &&
-             `      cache = value;` && |\n| &&
-             `    },` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
+             `      "z2ui5/devtools/AbapSource.js": function(){sap.ui.define(["z2ui5/devtools/Inspect"],Inspect=>{"use strict";let cache=null;function appName(ctx){return ctx?.state?.responseData?.S_FRONT?.APP||""}` &&
+             `function systemOrigin(ctx){const endpoint=ctx?.state?.endpoint;if(endpoint){try{return new URL(endpoint,window.location.href).origin}catch{}}return window.location.origin}function sourceUrl(ctx){const` &&
+             ` name=appName(ctx);if(!name)return"";return``${systemOrigin(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``}function adtUrl(ctx){const url=sourceUrl(ctx);if(!url)return"";const eve` &&
+             `nt=ctx?.state?.oBody?.S_FRONT?.EVENT;if(!event||cache?.app!==appName(ctx)||!cache?.source)return url;const lineNumber=Inspect.findEventLine(cache.source,event);return lineNumber?``${url}#start=${lineNu` &&
+             `mber},1``:url}function openInAdt(ctx){const url=adtUrl(ctx);if(!url)return;window.open(url,"_blank","noopener,noreferrer")}function iframeHtml(ctx){const url=sourceUrl(ctx);if(!url)return"";const ifram` &&
+             `e=document.createElement("iframe");iframe.setAttribute("src",url);iframe.setAttribute("style","width:100%;height:85vh;border:none;");return iframe.outerHTML}async function fetchSource(ctx){const url=s` &&
+             `ourceUrl(ctx);if(!url)return"";const name=appName(ctx);if(cache?.app===name)return cache.source;let source="";try{const response=await fetch(url,{headers:{Accept:"text/plain"},credentials:"same-origin` &&
+             `"});if(response.ok)source=await response.text()}catch{}if(source)cache={app:name,source};return source}function cachedSource(ctx){const name=appName(ctx);return name&&cache?.app===name?cache.source:nu` &&
+             `ll}return{appName,sourceUrl,adtUrl,openInAdt,iframeHtml,fetchSource,cachedSource,_setCache:value=>{cache=value}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Bindings.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/devtools/Format",` && |\n| &&
-             `    "z2ui5/devtools/SlotXml",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Lib, ViewSlots, Format, SlotXml) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const { truncate, formatBytes, section, describeValue } = Format;` && |\n| &&
-             `` && |\n| &&
-             `    const BINDING_PATH =` && |\n| &&
-             `      /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;` && |\n| &&
-             `` && |\n| &&
-             `    function describeAttribute(value) {` && |\n| &&
-             `      return describeValue(value, { typed: true });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatSlotBindings(ctx, slotKey) {` && |\n| &&
-             `      const view = ViewSlots.getView(ctx, slotKey);` && |\n| &&
-             `      if (!view) return [];` && |\n| &&
-             `` && |\n| &&
-             `      const model = ViewSlots.trackedModel(view);` && |\n| &&
-             `      const data = model?.getData?.();` && |\n| &&
-             `      if (!data) return [];` && |\n| &&
-             `      const out = [section(``Slot ${slotKey}``)];` && |\n| &&
-             `` && |\n| &&
-             `      const dirty = model._z2ui5ChangedPaths || new Set();` && |\n| &&
-             `` && |\n| &&
-             `      const dirtyAttrs = new Set(` && |\n| &&
-             `        Array.from(dirty, (p) => p.split("/")[1]).filter(Boolean),` && |\n| &&
-             `      );` && |\n| &&
-             `      const keys = Object.keys(data).sort();` && |\n| &&
-             `      if (!keys.length) out.push("  (model is empty)");` && |\n| &&
-             `      for (const key of keys) {` && |\n| &&
-             `        const path = ``/${key}``;` && |\n| &&
-             `        const isDirty = dirtyAttrs.has(key);` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``  ${isDirty ? "*" : " "} ${path.padEnd(30)}${describeAttribute(data[key])}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      if (dirty.size) {` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `        out.push("  Edited paths queued for the next roundtrip:");` && |\n| &&
-             `        for (const path of Array.from(dirty).sort()) out.push(``    ${path}``);` && |\n| &&
-             `      }` && |\n| &&
-             `      out.push(...formatPendingDelta(dirty, data));` && |\n| &&
-             `      out.push(...formatBindingCheck(ctx, slotKey, data));` && |\n| &&
-             `      out.push(...formatSizeRanking(data));` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function scrapeBindingAttributes(xml) {` && |\n| &&
-             `      if (!xml) return [];` && |\n| &&
-             `      const found = new Set();` && |\n| &&
-             `` && |\n| &&
-             `      for (const match of xml.matchAll(BINDING_PATH)) found.add(match[1]);` && |\n| &&
-             `      return Array.from(found).sort();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatBindingCheck(ctx, slotKey, data) {` && |\n| &&
-             `      const bound = scrapeBindingAttributes(SlotXml.slotXml(ctx, slotKey));` && |\n| &&
-             `      if (!bound.length) return [];` && |\n| &&
-             `      const missing = bound.filter((name) => !(name in data));` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      if (missing.length) {` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `        out.push("  BOUND IN THE VIEW BUT NOT IN THE MODEL:");` && |\n| &&
-             `        for (const name of missing) out.push(``    /${name}``);` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          "    -> a typo, a renamed ABAP attribute, or a missing" +` && |\n| &&
-             `            " client->_bind( ).",` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const boundSet = new Set(bound);` && |\n| &&
-             `      const unused = Object.keys(data).filter((name) => !boundSet.has(name));` && |\n| &&
-             `      if (unused.length) {` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``  ${unused.length} model attribute(s) not bound in this view:`` +` && |\n| &&
-             `            `` ${unused.slice(0, 12).join(", ")}`` +` && |\n| &&
-             `            ``${unused.length > 12 ? ", ..." : ""}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function attributeSize(value) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const json = JSON.stringify(value);` && |\n| &&
-             `        return json === undefined ? 0 : json.length;` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return 0;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatSizeRanking(data) {` && |\n| &&
-             `      const sizes = Object.keys(data)` && |\n| &&
-             `        .map((name) => ({ name, size: attributeSize(data[name]) }))` && |\n| &&
-             `        .sort((a, b) => b.size - a.size);` && |\n| &&
-             `      const total = sizes.reduce((sum, entry) => sum + entry.size, 0);` && |\n| &&
-             `      if (!total) return [];` && |\n| &&
-             `      const out = ["", ``  Model size: ${formatBytes(total)} serialized``];` && |\n| &&
-             `` && |\n| &&
-             `      for (const entry of sizes.slice(0, 8)) {` && |\n| &&
-             `        if (!entry.size) continue;` && |\n| &&
-             `        const share = Math.round((entry.size * 100) / total);` && |\n| &&
-             `        const rows = Array.isArray(data[entry.name])` && |\n| &&
-             `          ? ``, ${data[entry.name].length} row(s)``` && |\n| &&
-             `          : "";` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``    ${``/${entry.name}``.padEnd(30)}${formatBytes(entry.size).padStart(8)}`` +` && |\n| &&
-             `            ``  ${String(share).padStart(3)}%${rows}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatPendingDelta(dirty, data) {` && |\n| &&
-             `      if (!dirty.size) return [];` && |\n| &&
-             `      const out = ["", "  Delta the next roundtrip will send:"];` && |\n| &&
-             `      try {` && |\n| &&
-             `        const delta = Lib.buildDeltaFromPaths(dirty, data);` && |\n| &&
-             `        const json = JSON.stringify(delta, null, 2);` && |\n| &&
-             `        for (const line of truncate(json, 1200).split("\n")) {` && |\n| &&
-             `          out.push(``    ${line}``);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools Bindings: building the delta preview failed", e);` && |\n| &&
-             `        out.push("    (could not be built)");` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatBindings(ctx, slotKey) {` && |\n| &&
-             `      const out = ["abap2UI5 Developer Tools - Model bindings"];` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        "  A '*' marks an attribute the user edited: those paths travel as" +` && |\n| &&
-             `          " the delta of the next roundtrip.",` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        "  MAIN, NEST and NEST2 share one model by UI5 propagation, so they" +` && |\n| &&
-             `          " are listed once, under MAIN.",` && |\n| &&
-             `      );` && |\n| &&
-             `      const slot = ViewSlots.slots.find(` && |\n| &&
-             `        (entry) => entry.key === slotKey && entry.ownsModel,` && |\n| &&
-             `      );` && |\n| &&
-             `      const lines = slot ? formatSlotBindings(ctx, slot.key) : [];` && |\n| &&
-             `      if (lines.length) {` && |\n| &&
-             `        out.push(...lines);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        out.push("\n  (no slot carries a model yet)");` && |\n| &&
-             `      }` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      formatBindings,` && |\n| &&
-             `` && |\n| &&
-             `      _internals: { scrapeBindingAttributes },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/devtools/Bindings.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/SlotXml"],(Lib,ViewSlots,Format,SlotXml)=>{"use strict";co` &&
+             `nst{truncate,formatBytes,section,describeValue}=Format;const BINDING_PATH=/(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;function describeAttribute(value` &&
+             `){return describeValue(value,{typed:true})}function formatSlotBindings(ctx,slotKey){const view=ViewSlots.getView(ctx,slotKey);if(!view)return[];const model=ViewSlots.trackedModel(view);const data=mode` &&
+             `l?.getData?.();if(!data)return[];const out=[section(``Slot ${slotKey}``)];const dirty=model._z2ui5ChangedPaths||new Set;const dirtyAttrs=new Set(Array.from(dirty,p=>p.split("/")[1]).filter(Boolean));con` &&
+             `st keys=Object.keys(data).sort();if(!keys.length)out.push("  (model is empty)");for(const key of keys){const path=``/${key}``;const isDirty=dirtyAttrs.has(key);out.push(``  ${isDirty?"*":" "} ${path.padE` &&
+             `nd(30)}${describeAttribute(data[key])}``)}if(dirty.size){out.push("");out.push("  Edited paths queued for the next roundtrip:");for(const path of Array.from(dirty).sort())out.push(``    ${path}``)}out.pu` &&
+             `sh(...formatPendingDelta(dirty,data));out.push(...formatBindingCheck(ctx,slotKey,data));out.push(...formatSizeRanking(data));return out}function scrapeBindingAttributes(xml){if(!xml)return[];const fou` &&
+             `nd=new Set;for(const match of xml.matchAll(BINDING_PATH))found.add(match[1]);return Array.from(found).sort()}function formatBindingCheck(ctx,slotKey,data){const bound=scrapeBindingAttributes(SlotXml.s` &&
+             `lotXml(ctx,slotKey));if(!bound.length)return[];const missing=bound.filter(name=>!(name in data));const out=[];if(missing.length){out.push("");out.push("  BOUND IN THE VIEW BUT NOT IN THE MODEL:");for(` &&
+             `const name of missing)out.push(``    /${name}``);out.push("    -> a typo, a renamed ABAP attribute, or a missing"+" client->_bind( ).")}const boundSet=new Set(bound);const unused=Object.keys(data).filte` &&
+             `r(name=>!boundSet.has(name));if(unused.length){out.push("");out.push(``  ${unused.length} model attribute(s) not bound in this view:``+`` ${unused.slice(0,12).join(", ")}``+``${unused.length>12?", ...":""}` &&
+             ```)}return out}function attributeSize(value){try{const json=JSON.stringify(value);return json===undefined?0:json.length}catch{return 0}}function formatSizeRanking(data){const sizes=Object.keys(data).ma` &&
+             `p(name=>({name,size:attributeSize(data[name])})).sort((a,b)=>b.size-a.size);const total=sizes.reduce((sum,entry)=>sum+entry.size,0);if(!total)return[];const out=["",``  Model size: ${formatBytes(total)` &&
+             `} serialized``];for(const entry of sizes.slice(0,8)){if(!entry.size)continue;const share=Math.round(entry.size*100/total);const rows=Array.isArray(data[entry.name])?``, ${data[entry.name].length} row(s)` &&
+             ```:"";out.push(``    ${``/${entry.name}``.padEnd(30)}${formatBytes(entry.size).padStart(8)}``+``  ${String(share).padStart(3)}%${rows}``)}return out}function formatPendingDelta(dirty,data){if(!dirty.size)ret` &&
+             `urn[];const out=["","  Delta the next roundtrip will send:"];try{const delta=Lib.buildDeltaFromPaths(dirty,data);const json=JSON.stringify(delta,null,2);for(const line of truncate(json,1200).split("\n` &&
+             `")){out.push(``    ${line}``)}}catch(e){Lib.logError("DevTools Bindings: building the delta preview failed",e);out.push("    (could not be built)")}return out}function formatBindings(ctx,slotKey){const ` &&
+             `out=["abap2UI5 Developer Tools - Model bindings"];out.push("");out.push("  A '*' marks an attribute the user edited: those paths travel as"+" the delta of the next roundtrip.");out.push("  MAIN, NEST ` &&
+             `and NEST2 share one model by UI5 propagation, so they"+" are listed once, under MAIN.");const slot=ViewSlots.slots.find(entry=>entry.key===slotKey&&entry.ownsModel);const lines=slot?formatSlotBindings` &&
+             `(ctx,slot.key):[];if(lines.length){out.push(...lines)}else{out.push("\n  (no slot carries a model yet)")}return out.join("\n")}return{formatBindings,_internals:{scrapeBindingAttributes}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/devtools/DeveloperTools.fragment.xml": '\x3ccore:FragmentDefinition    xmlns="sap.m"    xmlns:core="sap.ui.core"    xmlns:ce="sap.ui.codeeditor">    \x3c!-- The title is a plain model pro` &&
@@ -377,3138 +149,377 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `rt a Bug"                type="Emphasized"                tooltip="Copy the whole session state as a GitHub issue body and open the bug report form"                press=".onReportBug"            />  ` &&
              `          \x3cButton                text="Export"                tooltip="Read the whole report as text, copy it or download it"                press=".onExport"            />            \x3cButton   ` &&
              `             text="Close"                press=".onClose"            />        \x3c/buttons>    \x3c/Dialog>\x3c/core:FragmentDefinition>',` && |\n| &&
-             `      "z2ui5/devtools/DeveloperTools.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "sap/ui/core/Fragment",` && |\n| &&
-             `    "sap/ui/model/json/JSONModel",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ErrorView",` && |\n| &&
-             `    "z2ui5/devtools/AbapSource",` && |\n| &&
-             `    "z2ui5/devtools/Console",` && |\n| &&
-             `    "z2ui5/devtools/Inspect",` && |\n| &&
-             `    "z2ui5/devtools/Journey",` && |\n| &&
-             `    "z2ui5/devtools/LiveEdit",` && |\n| &&
-             `    "z2ui5/devtools/Persist",` && |\n| &&
-             `    "z2ui5/devtools/Picker",` && |\n| &&
-             `    "z2ui5/devtools/Recorder",` && |\n| &&
-             `    "z2ui5/devtools/Report",` && |\n| &&
-             `    "z2ui5/devtools/Tabs",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    Control,` && |\n| &&
-             `    Fragment,` && |\n| &&
-             `    JSONModel,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    ErrorView,` && |\n| &&
-             `    AbapSource,` && |\n| &&
-             `    Console,` && |\n| &&
-             `    Inspect,` && |\n| &&
-             `    Journey,` && |\n| &&
-             `    LiveEdit,` && |\n| &&
-             `    Persist,` && |\n| &&
-             `    Picker,` && |\n| &&
-             `    Recorder,` && |\n| &&
-             `    Report,` && |\n| &&
-             `    Tabs,` && |\n| &&
-             `    Env,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+             `      "z2ui5/devtools/DeveloperTools.js": function(){sap.ui.define(["sap/ui/core/Control","sap/ui/core/Fragment","sap/ui/model/json/JSONModel","z2ui5/core/Lib","z2ui5/core/ErrorView","z2ui5/devtools/A` &&
+             `bapSource","z2ui5/devtools/Console","z2ui5/devtools/Inspect","z2ui5/devtools/Journey","z2ui5/devtools/LiveEdit","z2ui5/devtools/Persist","z2ui5/devtools/Picker","z2ui5/devtools/Recorder","z2ui5/devtoo` &&
+             `ls/Report","z2ui5/devtools/Tabs","z2ui5/core/Env"],(Control,Fragment,JSONModel,Lib,ErrorView,AbapSource,Console,Inspect,Journey,LiveEdit,Persist,Picker,Recorder,Report,Tabs,Env)=>{"use strict";const F` &&
+             `RAGMENT_SUFFIX="tools";const LAST_TAB_KEY="z2ui5.devtools.lastTab";const DEFAULT_TAB="OVERVIEW";const STATUS_MS=6e3;function readLastTab(){return Persist.read(LAST_TAB_KEY)}function writeLastTab(tabKe` &&
+             `y){Persist.write(LAST_TAB_KEY,tabKey)}function resolveTab(ctx,tabKey){if(Tabs.isEnabled(ctx,Tabs.get(tabKey)))return tabKey;if(Tabs.isKnown(tabKey)){const sibling=Tabs.firstTabOf(ctx,Tabs.groupOf(tabK` &&
+             `ey));if(sibling)return sibling}return DEFAULT_TAB}function preloadCodeEditor(){return new Promise(resolve=>{sap.ui.require(["sap/ui/codeeditor/library","sap/ui/codeeditor/CodeEditor"],()=>resolve(),()` &&
+             `=>resolve())})}function openTextDialog({title,text,editable,buttons}){sap.ui.require(["sap/m/Dialog","sap/m/TextArea","sap/m/Button"],(Dialog,TextArea,Button)=>{const area=new TextArea({editable,width` &&
+             `:"100%",rows:25,growing:false});area.setValue(text);const own=buttons?buttons(Button,area):[];const close={text:"Close",press:()=>dialog.close()};if(!own.length)close.type="Emphasized";const dialog=ne` &&
+             `w Dialog({title,stretch:true,content:[area],buttons:own.concat(new Button(close)),afterClose:()=>dialog.destroy()});dialog.open()})}const DeveloperTools=Control.extend("z2ui5.devtools.DeveloperTools",` &&
+             `{fragmentId(){return``${this.getId()}--${FRAGMENT_SUFFIX}``},renderTab(tabKey,oModel){const ctx=this.ctx;const key=resolveTab(ctx,tabKey);const tab=Tabs.get(key);const data=oModel.getData();data.selecte` &&
+             `dTab=key;data.selectedGroup=tab.group;writeLastTab(key);const slots=Tabs.enabledSlots(ctx).map(slot=>({key:slot.key,text:slot.label}));data.slots=slots;data.selectedSlot=tab.slot||data.selectedSlot||"` &&
+             `MAIN";data.showSlotBar=Boolean(tab.slot)&&slots.length>1;let views;if(tab.group==="VIEWDATA"){views=Tabs.aspectsOfSlot(ctx,data.selectedSlot).concat(Tabs.get("PICK"))}else{views=Tabs.enabledTabs(ctx,t` &&
+             `ab.group)}data.views=views.map(entry=>({key:entry.key,text:entry.label}));data.showViewBar=data.views.length>1;data.isOverview=tab.group==="OVERVIEW";data.isRoundtrips=tab.group==="ROUNDTRIPS";data.is` &&
+             `ViewData=tab.group==="VIEWDATA";data.isSearch=tab.group==="SEARCH";data.isErrorView=key==="ERROR";data.isSourceView=key==="SOURCE";data.isJourney=key==="JOURNEY";data.recordJourney=Journey.isRecording` &&
+             `(ctx);data.hasRetry=key==="ERROR"&&typeof ctx.state.lastError?.onRetry==="function";data.recordPayloads=Recorder.isRecordingPayloads();data.openOnError=Console.isAlertOnError();data.problemCount=this.` &&
+             `problemCount();if(tab.kind==="search"){this.displayEditor(oModel,Tabs.search(ctx,data.searchTerm),"text");data.isTemplating=false;oModel.refresh();return}if(tab.kind==="source"){data.canApply=false;da` &&
+             `ta.isTemplating=false;data.templatingSource=false;this.showAbapSource(oModel);return}this.displayEditor(oModel,Tabs.render(ctx,key),tab.kind);data.canApply=LiveEdit.canApply(ctx,key);oModel.refresh()}` &&
+             `,onGroupSelect(oEvent){const oModel=oEvent.getSource().getModel();const groupKey=oEvent.getSource().getSelectedKey();this.renderTab(Tabs.firstTabOf(this.ctx,groupKey)||DEFAULT_TAB,oModel)},onViewSelec` &&
+             `t(oEvent){const oSource=oEvent.getSource();this.renderTab(oSource.getSelectedKey(),oSource.getModel())},onSlotSelect(oEvent){const oSource=oEvent.getSource();const oModel=oSource.getModel();const aspe` &&
+             `ct=Tabs.get(oModel.getData().selectedTab)?.aspect;this.renderTab(Tabs.tabFor(this.ctx,oSource.getSelectedKey(),aspect),oModel)},onSearch(oEvent){const oSource=oEvent.getSource();const oModel=oSource.g` &&
+             `etModel();oModel.getData().searchTerm=oSource.getValue();this.renderTab("SEARCH",oModel)},displayEditor(oModel,content,type){const data=oModel.getData();data.editor_visible=true;data.source_visible=fa` &&
+             `lse;data.canApply=false;data.isTemplating=Boolean(content?.includes("xmlns:template"));data.templatingSource=false;data.value=content;data.previousValue=content;data.xContent="";data.type=type;oModel.` &&
+             `refresh()},onTemplatingPress(oEvent){const oSource=oEvent.getSource();const oModel=oSource.getModel();const data=oModel.getData();if(oSource.getPressed()){if(!data.xContent){data.xContent=Tabs.renderT` &&
+             `emplated(this.ctx,data.selectedTab)}data.value=data.xContent}else{data.value=data.previousValue}oModel.refresh()},showAbapSource(oModel){const contentControl=Fragment.byId(this.fragmentId(),"sourceHtm` &&
+             `l");contentControl?.setContent(AbapSource.iframeHtml(this.ctx));AbapSource.fetchSource(this.ctx);if(!oModel)return;const data=oModel.getData();data.editor_visible=false;data.source_visible=true;oModel` &&
+             `.refresh()},onOpenAbapInAdt(){AbapSource.openInAdt(this.ctx)},showStatus(oModel,text){const data=oModel.getData();data.statusText=text;data.hasStatusText=Boolean(text);oModel.refresh();if(!text)return` &&
+             `;clearTimeout(this._statusTimer);this._statusTimer=setTimeout(()=>{if(Lib.isDestroyed(this))return;data.statusText="";data.hasStatusText=false;oModel.refresh()},STATUS_MS)},async onReportBug(oEvent){c` &&
+             `onst oModel=oEvent.getSource().getModel();const cached=AbapSource.cachedSource?.(this.ctx);const source=cached??await AbapSource.fetchSource(this.ctx);if(Lib.isDestroyed(this))return;const message=awa` &&
+             `it Report.copyMarkdown(this.ctx,source);if(Lib.isDestroyed(this))return;const copied=message===Report.COPIED;const data=oModel.getData();data.issueUrl=copied?Report.issueUrl():"";data.hasIssueLink=cop` &&
+             `ied;this.showStatus(oModel,message);if(!copied)return;try{window.open(data.issueUrl,"_blank","noopener,noreferrer")}catch(e){Lib.logError("DevTools: opening the issue form failed",e)}},async onExport(` &&
+             `){const source=await AbapSource.fetchSource(this.ctx);if(Lib.isDestroyed(this))return;Report.openDialog(this.ctx,AbapSource.appName(this.ctx),source)},async onCopyTab(oEvent){const oSource=oEvent.getS` &&
+             `ource();const data=oSource.getModel().getData();let text=data.value||"";if(data.isSourceView){const cached=AbapSource.cachedSource?.(this.ctx);text=cached??await AbapSource.fetchSource(this.ctx);if(Li` &&
+             `b.isDestroyed(oSource))return}Lib.copyToClipboard(text);Report.confirmOnButton(oSource)},onErrorRetry(){const onRetry=this.ctx.state.lastError?.onRetry;this.reopenErrorOnClose=false;this.close();if(ty` &&
+             `peof onRetry==="function")onRetry()},onErrorRestart(){this.reopenErrorOnClose=false;this.close();ErrorView.restart(this.ctx)},onErrorLogout(){ErrorView.handleLogout(this.ctx)},onToggleRecordPayloads(o` &&
+             `Event){const oSource=oEvent.getSource();Recorder.setRecordingPayloads(this.ctx,oSource.getPressed());const oModel=oSource.getModel();this.renderTab(oModel.getData().selectedTab,oModel)},onToggleRecord` &&
+             `Journey(oEvent){const oSource=oEvent.getSource();if(oSource.getPressed())Journey.start(this.ctx);else Journey.stop(this.ctx);const oModel=oSource.getModel();this.renderTab(oModel.getData().selectedTab` &&
+             `,oModel)},onClearJourney(oEvent){Journey.clear(this.ctx);const oModel=oEvent.getSource().getModel();this.renderTab(oModel.getData().selectedTab,oModel)},onExportJourney(){const fileName=Journey.export` &&
+             `FileName(this.ctx);openTextDialog({title:"abap2UI5 - Journey as ABAP Unit test",text:Journey.buildAbapUnit(this.ctx),editable:true,buttons:(Button,area)=>[new Button({text:"Copy",type:"Emphasized",pre` &&
+             `ss:oEvent=>{Lib.copyToClipboard(area.getValue());Report.confirmOnButton(oEvent.getSource())}}),new Button({text:"Download",press:()=>Report.downloadText(fileName,area.getValue())})]})},onToggleOpenOnE` &&
+             `rror(oEvent){const oSource=oEvent.getSource();Console.setAlertOnError(oSource.getPressed());const oModel=oSource.getModel();oModel.getData().openOnError=Console.isAlertOnError();oModel.refresh()},onPi` &&
+             `ckControl(){const previousTab=this.oDialog?.getModel()?.getData()?.selectedTab;this.reopenErrorOnClose=false;this.close();Picker.start(this.ctx,report=>{if(Lib.isDestroyed(this))return;this.show(repor` &&
+             `t?"PICK":previousTab)})},async onApplyXml(oEvent){const oModel=oEvent.getSource().getModel();const data=oModel.getData();if(LiveEdit.isBusy(this.ctx)){this.showStatus(oModel,"A roundtrip is running - ` &&
+             `try again.");return}const tabKey=data.selectedTab;const before=this.backendXml(tabKey);const result=await LiveEdit.apply(this.ctx,tabKey,data.value);if(Lib.isDestroyed(this))return;if(!this._appliedXm` &&
+             `l)this._appliedXml={};this._appliedXml[tabKey]={original:before,applied:Tabs.render(this.ctx,tabKey)};this.showStatus(oModel,result)},backendXml(tabKey){const current=Tabs.render(this.ctx,tabKey);cons` &&
+             `t record=this._appliedXml?.[tabKey];if(!record)return current;if(record.applied!==current){delete this._appliedXml[tabKey];return current}return record.original},onResetXml(oEvent){const oModel=oEvent` &&
+             `.getSource().getModel();const data=oModel.getData();const xml=this.backendXml(data.selectedTab);data.value=xml;data.previousValue=xml;oModel.refresh();this.showStatus(oModel,"")},onShowHelp(){openText` &&
+             `Dialog({title:"abap2UI5 - Developer Tools Help",text:Inspect.formatHelp(),editable:false})},onClose(){this.close()},onEscape(oPromise){oPromise.reject();this.close()},async show(initialTab){if(this._s` &&
+             `howPending)return;this._showPending=true;try{if(!this.oDialog){await preloadCodeEditor();this.oDialog=await Fragment.load({name:"z2ui5.devtools.DeveloperTools",controller:this,id:this.fragmentId()});t` &&
+             `his.oDialog.setEscapeHandler?.(oPromise=>this.onEscape(oPromise))}if(Lib.isDestroyed(this)){if(this.oDialog)this.oDialog.destroy();this.oDialog=null;return}const requested=typeof initialTab==="string"` &&
+             `&&initialTab?initialTab:readLastTab();const appName=AbapSource.appName(this.ctx);const oModel=new JSONModel({title:appName?``abap2UI5 - Developer Tools - ${appName}``:"abap2UI5 - Developer Tools",select` &&
+             `edGroup:Tabs.DEFAULT_GROUP,selectedTab:DEFAULT_TAB,selectedSlot:"MAIN",searchTerm:"",slots:[],views:[],showSlotBar:false,showViewBar:false,isOverview:true,isRoundtrips:false,isViewData:false,isSearch:` &&
+             `false,isErrorView:false,isSourceView:false,isJourney:false,recordJourney:Journey.isRecording(this.ctx),hasRetry:false,canApply:false,isTemplating:false,templatingSource:false,statusText:"",hasStatusTe` &&
+             `xt:false,issueUrl:"",hasIssueLink:false,problemCount:this.problemCount(),recordPayloads:Recorder.isRecordingPayloads(),openOnError:Console.isAlertOnError(),type:"text",value:"",previousValue:"",xConte` &&
+             `nt:"",source_visible:false,editor_visible:true});const oDialog=this.oDialog;oDialog.setModel(oModel);this.renderTab(requested,oModel);oDialog.open()}catch(e){Lib.logError("DeveloperTools.show failed",` &&
+             `e)}finally{this._showPending=false}},problemCount(){const errors=(Lib.errors||[]).length;const total=errors+(this.ctx?.state?.lastError?1:0);return total?String(total):""},close(){if(!this.oDialog?.is` &&
+             `Open())return;const reopenError=this.reopenErrorOnClose;this.reopenErrorOnClose=false;this.oDialog.close();if(reopenError)ErrorView.reopenErrorDialog(this.ctx)},exit(){this.reopenErrorOnClose=false;cl` &&
+             `earTimeout(this._statusTimer);this._appliedXml=null;if(this.oDialog){this.oDialog.close();this.oDialog.destroy();this.oDialog=null}},toggle(){if(this.oDialog?.isOpen()){this.close()}else{this.show()}}` &&
+             `,renderer:Lib.EMPTY_RENDERER});return Env.ownClass(DeveloperTools)});` && |\n| &&
              `` && |\n| &&
-             `    const FRAGMENT_SUFFIX = "tools";` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/devtools/Help.js": function(){sap.ui.define([],()=>{"use strict";const HELP=["abap2UI5 Developer Tools","","Opening","-------","  Ctrl+F12                    open / close these tools","  ` &&
+             `?z2ui5-devtools=1           open them on page load (for problems","                              that happen during startup)","  ?z2ui5-devtools=HISTORY     open them directly on a view, by its key","` &&
+             `","  Without one named, they reopen where you left off.","","The six tabs, and what each is for","----------------------------------","  Overview      which app, which roundtrip, is anything broken - ` &&
+             `and","                where to go next. The landing tab","  Problems      what went wrong","  Roundtrips    what went over the wire","  View & Data   what the screen is made of, and what fills it","  ` &&
+             `System        what the app is running on, and its ABAP class","  Search        one term across EVERY other tab at once - answers","                'where does /CUSTOMER appear?' without opening each",` &&
+             `"","Problems","--------","  Error         the last fatal error, with Retry / Restart / Logout","  Log           ONE timeline of everything logged: the framework's","                own error log (with` &&
+             ` stack traces), UI5's log (binding","                and control problems), uncaught errors, unhandled","                rejections, every console.* call, and the backend","                messages th` &&
+             `e user was shown - so the browser's own","                devtools do not have to be open","","Roundtrips","----------","  History       every roundtrip: backend vs. render time, payload","           ` &&
+             `     sizes, draft ids - and the ones that never rendered","  Request /     the raw JSON on the wire","  Response","  Actions       the response's VIEWS, NAV and ACTIONS, readable","  Model Diff    wha` &&
+             `t the backend changed between two responses","  View Diff     what changed in the view XML between two rebuilds","  Journey       a click-through recorded as steps - what was typed","                a` &&
+             `nd pressed, what each screen showed. 'Record","                Journey' starts and stops it, 'Export ABAP Unit'","                turns it into a local test class that replays the","                st` &&
+             `eps on z2ui5_cl_frontend_sim (the headless","                frontend, abap2UI5/headless-frontend) - paste it into","                the app's test include","","  'Record Payloads' keeps the request/r` &&
+             `esponse bodies, which is what","  the two diffs need. OFF by default: it is the only part of the","  history that costs real memory (2 MB budget, oldest dropped first).","","View & Data","-----------"` &&
+             `,"  Pick the SLOT on the left (only the filled ones are offered), then","  the aspect:","","  XML           the view XML the slot holds","  Model         the JSON model behind it","  Bindings      the` &&
+             ` model attributes, '*' on the paths that will","                travel as the next delta, the delta itself, the paths","                bound in the view that the model does NOT have (the","          ` &&
+             `      usual cause of an empty field), and the attributes","                ranked by size (the usual cause of a huge response)","  Picked        'Pick Control' closes these tools, lets you click any",` &&
+             `"  Control       control in the app, and reports which ABAP attribute","                feeds it with its current value. Escape cancels","","  On an XML view: 'Apply to App' renders the edited XML int` &&
+             `o the","  running app with NO roundtrip and no activation - a local preview","  the next response replaces again. 'Reset' puts the original back.","","System","------","  Environment   versions, SAPUI` &&
+             `5 vs OpenUI5, the SDK url the page","                bootstrapped from and its resource roots, theme,","                language, content density, session, device, the","                focus/scroll b` &&
+             `lock sent on every roundtrip, slots","  Registry      shortcuts, timers, callbacks, bound backend events","  ABAP Source   the running app's class. 'Open in ADT' opens it in a","                new ta` &&
+             `b, at the line of the last event","","Always available","----------------","  Copy View        put the current view's content on the clipboard","  Report a Bug     see below","  Export           the w` &&
+             `hole report as text - read, copy, download","  (i)              this help","","  'Open on Error' (on Overview) pops these tools open on the Log as","  soon as anything logs at error level. Off by defa` &&
+             `ult.","","Reporting a bug","---------------","  'Report a Bug' puts the whole session state on the clipboard as a","  GitHub-ready issue body: environment, the error, the log, the","  roundtrip histor` &&
+             `y and the running app's ABAP class, each in a","  collapsed section - and opens the bug report form of the abap2UI5","  repository in a new tab. Paste the report into 'Additional context'.","  Nothing` &&
+             ` is sent before you submit that form.","","  'Export' opens the same content as plain text, for reading, with one","  Copy and two downloads. With","  Record Payloads on, Download History (JSON) addit` &&
+             `ionally carries","  the actual request/response bodies.","","  The console errors and the roundtrip history survive a page reload","  (sessionStorage), so an app that died and was reloaded keeps its",` &&
+             `"  evidence - those rows are marked with a '*'."].join("\n");function formatHelp(){return HELP}return{formatHelp}});` && |\n| &&
              `` && |\n| &&
-             `    const LAST_TAB_KEY = "z2ui5.devtools.lastTab";` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/devtools/Inspect.js": function(){sap.ui.define(["sap/ui/Device","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ScrollFocus","z2ui5/core/ViewSlots","z2ui5/devtools/Recorder","z2ui5/devtools` &&
+             `/Format","z2ui5/devtools/SlotXml","z2ui5/devtools/Log","z2ui5/devtools/Bindings","z2ui5/devtools/Help"],(Device,Lib,Env,ScrollFocus,ViewSlots,Recorder,Format,SlotXml,Log,Bindings,Help)=>{"use strict";` &&
+             `const MAX_ARG_CHARS=160;const MAX_SCRAPED_EVENTS=200;const BOOTSTRAP_ATTRS=[["Bootstrap theme","theme"],["Resource roots","resourceroots"],["On init","oninit"],["Compat version","compatversion"],["Asy` &&
+             `nc","async"],["Frame options","frameoptions"],["Binding syntax","bindingsyntax"],["Libs","libs"]];const CALLBACK_ARRAYS=["onBeforeRoundtrip","onAfterRoundtrip","onAfterRendering","onRoundtripEnd","onB` &&
+             `eforeEventFrontend","onErrorDetails"];const EVENT_CALL=new RegExp(Format.FRAMEWORK_CALL.source,"g");const WORD_CHAR=/[a-z0-9_]/;const isWordChar=ch=>ch!==undefined&&WORD_CHAR.test(ch);const LABEL_WIDT` &&
+             `H=24;function line(label,value){const text=value===undefined||value===null||value===""?"-":value;return``  ${label.padEnd(LABEL_WIDTH)}${text}``}function yesNo(value){return value?"yes":"no"}const{trunc` &&
+             `ate,section,renderValue}=Format;function bootstrapElement(){try{return document.getElementById("sap-ui-bootstrap")}catch{return null}}function bootstrapAttr(el,name){return el?.getAttribute?.(``data-sa` &&
+             `p-ui-${name}``)||""}function resourceUrl(namespace){try{return sap.ui.require?.toUrl?sap.ui.require.toUrl(namespace):""}catch{return""}}function getContentDensity(){try{const classes=document.body?.cla` &&
+             `ssList;if(classes?.contains("sapUiSizeCompact"))return"Compact";if(classes?.contains("sapUiSizeCozy"))return"Cozy"}catch{return""}return"(neither class set)"}function getDistribution(sUi5){const gav=s` &&
+             `Ui5?.GAV||"";if(!gav)return"";return gav.includes("com.sap.ui5")?"SAPUI5":"OpenUI5"}function modelAttributeCount(ctx,slotKey){const data=ViewSlots.trackedModel(ViewSlots.getView(ctx,slotKey))?.getData` &&
+             `?.();if(!data)return 0;return Object.keys(data).length}function formatSlots(ctx){const lines=[];for(const slot of ViewSlots.slots){const view=ViewSlots.getView(ctx,slot.key);const xml=ViewSlots.getVie` &&
+             `wXml(ctx,slot.key);if(!view&&!xml){lines.push(line(slot.key,"empty"));continue}const parts=[];parts.push(view?"filled":"xml only");if(xml)parts.push(``${xml.length} chars XML``);if(slot.ownsModel){parts` &&
+             `.push(``${modelAttributeCount(ctx,slot.key)} model attributes``)}else{parts.push("inherits MAIN model")}lines.push(line(slot.key,parts.join(", ")))}return lines}function formatEnvironment(ctx){const sta` &&
+             `te=ctx.state;const oConfig=state.oConfig;const sUi5=oConfig.S_UI5;const responseFront=state.responseData?.S_FRONT;const out=["abap2UI5 Developer Tools - Environment"];out.push(section("App"));out.push` &&
+             `(line("App class",responseFront?.APP));out.push(line("Rendered app",state.renderedApp));out.push(line("Draft id (received)",responseFront?.ID));out.push(line("Draft id (sent)",state.oBody?.S_FRONT?.ID` &&
+             `));out.push(line("Last event",state.oBody?.S_FRONT?.EVENT));out.push(line("Roundtrip in flight",yesNo(state.isBusy)));out.push(section("Session"));out.push(line("sap-contextid",state.contextId));out.p` &&
+             `ush(line("Backend endpoint",state.url));out.push(line("Owns the page",yesNo(state.ownsPage)));out.push(line("Launchpad",yesNo(state.oLaunchpad)));out.push(line("Origin",window.location.origin));out.pu` &&
+             `sh(line("Pathname",window.location.pathname));out.push(line("Search",window.location.search));out.push(line("Hash",window.location.hash));out.push(section("Routing"));out.push(line("Hash routing",yesN` &&
+             `o(state.navRouting)));out.push(line("Mode",state.navMode));out.push(line("Current app",state.currentApp));out.push(line("Current draft id",state.currentDraftId));out.push(section("UI5"));out.push(line` &&
+             `("Version",sap.ui.version));out.push(line("Distribution",getDistribution(sUi5)));out.push(line("Build timestamp",sUi5?.BUILDTIMESTAMP));out.push(line("Theme",Env.getTheme()));const locale=Env.getLocal` &&
+             `e();out.push(line("Language",locale.language));out.push(line("Text direction",locale.rtl?"RTL":"LTR"));out.push(line("Content density",getContentDensity()));out.push(...formatBootstrap(ctx));out.push(` &&
+             `section("Device"));out.push(line("System",Lib.deriveSystemType(Device.system)));out.push(line("Browser",``${Device.browser.name||"?"} ${Device.browser.version||""}``.trim()));out.push(line("OS",``${Devic` &&
+             `e.os.name||"?"} ${Device.os.version||""}``.trim()));out.push(line("Orientation",Device.orientation.portrait?"portrait":"landscape"));out.push(line("Window",``${Device.resize.width||window.innerWidth} x ` &&
+             ```+``${Device.resize.height||window.innerHeight}``));out.push(line("Touch",yesNo(Device.support.touch)));out.push(line("Pointer",yesNo(Device.support.pointer)));out.push(line("Retina",yesNo(Device.suppor` &&
+             `t.retina)));out.push(...formatFrontendInfo(ctx));out.push(section("View slots"));out.push(...formatSlots(ctx));return out.join("\n")}function formatBootstrap(ctx){const out=[section("UI5 bootstrap")];` &&
+             `const el=bootstrapElement();if(!el){out.push('  (no <script id="sap-ui-bootstrap"> on this page -');out.push("  UI5 was started some other way, e.g. by a launchpad)")}else{out.push(line("SDK source",e` &&
+             `l.src||bootstrapAttr(el,"src")));for(const[label,attr]of BOOTSTRAP_ATTRS){const value=bootstrapAttr(el,attr);if(value)out.push(line(label,truncate(value,MAX_ARG_CHARS)))}}out.push("");out.push(line("R` &&
+             `esource base",resourceUrl("")));out.push(line("z2ui5 root",resourceUrl("z2ui5")));const cci=ctx.state.ccResourceRoot;const ccc=ctx.state.cccResourceRoot;if(cci)out.push(line("z2ui5_cci root",cci));if(` &&
+             `ccc)out.push(line("z2ui5_ccc root",ccc));return out}function formatFrontendInfo(ctx){const out=[section("Frontend info sent to the backend")];out.push("  (client->get( )-s_focus / -s_scroll, live for ` &&
+             `the next");out.push("  roundtrip - see -s_ui5 / -s_device above)");out.push("");let focus;let scroll;try{focus=ScrollFocus.getFocusInfo(ctx);scroll=ScrollFocus.getScrollInfo(ctx)}catch(e){Lib.logError` &&
+             `("DevTools Inspect: reading focus/scroll failed",e);out.push("  (focus / scroll info unavailable)");return out}out.push(line("Focused control",focus?.ID));if(focus?.SELECTION_START!==undefined){out.pu` &&
+             `sh(line("Caret",``${focus.SELECTION_START} - ${focus.SELECTION_END}``))}out.push("");let anyScroll=false;for(const slot of ViewSlots.slots){const entry=scroll?.[slot.key];if(!entry)continue;anyScroll=tr` &&
+             `ue;out.push(line(``Scroll ${slot.key}``,``${entry.ID||"(unnamed)"}  x ${entry.X||0} / y ${entry.Y||0}``))}if(!anyScroll)out.push(line("Scroll","nothing scrolled yet"));return out}function scrapeEvents(xml` &&
+             `){if(!xml)return[];const found=new Set;for(const match of xml.matchAll(EVENT_CALL)){if(found.size>=MAX_SCRAPED_EVENTS)break;found.add(``${match[1]}  ${match[2]}``)}return Array.from(found).sort()}functi` &&
+             `on formatShortcuts(ctx){const shortcuts=ctx.state.shortcuts||{};const combos=Object.keys(shortcuts).sort();if(!combos.length)return["  (none registered)"];const out=[];for(const combo of combos){const` &&
+             ` scopes=shortcuts[combo];for(const scope of Object.keys(scopes)){const entry=scopes[scope];out.push(``  ${combo.padEnd(22)}${(scope||"(global)").padEnd(12)}``+``-> ${entry?.event||"?"}``)}}return out}func` &&
+             `tion formatRegistry(ctx){const state=ctx.state;const out=["abap2UI5 Developer Tools - Registry"];out.push(section("Keyboard shortcuts (combo / scope / backend event)"));out.push(...formatShortcuts(ctx` &&
+             `));out.push(section("Pending backend timers"));const timers=Object.keys(state.timers||{});out.push(timers.length?``  ${timers.join(", ")}``:"  (none pending)");out.push(section("Framework callbacks regi` &&
+             `stered"));for(const name of CALLBACK_ARRAYS){out.push(line(name,(state[name]||[]).length))}out.push(section("Model size limits"));const limits=state.viewSizeLimits||{};const limitKeys=Object.keys(limi` &&
+             `ts);if(!limitKeys.length)out.push("  (UI5 default everywhere)");for(const key of limitKeys)out.push(line(key,limits[key]));out.push(section("Backend events bound in the current views"));let any=false;` &&
+             `for(const slot of ViewSlots.slots){const events=scrapeEvents(SlotXml.slotXml(ctx,slot.key));if(!events.length)continue;any=true;out.push(``  [${slot.key}]``);for(const event of events)out.push(``    ${ev` &&
+             `ent}``)}if(!any)out.push("  (no event bindings found in the current views)");out.push("");out.push("  Scraped from the view XML the backend sent - eB rounds a trip,"+" eF is handled in the browser.");r` &&
+             `eturn out.join("\n")}function renderArg(arg){return renderValue(arg,MAX_ARG_CHARS)}function renderActionList(list,title){const out=[section(title)];if(!Array.isArray(list)||!list.length){out.push("  (` &&
+             `none)");return out}list.forEach((item,index)=>{const number=String(index+1).padStart(3);if(!Array.isArray(item)){out.push(``${number}  [not run] ${truncate(item,MAX_ARG_CHARS)}``);return}const[name,...a` &&
+             `rgs]=item;out.push(``${number}  ${name}``);for(const arg of args)out.push(``       ${renderArg(arg)}``)});return out}function renderViews(views){const out=[section("VIEWS (what the slots show after this r` &&
+             `oundtrip)")];const keys=["MAIN","NEST","NEST2","POPUP","POPOVER"].filter(key=>views?.[key]);if(!keys.length){out.push("  (none)");return out}for(const key of keys){const entry=views[key];if(entry.DEST` &&
+             `ROY){out.push(``  ${key}  destroy``);continue}out.push(``  ${key}  display``);out.push(``       ${renderArg(entry.XML)}``);if(entry.OPT)out.push(``       ${renderArg(entry.OPT)}``)}return out}function formatA` &&
+             `ctions(ctx){const sFront=ctx.state.responseData?.S_FRONT;const out=["abap2UI5 Developer Tools - Actions of the last response"];out.push("");out.push("  VIEWS are applied first, MAIN before the nested ` &&
+             `and standalone"+" slots; NAV syncs the URL; ACTIONS run last, once the DOM exists.");out.push(...renderViews(sFront?.VIEWS));out.push(section("NAV (the URL intent)"));out.push(sFront?.NAV?``  ${renderA` &&
+             `rg(sFront.NAV)}``:"  (none)");out.push(...renderActionList(sFront?.ACTIONS,"ACTIONS (app)"));return out.join("\n")}function findEventLine(source,eventName){if(!source||!eventName)return 0;const lines=s` &&
+             `ource.split("\n");const needle=eventName.toLowerCase();for(let i=0;i<lines.length;i++){const haystack=lines[i].toLowerCase();let from=haystack.indexOf(needle);while(from!==-1){const before=haystack[fr` &&
+             `om-1];const after=haystack[from+needle.length];if(!isWordChar(before)&&!isWordChar(after))return i+1;from=haystack.indexOf(needle,from+1)}}return 0}function formatError(ctx){const err=ctx.state.lastEr` &&
+             `ror;if(!err)return"(no fatal error captured this session)";return err.title?``${err.title}\n\n${err.text}``:err.text}function formatOverview(ctx){const state=ctx.state;const responseFront=state.response` &&
+             `Data?.S_FRONT;const out=["abap2UI5 Developer Tools"];out.push(section("App"));out.push(line("App class",responseFront?.APP));out.push(line("Draft id",responseFront?.ID));out.push(line("Last event",sta` &&
+             `te.oBody?.S_FRONT?.EVENT||"(app start)"));out.push(line("Roundtrip in flight",yesNo(state.isBusy)));out.push(section("Status"));out.push(line("Fatal error",state.lastError?``YES - "${truncate(state.las` &&
+             `tError.title||state.lastError.text,50)}" (Problems > Error)``:"none this session"));const counts=Log.countLevels(Log.collectLog(ctx));const loud=counts.error+counts.warn;out.push(line("Log",``${counts.e` &&
+             `rror} error, ${counts.warn} warn, ${counts.info} info``+(loud?"  (Problems > Log)":"")));const records=Recorder.getRecords(ctx);const last=records[records.length-1];out.push(line("Roundtrips",last?``${r` &&
+             `ecords.length} recorded, last ${formatOverviewMs(last)}``+" (Roundtrips > History)":"none recorded yet"));out.push(line("Payload recording",Recorder.isRecordingPayloads()?"ON - Model Diff and View Diff` &&
+             ` work":"OFF - switch it on in Roundtrips for the diffs"));out.push(section("UI5"));out.push(line("Version",sap.ui.version));out.push(line("Distribution",getDistribution(ctx.state.oConfig.S_UI5)));out.` &&
+             `push(line("Theme",Env.getTheme()));out.push(section("View slots"));out.push(...formatSlots(ctx));out.push(section("Getting around"));out.push("  Ctrl+F12          open / close these tools");out.push("` &&
+             `  Search field      one term across every tab at once");out.push("  (i) in the footer what every tab answers");out.push("  Report a Bug      the whole session state as a GitHub issue body");return out` &&
+             `.join("\n")}function formatOverviewMs(record){const parts=[];if(record.totalMs!==null&&record.totalMs!==undefined){parts.push(``${Math.round(record.totalMs)} ms total``)}if(record.backendMs!==null&&reco` &&
+             `rd.backendMs!==undefined){parts.push(``${Math.round(record.backendMs)} ms backend``)}const timing=parts.length?`` ${parts.join(", ")}``:"";return``"${record.event||"(start)"}"${timing}``}return{formatEnviro` &&
+             `nment,formatError,formatOverview,formatRegistry,formatActions,findEventLine,formatLog:Log.formatLog,formatBindings:Bindings.formatBindings,formatHelp:Help.formatHelp,_internals:{scrapeEvents,getDistri` &&
+             `bution}}});` && |\n| &&
              `` && |\n| &&
-             `    const DEFAULT_TAB = "OVERVIEW";` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/devtools/Journey.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/devtools/AbapSource","z2ui5/devtools/Recorder"],(Lib,AbapSource,Recorder)=>{"use strict";const MAX_STEPS=200;const ` &&
+             `MAX_ASSERT_IDS=5;const MAX_ASSERT_EVENTS=5;const MAX_DELTA_CHARS=2e4;const LITERAL_CHUNK=100;const SLOT_ORDER=["POPOVER","POPUP","MAIN"];function journeyOf(ctx){return ctx?.devtools?.journey||null}fun` &&
+             `ction ensure(ctx){if(!ctx?.devtools)return null;if(!ctx.devtools.journey){ctx.devtools.journey={recording:false,journeys:[],hook:null}}return ctx.devtools.journey}function current(rec){return rec?.jou` &&
+             `rneys[rec.journeys.length-1]||null}function isRecording(ctx){return Boolean(journeyOf(ctx)?.recording)}function appOf(ctx){return AbapSource.appName(ctx)}function idsOf(xml){const out=[];const pattern` &&
+             `=/ id="([^"]*)"/g;let match=pattern.exec(xml||"");while(match!==null){const id=match[1].replace(/&amp;/g,"&");if(id&&!out.includes(id))out.push(id);match=pattern.exec(xml)}return out}function eventsOf` &&
+             `(xml){const text=(xml||"").replace(/&apos;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&");const out=[];const pattern=/\.eBP?\((?:[^[]*?)\['((?:\\.|[^'\\]` &&
+             `)*)'/g;let match=pattern.exec(text);while(match!==null){const name=match[1].replace(/\\(.)/g,"$1");if(name&&!out.includes(name))out.push(name);match=pattern.exec(text)}return out}function destroyedSlo` &&
+             `ts(response){const views=response?.S_FRONT?.VIEWS;if(!views||typeof views!=="object")return[];return Object.keys(views).filter(slot=>views[slot]?.DESTROY)}function displayedViews(response){const out=[` &&
+             `];for(const slot of SLOT_ORDER.concat(["NEST","NEST2"])){const xml=Recorder.displayedXml(response,slot);if(!xml)continue;out.push({slot,ids:idsOf(xml),events:eventsOf(xml)})}return out}function copyDe` &&
+             `lta(model){if(!model||typeof model!=="object")return null;let text;try{text=JSON.stringify(model)}catch{return{dropped:"the model delta could not be serialized"}}if(text===undefined)return null;if(tex` &&
+             `t.length>MAX_DELTA_CHARS){return{dropped:``the model delta is ${text.length} characters, more than the ${MAX_DELTA_CHARS} a recorded step keeps``}}return{value:JSON.parse(text)}}function readStep(oBody,` &&
+             `response){const sFront=oBody?.S_FRONT;const args=Array.isArray(sFront?.T_EVENT_ARG)?sFront.T_EVENT_ARG:[];return{event:sFront?.EVENT||"",args:args.map(arg=>typeof arg==="string"?arg:safeJson(arg)),del` &&
+             `ta:copyDelta(oBody?.MODEL),app:response?.S_FRONT?.APP||"",views:displayedViews(response),destroyed:destroyedSlots(response),messages:Recorder.extractMessages(response).map(m=>m.text),ts:(new Date).toI` &&
+             `SOString()}}function safeJson(value){try{return JSON.stringify(value)??""}catch{return""}}function onAfterRendering(ctx){try{const rec=journeyOf(ctx);const journey=current(rec);if(!rec?.recording||!jo` &&
+             `urney)return;if(journey.steps.length>=MAX_STEPS){journey.overflow=true;return}const step=readStep(ctx.state.oBody,ctx.state.responseData);step.seq=journey.steps.length+1;journey.steps.push(step);if(!j` &&
+             `ourney.app&&step.app)journey.app=step.app}catch(e){Lib.logError("DevTools Journey: onAfterRendering failed",e)}}function start(ctx){const rec=ensure(ctx);if(!rec||rec.recording)return;const journey={a` &&
+             `pp:appOf(ctx),startedAt:(new Date).toISOString(),steps:[],overflow:false};rec.journeys.push(journey);rec.recording=true;if(ctx.state?.responseData){const step=readStep(ctx.state.oBody,ctx.state.respon` &&
+             `seData);step.event="";step.args=[];step.delta=null;step.seq=1;journey.steps.push(step)}rec.hook=()=>onAfterRendering(ctx);Lib.registerCallback(ctx,"onAfterRendering",rec.hook)}function stop(ctx){const` &&
+             ` rec=journeyOf(ctx);if(!rec)return;rec.recording=false;if(rec.hook){Lib.unregisterCallback(ctx,"onAfterRendering",rec.hook);rec.hook=null}const journey=current(rec);if(journey&&!journey.steps.length)r` &&
+             `ec.journeys.pop()}function clear(ctx){stop(ctx);const rec=journeyOf(ctx);if(rec)rec.journeys=[]}function getJourneys(ctx){return journeyOf(ctx)?.journeys||[]}function stepCount(ctx){return getJourneys` &&
+             `(ctx).reduce((sum,j)=>sum+j.steps.length,0)}function literal(value,indent){const text=String(value);if(/[\u0000-\u001f\u007f]/.test(text))return null;const escaped=text.replace(/``/g,"````");if(escaped.l` &&
+             `ength<=LITERAL_CHUNK)return``\``${escaped}\````;const chunks=[];let i=0;while(i<escaped.length){let end=Math.min(i+LITERAL_CHUNK,escaped.length);let run=0;while(end-1-run>=i&&escaped[end-1-run]==="``")run+` &&
+             `=1;if(run%2===1&&escaped[end]==="``")end+=1;chunks.push(``\``${escaped.slice(i,end)}\````);i=end}return chunks.join(`` &&\n${" ".repeat(indent)}``)}function jsonLiteral(value,indent){return literal(JSON.stri` &&
+             `ngify(value),indent)}function isPlainName(name){return/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)}function editStatements(delta,indent){const pad=" ".repeat(indent);const out=[];if(!delta)return out;if(delt` &&
+             `a.dropped){out.push(``${pad}" model changes not replayed: ${delta.dropped}``);return out}const model=delta.value;if(!model||typeof model!=="object"||Array.isArray(model)){return out}for(const[name,value` &&
+             `]of Object.entries(model)){if(isRowDelta(value)){rowDeltaStatements(out,pad,name,``/${name}``,value.__delta)}else{attributeStatements(out,pad,name,value)}}return out}function isRowDelta(value){return va` &&
+             `lue!==null&&typeof value==="object"&&!Array.isArray(value)&&Object.keys(value).length===1&&value.__delta!==null&&typeof value.__delta==="object"}const SECRET_NAME=/(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|A` &&
+             `PIKEY|API_KEY)/i;function attributeStatements(out,pad,name,value){const plain=isPlainName(name);if(typeof value==="string"&&SECRET_NAME.test(name)){out.push(``${pad}" ${name}: the value typed is not ex` &&
+             `ported - put a test value here``);value="***"}if(typeof value==="string"&&plain){const lit=literal(value,pad.length+24);if(lit!==null){out.push(``${pad}sim->set_value( name  = \``${name}\````);out.push(``${` &&
+             `pad}                value = ${lit} ).``);return}}if(typeof value==="boolean"&&plain){out.push(``${pad}sim->set_bool( name  = \``${name}\````);out.push(``${pad}               value = ${value?"abap_true":"aba` &&
+             `p_false"} ).``);return}jsonStatement(out,pad,``/${name}``,value)}function rowDeltaStatements(out,pad,table,path,rows,nested){for(const[row,cells]of Object.entries(rows)){const rowIndex=Number(row);if(!ce` &&
+             `lls||typeof cells!=="object")continue;for(const[column,cell]of Object.entries(cells)){const cellPath=``${path}/${row}/${column}``;if(isRowDelta(cell)){rowDeltaStatements(out,pad,column,cellPath,cell.__d` &&
+             `elta,true);continue}const lit=typeof cell==="string"?literal(cell,pad.length+23):null;if(lit!==null&&!nested&&Number.isInteger(rowIndex)&&isPlainName(table)&&isPlainName(column)){out.push(``${pad}sim->` &&
+             `set_cell( table  = \``${table}\````);out.push(``${pad}               row    = ${rowIndex+1}``);out.push(``${pad}               column = \``${column}\````);out.push(``${pad}               value  = ${lit} ).``);co` &&
+             `ntinue}jsonStatement(out,pad,cellPath,cell)}}}function jsonStatement(out,pad,path,value){const lit=jsonLiteral(value,pad.length+23);const pathLit=literal(path,pad.length+23)||"``/``";out.push(``${pad}sim` &&
+             `->set_json( path = ${pathLit}``);out.push(``${pad}               json = ${lit} ).``)}function clickStatement(step,indent){const pad=" ".repeat(indent);const event=literal(step.event,indent)||"````";if(!ste` &&
+             `p.args.length)return[``${pad}sim->click( ${event} ).``];const out=[``${pad}sim->click( event = ${event}``];const argPad=``${pad}            t_arg = VALUE #( ``;step.args.forEach((arg,i)=>{const lit=literal(` &&
+             `arg,argPad.length+2)||jsonLiteral(arg,argPad.length+2);const lead=i===0?argPad:" ".repeat(argPad.length);const tail=i===step.args.length-1?" ) ).":"";out.push(``${lead}( ${lit} )${tail}``)});return out}` &&
+             `function assertEquals(pad,exp,act){const lit=literal(exp,pad.length+42)||jsonLiteral(exp,pad.length+42);return[``${pad}cl_abap_unit_assert=>assert_equals( exp = ${lit}``,``${pad}                         ` &&
+             `           act = ${act} ).``]}function assertTrue(pad,expression){return[``${pad}cl_abap_unit_assert=>assert_true( ${expression} ).``]}function assertionStatements(step,previousApp,indent){const pad=" ".` &&
+             `repeat(indent);const out=[];if(step.messages.length){const last=step.messages[step.messages.length-1];out.push(...assertEquals(pad,last,"sim->get_message( )"))}if(step.app&&previousApp&&step.app!==pre` &&
+             `viousApp){out.push(...assertEquals(pad,step.app,"sim->get_app( )"))}const top=SLOT_ORDER.find(slot=>step.views.some(view=>view.slot===slot));if(top){out.push(...assertEquals(pad,top,"sim->get_layer( )` &&
+             `"))}else if(step.destroyed.includes("POPUP")){out.push(``${pad}cl_abap_unit_assert=>assert_initial( sim->get_popup( ) ).``)}else if(step.destroyed.includes("POPOVER")){out.push(``${pad}cl_abap_unit_asser` &&
+             `t=>assert_initial( sim->get_popover( ) ).``)}if(!top)return out;const active=step.views.filter(view=>top==="MAIN"?view.slot!=="POPUP"&&view.slot!=="POPOVER":view.slot===top);const ids=unique(collect(ac` &&
+             `tive,"ids")).slice(0,MAX_ASSERT_IDS);const events=unique(collect(active,"events")).slice(0,MAX_ASSERT_EVENTS);for(const id of ids){out.push(...assertTrue(pad,``sim->check_id_exists( ${literal(id,0)||"``` &&
+             ```"} )``))}if(!ids.length){for(const event of events){out.push(...assertTrue(pad,``sim->check_event_exists( ${literal(event,0)||"````"} )``))}}return out}function collect(views,field){return views.reduce((a` &&
+             `ll,view)=>all.concat(view[field]),[])}function unique(list){return list.filter((item,i)=>list.indexOf(item)===i)}function methodLines(journey,name){const pad="    ";const out=[``  METHOD ${name}.``,""];` &&
+             `const app=journey.app||journey.steps.find(s=>s.app)?.app||"";const first=journey.steps[0];out.push(``${pad}DATA(sim) = z2ui5_cl_frontend_sim=>start( ${literal(app,0)||"````"} ).``);if(first&&first.event){` &&
+             `out.push(``${pad}" the recording began after roundtrips this test does not replay -``,``${pad}" the steps below run against the fresh start above``)}let previousApp=app;journey.steps.forEach((step,index)=` &&
+             `>{if(index===0&&!step.event){out.push(...assertionStatements(step,previousApp,pad.length));previousApp=step.app||previousApp;return}out.push("");if(!step.event){out.push(``${pad}" step ${step.seq}: a r` &&
+             `oundtrip without an event (reload, navigation) - not replayed``);return}out.push(``${pad}" step ${step.seq}: ${step.event}``);out.push(...editStatements(step.delta,pad.length));out.push(...clickStatement` &&
+             `(step,pad.length));out.push(...assertionStatements(step,previousApp,pad.length));previousApp=step.app||previousApp});if(journey.overflow){out.push("",``${pad}" the recording stopped taking steps after ` &&
+             `${MAX_STEPS}``)}out.push("","  ENDMETHOD.");return out}function buildAbapUnit(ctx){const journeys=getJourneys(ctx).filter(j=>j.steps.length);const app=journeys[0]?.app||appOf(ctx)||"";const out=[``" Jou` &&
+             `rney of ${app||"(unknown app)"}, recorded with the abap2UI5 developer tools (Ctrl+F12, Roundtrips > Journey).``,``" Replays it on z2ui5_cl_frontend_sim - https://github.com/abap2UI5/headless-frontend -``` &&
+             `,``" in the app's test include: no browser, no HTTP, the real handler and the real main( ).``,``" The test starts the app fresh and replays what the user typed (set_value / set_json / set_cell)``,``" and p` &&
+             `ressed (click); the assertions name the messages, layers, ids and events the screens showed.``,``" What never reached the backend is not here: a popup closed in the browser alone, a frontend action.``,``"` &&
+             ` DANGEROUS because a draft-based app writes Z2UI5_T_01 - install the in-memory store the``,``" headless-frontend README shows to make it HARMLESS.``,"CLASS ltcl_journey DEFINITION FINAL","  FOR TESTING R` &&
+             `ISK LEVEL DANGEROUS DURATION SHORT.","","  PRIVATE SECTION."];if(!journeys.length){out.push(``    " no journey recorded yet - press "Record Journey", click through the app, press it again``)}journeys.fo` &&
+             `rEach((_j,i)=>{out.push(``    METHODS journey_${i+1} FOR TESTING RAISING cx_static_check.``)});out.push("ENDCLASS.","","","CLASS ltcl_journey IMPLEMENTATION.","");journeys.forEach((journey,i)=>{out.push` &&
+             `(...methodLines(journey,``journey_${i+1}``));out.push("")});out.push("ENDCLASS.");return out.join("\n")}function exportFileName(ctx){const app=(getJourneys(ctx)[0]?.app||appOf(ctx)||"journey").toLowerCa` &&
+             `se();return``${app}_journey.clas.testclasses.abap``}function describeDelta(delta){if(!delta)return"";if(delta.dropped)return"(model changes too large to keep)";const parts=[];for(const[name,value]of Obj` &&
+             `ect.entries(delta.value||{})){if(isRowDelta(value)){const rows=Object.keys(value.__delta);parts.push(``${name}[${rows.join(",")}]``)}else{let text=typeof value==="string"?JSON.stringify(value):safeJson(` &&
+             `value);if(text.length>40)text=``${text.slice(0,37)}...``;parts.push(``${name} = ${text}``)}}return parts.join(", ")}function describeScreen(step){const parts=[];for(const view of step.views){let text=view` &&
+             `.slot;if(view.ids.length)text+=`` ids: ${view.ids.slice(0,5).join(", ")}``;else if(view.events.length)text+=`` events: ${view.events.slice(0,5).join(", ")}``;parts.push(text)}for(const slot of step.destro` &&
+             `yed){if(!step.views.some(view=>view.slot===slot))parts.push(``${slot} closed``)}for(const message of step.messages)parts.push(``message "${message}"``);return parts.join("; ")}function formatJourney(ctx){` &&
+             `const journeys=getJourneys(ctx);const lines=[``Journey recorder - ${isRecording(ctx)?"RECORDING":"OFF"} ``+``(${stepCount(ctx)} step(s) in ${journeys.length} journey(s))``,"",'Press "Record Journey", clic` &&
+             `k through the app, press it again to stop.','"Export ABAP Unit" turns the recorded steps into a local test class that',"replays them on z2ui5_cl_frontend_sim (abap2UI5/headless-frontend):","set_value(` &&
+             ` ) for what was typed, click( ) for every event, assertions on","the messages, layers, ids and events of the screens reached.","Record from the app start for a replay that reaches the same screens.","` &&
+             `"];if(!journeys.length){lines.push("(no journey recorded yet)");return lines.join("\n")}journeys.forEach((journey,i)=>{lines.push(``Journey ${i+1} - ${journey.app||"(app unknown)"} - ``+``${journey.steps` &&
+             `.length} step(s), started ${journey.startedAt.slice(11,19)}``+``${isRecording(ctx)&&i===journeys.length-1?" - recording":""}``);for(const step of journey.steps){const event=step.event||"(start)";const ar` &&
+             `gs=step.args.length?`` (${step.args.join(", ")})``:"";lines.push(``  #${String(step.seq).padEnd(4)}${event}${args}``);const delta=describeDelta(step.delta);if(delta)lines.push(``        typed:  ${delta}``);` &&
+             `const screen=describeScreen(step);if(screen)lines.push(``        screen: ${screen}``)}if(journey.overflow){lines.push(``  (stopped taking steps after ${MAX_STEPS})``)}lines.push("")});return lines.join("\` &&
+             `n")}return{start,stop,clear,isRecording,getJourneys,stepCount,buildAbapUnit,exportFileName,formatJourney,_internals:{MAX_STEPS,MAX_ASSERT_IDS,MAX_DELTA_CHARS,readStep,idsOf,eventsOf,literal,editStatem` &&
+             `ents}}});` && |\n| &&
              `` && |\n| &&
-             `    const STATUS_MS = 6000;` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/devtools/LiveEdit.js": function(){sap.ui.define(["z2ui5/core/actions/Slots","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/devtools/Tabs"],(Slots,Lib,ViewSlots,Tabs)=>{"use strict";functi` &&
+             `on slotOfTab(tabKey){const tab=Tabs.get(tabKey);return tab?.aspect==="XML"?tab.slot:undefined}function canApply(ctx,tabKey){const slotKey=slotOfTab(tabKey);if(!slotKey)return false;return Boolean(View` &&
+             `Slots.getView(ctx,slotKey))}async function apply(ctx,tabKey,xml){const slotKey=slotOfTab(tabKey);if(!slotKey)return"This tab shows no view slot - nothing to apply.";if(!xml||!xml.trim())return"The edi` &&
+             `tor is empty - nothing to apply.";const oldView=ViewSlots.getView(ctx,slotKey);if(!oldView)return``Slot ${slotKey} is not filled - nothing to apply.``;const oldModel=oldView.getModel?.();const modelData` &&
+             `=oldModel?.getData?.();try{const options=slotKey==="MAIN"?ctx.state.lastMainDisplayOptions||{}:{};await Slots.action(ctx,"display",slotKey,xml,options,undefined)}catch(e){Lib.logError("DevTools LiveEd` &&
+             `it: applying the edited XML failed",e);return``Could not build the view: ${e?.message||e}``}try{const newView=ViewSlots.getView(ctx,slotKey);const newModel=newView?.getModel?.();if(modelData&&newModel?.` &&
+             `setData&&slotKey!=="MAIN"){newModel.setData(modelData)}}catch(e){Lib.logError("DevTools LiveEdit: restoring the model failed",e)}return``Applied to slot ${slotKey}. This is a LOCAL preview - the backen` &&
+             `d ``+``knows nothing about it, and the next roundtrip replaces it.``}function isBusy(ctx){return Boolean(ctx?.state?.isBusy)}return{apply,canApply,slotOfTab,isBusy}});` && |\n| &&
              `` && |\n| &&
-             `    function readLastTab() {` && |\n| &&
-             `      return Persist.read(LAST_TAB_KEY);` && |\n| &&
-             `    }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/devtools/Log.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/devtools/Console","z2ui5/devtools/Recorder"],(Lib,Console,Recorder)=>{"use strict";const LEVEL_LABEL={error:"ERROR",war` &&
+             `n:"WARN ",info:"INFO ",log:"LOG  ",debug:"DEBUG"};const SOURCE_WIDTH=10;const CONTINUATION_INDENT=" ".repeat(23+SOURCE_WIDTH);function frameworkEntryText(entry){if(entry.error===undefined)return entry` &&
+             `.message;let detail;if(entry.error&&typeof entry.error==="object"){detail=entry.error.stack||entry.error.message}if(!detail){try{detail=String(entry.error)}catch{detail="(error could not be rendered)"` &&
+             `}}return``${entry.message}\n${detail}``}function messageLevel(message){const method=String(message.method||"").toLowerCase();if(method==="error"||method==="alert")return"error";if(method==="warning")ret` &&
+             `urn"warn";return"info"}function messageSource(message){return message.target==="MESSAGE_BOX"?``box.${message.method||"show"}``:"toast"}function collectLog(ctx){const out=[];for(const entry of Lib.errors` &&
+             `||[]){out.push({ts:entry.ts,level:"error",source:"framework",text:frameworkEntryText(entry)})}for(const entry of Console.getEntries()){out.push({ts:entry.ts,level:entry.level,source:entry.source,text:` &&
+             `entry.text,previousLoad:entry.previousLoad})}for(const record of Recorder.getRecords(ctx)){for(const message of record.messages||[]){out.push({ts:record.ts,level:messageLevel(message),source:messageSo` &&
+             `urce(message),text:message.text,previousLoad:record.previousLoad})}}out.sort((a,b)=>{if(a.ts===b.ts)return 0;return a.ts<b.ts?-1:1});return out}function countLevels(entries){const out={error:0,warn:0,` &&
+             `info:0,log:0,debug:0};for(const entry of entries){if(out[entry.level]!==undefined)out[entry.level]+=1}return out}function formatLog(ctx){const entries=collectLog(ctx);const lines=["abap2UI5 Developer ` &&
+             `Tools - Log"];lines.push("");lines.push("  One timeline of everything the app logged, so the browser's own");lines.push("  devtools do not have to be open. The origin is in the third");lines.push("  c` &&
+             `olumn:");lines.push("");lines.push("    framework   the framework's own error log (Lib.logError)");lines.push("    ui5         UI5's log - binding and control problems");lines.push("    console     a ` &&
+             `console.* call from the app or a library");lines.push("    uncaught    an uncaught error");lines.push("    rejection   an unhandled promise rejection");lines.push("    toast/box   a backend message th` &&
+             `e user was shown");lines.push("");const counts=countLevels(entries);const dropped=Console.getDropped();lines.push(``  ${entries.length} entr(ies) - ${counts.error} error,``+`` ${counts.warn} warn, ${coun` &&
+             `ts.info} info, ${counts.log} log,``+`` ${counts.debug} debug``+(dropped?`` (${dropped} older console entries dropped)``:""));lines.push("");if(!entries.length){lines.push("  (nothing logged yet)");return l` &&
+             `ines.join("\n")}for(const entry of entries){const label=LEVEL_LABEL[entry.level]||entry.level.toUpperCase();const head=``  ${entry.ts.slice(11,23)}${entry.previousLoad?"*":" "} ``+``${label}  ${entry.sou` &&
+             `rce.padEnd(SOURCE_WIDTH)}``;const[first,...rest]=String(entry.text).split("\n");lines.push(``${head}${first}``);for(const line of rest){lines.push(``${CONTINUATION_INDENT}${line.trim()}``)}}if(entries.some` &&
+             `(entry=>entry.previousLoad)){lines.push("");lines.push("  A '*' after the time marks an entry of the PREVIOUS page load,"+" carried across the reload.")}return lines.join("\n")}return{collectLog,count` &&
+             `Levels,formatLog}});` && |\n| &&
              `` && |\n| &&
-             `    function writeLastTab(tabKey) {` && |\n| &&
-             `      Persist.write(LAST_TAB_KEY, tabKey);` && |\n| &&
-             `    }` && |\n| &&
+             `},` && |\n| &&
+             `      "z2ui5/devtools/Picker.js": function(){sap.ui.define(["sap/ui/core/Element","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/SlotXml"],(Element,Li` &&
+             `b,Env,ViewSlots,Format,SlotXml)=>{"use strict";const{FRAMEWORK_CALL,describeValue}=Format;const MAX_VALUE_CHARS=80;const OVERLAY_ID="z2ui5DevToolsPickerOverlay";let active=false;let activeCtx=null;let` &&
+             ` onDone=null;let boundMove=null;let boundClick=null;let boundKey=null;let lastNode=null;let frameId=0;function controlFromDom(node){if(!node)return null;if(Element.closestTo){try{return Element.closes` &&
+             `tTo(node)||null}catch{return null}}let current=node;while(current&&current!==document.body){const id=current.id;if(id){const control=Env.getElementById(id);if(control)return control}current=current.pa` &&
+             `rentElement}return null}function overlay(){let el=document.getElementById(OVERLAY_ID);if(!el){el=document.createElement("div");el.id=OVERLAY_ID;el.style.position="fixed";el.style.pointerEvents="none";` &&
+             `el.style.zIndex="2147483647";el.style.background="rgba(0, 112, 242, 0.25)";el.style.border="2px solid #0070f2";el.style.borderRadius="2px";el.style.display="none";document.body.appendChild(el)}return ` &&
+             `el}function highlight(control){const el=overlay();const dom=control?.getDomRef?.();if(!dom){el.style.display="none";return}const rect=dom.getBoundingClientRect();el.style.display="block";el.style.left` &&
+             `=``${rect.left}px``;el.style.top=``${rect.top}px``;el.style.width=``${rect.width}px``;el.style.height=``${rect.height}px``}function removeOverlay(){document.getElementById(OVERLAY_ID)?.remove()}function colle` &&
+             `ctBindings(control){const out=[];const infos=control.mBindingInfos||{};for(const[name,info]of Object.entries(infos)){const parts=info.parts||(info.path!==undefined?[info]:[]);for(const part of parts){` &&
+             `const model=control.getModel(part.model);let value;try{value=model?.getProperty?model.getProperty(part.path,control.getBindingContext(part.model)):undefined}catch{value=undefined}out.push({name,path:p` &&
+             `art.path,model:part.model||"(default)",value})}}return out}const regExpEscape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");function xmlAttributesOf(ctx,control,slotKey){const localId=String(control.getI` &&
+             `d?.()||"").split("--").pop();const xml=SlotXml.slotXml(ctx,slotKey);if(!localId||!xml)return"";const id=regExpEscape(localId);const idAttr=new RegExp(``\\sid\\s*=\\s*(?:"${id}"|'${id}')``);const at=xml.` &&
+             `search(idAttr);if(at<0)return"";const open=xml.lastIndexOf("<",at);const close=xml.indexOf(">",at);return open<0||close<0?"":xml.slice(open,close)}function collectEvents(ctx,control,slotKey){const reg` &&
+             `istry=control.mEventRegistry||{};const attributes=xmlAttributesOf(ctx,control,slotKey);const out=[];for(const[name,handlers]of Object.entries(registry)){for(const handler of handlers||[]){let match=FR` &&
+             `AMEWORK_CALL.exec(String(handler?.fFunction||""));if(!match&&attributes){const attr=new RegExp(``\\s${regExpEscape(name)}\\s*=\\s*(?:"([^"]*)"|'([^']*)')``).exec(attributes);match=attr?FRAMEWORK_CALL.ex` &&
+             `ec(attr[1]??attr[2]??""):null}out.push(match?``${name} -> ${match[1]}('${match[2]}')``:name)}}return out.sort()}function renderValue(value){return describeValue(value,{max:MAX_VALUE_CHARS,absent:"(no va` &&
+             `lue at this path)",empty:"(empty string)"})}function describe(ctx,control){if(!control)return"(no control found at that position)";const out=["abap2UI5 Developer Tools - Picked control"];out.push("");` &&
+             `out.push(``  Type        ${control.getMetadata?.().getName?.()||"?"}``);out.push(``  Id          ${control.getId?.()||"?"}``);const slotKey=ViewSlots.containingSlotKey?.(ctx,control);out.push(``  View slot` &&
+             `   ${slotKey||"(not inside a view slot)"}``);const bindings=collectBindings(control);out.push("");out.push("Bindings");out.push("--------");if(!bindings.length){out.push("  (this control carries no bin` &&
+             `ding - it is static XML)")}for(const binding of bindings){out.push(``  ${binding.name}``);out.push(``      path   ${binding.path}   [model ${binding.model}]``);out.push(``      value  ${renderValue(binding` &&
+             `.value)}``)}const events=collectEvents(ctx,control,slotKey);out.push("");out.push("Events");out.push("------");if(!events.length)out.push("  (no event handler attached)");for(const event of events)out.` &&
+             `push(``  ${event}``);out.push("");out.push("  A binding path maps 1:1 onto the ABAP attribute the app bound"+" with client->_bind( ): /NAME is the attribute NAME.");return out.join("\n")}function stop(c` &&
+             `tx){if(!active)return;if(ctx&&activeCtx!==ctx)return;active=false;activeCtx=null;document.removeEventListener("mousemove",boundMove,true);document.removeEventListener("click",boundClick,true);document` &&
+             `.removeEventListener("keydown",boundKey,true);boundMove=null;boundClick=null;boundKey=null;if(frameId){cancelAnimationFrame(frameId);frameId=0}lastNode=null;onDone=null;removeOverlay()}function start(` &&
+             `ctx,callback){if(active)return;active=true;activeCtx=ctx;onDone=callback;boundMove=event=>{if(event.target===lastNode)return;lastNode=event.target;if(frameId)return;frameId=requestAnimationFrame(()=>{` &&
+             `frameId=0;if(active)highlight(controlFromDom(lastNode))})};boundClick=event=>{event.preventDefault();event.stopPropagation();const control=controlFromDom(event.target);let report;try{report=describe(c` &&
+             `tx,control)}catch(e){Lib.logError("DevTools Picker: describe failed",e);report="(could not inspect that control)"}if(ctx?.devtools)ctx.devtools.pickReport=report;const done=onDone;stop();if(done)done(` &&
+             `report)};boundKey=event=>{if(event.key!=="Escape")return;event.preventDefault();event.stopPropagation();const done=onDone;stop();if(done)done(null)};document.addEventListener("mousemove",boundMove,tru` &&
+             `e);document.addEventListener("click",boundClick,true);document.addEventListener("keydown",boundKey,true)}return{start,stop,describe,isActive:()=>active,lastReport:ctx=>ctx?.devtools?.pickReport||"",_i` &&
+             `nternals:{collectBindings,collectEvents,renderValue}}});` && |\n| &&
              `` && |\n| &&
-             `    function resolveTab(ctx, tabKey) {` && |\n| &&
-             `      if (Tabs.isEnabled(ctx, Tabs.get(tabKey))) return tabKey;` && |\n| &&
-             `      if (Tabs.isKnown(tabKey)) {` && |\n| &&
-             `        const sibling = Tabs.firstTabOf(ctx, Tabs.groupOf(tabKey));` && |\n| &&
-             `        if (sibling) return sibling;` && |\n| &&
-             `      }` && |\n| &&
-             `      return DEFAULT_TAB;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function preloadCodeEditor() {` && |\n| &&
-             `      return new Promise((resolve) => {` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ["sap/ui/codeeditor/library", "sap/ui/codeeditor/CodeEditor"],` && |\n| &&
-             `          () => resolve(),` && |\n| &&
-             `` && |\n| &&
-             `          () => resolve(),` && |\n| &&
-             `        );` && |\n|.
+             `},` && |\n| &&
+             `      "z2ui5/devtools/Report.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/devtools/Recorder","z2ui5/devtools/Tabs"],(Lib,Recorder,Tabs)=>{"use strict";const MAX_SECTION=1e5;const ABAP_SOURCE`.
     result = result &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function openTextDialog({ title, text, editable, buttons }) {` && |\n| &&
-             `      sap.ui.require(` && |\n| &&
-             `        ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
-             `        (Dialog, TextArea, Button) => {` && |\n| &&
-             `          const area = new TextArea({` && |\n| &&
-             `            editable,` && |\n| &&
-             `            width: "100%",` && |\n| &&
-             `            rows: 25,` && |\n| &&
-             `            growing: false,` && |\n| &&
-             `          });` && |\n| &&
-             `          area.setValue(text);` && |\n| &&
-             `          const own = buttons ? buttons(Button, area) : [];` && |\n| &&
-             `          const close = { text: "Close", press: () => dialog.close() };` && |\n| &&
-             `          if (!own.length) close.type = "Emphasized";` && |\n| &&
-             `          const dialog = new Dialog({` && |\n| &&
-             `            title,` && |\n| &&
-             `            stretch: true,` && |\n| &&
-             `            content: [area],` && |\n| &&
-             `` && |\n| &&
-             `            buttons: own.concat(new Button(close)),` && |\n| &&
-             `            afterClose: () => dialog.destroy(),` && |\n| &&
-             `          });` && |\n| &&
-             `          dialog.open();` && |\n| &&
-             `        },` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {` && |\n| &&
-             `      fragmentId() {` && |\n| &&
-             `        return ``${this.getId()}--${FRAGMENT_SUFFIX}``;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderTab(tabKey, oModel) {` && |\n| &&
-             `        const ctx = this.ctx;` && |\n| &&
-             `        const key = resolveTab(ctx, tabKey);` && |\n| &&
-             `        const tab = Tabs.get(key);` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `` && |\n| &&
-             `        data.selectedTab = key;` && |\n| &&
-             `        data.selectedGroup = tab.group;` && |\n| &&
-             `        writeLastTab(key);` && |\n| &&
-             `` && |\n| &&
-             `        const slots = Tabs.enabledSlots(ctx).map((slot) => ({` && |\n| &&
-             `          key: slot.key,` && |\n| &&
-             `          text: slot.label,` && |\n| &&
-             `        }));` && |\n| &&
-             `        data.slots = slots;` && |\n| &&
-             `` && |\n| &&
-             `        data.selectedSlot = tab.slot || data.selectedSlot || "MAIN";` && |\n| &&
-             `        data.showSlotBar = Boolean(tab.slot) && slots.length > 1;` && |\n| &&
-             `` && |\n| &&
-             `        let views;` && |\n| &&
-             `        if (tab.group === "VIEWDATA") {` && |\n| &&
-             `          views = Tabs.aspectsOfSlot(ctx, data.selectedSlot).concat(` && |\n| &&
-             `            Tabs.get("PICK"),` && |\n| &&
-             `          );` && |\n| &&
-             `        } else {` && |\n| &&
-             `          views = Tabs.enabledTabs(ctx, tab.group);` && |\n| &&
-             `        }` && |\n| &&
-             `        data.views = views.map((entry) => ({` && |\n| &&
-             `          key: entry.key,` && |\n| &&
-             `          text: entry.label,` && |\n| &&
-             `        }));` && |\n| &&
-             `        data.showViewBar = data.views.length > 1;` && |\n| &&
-             `` && |\n| &&
-             `        data.isOverview = tab.group === "OVERVIEW";` && |\n| &&
-             `        data.isRoundtrips = tab.group === "ROUNDTRIPS";` && |\n| &&
-             `        data.isViewData = tab.group === "VIEWDATA";` && |\n| &&
-             `        data.isSearch = tab.group === "SEARCH";` && |\n| &&
-             `        data.isErrorView = key === "ERROR";` && |\n| &&
-             `        data.isSourceView = key === "SOURCE";` && |\n| &&
-             `        data.isJourney = key === "JOURNEY";` && |\n| &&
-             `        data.recordJourney = Journey.isRecording(ctx);` && |\n| &&
-             `        data.hasRetry =` && |\n| &&
-             `          key === "ERROR" && typeof ctx.state.lastError?.onRetry === "function";` && |\n| &&
-             `        data.recordPayloads = Recorder.isRecordingPayloads();` && |\n| &&
-             `        data.openOnError = Console.isAlertOnError();` && |\n| &&
-             `` && |\n| &&
-             `        data.problemCount = this.problemCount();` && |\n| &&
-             `` && |\n| &&
-             `        if (tab.kind === "search") {` && |\n| &&
-             `          this.displayEditor(oModel, Tabs.search(ctx, data.searchTerm), "text");` && |\n| &&
-             `` && |\n| &&
-             `          data.isTemplating = false;` && |\n| &&
-             `          oModel.refresh();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (tab.kind === "source") {` && |\n| &&
-             `          data.canApply = false;` && |\n| &&
-             `          data.isTemplating = false;` && |\n| &&
-             `          data.templatingSource = false;` && |\n| &&
-             `          this.showAbapSource(oModel);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        this.displayEditor(oModel, Tabs.render(ctx, key), tab.kind);` && |\n| &&
-             `` && |\n| &&
-             `        data.canApply = LiveEdit.canApply(ctx, key);` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onGroupSelect(oEvent) {` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        const groupKey = oEvent.getSource().getSelectedKey();` && |\n| &&
-             `        this.renderTab(` && |\n| &&
-             `          Tabs.firstTabOf(this.ctx, groupKey) || DEFAULT_TAB,` && |\n| &&
-             `          oModel,` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onViewSelect(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        this.renderTab(oSource.getSelectedKey(), oSource.getModel());` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onSlotSelect(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        const oModel = oSource.getModel();` && |\n| &&
-             `        const aspect = Tabs.get(oModel.getData().selectedTab)?.aspect;` && |\n| &&
-             `        this.renderTab(` && |\n| &&
-             `          Tabs.tabFor(this.ctx, oSource.getSelectedKey(), aspect),` && |\n| &&
-             `          oModel,` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onSearch(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        const oModel = oSource.getModel();` && |\n| &&
-             `        oModel.getData().searchTerm = oSource.getValue();` && |\n| &&
-             `        this.renderTab("SEARCH", oModel);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      displayEditor(oModel, content, type) {` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `        data.editor_visible = true;` && |\n| &&
-             `        data.source_visible = false;` && |\n| &&
-             `` && |\n| &&
-             `        data.canApply = false;` && |\n| &&
-             `        data.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
-             `` && |\n| &&
-             `        data.templatingSource = false;` && |\n| &&
-             `        data.value = content;` && |\n| &&
-             `        data.previousValue = content;` && |\n| &&
-             `        data.xContent = "";` && |\n| &&
-             `        data.type = type;` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onTemplatingPress(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        const oModel = oSource.getModel();` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `` && |\n| &&
-             `        if (oSource.getPressed()) {` && |\n| &&
-             `          if (!data.xContent) {` && |\n| &&
-             `            data.xContent = Tabs.renderTemplated(this.ctx, data.selectedTab);` && |\n| &&
-             `          }` && |\n| &&
-             `          data.value = data.xContent;` && |\n| &&
-             `        } else {` && |\n| &&
-             `          data.value = data.previousValue;` && |\n| &&
-             `        }` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      showAbapSource(oModel) {` && |\n| &&
-             `        const contentControl = Fragment.byId(this.fragmentId(), "sourceHtml");` && |\n| &&
-             `` && |\n| &&
-             `        contentControl?.setContent(AbapSource.iframeHtml(this.ctx));` && |\n| &&
-             `` && |\n| &&
-             `        AbapSource.fetchSource(this.ctx);` && |\n| &&
-             `` && |\n| &&
-             `        if (!oModel) return;` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `        data.editor_visible = false;` && |\n| &&
-             `        data.source_visible = true;` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onOpenAbapInAdt() {` && |\n| &&
-             `        AbapSource.openInAdt(this.ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      showStatus(oModel, text) {` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `        data.statusText = text;` && |\n| &&
-             `        data.hasStatusText = Boolean(text);` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
-             `        if (!text) return;` && |\n| &&
-             `        clearTimeout(this._statusTimer);` && |\n| &&
-             `        this._statusTimer = setTimeout(() => {` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          data.statusText = "";` && |\n| &&
-             `          data.hasStatusText = false;` && |\n| &&
-             `          oModel.refresh();` && |\n| &&
-             `        }, STATUS_MS);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async onReportBug(oEvent) {` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        const cached = AbapSource.cachedSource?.(this.ctx);` && |\n| &&
-             `        const source = cached ?? (await AbapSource.fetchSource(this.ctx));` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        const message = await Report.copyMarkdown(this.ctx, source);` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        const copied = message === Report.COPIED;` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `        data.issueUrl = copied ? Report.issueUrl() : "";` && |\n| &&
-             `        data.hasIssueLink = copied;` && |\n| &&
-             `        this.showStatus(oModel, message);` && |\n| &&
-             `        if (!copied) return;` && |\n| &&
-             `        try {` && |\n| &&
-             `          window.open(data.issueUrl, "_blank", "noopener,noreferrer");` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DevTools: opening the issue form failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async onExport() {` && |\n| &&
-             `        const source = await AbapSource.fetchSource(this.ctx);` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        Report.openDialog(this.ctx, AbapSource.appName(this.ctx), source);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async onCopyTab(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        const data = oSource.getModel().getData();` && |\n| &&
-             `        let text = data.value || "";` && |\n| &&
-             `        if (data.isSourceView) {` && |\n| &&
-             `          const cached = AbapSource.cachedSource?.(this.ctx);` && |\n| &&
-             `          text = cached ?? (await AbapSource.fetchSource(this.ctx));` && |\n| &&
-             `          if (Lib.isDestroyed(oSource)) return;` && |\n| &&
-             `        }` && |\n| &&
-             `        Lib.copyToClipboard(text);` && |\n| &&
-             `` && |\n| &&
-             `        Report.confirmOnButton(oSource);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onErrorRetry() {` && |\n| &&
-             `        const onRetry = this.ctx.state.lastError?.onRetry;` && |\n| &&
-             `` && |\n| &&
-             `        this.reopenErrorOnClose = false;` && |\n| &&
-             `        this.close();` && |\n| &&
-             `        if (typeof onRetry === "function") onRetry();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onErrorRestart() {` && |\n| &&
-             `        this.reopenErrorOnClose = false;` && |\n| &&
-             `        this.close();` && |\n| &&
-             `        ErrorView.restart(this.ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `      onErrorLogout() {` && |\n| &&
-             `        ErrorView.handleLogout(this.ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onToggleRecordPayloads(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        Recorder.setRecordingPayloads(this.ctx, oSource.getPressed());` && |\n| &&
-             `        const oModel = oSource.getModel();` && |\n| &&
-             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onToggleRecordJourney(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        if (oSource.getPressed()) Journey.start(this.ctx);` && |\n| &&
-             `        else Journey.stop(this.ctx);` && |\n| &&
-             `        const oModel = oSource.getModel();` && |\n| &&
-             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onClearJourney(oEvent) {` && |\n| &&
-             `        Journey.clear(this.ctx);` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onExportJourney() {` && |\n| &&
-             `        const fileName = Journey.exportFileName(this.ctx);` && |\n| &&
-             `        openTextDialog({` && |\n| &&
-             `          title: "abap2UI5 - Journey as ABAP Unit test",` && |\n| &&
-             `          text: Journey.buildAbapUnit(this.ctx),` && |\n| &&
-             `          editable: true,` && |\n| &&
-             `          buttons: (Button, area) => [` && |\n| &&
-             `            new Button({` && |\n| &&
-             `              text: "Copy",` && |\n| &&
-             `              type: "Emphasized",` && |\n| &&
-             `              press: (oEvent) => {` && |\n| &&
-             `                Lib.copyToClipboard(area.getValue());` && |\n| &&
-             `                Report.confirmOnButton(oEvent.getSource());` && |\n| &&
-             `              },` && |\n| &&
-             `            }),` && |\n| &&
-             `            new Button({` && |\n| &&
-             `              text: "Download",` && |\n| &&
-             `              press: () => Report.downloadText(fileName, area.getValue()),` && |\n| &&
-             `            }),` && |\n| &&
-             `          ],` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onToggleOpenOnError(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        Console.setAlertOnError(oSource.getPressed());` && |\n| &&
-             `        const oModel = oSource.getModel();` && |\n| &&
-             `        oModel.getData().openOnError = Console.isAlertOnError();` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onPickControl() {` && |\n| &&
-             `        const previousTab = this.oDialog?.getModel()?.getData()?.selectedTab;` && |\n| &&
-             `        this.reopenErrorOnClose = false;` && |\n| &&
-             `        this.close();` && |\n| &&
-             `        Picker.start(this.ctx, (report) => {` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          this.show(report ? "PICK" : previousTab);` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async onApplyXml(oEvent) {` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `        if (LiveEdit.isBusy(this.ctx)) {` && |\n| &&
-             `          this.showStatus(oModel, "A roundtrip is running - try again.");` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const tabKey = data.selectedTab;` && |\n| &&
-             `` && |\n| &&
-             `        const before = this.backendXml(tabKey);` && |\n| &&
-             `        const result = await LiveEdit.apply(this.ctx, tabKey, data.value);` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        if (!this._appliedXml) this._appliedXml = {};` && |\n| &&
-             `        this._appliedXml[tabKey] = {` && |\n| &&
-             `          original: before,` && |\n| &&
-             `` && |\n| &&
-             `          applied: Tabs.render(this.ctx, tabKey),` && |\n| &&
-             `        };` && |\n| &&
-             `        this.showStatus(oModel, result);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      backendXml(tabKey) {` && |\n| &&
-             `        const current = Tabs.render(this.ctx, tabKey);` && |\n| &&
-             `        const record = this._appliedXml?.[tabKey];` && |\n| &&
-             `        if (!record) return current;` && |\n| &&
-             `        if (record.applied !== current) {` && |\n| &&
-             `          delete this._appliedXml[tabKey];` && |\n| &&
-             `          return current;` && |\n| &&
-             `        }` && |\n| &&
-             `        return record.original;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onResetXml(oEvent) {` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `        const xml = this.backendXml(data.selectedTab);` && |\n| &&
-             `        data.value = xml;` && |\n| &&
-             `        data.previousValue = xml;` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
-             `        this.showStatus(oModel, "");` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onShowHelp() {` && |\n| &&
-             `        openTextDialog({` && |\n| &&
-             `          title: "abap2UI5 - Developer Tools Help",` && |\n| &&
-             `          text: Inspect.formatHelp(),` && |\n| &&
-             `          editable: false,` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onClose() {` && |\n| &&
-             `        this.close();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      onEscape(oPromise) {` && |\n| &&
-             `        oPromise.reject();` && |\n| &&
-             `        this.close();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async show(initialTab) {` && |\n| &&
-             `        if (this._showPending) return;` && |\n| &&
-             `        this._showPending = true;` && |\n| &&
-             `        try {` && |\n| &&
-             `          if (!this.oDialog) {` && |\n| &&
-             `            await preloadCodeEditor();` && |\n| &&
-             `            this.oDialog = await Fragment.load({` && |\n| &&
-             `              name: "z2ui5.devtools.DeveloperTools",` && |\n| &&
-             `              controller: this,` && |\n| &&
-             `              id: this.fragmentId(),` && |\n| &&
-             `            });` && |\n| &&
-             `` && |\n| &&
-             `            this.oDialog.setEscapeHandler?.((oPromise) =>` && |\n| &&
-             `              this.onEscape(oPromise),` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (Lib.isDestroyed(this)) {` && |\n| &&
-             `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
-             `            this.oDialog = null;` && |\n| &&
-             `            return;` && |\n|.
-    result = result &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          const requested =` && |\n| &&
-             `            typeof initialTab === "string" && initialTab` && |\n| &&
-             `              ? initialTab` && |\n| &&
-             `              : readLastTab();` && |\n| &&
-             `` && |\n| &&
-             `          const appName = AbapSource.appName(this.ctx);` && |\n| &&
-             `          const oModel = new JSONModel({` && |\n| &&
-             `            title: appName` && |\n| &&
-             `              ? ``abap2UI5 - Developer Tools - ${appName}``` && |\n| &&
-             `              : "abap2UI5 - Developer Tools",` && |\n| &&
-             `            selectedGroup: Tabs.DEFAULT_GROUP,` && |\n| &&
-             `            selectedTab: DEFAULT_TAB,` && |\n| &&
-             `            selectedSlot: "MAIN",` && |\n| &&
-             `            searchTerm: "",` && |\n| &&
-             `            slots: [],` && |\n| &&
-             `            views: [],` && |\n| &&
-             `            showSlotBar: false,` && |\n| &&
-             `            showViewBar: false,` && |\n| &&
-             `            isOverview: true,` && |\n| &&
-             `            isRoundtrips: false,` && |\n| &&
-             `            isViewData: false,` && |\n| &&
-             `            isSearch: false,` && |\n| &&
-             `            isErrorView: false,` && |\n| &&
-             `            isSourceView: false,` && |\n| &&
-             `            isJourney: false,` && |\n| &&
-             `            recordJourney: Journey.isRecording(this.ctx),` && |\n| &&
-             `            hasRetry: false,` && |\n| &&
-             `            canApply: false,` && |\n| &&
-             `            isTemplating: false,` && |\n| &&
-             `            templatingSource: false,` && |\n| &&
-             `            statusText: "",` && |\n| &&
-             `            hasStatusText: false,` && |\n| &&
-             `            issueUrl: "",` && |\n| &&
-             `            hasIssueLink: false,` && |\n| &&
-             `` && |\n| &&
-             `            problemCount: this.problemCount(),` && |\n| &&
-             `            recordPayloads: Recorder.isRecordingPayloads(),` && |\n| &&
-             `            openOnError: Console.isAlertOnError(),` && |\n| &&
-             `            type: "text",` && |\n| &&
-             `            value: "",` && |\n| &&
-             `            previousValue: "",` && |\n| &&
-             `            xContent: "",` && |\n| &&
-             `            source_visible: false,` && |\n| &&
-             `            editor_visible: true,` && |\n| &&
-             `          });` && |\n| &&
-             `` && |\n| &&
-             `          const oDialog = this.oDialog;` && |\n| &&
-             `          oDialog.setModel(oModel);` && |\n| &&
-             `          this.renderTab(requested, oModel);` && |\n| &&
-             `          oDialog.open();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DeveloperTools.show failed", e);` && |\n| &&
-             `        } finally {` && |\n| &&
-             `          this._showPending = false;` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      problemCount() {` && |\n| &&
-             `        const errors = (Lib.errors || []).length;` && |\n| &&
-             `        const total = errors + (this.ctx?.state?.lastError ? 1 : 0);` && |\n| &&
-             `        return total ? String(total) : "";` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      close() {` && |\n| &&
-             `        if (!this.oDialog?.isOpen()) return;` && |\n| &&
-             `` && |\n| &&
-             `        const reopenError = this.reopenErrorOnClose;` && |\n| &&
-             `        this.reopenErrorOnClose = false;` && |\n| &&
-             `` && |\n| &&
-             `        this.oDialog.close();` && |\n| &&
-             `        if (reopenError) ErrorView.reopenErrorDialog(this.ctx);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      exit() {` && |\n| &&
-             `        this.reopenErrorOnClose = false;` && |\n| &&
-             `        clearTimeout(this._statusTimer);` && |\n| &&
-             `        this._appliedXml = null;` && |\n| &&
-             `        if (this.oDialog) {` && |\n| &&
-             `          this.oDialog.close();` && |\n| &&
-             `          this.oDialog.destroy();` && |\n| &&
-             `          this.oDialog = null;` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      toggle() {` && |\n| &&
-             `        if (this.oDialog?.isOpen()) {` && |\n| &&
-             `          this.close();` && |\n| &&
-             `        } else {` && |\n| &&
-             `          this.show();` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
-             `    return Env.ownClass(DeveloperTools);` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `_ORDER=55;const ABAP_SOURCE_TITLE="ABAP SOURCE";const SECRET_KEY=/^[A-Za-z0-9_/-]*(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)[A-Za-z0-9_/-]*$/i;const MASK="***";function redactForExport(text){r` &&
+             `eturn String(text).replace(/^(\s*sap-contextid\s+)(\S.*)$/gim,(_m,lead,value)=>value==="-"?lead+value:lead+MASK).replace(/"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,(match,key,colo` &&
+             `n)=>SECRET_KEY.test(key)?``"${key}"${colon}"${MASK}"``:match)}function buildExport(ctx,abapSource){const sections=[];const push=(title,content)=>{if(!content)return;let body=String(content);if(body.leng` &&
+             `th>MAX_SECTION){body=``${body.slice(0,MAX_SECTION)}\n\n... [truncated ``+``${body.length-MAX_SECTION} more characters - the developer ``+``tools show the full ${title} content]``}sections.push(``===== ${titl` &&
+             `e} =====\n${body}``)};const entries=Tabs.exportTabs(ctx).map(tab=>({order:tab.exportOrder,title:Tabs.exportTitle(tab),body:redactForExport(Tabs.render(ctx,tab.key))}));if(abapSource){entries.push({orde` &&
+             `r:ABAP_SOURCE_ORDER,title:ABAP_SOURCE_TITLE,body:abapSource})}entries.sort((a,b)=>a.order-b.order);for(const entry of entries)push(entry.title,entry.body);return sections.join("\n\n")||"(nothing to ex` &&
+             `port)"}function buildMarkdown(ctx,abapSource,plain=buildExport(ctx,abapSource)){const blocks=plain.split(/^===== (.+) =====$/m);const out=["## abap2UI5 - Developer Tools export",""];for(let i=1;i<bloc` &&
+             `ks.length;i+=2){const title=blocks[i];const body=(blocks[i+1]||"").trim();if(!body)continue;const open=title==="ENVIRONMENT"?" open":"";const fence=title.includes("SOURCE")?"abap":"text";out.push(``<de` &&
+             `tails${open}>``);out.push(``<summary>${title}</summary>``);out.push("");out.push(``\``\``\``${fence}``);out.push(body);out.push("``````");out.push("");out.push("</details>");out.push("")}return out.join("\n")}fu` &&
+             `nction exportFileName(appName,extension){const stamp=(new Date).toISOString().replace(/[:.]/g,"-");return``${appName||"abap2ui5"}_${stamp}.${extension}``}function downloadText(fileName,content,mimeType)` &&
+             `{try{const blob=new Blob([content],{type:``${mimeType||"text/plain"};charset=utf-8``});const url=URL.createObjectURL(blob);const anchor=document.createElement("a");anchor.href=url;anchor.download=fileNa` &&
+             `me;document.body.appendChild(anchor);anchor.click();setTimeout(()=>{URL.revokeObjectURL(url);anchor.remove()},4e4)}catch(e){Lib.logError("DevTools Report: download failed",e)}}const confirmState=new W` &&
+             `eakMap;function confirmOnButton(oButton){let state=confirmState.get(oButton);if(state){clearTimeout(state.timer)}else{state={original:oButton.getText(),timer:null};confirmState.set(oButton,state)}oBut` &&
+             `ton.setText("Copied");state.timer=setTimeout(()=>{confirmState.delete(oButton);if(!Lib.isDestroyed(oButton))oButton.setText(state.original)},1500)}function openDialog(ctx,appName,abapSource){const tex` &&
+             `t=buildExport(ctx,abapSource);sap.ui.require(["sap/m/Dialog","sap/m/TextArea","sap/m/Button"],(Dialog,TextArea,Button)=>{const area=new TextArea({editable:true,width:"100%",rows:25,growing:false});are` &&
+             `a.setValue(text);const dialog=new Dialog({title:"abap2UI5 - Developer Tools Export",stretch:true,content:[area],buttons:[new Button({text:"Copy",type:"Emphasized",press:oEvent=>{Lib.copyToClipboard(te` &&
+             `xt);confirmOnButton(oEvent.getSource())}}),new Button({text:"Download Report",press:()=>downloadText(exportFileName(appName,"txt"),text)}),new Button({text:"Download History (JSON)",press:()=>download` &&
+             `Text(exportFileName(appName,"json"),Recorder.exportJson(ctx),"application/json")}),new Button({text:"Close",press:()=>dialog.close()})],afterClose:()=>dialog.destroy()});dialog.open()})}const ISSUE_FO` &&
+             `RM="https://github.com/abap2UI5/abap2UI5/issues/new";function issueUrl(){const fields=[["template","bug_report.yml"],["context","Paste the copied report here (Ctrl+V / Cmd+V)."]];const query=fields.ma` &&
+             `p(([key,value])=>``${key}=${encodeURIComponent(value)}``).join("&");return``${ISSUE_FORM}?${query}``}const COPIED="Bug report copied as Markdown - paste it into the issue form on GitHub (Additional contex` &&
+             `t).";async function copyMarkdown(ctx,abapSource){try{const copied=await Lib.copyToClipboard(buildMarkdown(ctx,abapSource));if(copied===false){return"The browser did not allow the copy - press again."}` &&
+             `return COPIED}catch(e){Lib.logError("DevTools Report: markdown export failed",e);return``Could not build the report: ${e?.message||e}``}}return{COPIED,buildExport,buildMarkdown,confirmOnButton,copyMarkd` &&
+             `own,issueUrl,redactForExport,downloadText,exportFileName,openDialog}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Help.js": function(){sap.ui.define([], () => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  const HELP = [` && |\n| &&
-             `    "abap2UI5 Developer Tools",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "Opening",` && |\n| &&
-             `    "-------",` && |\n| &&
-             `    "  Ctrl+F12                    open / close these tools",` && |\n| &&
-             `    "  ?z2ui5-devtools=1           open them on page load (for problems",` && |\n| &&
-             `    "                              that happen during startup)",` && |\n| &&
-             `    "  ?z2ui5-devtools=HISTORY     open them directly on a view, by its key",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "  Without one named, they reopen where you left off.",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "The six tabs, and what each is for",` && |\n| &&
-             `    "----------------------------------",` && |\n| &&
-             `    "  Overview      which app, which roundtrip, is anything broken - and",` && |\n| &&
-             `    "                where to go next. The landing tab",` && |\n| &&
-             `    "  Problems      what went wrong",` && |\n| &&
-             `    "  Roundtrips    what went over the wire",` && |\n| &&
-             `    "  View & Data   what the screen is made of, and what fills it",` && |\n| &&
-             `    "  System        what the app is running on, and its ABAP class",` && |\n| &&
-             `    "  Search        one term across EVERY other tab at once - answers",` && |\n| &&
-             `    "                'where does /CUSTOMER appear?' without opening each",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "Problems",` && |\n| &&
-             `    "--------",` && |\n| &&
-             `    "  Error         the last fatal error, with Retry / Restart / Logout",` && |\n| &&
-             `    "  Log           ONE timeline of everything logged: the framework's",` && |\n| &&
-             `    "                own error log (with stack traces), UI5's log (binding",` && |\n| &&
-             `    "                and control problems), uncaught errors, unhandled",` && |\n| &&
-             `    "                rejections, every console.* call, and the backend",` && |\n| &&
-             `    "                messages the user was shown - so the browser's own",` && |\n| &&
-             `    "                devtools do not have to be open",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "Roundtrips",` && |\n| &&
-             `    "----------",` && |\n| &&
-             `    "  History       every roundtrip: backend vs. render time, payload",` && |\n| &&
-             `    "                sizes, draft ids - and the ones that never rendered",` && |\n| &&
-             `    "  Request /     the raw JSON on the wire",` && |\n| &&
-             `    "  Response",` && |\n| &&
-             `    "  Actions       the response's VIEWS, NAV and ACTIONS, readable",` && |\n| &&
-             `    "  Model Diff    what the backend changed between two responses",` && |\n| &&
-             `    "  View Diff     what changed in the view XML between two rebuilds",` && |\n| &&
-             `    "  Journey       a click-through recorded as steps - what was typed",` && |\n| &&
-             `    "                and pressed, what each screen showed. 'Record",` && |\n| &&
-             `    "                Journey' starts and stops it, 'Export ABAP Unit'",` && |\n| &&
-             `    "                turns it into a local test class that replays the",` && |\n| &&
-             `    "                steps on z2ui5_cl_frontend_sim (the headless",` && |\n| &&
-             `    "                frontend, abap2UI5/headless-frontend) - paste it into",` && |\n| &&
-             `    "                the app's test include",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "  'Record Payloads' keeps the request/response bodies, which is what",` && |\n| &&
-             `    "  the two diffs need. OFF by default: it is the only part of the",` && |\n| &&
-             `    "  history that costs real memory (2 MB budget, oldest dropped first).",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "View & Data",` && |\n| &&
-             `    "-----------",` && |\n| &&
-             `    "  Pick the SLOT on the left (only the filled ones are offered), then",` && |\n| &&
-             `    "  the aspect:",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "  XML           the view XML the slot holds",` && |\n| &&
-             `    "  Model         the JSON model behind it",` && |\n| &&
-             `    "  Bindings      the model attributes, '*' on the paths that will",` && |\n| &&
-             `    "                travel as the next delta, the delta itself, the paths",` && |\n| &&
-             `    "                bound in the view that the model does NOT have (the",` && |\n| &&
-             `    "                usual cause of an empty field), and the attributes",` && |\n| &&
-             `    "                ranked by size (the usual cause of a huge response)",` && |\n| &&
-             `    "  Picked        'Pick Control' closes these tools, lets you click any",` && |\n| &&
-             `    "  Control       control in the app, and reports which ABAP attribute",` && |\n| &&
-             `    "                feeds it with its current value. Escape cancels",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "  On an XML view: 'Apply to App' renders the edited XML into the",` && |\n| &&
-             `    "  running app with NO roundtrip and no activation - a local preview",` && |\n| &&
-             `    "  the next response replaces again. 'Reset' puts the original back.",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "System",` && |\n| &&
-             `    "------",` && |\n| &&
-             `    "  Environment   versions, SAPUI5 vs OpenUI5, the SDK url the page",` && |\n| &&
-             `    "                bootstrapped from and its resource roots, theme,",` && |\n| &&
-             `    "                language, content density, session, device, the",` && |\n| &&
-             `    "                focus/scroll block sent on every roundtrip, slots",` && |\n| &&
-             `    "  Registry      shortcuts, timers, callbacks, bound backend events",` && |\n| &&
-             `    "  ABAP Source   the running app's class. 'Open in ADT' opens it in a",` && |\n| &&
-             `    "                new tab, at the line of the last event",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "Always available",` && |\n| &&
-             `    "----------------",` && |\n| &&
-             `    "  Copy View        put the current view's content on the clipboard",` && |\n| &&
-             `    "  Report a Bug     see below",` && |\n| &&
-             `    "  Export           the whole report as text - read, copy, download",` && |\n| &&
-             `    "  (i)              this help",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "  'Open on Error' (on Overview) pops these tools open on the Log as",` && |\n| &&
-             `    "  soon as anything logs at error level. Off by default.",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "Reporting a bug",` && |\n| &&
-             `    "---------------",` && |\n| &&
-             `    "  'Report a Bug' puts the whole session state on the clipboard as a",` && |\n| &&
-             `    "  GitHub-ready issue body: environment, the error, the log, the",` && |\n| &&
-             `    "  roundtrip history and the running app's ABAP class, each in a",` && |\n| &&
-             `    "  collapsed section - and opens the bug report form of the abap2UI5",` && |\n| &&
-             `    "  repository in a new tab. Paste the report into 'Additional context'.",` && |\n| &&
-             `    "  Nothing is sent before you submit that form.",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "  'Export' opens the same content as plain text, for reading, with one",` && |\n| &&
-             `    "  Copy and two downloads. With",` && |\n| &&
-             `    "  Record Payloads on, Download History (JSON) additionally carries",` && |\n| &&
-             `    "  the actual request/response bodies.",` && |\n| &&
-             `    "",` && |\n| &&
-             `    "  The console errors and the roundtrip history survive a page reload",` && |\n| &&
-             `    "  (sessionStorage), so an app that died and was reloaded keeps its",` && |\n| &&
-             `    "  evidence - those rows are marked with a '*'.",` && |\n| &&
-             `  ].join("\n");` && |\n| &&
-             `` && |\n| &&
-             `  function formatHelp() {` && |\n| &&
-             `    return HELP;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return { formatHelp };` && |\n| &&
-             `});` && |\n| &&
+             `      "z2ui5/devtools/SlotXml.js": function(){sap.ui.define(["z2ui5/core/ViewSlots"],ViewSlots=>{"use strict";function viewContent(view){return view?.mProperties?.viewContent}function slotXml(ctx,slot` &&
+             `Key){if(!slotKey)return"";return viewContent(ViewSlots.getView?.(ctx,slotKey))||ViewSlots.getViewXml?.(ctx,slotKey)||""}return{viewContent,slotXml}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Inspect.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/Device",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/ScrollFocus",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/devtools/Recorder",` && |\n| &&
-             `    "z2ui5/devtools/Format",` && |\n| &&
-             `    "z2ui5/devtools/SlotXml",` && |\n| &&
-             `    "z2ui5/devtools/Log",` && |\n| &&
-             `    "z2ui5/devtools/Bindings",` && |\n| &&
-             `    "z2ui5/devtools/Help",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    Device,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    Env,` && |\n| &&
-             `    ScrollFocus,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `    Recorder,` && |\n| &&
-             `    Format,` && |\n| &&
-             `    SlotXml,` && |\n| &&
-             `    Log,` && |\n| &&
-             `    Bindings,` && |\n| &&
-             `    Help,` && |\n| &&
-             `  ) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_ARG_CHARS = 160;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_SCRAPED_EVENTS = 200;` && |\n| &&
-             `` && |\n| &&
-             `    const BOOTSTRAP_ATTRS = [` && |\n| &&
-             `      ["Bootstrap theme", "theme"],` && |\n| &&
-             `      ["Resource roots", "resourceroots"],` && |\n| &&
-             `      ["On init", "oninit"],` && |\n| &&
-             `      ["Compat version", "compatversion"],` && |\n| &&
-             `      ["Async", "async"],` && |\n| &&
-             `      ["Frame options", "frameoptions"],` && |\n| &&
-             `      ["Binding syntax", "bindingsyntax"],` && |\n| &&
-             `      ["Libs", "libs"],` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const CALLBACK_ARRAYS = [` && |\n| &&
-             `      "onBeforeRoundtrip",` && |\n| &&
-             `      "onAfterRoundtrip",` && |\n| &&
-             `      "onAfterRendering",` && |\n| &&
-             `      "onRoundtripEnd",` && |\n| &&
-             `      "onBeforeEventFrontend",` && |\n| &&
-             `      "onErrorDetails",` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const EVENT_CALL = new RegExp(Format.FRAMEWORK_CALL.source, "g");` && |\n| &&
-             `` && |\n| &&
-             `    const WORD_CHAR = /[a-z0-9_]/;` && |\n| &&
-             `    const isWordChar = (ch) => ch !== undefined && WORD_CHAR.test(ch);` && |\n| &&
-             `` && |\n| &&
-             `    const LABEL_WIDTH = 24;` && |\n| &&
-             `` && |\n| &&
-             `    function line(label, value) {` && |\n| &&
-             `      const text =` && |\n| &&
-             `        value === undefined || value === null || value === "" ? "-" : value;` && |\n| &&
-             `      return ``  ${label.padEnd(LABEL_WIDTH)}${text}``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function yesNo(value) {` && |\n| &&
-             `      return value ? "yes" : "no";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const { truncate, section, renderValue } = Format;` && |\n| &&
-             `` && |\n| &&
-             `    function bootstrapElement() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return document.getElementById("sap-ui-bootstrap");` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function bootstrapAttr(el, name) {` && |\n| &&
-             `      return el?.getAttribute?.(``data-sap-ui-${name}``) || "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resourceUrl(namespace) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return sap.ui.require?.toUrl ? sap.ui.require.toUrl(namespace) : "";` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "";` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getContentDensity() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const classes = document.body?.classList;` && |\n| &&
-             `        if (classes?.contains("sapUiSizeCompact")) return "Compact";` && |\n| &&
-             `        if (classes?.contains("sapUiSizeCozy")) return "Cozy";` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "";` && |\n| &&
-             `      }` && |\n| &&
-             `      return "(neither class set)";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getDistribution(sUi5) {` && |\n| &&
-             `      const gav = sUi5?.GAV || "";` && |\n| &&
-             `      if (!gav) return "";` && |\n| &&
-             `      return gav.includes("com.sap.ui5") ? "SAPUI5" : "OpenUI5";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function modelAttributeCount(ctx, slotKey) {` && |\n| &&
-             `      const data = ViewSlots.trackedModel(` && |\n| &&
-             `        ViewSlots.getView(ctx, slotKey),` && |\n| &&
-             `      )?.getData?.();` && |\n| &&
-             `      if (!data) return 0;` && |\n| &&
-             `      return Object.keys(data).length;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatSlots(ctx) {` && |\n| &&
-             `      const lines = [];` && |\n| &&
-             `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        const view = ViewSlots.getView(ctx, slot.key);` && |\n| &&
-             `        const xml = ViewSlots.getViewXml(ctx, slot.key);` && |\n| &&
-             `        if (!view && !xml) {` && |\n| &&
-             `          lines.push(line(slot.key, "empty"));` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        const parts = [];` && |\n| &&
-             `        parts.push(view ? "filled" : "xml only");` && |\n| &&
-             `        if (xml) parts.push(``${xml.length} chars XML``);` && |\n| &&
-             `        if (slot.ownsModel) {` && |\n| &&
-             `          parts.push(``${modelAttributeCount(ctx, slot.key)} model attributes``);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          parts.push("inherits MAIN model");` && |\n| &&
-             `        }` && |\n| &&
-             `        lines.push(line(slot.key, parts.join(", ")));` && |\n| &&
-             `      }` && |\n| &&
-             `      return lines;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatEnvironment(ctx) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const oConfig = state.oConfig;` && |\n| &&
-             `      const sUi5 = oConfig.S_UI5;` && |\n| &&
-             `      const responseFront = state.responseData?.S_FRONT;` && |\n| &&
-             `      const out = ["abap2UI5 Developer Tools - Environment"];` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("App"));` && |\n| &&
-             `      out.push(line("App class", responseFront?.APP));` && |\n| &&
-             `      out.push(line("Rendered app", state.renderedApp));` && |\n| &&
-             `      out.push(line("Draft id (received)", responseFront?.ID));` && |\n| &&
-             `      out.push(line("Draft id (sent)", state.oBody?.S_FRONT?.ID));` && |\n| &&
-             `      out.push(line("Last event", state.oBody?.S_FRONT?.EVENT));` && |\n| &&
-             `      out.push(line("Roundtrip in flight", yesNo(state.isBusy)));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Session"));` && |\n| &&
-             `      out.push(line("sap-contextid", state.contextId));` && |\n| &&
-             `      out.push(line("Backend endpoint", state.url));` && |\n| &&
-             `      out.push(line("Owns the page", yesNo(state.ownsPage)));` && |\n| &&
-             `      out.push(line("Launchpad", yesNo(state.oLaunchpad)));` && |\n| &&
-             `      out.push(line("Origin", window.location.origin));` && |\n| &&
-             `      out.push(line("Pathname", window.location.pathname));` && |\n| &&
-             `      out.push(line("Search", window.location.search));` && |\n| &&
-             `      out.push(line("Hash", window.location.hash));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Routing"));` && |\n| &&
-             `      out.push(line("Hash routing", yesNo(state.navRouting)));` && |\n| &&
-             `      out.push(line("Mode", state.navMode));` && |\n| &&
-             `      out.push(line("Current app", state.currentApp));` && |\n| &&
-             `      out.push(line("Current draft id", state.currentDraftId));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("UI5"));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(line("Version", sap.ui.version));` && |\n| &&
-             `` && |\n|.
-    result = result &&
-             `      out.push(line("Distribution", getDistribution(sUi5)));` && |\n| &&
-             `      out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(line("Theme", Env.getTheme()));` && |\n| &&
-             `      const locale = Env.getLocale();` && |\n| &&
-             `      out.push(line("Language", locale.language));` && |\n| &&
-             `      out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));` && |\n| &&
-             `      out.push(line("Content density", getContentDensity()));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(...formatBootstrap(ctx));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Device"));` && |\n| &&
-             `      out.push(line("System", Lib.deriveSystemType(Device.system)));` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Browser",` && |\n| &&
-             `          ``${Device.browser.name || "?"} ${Device.browser.version || ""}``.trim(),` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "OS",` && |\n| &&
-             `          ``${Device.os.name || "?"} ${Device.os.version || ""}``.trim(),` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Orientation",` && |\n| &&
-             `          Device.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Window",` && |\n| &&
-             `          ``${Device.resize.width || window.innerWidth} x `` +` && |\n| &&
-             `            ``${Device.resize.height || window.innerHeight}``,` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(line("Touch", yesNo(Device.support.touch)));` && |\n| &&
-             `      out.push(line("Pointer", yesNo(Device.support.pointer)));` && |\n| &&
-             `      out.push(line("Retina", yesNo(Device.support.retina)));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(...formatFrontendInfo(ctx));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("View slots"));` && |\n| &&
-             `      out.push(...formatSlots(ctx));` && |\n| &&
-             `` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatBootstrap(ctx) {` && |\n| &&
-             `      const out = [section("UI5 bootstrap")];` && |\n| &&
-             `      const el = bootstrapElement();` && |\n| &&
-             `      if (!el) {` && |\n| &&
-             `        out.push('  (no <script id="sap-ui-bootstrap"> on this page -');` && |\n| &&
-             `        out.push("  UI5 was started some other way, e.g. by a launchpad)");` && |\n| &&
-             `      } else {` && |\n| &&
-             `        out.push(line("SDK source", el.src || bootstrapAttr(el, "src")));` && |\n| &&
-             `        for (const [label, attr] of BOOTSTRAP_ATTRS) {` && |\n| &&
-             `          const value = bootstrapAttr(el, attr);` && |\n| &&
-             `          if (value) out.push(line(label, truncate(value, MAX_ARG_CHARS)));` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `` && |\n| &&
-             `      out.push(line("Resource base", resourceUrl("")));` && |\n| &&
-             `      out.push(line("z2ui5 root", resourceUrl("z2ui5")));` && |\n| &&
-             `` && |\n| &&
-             `      const cci = ctx.state.ccResourceRoot;` && |\n| &&
-             `      const ccc = ctx.state.cccResourceRoot;` && |\n| &&
-             `      if (cci) out.push(line("z2ui5_cci root", cci));` && |\n| &&
-             `      if (ccc) out.push(line("z2ui5_ccc root", ccc));` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatFrontendInfo(ctx) {` && |\n| &&
-             `      const out = [section("Frontend info sent to the backend")];` && |\n| &&
-             `      out.push("  (client->get( )-s_focus / -s_scroll, live for the next");` && |\n| &&
-             `      out.push("  roundtrip - see -s_ui5 / -s_device above)");` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `` && |\n| &&
-             `      let focus;` && |\n| &&
-             `      let scroll;` && |\n| &&
-             `      try {` && |\n| &&
-             `        focus = ScrollFocus.getFocusInfo(ctx);` && |\n| &&
-             `        scroll = ScrollFocus.getScrollInfo(ctx);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools Inspect: reading focus/scroll failed", e);` && |\n| &&
-             `        out.push("  (focus / scroll info unavailable)");` && |\n| &&
-             `        return out;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      out.push(line("Focused control", focus?.ID));` && |\n| &&
-             `      if (focus?.SELECTION_START !== undefined) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          line("Caret", ``${focus.SELECTION_START} - ${focus.SELECTION_END}``),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      let anyScroll = false;` && |\n| &&
-             `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        const entry = scroll?.[slot.key];` && |\n| &&
-             `        if (!entry) continue;` && |\n| &&
-             `        anyScroll = true;` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          line(` && |\n| &&
-             `            ``Scroll ${slot.key}``,` && |\n| &&
-             `            ``${entry.ID || "(unnamed)"}  x ${entry.X || 0} / y ${entry.Y || 0}``,` && |\n| &&
-             `          ),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!anyScroll) out.push(line("Scroll", "nothing scrolled yet"));` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function scrapeEvents(xml) {` && |\n| &&
-             `      if (!xml) return [];` && |\n| &&
-             `      const found = new Set();` && |\n| &&
-             `` && |\n| &&
-             `      for (const match of xml.matchAll(EVENT_CALL)) {` && |\n| &&
-             `        if (found.size >= MAX_SCRAPED_EVENTS) break;` && |\n| &&
-             `        found.add(``${match[1]}  ${match[2]}``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return Array.from(found).sort();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatShortcuts(ctx) {` && |\n| &&
-             `      const shortcuts = ctx.state.shortcuts || {};` && |\n| &&
-             `      const combos = Object.keys(shortcuts).sort();` && |\n| &&
-             `      if (!combos.length) return ["  (none registered)"];` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      for (const combo of combos) {` && |\n| &&
-             `        const scopes = shortcuts[combo];` && |\n| &&
-             `        for (const scope of Object.keys(scopes)) {` && |\n| &&
-             `          const entry = scopes[scope];` && |\n| &&
-             `          out.push(` && |\n| &&
-             `            ``  ${combo.padEnd(22)}${(scope || "(global)").padEnd(12)}`` +` && |\n| &&
-             `              ``-> ${entry?.event || "?"}``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatRegistry(ctx) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const out = ["abap2UI5 Developer Tools - Registry"];` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Keyboard shortcuts (combo / scope / backend event)"));` && |\n| &&
-             `      out.push(...formatShortcuts(ctx));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Pending backend timers"));` && |\n| &&
-             `      const timers = Object.keys(state.timers || {});` && |\n| &&
-             `      out.push(timers.length ? ``  ${timers.join(", ")}`` : "  (none pending)");` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Framework callbacks registered"));` && |\n| &&
-             `      for (const name of CALLBACK_ARRAYS) {` && |\n| &&
-             `        out.push(line(name, (state[name] || []).length));` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Model size limits"));` && |\n| &&
-             `      const limits = state.viewSizeLimits || {};` && |\n| &&
-             `      const limitKeys = Object.keys(limits);` && |\n| &&
-             `      if (!limitKeys.length) out.push("  (UI5 default everywhere)");` && |\n| &&
-             `      for (const key of limitKeys) out.push(line(key, limits[key]));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Backend events bound in the current views"));` && |\n| &&
-             `      let any = false;` && |\n| &&
-             `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        const events = scrapeEvents(SlotXml.slotXml(ctx, slot.key));` && |\n| &&
-             `        if (!events.length) continue;` && |\n| &&
-             `        any = true;` && |\n| &&
-             `        out.push(``  [${slot.key}]``);` && |\n| &&
-             `        for (const event of events) out.push(``    ${event}``);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!any) out.push("  (no event bindings found in the current views)");` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        "  Scraped from the view XML the backend sent - eB rounds a trip," +` && |\n| &&
-             `          " eF is handled in the browser.",` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function renderArg(arg) {` && |\n| &&
-             `      return renderValue(arg, MAX_ARG_CHARS);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function renderActionList(list, title) {` && |\n| &&
-             `      const out = [section(title)];` && |\n| &&
-             `      if (!Array.isArray(list) || !list.length) {` && |\n| &&
-             `        out.push("  (none)");` && |\n| &&
-             `        return out;` && |\n| &&
-             `      }` && |\n| &&
-             `      list.forEach((item, index) => {` && |\n| &&
-             `        const number = String(index + 1).padStart(3);` && |\n| &&
-             `        if (!Array.isArray(item)) {` && |\n| &&
-             `          out.push(``${number}  [not run] ${truncate(item, MAX_ARG_CHARS)}``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const [name, ...args] = item;` && |\n| &&
-             `        out.push(``${number}  ${name}``);` && |\n| &&
-             `        for (const arg of args) out.push(``       ${renderArg(arg)}``);` && |\n| &&
-             `      });` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function renderViews(views) {` && |\n| &&
-             `      const out = [section("VIEWS (what the slots show after this roundtrip)")];` && |\n| &&
-             `      const keys = ["MAIN", "NEST", "NEST2", "POPUP", "POPOVER"].filter(` && |\n| &&
-             `        (key) => views?.[key],` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!keys.length) {` && |\n| &&
-             `        out.push("  (none)");` && |\n| &&
-             `        return out;` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const key of keys) {` && |\n| &&
-             `        const entry = views[key];` && |\n| &&
-             `        if (entry.DESTROY) {` && |\n| &&
-             `          out.push(``  ${key}  destroy``);` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        out.push(``  ${key}  display``);` && |\n| &&
-             `        out.push(``       ${renderArg(entry.XML)}``);` && |\n| &&
-             `        if (entry.OPT) out.push(``       ${renderArg(entry.OPT)}``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatActions(ctx) {` && |\n| &&
-             `      const sFront = ctx.state.responseData?.S_FRONT;` && |\n| &&
-             `      const out = ["abap2UI5 Developer Tools - Actions of the last response"];` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        "  VIEWS are applied first, MAIN before the nested and standalone" +` && |\n| &&
-             `          " slots; NAV syncs the URL; ACTIONS run last, once the DOM exists.",` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(...renderViews(sFront?.VIEWS));` && |\n| &&
-             `      out.push(section("NAV (the URL intent)"));` && |\n| &&
-             `      out.push(sFront?.NAV ? ``  ${renderArg(sFront.NAV)}`` : "  (none)");` && |\n| &&
-             `      out.push(...renderActionList(sFront?.ACTIONS, "ACTIONS (app)"));` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function findEventLine(source, eventName) {` && |\n| &&
-             `      if (!source || !eventName) return 0;` && |\n| &&
-             `      const lines = source.split("\n");` && |\n| &&
-             `      const needle = eventName.toLowerCase();` && |\n| &&
-             `      for (let i = 0; i < lines.length; i++) {` && |\n| &&
-             `        const haystack = lines[i].toLowerCase();` && |\n| &&
-             `        let from = haystack.indexOf(needle);` && |\n| &&
-             `        while (from !== -1) {` && |\n| &&
-             `          const before = haystack[from - 1];` && |\n| &&
-             `          const after = haystack[from + needle.length];` && |\n| &&
-             `          if (!isWordChar(before) && !isWordChar(after)) return i + 1;` && |\n| &&
-             `          from = haystack.indexOf(needle, from + 1);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return 0;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatError(ctx) {` && |\n| &&
-             `      const err = ctx.state.lastError;` && |\n| &&
-             `      if (!err) return "(no fatal error captured this session)";` && |\n| &&
-             `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatOverview(ctx) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
-             `      const responseFront = state.responseData?.S_FRONT;` && |\n| &&
-             `      const out = ["abap2UI5 Developer Tools"];` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("App"));` && |\n| &&
-             `      out.push(line("App class", responseFront?.APP));` && |\n| &&
-             `      out.push(line("Draft id", responseFront?.ID));` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line("Last event", state.oBody?.S_FRONT?.EVENT || "(app start)"),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(line("Roundtrip in flight", yesNo(state.isBusy)));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Status"));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Fatal error",` && |\n| &&
-             `          state.lastError` && |\n| &&
-             `            ? ``YES - "${truncate(state.lastError.title || state.lastError.text, 50)}" (Problems > Error)``` && |\n| &&
-             `            : "none this session",` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      const counts = Log.countLevels(Log.collectLog(ctx));` && |\n| &&
-             `      const loud = counts.error + counts.warn;` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Log",` && |\n| &&
-             `          ``${counts.error} error, ${counts.warn} warn, ${counts.info} info`` +` && |\n| &&
-             `            (loud ? "  (Problems > Log)" : ""),` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      const records = Recorder.getRecords(ctx);` && |\n| &&
-             `      const last = records[records.length - 1];` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Roundtrips",` && |\n| &&
-             `          last` && |\n| &&
-             `            ? ``${records.length} recorded, last ${formatOverviewMs(last)}`` +` && |\n| &&
-             `                " (Roundtrips > History)"` && |\n| &&
-             `            : "none recorded yet",` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Payload recording",` && |\n| &&
-             `          Recorder.isRecordingPayloads()` && |\n| &&
-             `            ? "ON - Model Diff and View Diff work"` && |\n| &&
-             `            : "OFF - switch it on in Roundtrips for the diffs",` && |\n| &&
-             `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("UI5"));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(line("Version", sap.ui.version));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(line("Distribution", getDistribution(ctx.state.oConfig.S_UI5)));` && |\n| &&
-             `      out.push(line("Theme", Env.getTheme()));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("View slots"));` && |\n| &&
-             `      out.push(...formatSlots(ctx));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Getting around"));` && |\n| &&
-             `      out.push("  Ctrl+F12          open / close these tools");` && |\n| &&
-             `      out.push("  Search field      one term across every tab at once");` && |\n| &&
-             `      out.push("  (i) in the footer what every tab answers");` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        "  Report a Bug      the whole session state as a GitHub issue body",` && |\n| &&
-             `      );` && |\n| &&
-             `` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatOverviewMs(record) {` && |\n| &&
-             `      const parts = [];` && |\n| &&
-             `      if (record.totalMs !== null && record.totalMs !== undefined) {` && |\n| &&
-             `        parts.push(``${Math.round(record.totalMs)} ms total``);` && |\n| &&
-             `      }` && |\n| &&
-             `      if (record.backendMs !== null && record.backendMs !== undefined) {` && |\n| &&
-             `        parts.push(``${Math.round(record.backendMs)} ms backend``);` && |\n| &&
-             `      }` && |\n| &&
-             `      const timing = parts.length ? `` ${parts.join(", ")}`` : "";` && |\n| &&
-             `      return ``"${record.event || "(start)"}"${timing}``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      formatEnvironment,` && |\n| &&
-             `      formatError,` && |\n| &&
-             `      formatOverview,` && |\n| &&
-             `      formatRegistry,` && |\n| &&
-             `      formatActions,` && |\n| &&
-             `      findEventLine,` && |\n| &&
-             `` && |\n| &&
-             `      formatLog: Log.formatLog,` && |\n| &&
-             `      formatBindings: Bindings.formatBindings,` && |\n| &&
-             `      formatHelp: Help.formatHelp,` && |\n| &&
-             `` && |\n| &&
-             `      _internals: { scrapeEvents, getDistribution },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/Journey.js": function(){sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/devtools/AbapSource", "z2ui5/devtools/Recorder"],` && |\n| &&
-             `  (Lib, AbapSource, Recorder) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_STEPS = 200;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_ASSERT_IDS = 5;` && |\n| &&
-             `    const MAX_ASSERT_EVENTS = 5;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_DELTA_CHARS = 20000;` && |\n| &&
-             `` && |\n| &&
-             `    const LITERAL_CHUNK = 100;` && |\n| &&
-             `` && |\n| &&
-             `    const SLOT_ORDER = ["POPOVER", "POPUP", "MAIN"];` && |\n| &&
-             `` && |\n| &&
-             `    function journeyOf(ctx) {` && |\n| &&
-             `      return ctx?.devtools?.journey || null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function ensure(ctx) {` && |\n| &&
-             `      if (!ctx?.devtools) return null;` && |\n| &&
-             `      if (!ctx.devtools.journey) {` && |\n| &&
-             `        ctx.devtools.journey = { recording: false, journeys: [], hook: null };` && |\n| &&
-             `      }` && |\n| &&
-             `      return ctx.devtools.journey;` && |\n|.
-    result = result &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function current(rec) {` && |\n| &&
-             `      return rec?.journeys[rec.journeys.length - 1] || null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isRecording(ctx) {` && |\n| &&
-             `      return Boolean(journeyOf(ctx)?.recording);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function appOf(ctx) {` && |\n| &&
-             `      return AbapSource.appName(ctx);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function idsOf(xml) {` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      const pattern = / id="([^"]*)"/g;` && |\n| &&
-             `      let match = pattern.exec(xml || "");` && |\n| &&
-             `      while (match !== null) {` && |\n| &&
-             `        const id = match[1].replace(/&amp;/g, "&");` && |\n| &&
-             `        if (id && !out.includes(id)) out.push(id);` && |\n| &&
-             `        match = pattern.exec(xml);` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function eventsOf(xml) {` && |\n| &&
-             `      const text = (xml || "")` && |\n| &&
-             `        .replace(/&apos;/g, "'")` && |\n| &&
-             `        .replace(/&quot;/g, '"')` && |\n| &&
-             `        .replace(/&lt;/g, "<")` && |\n| &&
-             `        .replace(/&gt;/g, ">")` && |\n| &&
-             `        .replace(/&amp;/g, "&");` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      const pattern = /\.eBP?\((?:[^[]*?)\['((?:\\.|[^'\\])*)'/g;` && |\n| &&
-             `      let match = pattern.exec(text);` && |\n| &&
-             `      while (match !== null) {` && |\n| &&
-             `        const name = match[1].replace(/\\(.)/g, "$1");` && |\n| &&
-             `        if (name && !out.includes(name)) out.push(name);` && |\n| &&
-             `        match = pattern.exec(text);` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function destroyedSlots(response) {` && |\n| &&
-             `      const views = response?.S_FRONT?.VIEWS;` && |\n| &&
-             `      if (!views || typeof views !== "object") return [];` && |\n| &&
-             `      return Object.keys(views).filter((slot) => views[slot]?.DESTROY);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function displayedViews(response) {` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      for (const slot of SLOT_ORDER.concat(["NEST", "NEST2"])) {` && |\n| &&
-             `        const xml = Recorder.displayedXml(response, slot);` && |\n| &&
-             `        if (!xml) continue;` && |\n| &&
-             `        out.push({ slot, ids: idsOf(xml), events: eventsOf(xml) });` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function copyDelta(model) {` && |\n| &&
-             `      if (!model || typeof model !== "object") return null;` && |\n| &&
-             `      let text;` && |\n| &&
-             `      try {` && |\n| &&
-             `        text = JSON.stringify(model);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return { dropped: "the model delta could not be serialized" };` && |\n| &&
-             `      }` && |\n| &&
-             `      if (text === undefined) return null;` && |\n| &&
-             `      if (text.length > MAX_DELTA_CHARS) {` && |\n| &&
-             `        return {` && |\n| &&
-             `          dropped: ``the model delta is ${text.length} characters, more than the ${MAX_DELTA_CHARS} a recorded step keeps``,` && |\n| &&
-             `        };` && |\n| &&
-             `      }` && |\n| &&
-             `      return { value: JSON.parse(text) };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function readStep(oBody, response) {` && |\n| &&
-             `      const sFront = oBody?.S_FRONT;` && |\n| &&
-             `      const args = Array.isArray(sFront?.T_EVENT_ARG) ? sFront.T_EVENT_ARG : [];` && |\n| &&
-             `      return {` && |\n| &&
-             `        event: sFront?.EVENT || "",` && |\n| &&
-             `        args: args.map((arg) =>` && |\n| &&
-             `          typeof arg === "string" ? arg : safeJson(arg),` && |\n| &&
-             `        ),` && |\n| &&
-             `        delta: copyDelta(oBody?.MODEL),` && |\n| &&
-             `        app: response?.S_FRONT?.APP || "",` && |\n| &&
-             `        views: displayedViews(response),` && |\n| &&
-             `        destroyed: destroyedSlots(response),` && |\n| &&
-             `        messages: Recorder.extractMessages(response).map((m) => m.text),` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function safeJson(value) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return JSON.stringify(value) ?? "";` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "";` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function onAfterRendering(ctx) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const rec = journeyOf(ctx);` && |\n| &&
-             `        const journey = current(rec);` && |\n| &&
-             `        if (!rec?.recording || !journey) return;` && |\n| &&
-             `        if (journey.steps.length >= MAX_STEPS) {` && |\n| &&
-             `          journey.overflow = true;` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const step = readStep(ctx.state.oBody, ctx.state.responseData);` && |\n| &&
-             `        step.seq = journey.steps.length + 1;` && |\n| &&
-             `        journey.steps.push(step);` && |\n| &&
-             `        if (!journey.app && step.app) journey.app = step.app;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools Journey: onAfterRendering failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function start(ctx) {` && |\n| &&
-             `      const rec = ensure(ctx);` && |\n| &&
-             `      if (!rec || rec.recording) return;` && |\n| &&
-             `      const journey = {` && |\n| &&
-             `        app: appOf(ctx),` && |\n| &&
-             `        startedAt: new Date().toISOString(),` && |\n| &&
-             `        steps: [],` && |\n| &&
-             `        overflow: false,` && |\n| &&
-             `      };` && |\n| &&
-             `      rec.journeys.push(journey);` && |\n| &&
-             `      rec.recording = true;` && |\n| &&
-             `      if (ctx.state?.responseData) {` && |\n| &&
-             `        const step = readStep(ctx.state.oBody, ctx.state.responseData);` && |\n| &&
-             `` && |\n| &&
-             `        step.event = "";` && |\n| &&
-             `        step.args = [];` && |\n| &&
-             `        step.delta = null;` && |\n| &&
-             `        step.seq = 1;` && |\n| &&
-             `        journey.steps.push(step);` && |\n| &&
-             `      }` && |\n| &&
-             `      rec.hook = () => onAfterRendering(ctx);` && |\n| &&
-             `      Lib.registerCallback(ctx, "onAfterRendering", rec.hook);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function stop(ctx) {` && |\n| &&
-             `      const rec = journeyOf(ctx);` && |\n| &&
-             `      if (!rec) return;` && |\n| &&
-             `      rec.recording = false;` && |\n| &&
-             `      if (rec.hook) {` && |\n| &&
-             `        Lib.unregisterCallback(ctx, "onAfterRendering", rec.hook);` && |\n| &&
-             `        rec.hook = null;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const journey = current(rec);` && |\n| &&
-             `      if (journey && !journey.steps.length) rec.journeys.pop();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function clear(ctx) {` && |\n| &&
-             `      stop(ctx);` && |\n| &&
-             `      const rec = journeyOf(ctx);` && |\n| &&
-             `      if (rec) rec.journeys = [];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getJourneys(ctx) {` && |\n| &&
-             `      return journeyOf(ctx)?.journeys || [];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function stepCount(ctx) {` && |\n| &&
-             `      return getJourneys(ctx).reduce((sum, j) => sum + j.steps.length, 0);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function literal(value, indent) {` && |\n| &&
-             `      const text = String(value);` && |\n| &&
-             `` && |\n| &&
-             `      if (/[\u0000-\u001f\u007f]/.test(text)) return null;` && |\n| &&
-             `      const escaped = text.replace(/``/g, "````");` && |\n| &&
-             `      if (escaped.length <= LITERAL_CHUNK) return ``\``${escaped}\````;` && |\n| &&
-             `      const chunks = [];` && |\n| &&
-             `      let i = 0;` && |\n| &&
-             `      while (i < escaped.length) {` && |\n| &&
-             `        let end = Math.min(i + LITERAL_CHUNK, escaped.length);` && |\n| &&
-             `        let run = 0;` && |\n| &&
-             `        while (end - 1 - run >= i && escaped[end - 1 - run] === "``") run += 1;` && |\n| &&
-             `        if (run % 2 === 1 && escaped[end] === "``") end += 1;` && |\n| &&
-             `        chunks.push(``\``${escaped.slice(i, end)}\````);` && |\n| &&
-             `        i = end;` && |\n| &&
-             `      }` && |\n| &&
-             `      return chunks.join(`` &&\n${" ".repeat(indent)}``);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function jsonLiteral(value, indent) {` && |\n| &&
-             `      return literal(JSON.stringify(value), indent);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isPlainName(name) {` && |\n| &&
-             `      return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function editStatements(delta, indent) {` && |\n| &&
-             `      const pad = " ".repeat(indent);` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      if (!delta) return out;` && |\n| &&
-             `      if (delta.dropped) {` && |\n| &&
-             `        out.push(``${pad}" model changes not replayed: ${delta.dropped}``);` && |\n| &&
-             `        return out;` && |\n| &&
-             `      }` && |\n| &&
-             `      const model = delta.value;` && |\n| &&
-             `      if (!model || typeof model !== "object" || Array.isArray(model)) {` && |\n| &&
-             `        return out;` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const [name, value] of Object.entries(model)) {` && |\n| &&
-             `        if (isRowDelta(value)) {` && |\n| &&
-             `          rowDeltaStatements(out, pad, name, ``/${name}``, value.__delta);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          attributeStatements(out, pad, name, value);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isRowDelta(value) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        value !== null &&` && |\n| &&
-             `        typeof value === "object" &&` && |\n| &&
-             `        !Array.isArray(value) &&` && |\n| &&
-             `        Object.keys(value).length === 1 &&` && |\n| &&
-             `        value.__delta !== null &&` && |\n| &&
-             `        typeof value.__delta === "object"` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const SECRET_NAME = /(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)/i;` && |\n| &&
-             `` && |\n| &&
-             `    function attributeStatements(out, pad, name, value) {` && |\n| &&
-             `      const plain = isPlainName(name);` && |\n| &&
-             `      if (typeof value === "string" && SECRET_NAME.test(name)) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``${pad}" ${name}: the value typed is not exported - put a test value here``,` && |\n| &&
-             `        );` && |\n| &&
-             `        value = "***";` && |\n| &&
-             `      }` && |\n| &&
-             `      if (typeof value === "string" && plain) {` && |\n| &&
-             `        const lit = literal(value, pad.length + 24);` && |\n| &&
-             `        if (lit !== null) {` && |\n| &&
-             `          out.push(``${pad}sim->set_value( name  = \``${name}\````);` && |\n| &&
-             `          out.push(``${pad}                value = ${lit} ).``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (typeof value === "boolean" && plain) {` && |\n| &&
-             `        out.push(``${pad}sim->set_bool( name  = \``${name}\````);` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``${pad}               value = ${value ? "abap_true" : "abap_false"} ).``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      jsonStatement(out, pad, ``/${name}``, value);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function rowDeltaStatements(out, pad, table, path, rows, nested) {` && |\n| &&
-             `      for (const [row, cells] of Object.entries(rows)) {` && |\n| &&
-             `        const rowIndex = Number(row);` && |\n| &&
-             `        if (!cells || typeof cells !== "object") continue;` && |\n| &&
-             `        for (const [column, cell] of Object.entries(cells)) {` && |\n| &&
-             `          const cellPath = ``${path}/${row}/${column}``;` && |\n| &&
-             `          if (isRowDelta(cell)) {` && |\n| &&
-             `            rowDeltaStatements(out, pad, column, cellPath, cell.__delta, true);` && |\n| &&
-             `            continue;` && |\n| &&
-             `          }` && |\n| &&
-             `          const lit =` && |\n| &&
-             `            typeof cell === "string" ? literal(cell, pad.length + 23) : null;` && |\n| &&
-             `          if (` && |\n| &&
-             `            lit !== null &&` && |\n| &&
-             `            !nested &&` && |\n| &&
-             `            Number.isInteger(rowIndex) &&` && |\n| &&
-             `            isPlainName(table) &&` && |\n| &&
-             `            isPlainName(column)` && |\n| &&
-             `          ) {` && |\n| &&
-             `            out.push(``${pad}sim->set_cell( table  = \``${table}\````);` && |\n| &&
-             `            out.push(``${pad}               row    = ${rowIndex + 1}``);` && |\n| &&
-             `            out.push(``${pad}               column = \``${column}\````);` && |\n| &&
-             `            out.push(``${pad}               value  = ${lit} ).``);` && |\n| &&
-             `            continue;` && |\n| &&
-             `          }` && |\n| &&
-             `          jsonStatement(out, pad, cellPath, cell);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function jsonStatement(out, pad, path, value) {` && |\n| &&
-             `      const lit = jsonLiteral(value, pad.length + 23);` && |\n| &&
-             `      const pathLit = literal(path, pad.length + 23) || "``/``";` && |\n| &&
-             `      out.push(``${pad}sim->set_json( path = ${pathLit}``);` && |\n| &&
-             `      out.push(``${pad}               json = ${lit} ).``);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function clickStatement(step, indent) {` && |\n| &&
-             `      const pad = " ".repeat(indent);` && |\n| &&
-             `      const event = literal(step.event, indent) || "````";` && |\n| &&
-             `      if (!step.args.length) return [``${pad}sim->click( ${event} ).``];` && |\n| &&
-             `      const out = [``${pad}sim->click( event = ${event}``];` && |\n| &&
-             `      const argPad = ``${pad}            t_arg = VALUE #( ``;` && |\n| &&
-             `      step.args.forEach((arg, i) => {` && |\n| &&
-             `        const lit =` && |\n| &&
-             `          literal(arg, argPad.length + 2) ||` && |\n| &&
-             `          jsonLiteral(arg, argPad.length + 2);` && |\n| &&
-             `        const lead = i === 0 ? argPad : " ".repeat(argPad.length);` && |\n| &&
-             `        const tail = i === step.args.length - 1 ? " ) )." : "";` && |\n| &&
-             `        out.push(``${lead}( ${lit} )${tail}``);` && |\n| &&
-             `      });` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function assertEquals(pad, exp, act) {` && |\n| &&
-             `      const lit =` && |\n| &&
-             `        literal(exp, pad.length + 42) || jsonLiteral(exp, pad.length + 42);` && |\n| &&
-             `      return [` && |\n| &&
-             `        ``${pad}cl_abap_unit_assert=>assert_equals( exp = ${lit}``,` && |\n| &&
-             `        ``${pad}                                    act = ${act} ).``,` && |\n| &&
-             `      ];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function assertTrue(pad, expression) {` && |\n| &&
-             `      return [``${pad}cl_abap_unit_assert=>assert_true( ${expression} ).``];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function assertionStatements(step, previousApp, indent) {` && |\n| &&
-             `      const pad = " ".repeat(indent);` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      if (step.messages.length) {` && |\n| &&
-             `        const last = step.messages[step.messages.length - 1];` && |\n| &&
-             `        out.push(...assertEquals(pad, last, "sim->get_message( )"));` && |\n| &&
-             `      }` && |\n| &&
-             `      if (step.app && previousApp && step.app !== previousApp) {` && |\n| &&
-             `        out.push(...assertEquals(pad, step.app, "sim->get_app( )"));` && |\n| &&
-             `      }` && |\n| &&
-             `      const top = SLOT_ORDER.find((slot) =>` && |\n| &&
-             `        step.views.some((view) => view.slot === slot),` && |\n| &&
-             `      );` && |\n| &&
-             `      if (top) {` && |\n| &&
-             `        out.push(...assertEquals(pad, top, "sim->get_layer( )"));` && |\n| &&
-             `      } else if (step.destroyed.includes("POPUP")) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``${pad}cl_abap_unit_assert=>assert_initial( sim->get_popup( ) ).``,` && |\n| &&
-             `        );` && |\n| &&
-             `      } else if (step.destroyed.includes("POPOVER")) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``${pad}cl_abap_unit_assert=>assert_initial( sim->get_popover( ) ).``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!top) return out;` && |\n| &&
-             `` && |\n| &&
-             `      const active = step.views.filter((view) =>` && |\n| &&
-             `        top === "MAIN"` && |\n| &&
-             `          ? view.slot !== "POPUP" && view.slot !== "POPOVER"` && |\n| &&
-             `          : view.slot === top,` && |\n| &&
-             `      );` && |\n| &&
-             `      const ids = unique(collect(active, "ids")).slice(0, MAX_ASSERT_IDS);` && |\n| &&
-             `      const events = unique(collect(active, "events")).slice(` && |\n| &&
-             `        0,` && |\n| &&
-             `        MAX_ASSERT_EVENTS,` && |\n| &&
-             `      );` && |\n| &&
-             `      for (const id of ids) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ...assertTrue(` && |\n| &&
-             `            pad,` && |\n| &&
-             `            ``sim->check_id_exists( ${literal(id, 0) || "````"} )``,` && |\n| &&
-             `          ),` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!ids.length) {` && |\n| &&
-             `        for (const event of events) {` && |\n| &&
-             `          out.push(` && |\n| &&
-             `            ...assertTrue(` && |\n| &&
-             `              pad,` && |\n| &&
-             `              ``sim->check_event_exists( ${literal(event, 0) || "````"} )``,` && |\n| &&
-             `            ),` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function collect(views, field) {` && |\n| &&
-             `      return views.reduce((all, view) => all.concat(view[field]), []);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function unique(list) {` && |\n| &&
-             `      return list.filter((item, i) => list.indexOf(item) === i);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function methodLines(journey, name) {` && |\n| &&
-             `      const pad = "    ";` && |\n| &&
-             `      const out = [``  METHOD ${name}.``, ""];` && |\n| &&
-             `      const app = journey.app || journey.steps.find((s) => s.app)?.app || "";` && |\n| &&
-             `      const first = journey.steps[0];` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        ``${pad}DATA(sim) = z2ui5_cl_frontend_sim=>start( ${literal(app, 0) || "````"} ).``,` && |\n| &&
-             `      );` && |\n| &&
-             `      if (first && first.event) {` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_02.
-
-    result = `        out.push(` && |\n| &&
-             `          ``${pad}" the recording began after roundtrips this test does not replay -``,` && |\n| &&
-             `          ``${pad}" the steps below run against the fresh start above``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      let previousApp = app;` && |\n| &&
-             `      journey.steps.forEach((step, index) => {` && |\n| &&
-             `        if (index === 0 && !step.event) {` && |\n| &&
-             `          out.push(...assertionStatements(step, previousApp, pad.length));` && |\n| &&
-             `          previousApp = step.app || previousApp;` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `        if (!step.event) {` && |\n| &&
-             `          out.push(` && |\n| &&
-             `            ``${pad}" step ${step.seq}: a roundtrip without an event (reload, navigation) - not replayed``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        out.push(``${pad}" step ${step.seq}: ${step.event}``);` && |\n| &&
-             `        out.push(...editStatements(step.delta, pad.length));` && |\n| &&
-             `        out.push(...clickStatement(step, pad.length));` && |\n| &&
-             `        out.push(...assertionStatements(step, previousApp, pad.length));` && |\n| &&
-             `        previousApp = step.app || previousApp;` && |\n| &&
-             `      });` && |\n| &&
-             `      if (journey.overflow) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          "",` && |\n| &&
-             `          ``${pad}" the recording stopped taking steps after ${MAX_STEPS}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      out.push("", "  ENDMETHOD.");` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function buildAbapUnit(ctx) {` && |\n| &&
-             `      const journeys = getJourneys(ctx).filter((j) => j.steps.length);` && |\n| &&
-             `      const app = journeys[0]?.app || appOf(ctx) || "";` && |\n| &&
-             `      const out = [` && |\n| &&
-             `        ``" Journey of ${app || "(unknown app)"}, recorded with the abap2UI5 developer tools (Ctrl+F12, Roundtrips > Journey).``,` && |\n| &&
-             `        ``" Replays it on z2ui5_cl_frontend_sim - https://github.com/abap2UI5/headless-frontend -``,` && |\n| &&
-             `        ``" in the app's test include: no browser, no HTTP, the real handler and the real main( ).``,` && |\n| &&
-             `        ``" The test starts the app fresh and replays what the user typed (set_value / set_json / set_cell)``,` && |\n| &&
-             `        ``" and pressed (click); the assertions name the messages, layers, ids and events the screens showed.``,` && |\n| &&
-             `        ``" What never reached the backend is not here: a popup closed in the browser alone, a frontend action.``,` && |\n| &&
-             `        ``" DANGEROUS because a draft-based app writes Z2UI5_T_01 - install the in-memory store the``,` && |\n| &&
-             `        ``" headless-frontend README shows to make it HARMLESS.``,` && |\n| &&
-             `        "CLASS ltcl_journey DEFINITION FINAL",` && |\n| &&
-             `        "  FOR TESTING RISK LEVEL DANGEROUS DURATION SHORT.",` && |\n| &&
-             `        "",` && |\n| &&
-             `        "  PRIVATE SECTION.",` && |\n| &&
-             `      ];` && |\n| &&
-             `      if (!journeys.length) {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``    " no journey recorded yet - press "Record Journey", click through the app, press it again``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      journeys.forEach((_j, i) => {` && |\n| &&
-             `        out.push(` && |\n| &&
-             `          ``    METHODS journey_${i + 1} FOR TESTING RAISING cx_static_check.``,` && |\n| &&
-             `        );` && |\n| &&
-             `      });` && |\n| &&
-             `      out.push("ENDCLASS.", "", "", "CLASS ltcl_journey IMPLEMENTATION.", "");` && |\n| &&
-             `      journeys.forEach((journey, i) => {` && |\n| &&
-             `        out.push(...methodLines(journey, ``journey_${i + 1}``));` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `      });` && |\n| &&
-             `      out.push("ENDCLASS.");` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function exportFileName(ctx) {` && |\n| &&
-             `      const app = (` && |\n| &&
-             `        getJourneys(ctx)[0]?.app ||` && |\n| &&
-             `        appOf(ctx) ||` && |\n| &&
-             `        "journey"` && |\n| &&
-             `      ).toLowerCase();` && |\n| &&
-             `      return ``${app}_journey.clas.testclasses.abap``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function describeDelta(delta) {` && |\n| &&
-             `      if (!delta) return "";` && |\n| &&
-             `      if (delta.dropped) return "(model changes too large to keep)";` && |\n| &&
-             `      const parts = [];` && |\n| &&
-             `      for (const [name, value] of Object.entries(delta.value || {})) {` && |\n| &&
-             `        if (isRowDelta(value)) {` && |\n| &&
-             `          const rows = Object.keys(value.__delta);` && |\n| &&
-             `          parts.push(``${name}[${rows.join(",")}]``);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          let text =` && |\n| &&
-             `            typeof value === "string" ? JSON.stringify(value) : safeJson(value);` && |\n| &&
-             `          if (text.length > 40) text = ``${text.slice(0, 37)}...``;` && |\n| &&
-             `          parts.push(``${name} = ${text}``);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return parts.join(", ");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function describeScreen(step) {` && |\n| &&
-             `      const parts = [];` && |\n| &&
-             `      for (const view of step.views) {` && |\n| &&
-             `        let text = view.slot;` && |\n| &&
-             `        if (view.ids.length) text += `` ids: ${view.ids.slice(0, 5).join(", ")}``;` && |\n| &&
-             `        else if (view.events.length)` && |\n| &&
-             `          text += `` events: ${view.events.slice(0, 5).join(", ")}``;` && |\n| &&
-             `        parts.push(text);` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const slot of step.destroyed) {` && |\n| &&
-             `        if (!step.views.some((view) => view.slot === slot))` && |\n| &&
-             `          parts.push(``${slot} closed``);` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const message of step.messages) parts.push(``message "${message}"``);` && |\n| &&
-             `      return parts.join("; ");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatJourney(ctx) {` && |\n| &&
-             `      const journeys = getJourneys(ctx);` && |\n| &&
-             `      const lines = [` && |\n| &&
-             `        ``Journey recorder - ${isRecording(ctx) ? "RECORDING" : "OFF"} `` +` && |\n| &&
-             `          ``(${stepCount(ctx)} step(s) in ${journeys.length} journey(s))``,` && |\n| &&
-             `        "",` && |\n| &&
-             `        'Press "Record Journey", click through the app, press it again to stop.',` && |\n| &&
-             `        '"Export ABAP Unit" turns the recorded steps into a local test class that',` && |\n| &&
-             `        "replays them on z2ui5_cl_frontend_sim (abap2UI5/headless-frontend):",` && |\n| &&
-             `        "set_value( ) for what was typed, click( ) for every event, assertions on",` && |\n| &&
-             `        "the messages, layers, ids and events of the screens reached.",` && |\n| &&
-             `        "Record from the app start for a replay that reaches the same screens.",` && |\n| &&
-             `        "",` && |\n| &&
-             `      ];` && |\n| &&
-             `      if (!journeys.length) {` && |\n| &&
-             `        lines.push("(no journey recorded yet)");` && |\n| &&
-             `        return lines.join("\n");` && |\n| &&
-             `      }` && |\n| &&
-             `      journeys.forEach((journey, i) => {` && |\n| &&
-             `        lines.push(` && |\n| &&
-             `          ``Journey ${i + 1} - ${journey.app || "(app unknown)"} - `` +` && |\n| &&
-             `            ``${journey.steps.length} step(s), started ${journey.startedAt.slice(11, 19)}`` +` && |\n| &&
-             `            ``${isRecording(ctx) && i === journeys.length - 1 ? " - recording" : ""}``,` && |\n| &&
-             `        );` && |\n| &&
-             `        for (const step of journey.steps) {` && |\n| &&
-             `          const event = step.event || "(start)";` && |\n| &&
-             `          const args = step.args.length ? `` (${step.args.join(", ")})`` : "";` && |\n| &&
-             `          lines.push(``  #${String(step.seq).padEnd(4)}${event}${args}``);` && |\n| &&
-             `          const delta = describeDelta(step.delta);` && |\n| &&
-             `          if (delta) lines.push(``        typed:  ${delta}``);` && |\n| &&
-             `          const screen = describeScreen(step);` && |\n| &&
-             `          if (screen) lines.push(``        screen: ${screen}``);` && |\n| &&
-             `        }` && |\n| &&
-             `        if (journey.overflow) {` && |\n| &&
-             `          lines.push(``  (stopped taking steps after ${MAX_STEPS})``);` && |\n| &&
-             `        }` && |\n| &&
-             `        lines.push("");` && |\n| &&
-             `      });` && |\n| &&
-             `      return lines.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      start,` && |\n| &&
-             `      stop,` && |\n| &&
-             `      clear,` && |\n| &&
-             `      isRecording,` && |\n| &&
-             `      getJourneys,` && |\n| &&
-             `      stepCount,` && |\n| &&
-             `      buildAbapUnit,` && |\n| &&
-             `      exportFileName,` && |\n| &&
-             `      formatJourney,` && |\n| &&
-             `` && |\n| &&
-             `      _internals: {` && |\n| &&
-             `        MAX_STEPS,` && |\n| &&
-             `        MAX_ASSERT_IDS,` && |\n| &&
-             `        MAX_DELTA_CHARS,` && |\n| &&
-             `        readStep,` && |\n| &&
-             `        idsOf,` && |\n| &&
-             `        eventsOf,` && |\n| &&
-             `        literal,` && |\n| &&
-             `        editStatements,` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/LiveEdit.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "z2ui5/core/actions/Slots",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/devtools/Tabs",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Slots, Lib, ViewSlots, Tabs) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function slotOfTab(tabKey) {` && |\n| &&
-             `      const tab = Tabs.get(tabKey);` && |\n| &&
-             `      return tab?.aspect === "XML" ? tab.slot : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function canApply(ctx, tabKey) {` && |\n| &&
-             `      const slotKey = slotOfTab(tabKey);` && |\n| &&
-             `      if (!slotKey) return false;` && |\n| &&
-             `      return Boolean(ViewSlots.getView(ctx, slotKey));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    async function apply(ctx, tabKey, xml) {` && |\n| &&
-             `      const slotKey = slotOfTab(tabKey);` && |\n| &&
-             `      if (!slotKey) return "This tab shows no view slot - nothing to apply.";` && |\n| &&
-             `      if (!xml || !xml.trim()) return "The editor is empty - nothing to apply.";` && |\n| &&
-             `` && |\n| &&
-             `      const oldView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
-             `      if (!oldView) return ``Slot ${slotKey} is not filled - nothing to apply.``;` && |\n| &&
-             `      const oldModel = oldView.getModel?.();` && |\n| &&
-             `      const modelData = oldModel?.getData?.();` && |\n| &&
-             `` && |\n| &&
-             `      try {` && |\n| &&
-             `        const options =` && |\n| &&
-             `          slotKey === "MAIN" ? ctx.state.lastMainDisplayOptions || {} : {};` && |\n| &&
-             `        await Slots.action(ctx, "display", slotKey, xml, options, undefined);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools LiveEdit: applying the edited XML failed", e);` && |\n| &&
-             `        return ``Could not build the view: ${e?.message || e}``;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      try {` && |\n| &&
-             `        const newView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
-             `        const newModel = newView?.getModel?.();` && |\n| &&
-             `        if (modelData && newModel?.setData && slotKey !== "MAIN") {` && |\n| &&
-             `          newModel.setData(modelData);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools LiveEdit: restoring the model failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return (` && |\n| &&
-             `        ``Applied to slot ${slotKey}. This is a LOCAL preview - the backend `` +` && |\n| &&
-             `        ``knows nothing about it, and the next roundtrip replaces it.``` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isBusy(ctx) {` && |\n| &&
-             `      return Boolean(ctx?.state?.isBusy);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return { apply, canApply, slotOfTab, isBusy };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/Log.js": function(){sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n| &&
-             `  (Lib, Console, Recorder) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const LEVEL_LABEL = {` && |\n| &&
-             `      error: "ERROR",` && |\n| &&
-             `      warn: "WARN ",` && |\n| &&
-             `      info: "INFO ",` && |\n| &&
-             `      log: "LOG  ",` && |\n| &&
-             `      debug: "DEBUG",` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const SOURCE_WIDTH = 10;` && |\n| &&
-             `` && |\n| &&
-             `    const CONTINUATION_INDENT = " ".repeat(23 + SOURCE_WIDTH);` && |\n| &&
-             `` && |\n| &&
-             `    function frameworkEntryText(entry) {` && |\n| &&
-             `      if (entry.error === undefined) return entry.message;` && |\n| &&
-             `      let detail;` && |\n| &&
-             `      if (entry.error && typeof entry.error === "object") {` && |\n| &&
-             `        detail = entry.error.stack || entry.error.message;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!detail) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          detail = String(entry.error);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          detail = "(error could not be rendered)";` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return ``${entry.message}\n${detail}``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function messageLevel(message) {` && |\n| &&
-             `      const method = String(message.method || "").toLowerCase();` && |\n| &&
-             `      if (method === "error" || method === "alert") return "error";` && |\n| &&
-             `      if (method === "warning") return "warn";` && |\n| &&
-             `      return "info";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function messageSource(message) {` && |\n| &&
-             `      return message.target === "MESSAGE_BOX"` && |\n| &&
-             `        ? ``box.${message.method || "show"}``` && |\n| &&
-             `        : "toast";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function collectLog(ctx) {` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      for (const entry of Lib.errors || []) {` && |\n| &&
-             `        out.push({` && |\n| &&
-             `          ts: entry.ts,` && |\n| &&
-             `          level: "error",` && |\n| &&
-             `          source: "framework",` && |\n| &&
-             `          text: frameworkEntryText(entry),` && |\n| &&
-             `        });` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const entry of Console.getEntries()) {` && |\n| &&
-             `        out.push({` && |\n| &&
-             `          ts: entry.ts,` && |\n| &&
-             `          level: entry.level,` && |\n| &&
-             `          source: entry.source,` && |\n| &&
-             `          text: entry.text,` && |\n| &&
-             `          previousLoad: entry.previousLoad,` && |\n| &&
-             `        });` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const record of Recorder.getRecords(ctx)) {` && |\n| &&
-             `        for (const message of record.messages || []) {` && |\n| &&
-             `          out.push({` && |\n| &&
-             `            ts: record.ts,` && |\n| &&
-             `            level: messageLevel(message),` && |\n| &&
-             `            source: messageSource(message),` && |\n| &&
-             `            text: message.text,` && |\n| &&
-             `            previousLoad: record.previousLoad,` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      out.sort((a, b) => {` && |\n| &&
-             `        if (a.ts === b.ts) return 0;` && |\n| &&
-             `        return a.ts < b.ts ? -1 : 1;` && |\n| &&
-             `      });` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function countLevels(entries) {` && |\n| &&
-             `      const out = { error: 0, warn: 0, info: 0, log: 0, debug: 0 };` && |\n| &&
-             `      for (const entry of entries) {` && |\n| &&
-             `        if (out[entry.level] !== undefined) out[entry.level] += 1;` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatLog(ctx) {` && |\n| &&
-             `      const entries = collectLog(ctx);` && |\n| &&
-             `      const lines = ["abap2UI5 Developer Tools - Log"];` && |\n| &&
-             `      lines.push("");` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        "  One timeline of everything the app logged, so the browser's own",` && |\n| &&
-             `      );` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        "  devtools do not have to be open. The origin is in the third",` && |\n| &&
-             `      );` && |\n| &&
-             `      lines.push("  column:");` && |\n| &&
-             `      lines.push("");` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        "    framework   the framework's own error log (Lib.logError)",` && |\n| &&
-             `      );` && |\n| &&
-             `      lines.push("    ui5         UI5's log - binding and control problems");` && |\n| &&
-             `      lines.push("    console     a console.* call from the app or a library");` && |\n| &&
-             `      lines.push("    uncaught    an uncaught error");` && |\n| &&
-             `      lines.push("    rejection   an unhandled promise rejection");` && |\n| &&
-             `      lines.push("    toast/box   a backend message the user was shown");` && |\n| &&
-             `      lines.push("");` && |\n| &&
-             `      const counts = countLevels(entries);` && |\n| &&
-             `      const dropped = Console.getDropped();` && |\n| &&
-             `      lines.push(` && |\n| &&
-             `        ``  ${entries.length} entr(ies) - ${counts.error} error,`` +` && |\n| &&
-             `          `` ${counts.warn} warn, ${counts.info} info, ${counts.log} log,`` +` && |\n| &&
-             `          `` ${counts.debug} debug`` +` && |\n| &&
-             `          (dropped ? `` (${dropped} older console entries dropped)`` : ""),` && |\n| &&
-             `      );` && |\n| &&
-             `      lines.push("");` && |\n| &&
-             `      if (!entries.length) {` && |\n| &&
-             `        lines.push("  (nothing logged yet)");` && |\n| &&
-             `        return lines.join("\n");` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const entry of entries) {` && |\n| &&
-             `        const label = LEVEL_LABEL[entry.level] || entry.level.toUpperCase();` && |\n| &&
-             `        const head =` && |\n| &&
-             `          ``  ${entry.ts.slice(11, 23)}${entry.previousLoad ? "*" : " "} `` +` && |\n| &&
-             `          ``${label}  ${entry.source.padEnd(SOURCE_WIDTH)}``;` && |\n| &&
-             `        const [first, ...rest] = String(entry.text).split("\n");` && |\n| &&
-             `        lines.push(``${head}${first}``);` && |\n| &&
-             `` && |\n| &&
-             `        for (const line of rest) {` && |\n| &&
-             `          lines.push(``${CONTINUATION_INDENT}${line.trim()}``);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (entries.some((entry) => entry.previousLoad)) {` && |\n| &&
-             `        lines.push("");` && |\n| &&
-             `        lines.push(` && |\n| &&
-             `          "  A '*' after the time marks an entry of the PREVIOUS page load," +` && |\n| &&
-             `            " carried across the reload.",` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return lines.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return { collectLog, countLevels, formatLog };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/Picker.js": function(){sap.ui.define(` && |\n|.
-    result = result &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Element",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/devtools/Format",` && |\n| &&
-             `    "z2ui5/devtools/SlotXml",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Element, Lib, Env, ViewSlots, Format, SlotXml) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const { FRAMEWORK_CALL, describeValue } = Format;` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_VALUE_CHARS = 80;` && |\n| &&
-             `` && |\n| &&
-             `    const OVERLAY_ID = "z2ui5DevToolsPickerOverlay";` && |\n| &&
-             `` && |\n| &&
-             `    let active = false;` && |\n| &&
-             `` && |\n| &&
-             `    let activeCtx = null;` && |\n| &&
-             `    let onDone = null;` && |\n| &&
-             `    let boundMove = null;` && |\n| &&
-             `    let boundClick = null;` && |\n| &&
-             `    let boundKey = null;` && |\n| &&
-             `` && |\n| &&
-             `    let lastNode = null;` && |\n| &&
-             `    let frameId = 0;` && |\n| &&
-             `` && |\n| &&
-             `    function controlFromDom(node) {` && |\n| &&
-             `      if (!node) return null;` && |\n| &&
-             `      if (Element.closestTo) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          return Element.closestTo(node) || null;` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          return null;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      let current = node;` && |\n| &&
-             `      while (current && current !== document.body) {` && |\n| &&
-             `        const id = current.id;` && |\n| &&
-             `        if (id) {` && |\n| &&
-             `          const control = Env.getElementById(id);` && |\n| &&
-             `          if (control) return control;` && |\n| &&
-             `        }` && |\n| &&
-             `        current = current.parentElement;` && |\n| &&
-             `      }` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function overlay() {` && |\n| &&
-             `      let el = document.getElementById(OVERLAY_ID);` && |\n| &&
-             `      if (!el) {` && |\n| &&
-             `        el = document.createElement("div");` && |\n| &&
-             `        el.id = OVERLAY_ID;` && |\n| &&
-             `        el.style.position = "fixed";` && |\n| &&
-             `        el.style.pointerEvents = "none";` && |\n| &&
-             `        el.style.zIndex = "2147483647";` && |\n| &&
-             `        el.style.background = "rgba(0, 112, 242, 0.25)";` && |\n| &&
-             `        el.style.border = "2px solid #0070f2";` && |\n| &&
-             `        el.style.borderRadius = "2px";` && |\n| &&
-             `        el.style.display = "none";` && |\n| &&
-             `        document.body.appendChild(el);` && |\n| &&
-             `      }` && |\n| &&
-             `      return el;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function highlight(control) {` && |\n| &&
-             `      const el = overlay();` && |\n| &&
-             `      const dom = control?.getDomRef?.();` && |\n| &&
-             `      if (!dom) {` && |\n| &&
-             `        el.style.display = "none";` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const rect = dom.getBoundingClientRect();` && |\n| &&
-             `      el.style.display = "block";` && |\n| &&
-             `      el.style.left = ``${rect.left}px``;` && |\n| &&
-             `      el.style.top = ``${rect.top}px``;` && |\n| &&
-             `      el.style.width = ``${rect.width}px``;` && |\n| &&
-             `      el.style.height = ``${rect.height}px``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function removeOverlay() {` && |\n| &&
-             `      document.getElementById(OVERLAY_ID)?.remove();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function collectBindings(control) {` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      const infos = control.mBindingInfos || {};` && |\n| &&
-             `      for (const [name, info] of Object.entries(infos)) {` && |\n| &&
-             `        const parts = info.parts || (info.path !== undefined ? [info] : []);` && |\n| &&
-             `        for (const part of parts) {` && |\n| &&
-             `          const model = control.getModel(part.model);` && |\n| &&
-             `          let value;` && |\n| &&
-             `          try {` && |\n| &&
-             `            value = model?.getProperty` && |\n| &&
-             `              ? model.getProperty(` && |\n| &&
-             `                  part.path,` && |\n| &&
-             `                  control.getBindingContext(part.model),` && |\n| &&
-             `                )` && |\n| &&
-             `              : undefined;` && |\n| &&
-             `          } catch {` && |\n| &&
-             `            value = undefined;` && |\n| &&
-             `          }` && |\n| &&
-             `          out.push({` && |\n| &&
-             `            name,` && |\n| &&
-             `            path: part.path,` && |\n| &&
-             `            model: part.model || "(default)",` && |\n| &&
-             `            value,` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const regExpEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");` && |\n| &&
-             `` && |\n| &&
-             `    function xmlAttributesOf(ctx, control, slotKey) {` && |\n| &&
-             `      const localId = String(control.getId?.() || "")` && |\n| &&
-             `        .split("--")` && |\n| &&
-             `        .pop();` && |\n| &&
-             `      const xml = SlotXml.slotXml(ctx, slotKey);` && |\n| &&
-             `      if (!localId || !xml) return "";` && |\n| &&
-             `` && |\n| &&
-             `      const id = regExpEscape(localId);` && |\n| &&
-             `      const idAttr = new RegExp(``\\sid\\s*=\\s*(?:"${id}"|'${id}')``);` && |\n| &&
-             `      const at = xml.search(idAttr);` && |\n| &&
-             `      if (at < 0) return "";` && |\n| &&
-             `      const open = xml.lastIndexOf("<", at);` && |\n| &&
-             `      const close = xml.indexOf(">", at);` && |\n| &&
-             `      return open < 0 || close < 0 ? "" : xml.slice(open, close);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function collectEvents(ctx, control, slotKey) {` && |\n| &&
-             `      const registry = control.mEventRegistry || {};` && |\n| &&
-             `      const attributes = xmlAttributesOf(ctx, control, slotKey);` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      for (const [name, handlers] of Object.entries(registry)) {` && |\n| &&
-             `        for (const handler of handlers || []) {` && |\n| &&
-             `          let match = FRAMEWORK_CALL.exec(String(handler?.fFunction || ""));` && |\n| &&
-             `          if (!match && attributes) {` && |\n| &&
-             `            const attr = new RegExp(` && |\n| &&
-             `              ``\\s${regExpEscape(name)}\\s*=\\s*(?:"([^"]*)"|'([^']*)')``,` && |\n| &&
-             `            ).exec(attributes);` && |\n| &&
-             `            match = attr ? FRAMEWORK_CALL.exec(attr[1] ?? attr[2] ?? "") : null;` && |\n| &&
-             `          }` && |\n| &&
-             `          out.push(match ? ``${name} -> ${match[1]}('${match[2]}')`` : name);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out.sort();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function renderValue(value) {` && |\n| &&
-             `      return describeValue(value, {` && |\n| &&
-             `        max: MAX_VALUE_CHARS,` && |\n| &&
-             `        absent: "(no value at this path)",` && |\n| &&
-             `        empty: "(empty string)",` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function describe(ctx, control) {` && |\n| &&
-             `      if (!control) return "(no control found at that position)";` && |\n| &&
-             `      const out = ["abap2UI5 Developer Tools - Picked control"];` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push(``  Type        ${control.getMetadata?.().getName?.() || "?"}``);` && |\n| &&
-             `      out.push(``  Id          ${control.getId?.() || "?"}``);` && |\n| &&
-             `      const slotKey = ViewSlots.containingSlotKey?.(ctx, control);` && |\n| &&
-             `      out.push(``  View slot   ${slotKey || "(not inside a view slot)"}``);` && |\n| &&
-             `` && |\n| &&
-             `      const bindings = collectBindings(control);` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push("Bindings");` && |\n| &&
-             `      out.push("--------");` && |\n| &&
-             `      if (!bindings.length) {` && |\n| &&
-             `        out.push("  (this control carries no binding - it is static XML)");` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const binding of bindings) {` && |\n| &&
-             `        out.push(``  ${binding.name}``);` && |\n| &&
-             `        out.push(``      path   ${binding.path}   [model ${binding.model}]``);` && |\n| &&
-             `        out.push(``      value  ${renderValue(binding.value)}``);` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const events = collectEvents(ctx, control, slotKey);` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push("Events");` && |\n| &&
-             `      out.push("------");` && |\n| &&
-             `      if (!events.length) out.push("  (no event handler attached)");` && |\n| &&
-             `      for (const event of events) out.push(``  ${event}``);` && |\n| &&
-             `` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        "  A binding path maps 1:1 onto the ABAP attribute the app bound" +` && |\n| &&
-             `          " with client->_bind( ): /NAME is the attribute NAME.",` && |\n| &&
-             `      );` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function stop(ctx) {` && |\n| &&
-             `      if (!active) return;` && |\n| &&
-             `      if (ctx && activeCtx !== ctx) return;` && |\n| &&
-             `      active = false;` && |\n| &&
-             `      activeCtx = null;` && |\n| &&
-             `      document.removeEventListener("mousemove", boundMove, true);` && |\n| &&
-             `      document.removeEventListener("click", boundClick, true);` && |\n| &&
-             `      document.removeEventListener("keydown", boundKey, true);` && |\n| &&
-             `      boundMove = null;` && |\n| &&
-             `      boundClick = null;` && |\n| &&
-             `      boundKey = null;` && |\n| &&
-             `      if (frameId) {` && |\n| &&
-             `        cancelAnimationFrame(frameId);` && |\n| &&
-             `        frameId = 0;` && |\n| &&
-             `      }` && |\n| &&
-             `      lastNode = null;` && |\n| &&
-             `` && |\n| &&
-             `      onDone = null;` && |\n| &&
-             `      removeOverlay();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function start(ctx, callback) {` && |\n| &&
-             `      if (active) return;` && |\n| &&
-             `      active = true;` && |\n| &&
-             `      activeCtx = ctx;` && |\n| &&
-             `      onDone = callback;` && |\n| &&
-             `` && |\n| &&
-             `      boundMove = (event) => {` && |\n| &&
-             `        if (event.target === lastNode) return;` && |\n| &&
-             `        lastNode = event.target;` && |\n| &&
-             `        if (frameId) return;` && |\n| &&
-             `        frameId = requestAnimationFrame(() => {` && |\n| &&
-             `          frameId = 0;` && |\n| &&
-             `          if (active) highlight(controlFromDom(lastNode));` && |\n| &&
-             `        });` && |\n| &&
-             `      };` && |\n| &&
-             `      boundClick = (event) => {` && |\n| &&
-             `        event.preventDefault();` && |\n| &&
-             `        event.stopPropagation();` && |\n| &&
-             `        const control = controlFromDom(event.target);` && |\n| &&
-             `        let report;` && |\n| &&
-             `        try {` && |\n| &&
-             `          report = describe(ctx, control);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DevTools Picker: describe failed", e);` && |\n| &&
-             `          report = "(could not inspect that control)";` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (ctx?.devtools) ctx.devtools.pickReport = report;` && |\n| &&
-             `        const done = onDone;` && |\n| &&
-             `        stop();` && |\n| &&
-             `        if (done) done(report);` && |\n| &&
-             `      };` && |\n| &&
-             `      boundKey = (event) => {` && |\n| &&
-             `        if (event.key !== "Escape") return;` && |\n| &&
-             `        event.preventDefault();` && |\n| &&
-             `        event.stopPropagation();` && |\n| &&
-             `        const done = onDone;` && |\n| &&
-             `        stop();` && |\n| &&
-             `        if (done) done(null);` && |\n| &&
-             `      };` && |\n| &&
-             `` && |\n| &&
-             `      document.addEventListener("mousemove", boundMove, true);` && |\n| &&
-             `      document.addEventListener("click", boundClick, true);` && |\n| &&
-             `      document.addEventListener("keydown", boundKey, true);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      start,` && |\n| &&
-             `      stop,` && |\n| &&
-             `      describe,` && |\n| &&
-             `      isActive: () => active,` && |\n| &&
-             `` && |\n| &&
-             `      lastReport: (ctx) => ctx?.devtools?.pickReport || "",` && |\n| &&
-             `      _internals: { collectBindings, collectEvents, renderValue },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/Report.js": function(){sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/devtools/Recorder", "z2ui5/devtools/Tabs"],` && |\n| &&
-             `  (Lib, Recorder, Tabs) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_SECTION = 100000;` && |\n| &&
-             `` && |\n| &&
-             `    const ABAP_SOURCE_ORDER = 55;` && |\n| &&
-             `    const ABAP_SOURCE_TITLE = "ABAP SOURCE";` && |\n| &&
-             `` && |\n| &&
-             `    const SECRET_KEY =` && |\n| &&
-             `      /^[A-Za-z0-9_/-]*(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)[A-Za-z0-9_/-]*$/i;` && |\n| &&
-             `    const MASK = "***";` && |\n| &&
-             `` && |\n| &&
-             `    function redactForExport(text) {` && |\n| &&
-             `      return String(text)` && |\n| &&
-             `        .replace(/^(\s*sap-contextid\s+)(\S.*)$/gim, (_m, lead, value) =>` && |\n| &&
-             `          value === "-" ? lead + value : lead + MASK,` && |\n| &&
-             `        )` && |\n| &&
-             `        .replace(` && |\n| &&
-             `          /"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,` && |\n| &&
-             `          (match, key, colon) =>` && |\n| &&
-             `            SECRET_KEY.test(key) ? ``"${key}"${colon}"${MASK}"`` : match,` && |\n| &&
-             `        );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function buildExport(ctx, abapSource) {` && |\n| &&
-             `      const sections = [];` && |\n| &&
-             `      const push = (title, content) => {` && |\n| &&
-             `        if (!content) return;` && |\n| &&
-             `        let body = String(content);` && |\n| &&
-             `        if (body.length > MAX_SECTION) {` && |\n| &&
-             `          body =` && |\n| &&
-             `            ``${body.slice(0, MAX_SECTION)}\n\n... [truncated `` +` && |\n| &&
-             `            ``${body.length - MAX_SECTION} more characters - the developer `` +` && |\n| &&
-             `            ``tools show the full ${title} content]``;` && |\n| &&
-             `        }` && |\n| &&
-             `        sections.push(``===== ${title} =====\n${body}``);` && |\n| &&
-             `      };` && |\n| &&
-             `` && |\n| &&
-             `      const entries = Tabs.exportTabs(ctx).map((tab) => ({` && |\n| &&
-             `        order: tab.exportOrder,` && |\n| &&
-             `        title: Tabs.exportTitle(tab),` && |\n| &&
-             `` && |\n| &&
-             `        body: redactForExport(Tabs.render(ctx, tab.key)),` && |\n| &&
-             `      }));` && |\n| &&
-             `      if (abapSource) {` && |\n| &&
-             `        entries.push({` && |\n| &&
-             `          order: ABAP_SOURCE_ORDER,` && |\n| &&
-             `          title: ABAP_SOURCE_TITLE,` && |\n| &&
-             `          body: abapSource,` && |\n| &&
-             `        });` && |\n| &&
-             `      }` && |\n| &&
-             `      entries.sort((a, b) => a.order - b.order);` && |\n| &&
-             `      for (const entry of entries) push(entry.title, entry.body);` && |\n| &&
-             `` && |\n| &&
-             `      return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function buildMarkdown(` && |\n| &&
-             `      ctx,` && |\n| &&
-             `      abapSource,` && |\n| &&
-             `      plain = buildExport(ctx, abapSource),` && |\n| &&
-             `    ) {` && |\n| &&
-             `      const blocks = plain.split(/^===== (.+) =====$/m);` && |\n| &&
-             `` && |\n| &&
-             `      const out = ["## abap2UI5 - Developer Tools export", ""];` && |\n| &&
-             `      for (let i = 1; i < blocks.length; i += 2) {` && |\n| &&
-             `        const title = blocks[i];` && |\n| &&
-             `        const body = (blocks[i + 1] || "").trim();` && |\n| &&
-             `        if (!body) continue;` && |\n| &&
-             `` && |\n| &&
-             `        const open = title === "ENVIRONMENT" ? " open" : "";` && |\n| &&
-             `        const fence = title.includes("SOURCE") ? "abap" : "text";` && |\n| &&
-             `        out.push(``<details${open}>``);` && |\n| &&
-             `        out.push(``<summary>${title}</summary>``);` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `        out.push(``\``\``\``${fence}``);` && |\n| &&
-             `        out.push(body);` && |\n| &&
-             `        out.push("``````");` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `        out.push("</details>");` && |\n| &&
-             `        out.push("");` && |\n| &&
-             `      }` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function exportFileName(appName, extension) {` && |\n| &&
-             `      const stamp = new Date().toISOString().replace(/[:.]/g, "-");` && |\n| &&
-             `      return ``${appName || "abap2ui5"}_${stamp}.${extension}``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function downloadText(fileName, content, mimeType) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const blob = new Blob([content], {` && |\n| &&
-             `          type: ``${mimeType || "text/plain"};charset=utf-8``,` && |\n| &&
-             `        });` && |\n| &&
-             `        const url = URL.createObjectURL(blob);` && |\n| &&
-             `        const anchor = document.createElement("a");` && |\n| &&
-             `        anchor.href = url;` && |\n| &&
-             `        anchor.download = fileName;` && |\n| &&
-             `        document.body.appendChild(anchor);` && |\n| &&
-             `        anchor.click();` && |\n| &&
-             `` && |\n| &&
-             `        setTimeout(() => {` && |\n| &&
-             `          URL.revokeObjectURL(url);` && |\n| &&
-             `          anchor.remove();` && |\n| &&
-             `        }, 40000);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools Report: download failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const confirmState = new WeakMap();` && |\n| &&
-             `    function confirmOnButton(oButton) {` && |\n| &&
-             `      let state = confirmState.get(oButton);` && |\n| &&
-             `      if (state) {` && |\n| &&
-             `        clearTimeout(state.timer);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        state = { original: oButton.getText(), timer: null };` && |\n| &&
-             `        confirmState.set(oButton, state);` && |\n| &&
-             `      }` && |\n| &&
-             `      oButton.setText("Copied");` && |\n| &&
-             `      state.timer = setTimeout(() => {` && |\n|.
-    result = result &&
-             `        confirmState.delete(oButton);` && |\n| &&
-             `        if (!Lib.isDestroyed(oButton)) oButton.setText(state.original);` && |\n| &&
-             `      }, 1500);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function openDialog(ctx, appName, abapSource) {` && |\n| &&
-             `      const text = buildExport(ctx, abapSource);` && |\n| &&
-             `      sap.ui.require(` && |\n| &&
-             `        ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
-             `        (Dialog, TextArea, Button) => {` && |\n| &&
-             `          const area = new TextArea({` && |\n| &&
-             `            editable: true,` && |\n| &&
-             `            width: "100%",` && |\n| &&
-             `            rows: 25,` && |\n| &&
-             `            growing: false,` && |\n| &&
-             `          });` && |\n| &&
-             `` && |\n| &&
-             `          area.setValue(text);` && |\n| &&
-             `          const dialog = new Dialog({` && |\n| &&
-             `            title: "abap2UI5 - Developer Tools Export",` && |\n| &&
-             `            stretch: true,` && |\n| &&
-             `            content: [area],` && |\n| &&
-             `` && |\n| &&
-             `            buttons: [` && |\n| &&
-             `              new Button({` && |\n| &&
-             `                text: "Copy",` && |\n| &&
-             `                type: "Emphasized",` && |\n| &&
-             `` && |\n| &&
-             `                press: (oEvent) => {` && |\n| &&
-             `                  Lib.copyToClipboard(text);` && |\n| &&
-             `                  confirmOnButton(oEvent.getSource());` && |\n| &&
-             `                },` && |\n| &&
-             `              }),` && |\n| &&
-             `` && |\n| &&
-             `              new Button({` && |\n| &&
-             `                text: "Download Report",` && |\n| &&
-             `                press: () => downloadText(exportFileName(appName, "txt"), text),` && |\n| &&
-             `              }),` && |\n| &&
-             `              new Button({` && |\n| &&
-             `                text: "Download History (JSON)",` && |\n| &&
-             `                press: () =>` && |\n| &&
-             `                  downloadText(` && |\n| &&
-             `                    exportFileName(appName, "json"),` && |\n| &&
-             `                    Recorder.exportJson(ctx),` && |\n| &&
-             `                    "application/json",` && |\n| &&
-             `                  ),` && |\n| &&
-             `              }),` && |\n| &&
-             `              new Button({` && |\n| &&
-             `                text: "Close",` && |\n| &&
-             `                press: () => dialog.close(),` && |\n| &&
-             `              }),` && |\n| &&
-             `            ],` && |\n| &&
-             `            afterClose: () => dialog.destroy(),` && |\n| &&
-             `          });` && |\n| &&
-             `          dialog.open();` && |\n| &&
-             `        },` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const ISSUE_FORM = "https://github.com/abap2UI5/abap2UI5/issues/new";` && |\n| &&
-             `    function issueUrl() {` && |\n| &&
-             `      const fields = [` && |\n| &&
-             `        ["template", "bug_report.yml"],` && |\n| &&
-             `        ["context", "Paste the copied report here (Ctrl+V / Cmd+V)."],` && |\n| &&
-             `      ];` && |\n| &&
-             `      const query = fields` && |\n| &&
-             `        .map(([key, value]) => ``${key}=${encodeURIComponent(value)}``)` && |\n| &&
-             `        .join("&");` && |\n| &&
-             `      return ``${ISSUE_FORM}?${query}``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const COPIED =` && |\n| &&
-             `      "Bug report copied as Markdown - paste it into the issue form on GitHub (Additional context).";` && |\n| &&
-             `` && |\n| &&
-             `    async function copyMarkdown(ctx, abapSource) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const copied = await Lib.copyToClipboard(` && |\n| &&
-             `          buildMarkdown(ctx, abapSource),` && |\n| &&
-             `        );` && |\n| &&
-             `        if (copied === false) {` && |\n| &&
-             `          return "The browser did not allow the copy - press again.";` && |\n| &&
-             `        }` && |\n| &&
-             `        return COPIED;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("DevTools Report: markdown export failed", e);` && |\n| &&
-             `        return ``Could not build the report: ${e?.message || e}``;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      COPIED,` && |\n| &&
-             `      buildExport,` && |\n| &&
-             `      buildMarkdown,` && |\n| &&
-             `      confirmOnButton,` && |\n| &&
-             `      copyMarkdown,` && |\n| &&
-             `      issueUrl,` && |\n| &&
-             `      redactForExport,` && |\n| &&
-             `      downloadText,` && |\n| &&
-             `      exportFileName,` && |\n| &&
-             `      openDialog,` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/SlotXml.js": function(){sap.ui.define(["z2ui5/core/ViewSlots"], (ViewSlots) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
-             `` && |\n| &&
-             `  function viewContent(view) {` && |\n| &&
-             `    return view?.mProperties?.viewContent;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function slotXml(ctx, slotKey) {` && |\n| &&
-             `    if (!slotKey) return "";` && |\n| &&
-             `    return (` && |\n| &&
-             `      viewContent(ViewSlots.getView?.(ctx, slotKey)) ||` && |\n| &&
-             `      ViewSlots.getViewXml?.(ctx, slotKey) ||` && |\n| &&
-             `      ""` && |\n| &&
-             `    );` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return { viewContent, slotXml };` && |\n| &&
-             `});` && |\n| &&
-             `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/Tabs.js": function(){sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/devtools/Format",` && |\n| &&
-             `    "z2ui5/devtools/Inspect",` && |\n| &&
-             `    "z2ui5/devtools/Journey",` && |\n| &&
-             `    "z2ui5/devtools/Picker",` && |\n| &&
-             `    "z2ui5/devtools/Recorder",` && |\n| &&
-             `    "z2ui5/devtools/SlotXml",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (ViewSlots, Format, Inspect, Journey, Picker, Recorder, SlotXml) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    function getModelJson(view) {` && |\n| &&
-             `      const model = ViewSlots.trackedModel(view) ?? view?.getModel?.();` && |\n| &&
-             `      return model?.getData?.();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function hasModelData(ctx, slotKey) {` && |\n| &&
-             `      const data = getModelJson(ViewSlots.getView(ctx, slotKey));` && |\n| &&
-             `      return Boolean(data) && Object.keys(data).length > 0;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getRenderedContent(view) {` && |\n| &&
-             `      return view?._xContent?.outerHTML;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const getSlotXml = SlotXml.slotXml;` && |\n| &&
-             `` && |\n| &&
-             `    function slotFilled(ctx, slotKey) {` && |\n| &&
-             `      return Boolean(getSlotXml(ctx, slotKey));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const GROUPS = [` && |\n| &&
-             `      { key: "OVERVIEW", label: "Overview" },` && |\n| &&
-             `      { key: "PROBLEMS", label: "Problems" },` && |\n| &&
-             `      { key: "ROUNDTRIPS", label: "Roundtrips" },` && |\n| &&
-             `      { key: "VIEWDATA", label: "View & Data" },` && |\n| &&
-             `      { key: "SYSTEM", label: "System" },` && |\n| &&
-             `      { key: "SEARCH", label: "Search" },` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const DEFAULT_GROUP = "OVERVIEW";` && |\n| &&
-             `` && |\n| &&
-             `    const SLOTS = [` && |\n| &&
-             `      { key: "MAIN", label: "Main" },` && |\n| &&
-             `      { key: "POPUP", label: "Popup" },` && |\n| &&
-             `      { key: "POPOVER", label: "Popover" },` && |\n| &&
-             `      { key: "NEST", label: "Nested 1" },` && |\n| &&
-             `      { key: "NEST2", label: "Nested 2" },` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const ASPECTS = ["XML", "MODEL", "BINDINGS"];` && |\n| &&
-             `` && |\n| &&
-             `    const TABS = [` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "OVERVIEW",` && |\n| &&
-             `        group: "OVERVIEW",` && |\n| &&
-             `        label: "Overview",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatOverview(ctx),` && |\n| &&
-             `` && |\n| &&
-             `        searchable: false,` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "ERROR",` && |\n| &&
-             `        group: "PROBLEMS",` && |\n| &&
-             `        label: "Error",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatError(ctx),` && |\n| &&
-             `        enabled: (ctx) => Boolean(ctx.state.lastError),` && |\n| &&
-             `        exportOrder: 20,` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "LOG",` && |\n| &&
-             `        group: "PROBLEMS",` && |\n| &&
-             `        label: "Log",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatLog(ctx),` && |\n| &&
-             `        exportOrder: 30,` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "HISTORY",` && |\n| &&
-             `        group: "ROUNDTRIPS",` && |\n| &&
-             `        label: "History",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Recorder.formatHistory(ctx),` && |\n| &&
-             `        exportOrder: 40,` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "REQUEST",` && |\n| &&
-             `        group: "ROUNDTRIPS",` && |\n| &&
-             `        label: "Request",` && |\n| &&
-             `        kind: "json",` && |\n| &&
-             `        produce: (ctx) => Format.toJson(ctx.state.oBody),` && |\n| &&
-             `        exportOrder: 80,` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "PLAIN",` && |\n| &&
-             `        group: "ROUNDTRIPS",` && |\n| &&
-             `        label: "Response",` && |\n| &&
-             `        kind: "json",` && |\n| &&
-             `        produce: (ctx) => Format.toJson(ctx.state.responseData),` && |\n| &&
-             `        exportOrder: 70,` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "ACTIONS",` && |\n| &&
-             `        group: "ROUNDTRIPS",` && |\n| &&
-             `        label: "Actions",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatActions(ctx),` && |\n| &&
-             `        exportOrder: 60,` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "DIFF",` && |\n| &&
-             `        group: "ROUNDTRIPS",` && |\n| &&
-             `        label: "Model Diff",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Recorder.formatModelDiff(ctx),` && |\n| &&
-             `` && |\n| &&
-             `        exportOrder: 50,` && |\n| &&
-             `        inExport: (_ctx) => Recorder.isRecordingPayloads(),` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "VIEWDIFF",` && |\n| &&
-             `        group: "ROUNDTRIPS",` && |\n| &&
-             `        label: "View Diff",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Recorder.formatViewDiff(ctx),` && |\n| &&
-             `        exportOrder: 51,` && |\n| &&
-             `        inExport: (_ctx) => Recorder.isRecordingPayloads(),` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "JOURNEY",` && |\n| &&
-             `        group: "ROUNDTRIPS",` && |\n| &&
-             `        label: "Journey",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Journey.formatJourney(ctx),` && |\n| &&
-             `` && |\n| &&
-             `        exportOrder: 45,` && |\n| &&
-             `        inExport: (ctx) => Journey.stepCount(ctx) > 0,` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "VIEW",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "MAIN",` && |\n| &&
-             `        aspect: "XML",` && |\n| &&
-             `        label: "XML",` && |\n| &&
-             `        kind: "xml",` && |\n| &&
-             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "MAIN")),` && |\n| &&
-             `        rendered: (ctx) =>` && |\n| &&
-             `          Format.prettifyXml(` && |\n| &&
-             `            getRenderedContent(ViewSlots.getView(ctx, "MAIN")),` && |\n| &&
-             `          ),` && |\n| &&
-             `        enabled: (ctx) => slotFilled(ctx, "MAIN"),` && |\n| &&
-             `        exportOrder: 90,` && |\n| &&
-             `        exportTitle: "VIEW",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "MODEL",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "MAIN",` && |\n| &&
-             `        aspect: "MODEL",` && |\n| &&
-             `        label: "Model",` && |\n| &&
-             `        kind: "json",` && |\n| &&
-             `        produce: (ctx) =>` && |\n| &&
-             `          Format.toJson(getModelJson(ViewSlots.getView(ctx, "MAIN"))),` && |\n| &&
-             `        enabled: (ctx) => hasModelData(ctx, "MAIN"),` && |\n| &&
-             `        exportOrder: 91,` && |\n| &&
-             `        exportTitle: "VIEW MODEL",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "BINDINGS",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "MAIN",` && |\n| &&
-             `        aspect: "BINDINGS",` && |\n| &&
-             `        label: "Bindings",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatBindings(ctx, "MAIN"),` && |\n| &&
-             `        enabled: (ctx) => hasModelData(ctx, "MAIN"),` && |\n| &&
-             `        exportOrder: 92,` && |\n| &&
-             `        exportTitle: "VIEW BINDINGS",` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPUP",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "POPUP",` && |\n| &&
-             `        aspect: "XML",` && |\n| &&
-             `        label: "XML",` && |\n| &&
-             `        kind: "xml",` && |\n| &&
-             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "POPUP")),` && |\n| &&
-             `        enabled: (ctx) => slotFilled(ctx, "POPUP"),` && |\n| &&
-             `        exportOrder: 100,` && |\n| &&
-             `` && |\n| &&
-             `        exportTitle: "POPUP",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPUP_MODEL",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "POPUP",` && |\n| &&
-             `        aspect: "MODEL",` && |\n| &&
-             `        label: "Model",` && |\n| &&
-             `        kind: "json",` && |\n| &&
-             `        produce: (ctx) =>` && |\n| &&
-             `          Format.toJson(getModelJson(ViewSlots.getView(ctx, "POPUP"))),` && |\n| &&
-             `        enabled: (ctx) => hasModelData(ctx, "POPUP"),` && |\n| &&
-             `        exportOrder: 101,` && |\n| &&
-             `        exportTitle: "POPUP MODEL",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPUP_BINDINGS",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "POPUP",` && |\n| &&
-             `        aspect: "BINDINGS",` && |\n| &&
-             `        label: "Bindings",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatBindings(ctx, "POPUP"),` && |\n| &&
-             `        enabled: (ctx) => hasModelData(ctx, "POPUP"),` && |\n| &&
-             `        exportOrder: 102,` && |\n| &&
-             `        exportTitle: "POPUP BINDINGS",` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPOVER",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "POPOVER",` && |\n| &&
-             `        aspect: "XML",` && |\n| &&
-             `        label: "XML",` && |\n| &&
-             `        kind: "xml",` && |\n| &&
-             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "POPOVER")),` && |\n| &&
-             `        enabled: (ctx) => slotFilled(ctx, "POPOVER"),` && |\n| &&
-             `        exportOrder: 110,` && |\n| &&
-             `        exportTitle: "POPOVER",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPOVER_MODEL",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "POPOVER",` && |\n| &&
-             `        aspect: "MODEL",` && |\n| &&
-             `        label: "Model",` && |\n| &&
-             `        kind: "json",` && |\n| &&
-             `        produce: (ctx) =>` && |\n| &&
-             `          Format.toJson(getModelJson(ViewSlots.getView(ctx, "POPOVER"))),` && |\n| &&
-             `        enabled: (ctx) => hasModelData(ctx, "POPOVER"),` && |\n| &&
-             `        exportOrder: 111,` && |\n| &&
-             `        exportTitle: "POPOVER MODEL",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "POPOVER_BINDINGS",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "POPOVER",` && |\n| &&
-             `        aspect: "BINDINGS",` && |\n| &&
-             `        label: "Bindings",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatBindings(ctx, "POPOVER"),` && |\n| &&
-             `        enabled: (ctx) => hasModelData(ctx, "POPOVER"),` && |\n| &&
-             `        exportOrder: 112,` && |\n| &&
-             `        exportTitle: "POPOVER BINDINGS",` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "NEST1",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "NEST",` && |\n| &&
-             `        aspect: "XML",` && |\n| &&
-             `        label: "XML",` && |\n| &&
-             `        kind: "xml",` && |\n| &&
-             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST")),` && |\n| &&
-             `        rendered: (ctx) =>` && |\n| &&
-             `          Format.prettifyXml(` && |\n|.
-    result = result &&
-             `            getRenderedContent(ViewSlots.getView(ctx, "NEST")),` && |\n| &&
-             `          ),` && |\n| &&
-             `        enabled: (ctx) => slotFilled(ctx, "NEST"),` && |\n| &&
-             `        exportOrder: 120,` && |\n| &&
-             `        exportTitle: "NEST1",` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "NEST2",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        slot: "NEST2",` && |\n| &&
-             `        aspect: "XML",` && |\n| &&
-             `        label: "XML",` && |\n| &&
-             `        kind: "xml",` && |\n| &&
-             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST2")),` && |\n| &&
-             `        rendered: (ctx) =>` && |\n| &&
-             `          Format.prettifyXml(` && |\n| &&
-             `            getRenderedContent(ViewSlots.getView(ctx, "NEST2")),` && |\n| &&
-             `          ),` && |\n| &&
-             `        enabled: (ctx) => slotFilled(ctx, "NEST2"),` && |\n| &&
-             `        exportOrder: 121,` && |\n| &&
-             `        exportTitle: "NEST2",` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "PICK",` && |\n| &&
-             `        group: "VIEWDATA",` && |\n| &&
-             `        aspect: "PICK",` && |\n| &&
-             `        label: "Picked Control",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) =>` && |\n| &&
-             `          Picker.lastReport(ctx) ||` && |\n| &&
-             `          'No control picked yet - press "Pick Control", then click any' +` && |\n| &&
-             `            " control in the app.",` && |\n| &&
-             `        searchable: true,` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "SEARCH",` && |\n| &&
-             `        group: "SEARCH",` && |\n| &&
-             `        label: "Search",` && |\n| &&
-             `` && |\n| &&
-             `        kind: "search",` && |\n| &&
-             `        produce: () => "",` && |\n| &&
-             `` && |\n| &&
-             `        searchable: false,` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "ENV",` && |\n| &&
-             `        group: "SYSTEM",` && |\n| &&
-             `        label: "Environment",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatEnvironment(ctx),` && |\n| &&
-             `` && |\n| &&
-             `        exportOrder: 10,` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "REGISTRY",` && |\n| &&
-             `        group: "SYSTEM",` && |\n| &&
-             `        label: "Registry",` && |\n| &&
-             `        kind: "text",` && |\n| &&
-             `        produce: (ctx) => Inspect.formatRegistry(ctx),` && |\n| &&
-             `        exportOrder: 61,` && |\n| &&
-             `      },` && |\n| &&
-             `      {` && |\n| &&
-             `        key: "SOURCE",` && |\n| &&
-             `        group: "SYSTEM",` && |\n| &&
-             `        label: "ABAP Source",` && |\n| &&
-             `` && |\n| &&
-             `        kind: "source",` && |\n| &&
-             `        produce: () => "",` && |\n| &&
-             `` && |\n| &&
-             `        searchable: false,` && |\n| &&
-             `      },` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    const byKey = new Map(TABS.map((tab) => [tab.key, tab]));` && |\n| &&
-             `` && |\n| &&
-             `    function get(tabKey) {` && |\n| &&
-             `      return byKey.get(tabKey);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isKnown(tabKey) {` && |\n| &&
-             `      return Boolean(tabKey && byKey.has(tabKey));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isEnabled(ctx, tab) {` && |\n| &&
-             `      if (!tab) return false;` && |\n| &&
-             `      try {` && |\n| &&
-             `        return tab.enabled ? Boolean(tab.enabled(ctx)) : true;` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function groupOf(tabKey) {` && |\n| &&
-             `      return get(tabKey)?.group || DEFAULT_GROUP;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function enabledTabs(ctx, groupKey) {` && |\n| &&
-             `      return TABS.filter(` && |\n| &&
-             `        (tab) => tab.group === groupKey && isEnabled(ctx, tab),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function firstTabOf(ctx, groupKey) {` && |\n| &&
-             `      const first = TABS.find(` && |\n| &&
-             `        (tab) => tab.group === groupKey && isEnabled(ctx, tab),` && |\n| &&
-             `      );` && |\n| &&
-             `      return first?.key || "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function enabledSlots(ctx) {` && |\n| &&
-             `      const available = new Set(` && |\n| &&
-             `        enabledTabs(ctx, "VIEWDATA")` && |\n| &&
-             `          .filter((tab) => tab.slot)` && |\n| &&
-             `          .map((tab) => tab.slot),` && |\n| &&
-             `      );` && |\n| &&
-             `      return SLOTS.filter((slot) => available.has(slot.key));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function aspectsOfSlot(ctx, slotKey) {` && |\n| &&
-             `      return enabledTabs(ctx, "VIEWDATA")` && |\n| &&
-             `        .filter((tab) => tab.slot === slotKey)` && |\n| &&
-             `        .sort((a, b) => ASPECTS.indexOf(a.aspect) - ASPECTS.indexOf(b.aspect));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function tabFor(ctx, slotKey, aspect) {` && |\n| &&
-             `      const aspects = aspectsOfSlot(ctx, slotKey);` && |\n| &&
-             `      const exact = aspects.find((tab) => tab.aspect === aspect);` && |\n| &&
-             `      return (exact || aspects[0])?.key || "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function render(ctx, tabKey) {` && |\n| &&
-             `      const tab = get(tabKey);` && |\n| &&
-             `      if (!tab) return "";` && |\n| &&
-             `      try {` && |\n| &&
-             `        return tab.produce(ctx) ?? "";` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        return ``(${tab.label} could not be rendered: ${e?.message || e})``;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function renderTemplated(ctx, tabKey) {` && |\n| &&
-             `      const tab = get(tabKey);` && |\n| &&
-             `      if (!tab?.rendered) return "";` && |\n| &&
-             `      try {` && |\n| &&
-             `        return tab.rendered(ctx) || "";` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "";` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function searchableTabs(ctx) {` && |\n| &&
-             `      return TABS.filter(` && |\n| &&
-             `        (tab) => tab.searchable !== false && isEnabled(ctx, tab),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function exportTabs(ctx) {` && |\n| &&
-             `      return TABS.filter((tab) => {` && |\n| &&
-             `        if (tab.exportOrder === undefined) return false;` && |\n| &&
-             `        if (!isEnabled(ctx, tab)) return false;` && |\n| &&
-             `        try {` && |\n| &&
-             `          return tab.inExport ? Boolean(tab.inExport(ctx)) : true;` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
-             `      }).sort((a, b) => a.exportOrder - b.exportOrder);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function exportTitle(tab) {` && |\n| &&
-             `      return tab.exportTitle || tab.label.toUpperCase();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_HITS_PER_TAB = 20;` && |\n| &&
-             `` && |\n| &&
-             `    function searchLabel(tab) {` && |\n| &&
-             `      const group = GROUPS.find((entry) => entry.key === tab.group);` && |\n| &&
-             `      const slot = SLOTS.find((entry) => entry.key === tab.slot);` && |\n| &&
-             `      const parts = [group?.label || tab.group];` && |\n| &&
-             `      if (slot) parts.push(slot.label);` && |\n| &&
-             `      parts.push(tab.label);` && |\n| &&
-             `      return parts.join(" > ");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function search(ctx, term) {` && |\n| &&
-             `      const needle = String(term || "").toLowerCase();` && |\n| &&
-             `      if (!needle) return "(enter a search term)";` && |\n| &&
-             `      const sections = [];` && |\n| &&
-             `      let totalHits = 0;` && |\n| &&
-             `` && |\n| &&
-             `      for (const tab of searchableTabs(ctx)) {` && |\n| &&
-             `        const text = render(ctx, tab.key);` && |\n| &&
-             `        if (!text) continue;` && |\n| &&
-             `        const lines = String(text).split("\n");` && |\n| &&
-             `        const hits = [];` && |\n| &&
-             `        for (let i = 0; i < lines.length; i += 1) {` && |\n| &&
-             `          if (!lines[i].toLowerCase().includes(needle)) continue;` && |\n| &&
-             `          hits.push(``    ${String(i + 1).padStart(5)}: ${lines[i].trim()}``);` && |\n| &&
-             `          if (hits.length >= MAX_HITS_PER_TAB) break;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!hits.length) continue;` && |\n| &&
-             `        totalHits += hits.length;` && |\n| &&
-             `        sections.push(` && |\n| &&
-             `          ``  [${searchLabel(tab)}]  ${hits.length}`` +` && |\n| &&
-             `            ``${hits.length >= MAX_HITS_PER_TAB ? "+" : ""} hit(s)``,` && |\n| &&
-             `        );` && |\n| &&
-             `        sections.push(...hits);` && |\n| &&
-             `        sections.push("");` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const head = [` && |\n| &&
-             `        ``Search for "${term}" across every tab``,` && |\n| &&
-             `        "",` && |\n| &&
-             `        totalHits` && |\n| &&
-             `          ? ``${totalHits} hit(s) - the tab is named in brackets.``` && |\n| &&
-             `          : "(no hit in any tab)",` && |\n| &&
-             `        "",` && |\n| &&
-             `      ];` && |\n| &&
-             `      return head.concat(sections).join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return {` && |\n| &&
-             `      GROUPS,` && |\n| &&
-             `      SLOTS,` && |\n| &&
-             `      ASPECTS,` && |\n| &&
-             `      DEFAULT_GROUP,` && |\n| &&
-             `      get,` && |\n| &&
-             `      isKnown,` && |\n| &&
-             `      isEnabled,` && |\n| &&
-             `      groupOf,` && |\n| &&
-             `      enabledTabs,` && |\n| &&
-             `      firstTabOf,` && |\n| &&
-             `      enabledSlots,` && |\n| &&
-             `      aspectsOfSlot,` && |\n| &&
-             `      tabFor,` && |\n| &&
-             `      render,` && |\n| &&
-             `      renderTemplated,` && |\n| &&
-             `      search,` && |\n| &&
-             `      searchableTabs,` && |\n| &&
-             `      exportTabs,` && |\n| &&
-             `      exportTitle,` && |\n| &&
-             `` && |\n| &&
-             `      _internals: { TABS, getSlotXml, hasModelData, searchLabel },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `      "z2ui5/devtools/Tabs.js": function(){sap.ui.define(["z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/Inspect","z2ui5/devtools/Journey","z2ui5/devtools/Picker","z2ui5/devtools/Recor` &&
+             `der","z2ui5/devtools/SlotXml"],(ViewSlots,Format,Inspect,Journey,Picker,Recorder,SlotXml)=>{"use strict";function getModelJson(view){const model=ViewSlots.trackedModel(view)??view?.getModel?.();return` &&
+             ` model?.getData?.()}function hasModelData(ctx,slotKey){const data=getModelJson(ViewSlots.getView(ctx,slotKey));return Boolean(data)&&Object.keys(data).length>0}function getRenderedContent(view){return` &&
+             ` view?._xContent?.outerHTML}const getSlotXml=SlotXml.slotXml;function slotFilled(ctx,slotKey){return Boolean(getSlotXml(ctx,slotKey))}const GROUPS=[{key:"OVERVIEW",label:"Overview"},{key:"PROBLEMS",la` &&
+             `bel:"Problems"},{key:"ROUNDTRIPS",label:"Roundtrips"},{key:"VIEWDATA",label:"View & Data"},{key:"SYSTEM",label:"System"},{key:"SEARCH",label:"Search"}];const DEFAULT_GROUP="OVERVIEW";const SLOTS=[{key` &&
+             `:"MAIN",label:"Main"},{key:"POPUP",label:"Popup"},{key:"POPOVER",label:"Popover"},{key:"NEST",label:"Nested 1"},{key:"NEST2",label:"Nested 2"}];const ASPECTS=["XML","MODEL","BINDINGS"];const TABS=[{ke` &&
+             `y:"OVERVIEW",group:"OVERVIEW",label:"Overview",kind:"text",produce:ctx=>Inspect.formatOverview(ctx),searchable:false},{key:"ERROR",group:"PROBLEMS",label:"Error",kind:"text",produce:ctx=>Inspect.forma` &&
+             `tError(ctx),enabled:ctx=>Boolean(ctx.state.lastError),exportOrder:20},{key:"LOG",group:"PROBLEMS",label:"Log",kind:"text",produce:ctx=>Inspect.formatLog(ctx),exportOrder:30},{key:"HISTORY",group:"ROUN` &&
+             `DTRIPS",label:"History",kind:"text",produce:ctx=>Recorder.formatHistory(ctx),exportOrder:40},{key:"REQUEST",group:"ROUNDTRIPS",label:"Request",kind:"json",produce:ctx=>Format.toJson(ctx.state.oBody),e` &&
+             `xportOrder:80},{key:"PLAIN",group:"ROUNDTRIPS",label:"Response",kind:"json",produce:ctx=>Format.toJson(ctx.state.responseData),exportOrder:70},{key:"ACTIONS",group:"ROUNDTRIPS",label:"Actions",kind:"t` &&
+             `ext",produce:ctx=>Inspect.formatActions(ctx),exportOrder:60},{key:"DIFF",group:"ROUNDTRIPS",label:"Model Diff",kind:"text",produce:ctx=>Recorder.formatModelDiff(ctx),exportOrder:50,inExport:_ctx=>Reco` &&
+             `rder.isRecordingPayloads()},{key:"VIEWDIFF",group:"ROUNDTRIPS",label:"View Diff",kind:"text",produce:ctx=>Recorder.formatViewDiff(ctx),exportOrder:51,inExport:_ctx=>Recorder.isRecordingPayloads()},{ke` &&
+             `y:"JOURNEY",group:"ROUNDTRIPS",label:"Journey",kind:"text",produce:ctx=>Journey.formatJourney(ctx),exportOrder:45,inExport:ctx=>Journey.stepCount(ctx)>0},{key:"VIEW",group:"VIEWDATA",slot:"MAIN",aspec` &&
+             `t:"XML",label:"XML",kind:"xml",produce:ctx=>Format.prettifyXml(getSlotXml(ctx,"MAIN")),rendered:ctx=>Format.prettifyXml(getRenderedContent(ViewSlots.getView(ctx,"MAIN"))),enabled:ctx=>slotFilled(ctx,"` &&
+             `MAIN"),exportOrder:90,exportTitle:"VIEW"},{key:"MODEL",group:"VIEWDATA",slot:"MAIN",aspect:"MODEL",label:"Model",kind:"json",produce:ctx=>Format.toJson(getModelJson(ViewSlots.getView(ctx,"MAIN"))),ena` &&
+             `bled:ctx=>hasModelData(ctx,"MAIN"),exportOrder:91,exportTitle:"VIEW MODEL"},{key:"BINDINGS",group:"VIEWDATA",slot:"MAIN",aspect:"BINDINGS",label:"Bindings",kind:"text",produce:ctx=>Inspect.formatBindi` &&
+             `ngs(ctx,"MAIN"),enabled:ctx=>hasModelData(ctx,"MAIN"),exportOrder:92,exportTitle:"VIEW BINDINGS"},{key:"POPUP",group:"VIEWDATA",slot:"POPUP",aspect:"XML",label:"XML",kind:"xml",produce:ctx=>Format.pre` &&
+             `ttifyXml(getSlotXml(ctx,"POPUP")),enabled:ctx=>slotFilled(ctx,"POPUP"),exportOrder:100,exportTitle:"POPUP"},{key:"POPUP_MODEL",group:"VIEWDATA",slot:"POPUP",aspect:"MODEL",label:"Model",kind:"json",pr` &&
+             `oduce:ctx=>Format.toJson(getModelJson(ViewSlots.getView(ctx,"POPUP"))),enabled:ctx=>hasModelData(ctx,"POPUP"),exportOrder:101,exportTitle:"POPUP MODEL"},{key:"POPUP_BINDINGS",group:"VIEWDATA",slot:"PO` &&
+             `PUP",aspect:"BINDINGS",label:"Bindings",kind:"text",produce:ctx=>Inspect.formatBindings(ctx,"POPUP"),enabled:ctx=>hasModelData(ctx,"POPUP"),exportOrder:102,exportTitle:"POPUP BINDINGS"},{key:"POPOVER"` &&
+             `,group:"VIEWDATA",slot:"POPOVER",aspect:"XML",label:"XML",kind:"xml",produce:ctx=>Format.prettifyXml(getSlotXml(ctx,"POPOVER")),enabled:ctx=>slotFilled(ctx,"POPOVER"),exportOrder:110,exportTitle:"POPO` &&
+             `VER"},{key:"POPOVER_MODEL",group:"VIEWDATA",slot:"POPOVER",aspect:"MODEL",label:"Model",kind:"json",produce:ctx=>Format.toJson(getModelJson(ViewSlots.getView(ctx,"POPOVER"))),enabled:ctx=>hasModelData` &&
+             `(ctx,"POPOVER"),exportOrder:111,exportTitle:"POPOVER MODEL"},{key:"POPOVER_BINDINGS",group:"VIEWDATA",slot:"POPOVER",aspect:"BINDINGS",label:"Bindings",kind:"text",produce:ctx=>Inspect.formatBindings(` &&
+             `ctx,"POPOVER"),enabled:ctx=>hasModelData(ctx,"POPOVER"),exportOrder:112,exportTitle:"POPOVER BINDINGS"},{key:"NEST1",group:"VIEWDATA",slot:"NEST",aspect:"XML",label:"XML",kind:"xml",produce:ctx=>Forma` &&
+             `t.prettifyXml(getSlotXml(ctx,"NEST")),rendered:ctx=>Format.prettifyXml(getRenderedContent(ViewSlots.getView(ctx,"NEST"))),enabled:ctx=>slotFilled(ctx,"NEST"),exportOrder:120,exportTitle:"NEST1"},{key:` &&
+             `"NEST2",group:"VIEWDATA",slot:"NEST2",aspect:"XML",label:"XML",kind:"xml",produce:ctx=>Format.prettifyXml(getSlotXml(ctx,"NEST2")),rendered:ctx=>Format.prettifyXml(getRenderedContent(ViewSlots.getView` &&
+             `(ctx,"NEST2"))),enabled:ctx=>slotFilled(ctx,"NEST2"),exportOrder:121,exportTitle:"NEST2"},{key:"PICK",group:"VIEWDATA",aspect:"PICK",label:"Picked Control",kind:"text",produce:ctx=>Picker.lastReport(c` &&
+             `tx)||'No control picked yet - press "Pick Control", then click any'+" control in the app.",searchable:true},{key:"SEARCH",group:"SEARCH",label:"Search",kind:"search",produce:()=>"",searchable:false},{` &&
+             `key:"ENV",group:"SYSTEM",label:"Environment",kind:"text",produce:ctx=>Inspect.formatEnvironment(ctx),exportOrder:10},{key:"REGISTRY",group:"SYSTEM",label:"Registry",kind:"text",produce:ctx=>Inspect.fo` &&
+             `rmatRegistry(ctx),exportOrder:61},{key:"SOURCE",group:"SYSTEM",label:"ABAP Source",kind:"source",produce:()=>"",searchable:false}];const byKey=new Map(TABS.map(tab=>[tab.key,tab]));function get(tabKey` &&
+             `){return byKey.get(tabKey)}function isKnown(tabKey){return Boolean(tabKey&&byKey.has(tabKey))}function isEnabled(ctx,tab){if(!tab)return false;try{return tab.enabled?Boolean(tab.enabled(ctx)):true}cat` &&
+             `ch{return false}}function groupOf(tabKey){return get(tabKey)?.group||DEFAULT_GROUP}function enabledTabs(ctx,groupKey){return TABS.filter(tab=>tab.group===groupKey&&isEnabled(ctx,tab))}function firstTa` &&
+             `bOf(ctx,groupKey){const first=TABS.find(tab=>tab.group===groupKey&&isEnabled(ctx,tab));return first?.key||""}function enabledSlots(ctx){const available=new Set(enabledTabs(ctx,"VIEWDATA").filter(tab=>` &&
+             `tab.slot).map(tab=>tab.slot));return SLOTS.filter(slot=>available.has(slot.key))}function aspectsOfSlot(ctx,slotKey){return enabledTabs(ctx,"VIEWDATA").filter(tab=>tab.slot===slotKey).sort((a,b)=>ASPE` &&
+             `CTS.indexOf(a.aspect)-ASPECTS.indexOf(b.aspect))}function tabFor(ctx,slotKey,aspect){const aspects=aspectsOfSlot(ctx,slotKey);const exact=aspects.find(tab=>tab.aspect===aspect);return(exact||aspects[0` &&
+             `])?.key||""}function render(ctx,tabKey){const tab=get(tabKey);if(!tab)return"";try{return tab.produce(ctx)??""}catch(e){return``(${tab.label} could not be rendered: ${e?.message||e})``}}function renderT` &&
+             `emplated(ctx,tabKey){const tab=get(tabKey);if(!tab?.rendered)return"";try{return tab.rendered(ctx)||""}catch{return""}}function searchableTabs(ctx){return TABS.filter(tab=>tab.searchable!==false&&isEn` &&
+             `abled(ctx,tab))}function exportTabs(ctx){return TABS.filter(tab=>{if(tab.exportOrder===undefined)return false;if(!isEnabled(ctx,tab))return false;try{return tab.inExport?Boolean(tab.inExport(ctx)):tru` &&
+             `e}catch{return false}}).sort((a,b)=>a.exportOrder-b.exportOrder)}function exportTitle(tab){return tab.exportTitle||tab.label.toUpperCase()}const MAX_HITS_PER_TAB=20;function searchLabel(tab){const gro` &&
+             `up=GROUPS.find(entry=>entry.key===tab.group);const slot=SLOTS.find(entry=>entry.key===tab.slot);const parts=[group?.label||tab.group];if(slot)parts.push(slot.label);parts.push(tab.label);return parts.` &&
+             `join(" > ")}function search(ctx,term){const needle=String(term||"").toLowerCase();if(!needle)return"(enter a search term)";const sections=[];let totalHits=0;for(const tab of searchableTabs(ctx)){const` &&
+             ` text=render(ctx,tab.key);if(!text)continue;const lines=String(text).split("\n");const hits=[];for(let i=0;i<lines.length;i+=1){if(!lines[i].toLowerCase().includes(needle))continue;hits.push(``    ${St` &&
+             `ring(i+1).padStart(5)}: ${lines[i].trim()}``);if(hits.length>=MAX_HITS_PER_TAB)break}if(!hits.length)continue;totalHits+=hits.length;sections.push(``  [${searchLabel(tab)}]  ${hits.length}``+``${hits.leng` &&
+             `th>=MAX_HITS_PER_TAB?"+":""} hit(s)``);sections.push(...hits);sections.push("")}const head=[``Search for "${term}" across every tab``,"",totalHits?``${totalHits} hit(s) - the tab is named in brackets.``:"(` &&
+             `no hit in any tab)",""];return head.concat(sections).join("\n")}return{GROUPS,SLOTS,ASPECTS,DEFAULT_GROUP,get,isKnown,isEnabled,groupOf,enabledTabs,firstTabOf,enabledSlots,aspectsOfSlot,tabFor,render,` &&
+             `renderTemplated,search,searchableTabs,exportTabs,exportTitle,_internals:{TABS,getSlotXml,hasModelData,searchLabel}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `});` && |\n|.
