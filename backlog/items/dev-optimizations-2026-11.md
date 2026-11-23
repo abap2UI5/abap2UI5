@@ -9,10 +9,10 @@ checked_upstream: 2026-11-23
 upstream: abap2UI5/abap2UI5
 evidence:
   - 'first page load, Chromium, cold cache, +40 ms latency, median of 5: first view 3.31-3.46 s before, 2.81-2.95 s with the bundle preload and data-sap-ui-libs="sap.m" on the page; the bundle is requested once, no console warning'
-  - 'delivered bundle: 354 KB comment-stripped, 250 KB minified with identifiers kept (gzipped 81.8 KB -> 70.9 KB); mangled it would be 58 KB gzipped'
+  - 'delivered bundle: 354 KB comment-stripped, 250 KB minified with identifiers kept (gzipped 81.8 KB -> 70.9 KB), 191 KB / 55.6 KB gzipped without the custom controls, which are a bundle of 57.5 KB / 15.4 KB gzipped on demand; mangled the whole would have been 58 KB gzipped'
   - 'a MAIN rebuild in Chromium (OpenUI5 1.153.0, form + tabs + 6-column table, median of 15): 107 ms at 394 controls, 314 ms at 1,434; a model push with changed values 22 ms / 84 ms'
   - 'corpus (742 app classes in samples-controls and samples-stack): 31 re-display MAIN from their event path, 14 of them with identical XML; samples-controls 351 and 289 and samples-stack 016 / 021 / 028 rely on the rebuild (a closed MessageStrip comes back, a FileUploader forgets its file); no class stores view XML, a builder or a bind path in an attribute'
-  - 'after the round: 1,046 ABAP unit test methods, 1,895 JS specs, e2e 92 (OpenUI5 1.144.0) and 49 (1.71.80), abap2UI5/protocol DEV backend suite 91 of 91 and frontend suite 88 passed / 4 skipped'
+  - 'after the round: 1,051 ABAP unit test methods, 1,926 JS specs, e2e 97 (OpenUI5 1.144.0) and 54 (1.71.80) in two cold runs, abap2UI5/protocol DEV backend suite 91 of 91 and frontend suite 88 passed / 4 skipped'
 ---
 
 # Optimization round 2026-11: what went in, and the two ideas that need an opt-in
@@ -51,6 +51,14 @@ is below.
    request with a timer that is released (`core/Server.js`
    `_openRequest`); the action targets protocol 3 left without a writer
    are gone (`ROUTER` sync, `VIEW_SLOTS` display / updateModel).
+7. **The custom controls are a bundle of their own**
+   (`?z2ui5-bundle=cc`, `core/CustomControls.js`,
+   `z2ui5_cl_ui5f_cc`), loaded once per page before the first view that
+   names one: the eager bundle is 191 KB where it was 247 KB (56 KB
+   gzipped, was 70 KB). 19 of 763 sample apps use a control. The residual:
+   JavaScript outside a view that requires `z2ui5/cc/<Name>` on a page
+   whose views name none has to load the bundle itself
+   (`docs/agents/decisions.md`).
 
 ## Not implemented - both are visible to apps
 
