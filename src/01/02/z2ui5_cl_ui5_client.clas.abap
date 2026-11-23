@@ -693,6 +693,16 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~check_nav_pending.
+
+    " the same two references get( )-_s_nav reads, asked without building
+    " the whole ty_s_get around them
+    result = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL
+                   OR mo_action->ms_next-o_app_leave IS NOT INITIAL ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~_event_nav_app_leave.
 
     result = z2ui5_if_client~_event( z2ui5_if_ui5_types=>cs_event_nav_app_leave ).

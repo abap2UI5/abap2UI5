@@ -1547,4 +1547,25 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
 
+  "! Whether THIS roundtrip already ends in a navigation: true from the moment
+  "! main( ) has called nav_app_call( ) or nav_app_leave( ), false before. For
+  "! a base class or a helper that runs after the app's own handlers and must
+  "! not prepare a screen this app is about to give away - arm a refresh
+  "! timer, convert the bound data for output, clear messages the next app
+  "! still has to pick up:
+  "!
+  "!     IF client->check_nav_pending( ) = abap_false.
+  "!       client->follow_up_action( val = client->cs_event-start_timer ... ).
+  "!     ENDIF.
+  "!
+  "! It answers for the navigation REQUESTED in this main( ), not for the one
+  "! that brought the app here - that is check_on_navigated( ). A leave with
+  "! nothing to go back to counts as pending as well: the request was made,
+  "! the framework drops it when the roundtrip ends. It is the public form of
+  "! get( )-_s_nav, which is internal and stays only for the code that reads it.
+  "! Appended at the END of the interface (rule 5).
+  METHODS check_nav_pending
+    RETURNING
+      VALUE(result) TYPE abap_bool.
+
 ENDINTERFACE.
