@@ -2,7 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const crypto = require("crypto");
-const acorn = require("acorn");
 const terser = require("terser");
 const xmlTemplate = require("./abapXMLTemplate");
 
@@ -209,7 +208,7 @@ function assertSameProgram(before, after, relPath) {
   };
   if (
     collapse(before, "the source") !==
-    collapse(after, "the comment-stripped source")
+    collapse(after, "the embedded copy")
   ) {
     throw new Error(
       `${relPath}: embedding changed the program - the comment strip, or the ` +
@@ -219,65 +218,48 @@ function assertSameProgram(before, after, relPath) {
   }
 }
 
-// The app's own Prettier (also what `npm run app2abap` formats bundle/webapp
-// with) - required from bundle/node_modules because the root has no prettier
-// of its own. Lazy so the error names the fix instead of failing the
-// require at import time when app deps are missing.
-let prettierModule = null;
-function appPrettier() {
-  if (!prettierModule) {
-    try {
-      prettierModule = require(
-        path.join(__dirname, "../../bundle/node_modules/prettier"),
-      );
-    } catch {
-      throw new Error(
-        "comment strip needs the app toolchain - run 'npm --prefix bundle ci' first " +
-          "(npm run app2abap and check:app2abap install it for you)",
-      );
-    }
-  }
-  return prettierModule;
-}
-
 // The embedded copy of a .js file is a DELIVERY artefact - the readable
 // source lives in bundle/webapp, and nobody patches src/01/03 (AGENTS.md
-// rule 2). The comments are therefore pure payload on every ICF cold start,
-// and this codebase comments heavily; stripping them keeps the GET response
-// (and the src/01/03 diff noise per frontend change) roughly half the size.
-// Everything else stays: no compress, no mangle, no reprint - a browser
-// stack trace still shows the real identifiers and (near-)real lines.
+// rule 2). Comments and layout are therefore pure payload on every cold
+// start of the page, and this codebase comments heavily.
 //
-// The comments are cut OUT OF THE ORIGINAL TEXT by position (acorn's
-// tokenizer reports where each one starts and ends), never by reprinting
-// the AST: a terser reprint escapes the real newlines inside multi-line
-// template literals into one giant line, which cannot be broken again and
-// blows the 255-char ABAP line cap (guard 2). Prettier then only tidies
-// the holes the cuts left (dangling indentation, runs of blank lines) with
-// the app's own config, and terser re-parses both sides once to prove the
-// PROGRAM did not change.
-async function stripJsComments(source, file, relPath) {
-  const comments = [];
+// The copy is a terser PRINT of the source: comments and whitespace go, and
+// nothing else - no compress, no mangle, so a browser stack trace still
+// shows the real identifiers. It no longer shows the source's lines: a
+// module is one line now (maintainer decision 2026-11-23; measured on that
+// day's bundle: 354 KB -> 250 KB, gzipped 81.8 KB -> 70.9 KB, and about
+// 1,400 literals for the kernel to join where there were 12,000). Mangling
+// would take the bundle to 58 KB gzipped and the identifiers with it - one
+// option below, and a decision of its own.
+//
+// Until then the comments were cut out of the original text by position
+// (acorn) and Prettier tidied the holes, precisely to AVOID a reprint: a
+// reprint puts a module on one giant line, and a line of the generated
+// class could not be longer than ABAP's 255 characters. abapTextClass cuts
+// every line into CHUNK-sized literals since 2026-11-13, so the length of a
+// line of the text no longer matters.
+//
+// terser re-parses both sides once more to prove the PROGRAM did not change
+// (assertSameProgram) - compared against what the ABAP class hands back,
+// not against the print: the class strips the trailing whitespace of every
+// line on the way in, and inside a multi-line template literal that
+// whitespace is part of the string.
+function minifyJs(source, relPath) {
+  let result;
   try {
-    acorn.parse(source, {
-      ecmaVersion: "latest",
-      onComment: (_isBlock, _text, start, end) => comments.push([start, end]),
+    result = terser.minify_sync(source, {
+      // the sources are written for the browsers UI5 runs in today
+      // (optional chaining, shorthand properties): printed as written,
+      // not spelled out for an older engine
+      ecma: 2020,
+      compress: false,
+      mangle: false,
+      format: { ascii_only: true, comments: false },
     });
   } catch (e) {
     throw new Error(`${relPath}: does not parse - ${e.message}`, { cause: e });
   }
-  let code = source;
-  for (const [start, end] of comments.reverse()) {
-    code = code.slice(0, start) + code.slice(end);
-  }
-  const prettier = appPrettier();
-  const config = (await prettier.resolveConfig(file)) || {};
-  code = await prettier.format(code, { ...config, parser: "babel" });
-  // Compared against what the ABAP class hands back, not against `code`:
-  // formatAsAbapClass strips the trailing whitespace of every line on the
-  // way in, and inside a multi-line template literal that whitespace is
-  // part of the string. Checked against `code` alone, `\`a  \nb\`` went
-  // into the class as `\`a\nb\`` and the proof above said nothing.
+  const code = `${result.code}\n`;
   assertSameProgram(source, embeddedValue(code, false), relPath);
   return code;
 }
@@ -774,14 +756,14 @@ async function buildTexts({ strip = true } = {}) {
 }
 
 // Main function to read the source files and create new target files
-// One embedded source: read, guarded, and - a .js - comment-stripped.
+// One embedded source: read, guarded, and - a .js - minified (minifyJs).
 // `label` is how the file is named in an error, `asciiName` the name the
 // 7-bit guard reports it under.
 async function readSource(file, label, strip = true) {
   let content = await readFile(file);
   const isJs = file.endsWith(".js");
   assertSevenBitAscii(content, label);
-  if (isJs && strip) content = await stripJsComments(content, file, label);
+  if (isJs && strip) content = minifyJs(content, label);
   else if (!isJs) assertNoLossInSpecialFile(content, label, label);
   return { isJs, content, value: embeddedValue(content, !isJs) };
 }
@@ -964,7 +946,7 @@ module.exports = {
   NODE_PATH_TOKEN,
   abapTextClass,
   embeddedValue,
-  stripJsComments,
+  minifyJs,
   assertSameProgram,
   isDeferredDevtools,
   defineDependencies,

@@ -73,7 +73,7 @@
 // dependencies below name none of them, and why the dialog's class is
 // reached with sap.ui.require( ) after the bundle is in. Measured
 // 2026-10-10: the bundle is ~102 KB of the ~400 KB inline script
-// (comment-stripped, uncompressed).
+// (comment-stripped as it was delivered then, uncompressed).
 //
 // Where the modules come from, by deployment (requireDialog):
 //   - the component (always embedded, loaded through

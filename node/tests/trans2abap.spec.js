@@ -61,10 +61,7 @@ test("no generated line outgrows ABAP's 255, and no method grows with the text",
   expect(abapGetValue(abap)).toBe(text);
 });
 
-// The proof stripJsComments runs, checked on its own: stripJsComments
-// itself needs the app toolchain (bundle/node_modules/prettier), which the
-// JS unit job does not install - npm run check:app2abap covers that path
-// over every real file.
+// The proof minifyJs runs, checked on its own; minifyJs itself is below.
 test("trailing whitespace inside a template literal is refused, not silently dropped", () => {
   // the embedded copy strips every line's trailing blanks - inside a
   // template literal they are part of the string, so the program changes
@@ -79,6 +76,45 @@ test("trailing blanks outside a literal are dropped and accepted", () => {
   const value = GEN.embeddedValue(src, false);
   expect(value).not.toContain("1;   ");
   expect(() => GEN.assertSameProgram(src, value, "probe.js")).not.toThrow();
+});
+
+// The embedded copy of a module: comments and whitespace go, nothing else.
+test("minifyJs drops comments and layout and keeps every identifier", () => {
+  const src =
+    "// a comment\n" +
+    "sap.ui.define([], () => {\n" +
+    '  "use strict";\n' +
+    "  /* a block */\n" +
+    "  function longAndTellingName(firstArgument) {\n" +
+    "    const localValue = firstArgument + 1;\n" +
+    "    return localValue;\n" +
+    "  }\n" +
+    "  return { longAndTellingName };\n" +
+    "});\n";
+  const out = GEN.minifyJs(src, "probe.js");
+  expect(out).not.toContain("a comment");
+  expect(out).not.toContain("a block");
+  // one line, and a line break at its end like every embedded file
+  expect(out.trimEnd().split("\n")).toHaveLength(1);
+  expect(out.endsWith("\n")).toBe(true);
+  for (const name of ["longAndTellingName", "firstArgument", "localValue"]) {
+    expect(out).toContain(name);
+  }
+  expect(out).toContain('"use strict"');
+  expect(out).toContain("{longAndTellingName}");
+  expect(out.length).toBeLessThan(src.length);
+});
+
+test("minifyJs keeps a multi-line template literal's text, and what it prints survives the class", () => {
+  const src = "const text = `first line\n  second line\n`;\nexport_(text);\n";
+  const out = GEN.minifyJs(src, "probe.js");
+  // the proof inside minifyJs compared the class's value with the source;
+  // here: the value a class of that text hands back is the print itself
+  expect(abapGetValue(textClass(out))).toBe(out);
+});
+
+test("minifyJs names the file of a source that does not parse", () => {
+  expect(() => GEN.minifyJs("const = ;\n", "broken.js")).toThrow(/broken\.js: does not parse/);
 });
 
 // The developer tools are split in two at generation time: the eager half
