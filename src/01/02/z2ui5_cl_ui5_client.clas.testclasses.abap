@@ -162,6 +162,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_bind_path_alias      FOR TESTING RAISING cx_static_check.
     METHODS test_get_comp_params_memo FOR TESTING RAISING cx_static_check.
     METHODS test_get_nav_flags_live   FOR TESTING RAISING cx_static_check.
+    METHODS test_check_nav_pending    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ui5_client DEFINITION LOCAL FRIENDS ltcl_test_client.
@@ -1180,6 +1181,27 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA(ls_get_2) = li_client->get( ).
 
     cl_abap_unit_assert=>assert_true( ls_get_2-_s_nav-check_call ).
+
+  ENDMETHOD.
+
+
+  METHOD test_check_nav_pending.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " nothing requested yet in this roundtrip
+    cl_abap_unit_assert=>assert_false( li_client->check_nav_pending( ) ).
+
+    " a call counts ...
+    mo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
+    cl_abap_unit_assert=>assert_true( li_client->check_nav_pending( ) ).
+
+    " ... and so does a leave on its own
+    CLEAR mo_action->ms_next-o_app_call.
+    cl_abap_unit_assert=>assert_false( li_client->check_nav_pending( ) ).
+    mo_action->ms_next-o_app_leave = NEW ltcl_test_app( ).
+    cl_abap_unit_assert=>assert_true( li_client->check_nav_pending( ) ).
 
   ENDMETHOD.
 

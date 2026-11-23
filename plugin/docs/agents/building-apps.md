@@ -622,6 +622,10 @@ reasoning:
 - Call another app: `client->nav_app_call( NEW zcl_other_app( ) )`; return
   with `client->nav_app_leave( )` (or `client->get_app_prev( )` to hand data
   back). The framework keeps the app stack across roundtrips.
+- `client->check_nav_pending( )` is true once this `main( )` has called
+  `nav_app_call( )` or `nav_app_leave( )`. A base class or helper that runs
+  after the app's handlers asks it before it arms a timer or prepares
+  output for a screen the app is about to give away.
 - An app that opens the same popup class for several purposes names the
   purpose in the call - `client->nav_app_call( app = lo_popup tag = `CONFIRM_DELETE` )` -
   and reads it on the way back: `client->get_nav_tag( )` answers the tag on
