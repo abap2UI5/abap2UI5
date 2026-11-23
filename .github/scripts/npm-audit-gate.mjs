@@ -80,14 +80,6 @@ const ACCEPTED = new Map([
       + "pacote -> sigstore); the provenance verification it weakens is not something the "
       + "build relies on - the lockfile pins by integrity hash. Same fix path as above",
   }],
-  ["GHSA-fc5q-39xc-vjpf", {
-    trees: ["", "app", "frontend/embed"],
-    reason: "picomatch: ReDoS through single-branch repeated extglobs, every version <= 4.0.7 "
-      + "and no fixed release yet (2026-11-17). Reached only through @ui5/cli (@ui5/fs -> "
-      + "micromatch, and @ui5/project -> node-gyp -> tinyglobby/fdir): build-time globbing "
-      + "of this repository's own patterns, never user input. npm's only fix is @ui5/cli 2.x, "
-      + "a major downgrade; drop this entry once picomatch ships a fix",
-  }],
 ]);
 
 const problems = [];

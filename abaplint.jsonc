@@ -224,6 +224,10 @@
     "check_comments": true,
     "check_ddic": true,
     "check_include": true,
+    // From 2.120.113 the defaults include callFunction and callMethod: a
+    // CALL FUNCTION / CALL METHOD with EXCEPTIONS whose sy-subrc is never read
+    // (abaplint/abaplint#4605). Measured on 2.120.113: 0 findings over src,
+    // control probe fired
     "check_subrc": true,
     "check_syntax": true,
     "check_text_elements": true,
