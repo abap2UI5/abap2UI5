@@ -419,19 +419,21 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
                        sub = `(function () {` ) = 0 ) ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/Component.js": function()` ) ).
+    " (the modules, the tail among them, are delivered minified - the texts
+    " below are terser's print of bundle/tail/embed.js, not its source lines)
     " ...the component a second time, under the name the control creates it
     " by when the page's own component is z2ui5 (the BSP of src/03/02 and
     " the app of the branch cloud)
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"]` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `componentName: "z2ui5.embed.frontend",` ) ).
+        xsdbool( ls_result-body CS `componentName:"z2ui5.embed.frontend",` ) ).
     " ...and the one call the embedding control makes: the app is made by
     " the bundle's own module, with the installation's settings
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `create: function (settings) {` ) ).
+        xsdbool( ls_result-body CS `create:function(settings){` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `resolve(Embed.create(settings, installation));` ) ).
+        xsdbool( ls_result-body CS `resolve(Embed.create(settings,installation))` ) ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/core/Embed.js": function()` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
@@ -440,15 +442,15 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " ...and the module the embedding page recognises it by, with the
     " sibling BSPs the page itself hands the component as well
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed", function () {` ) ).
+        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed",function(){` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` ) ).
+        xsdbool( ls_result-body CS `ccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_cci",` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ) ).
+        xsdbool( ls_result-body CS `cccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ) ).
     " ...and the path the node has on the system, for a page that reaches
     " it through a proxy's prefix (Component.init rebases the roots by it)
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2ui5",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"/sap/bc/z2ui5",` ) ).
 
   ENDMETHOD.
 
@@ -462,7 +464,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         path     = `/sap/bc/z2ui5_other/`
         t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2ui5_other/",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"/sap/bc/z2ui5_other/",` ) ).
 
     " a stack that reports no path - a direct call, a shim without the
     " header - leaves the field empty rather than out; Component.init reads
@@ -471,7 +473,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         method   = `GET`
         t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"",` ) ).
 
     " the path is what the stack reports of the request URL, and an ICF node
     " matches on its prefix - what could end the string literal of a script
@@ -481,7 +483,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         path     = `/sap/bc/z2ui5/a"b\c</script>`
         t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2ui5/a\"b\\c<\/script>",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"/sap/bc/z2ui5/a\"b\\c<\/script>",` ) ).
     cl_abap_unit_assert=>assert_false(
         xsdbool( ls_result-body CS `a"b\c</script>` ) ).
 
@@ -525,7 +527,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         path     = `/sap/bc/z2ui5`
         t_params = VALUE #( ( n = `z2ui5-bundle` v = `x` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed", function () {` ) ).
+        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed",function(){` ) ).
 
   ENDMETHOD.
 
@@ -2055,7 +2057,7 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                        sub = |data-sap-ui-bindingSyntax="complex" data-sap-ui-libs="sap.m"\ndata-sap-ui-theme="sap_horizon"| ) >= 0 ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
                                                      sub = `data-sap-ui-libs="sap.m"` ) > find( val = lv_body
-                                                                                               sub = `<script id="sap-ui-bootstrap"` ) ) ).
+                                                                                               sub  = `<script id="sap-ui-bootstrap"` ) ) ).
 
     " other attributes of the exit do not take it away
     ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-language`
@@ -2129,7 +2131,7 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the path the stack reported (get_req_info, ~path) is the one the
     " module tells the embedding page
     cl_abap_unit_assert=>assert_true(
-        xsdbool( mo_mock->mv_cdata CS `nodePath: "/sap/bc/z2ui5",` ) ).
+        xsdbool( mo_mock->mv_cdata CS `nodePath:"/sap/bc/z2ui5",` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `application/javascript; charset=UTF-8`
                                         act = header_value( `content-type` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `nosniff`
