@@ -34,6 +34,14 @@ test.beforeAll(async ({ browser }) => {
   await page.waitForFunction(
     () => !!window.sap?.ui?.require?.("z2ui5/core/AppState"),
   );
+  // ...and the page is done booting: since the page preloads the bundle
+  // (2026-11) the modules are registered while UI5 is still starting - the
+  // first roundtrip, the start view and the theme come after. A frame
+  // placed into that is rendered again when they land, its document
+  // loaded anew, and a click in between meets a document without the
+  // control's listeners (seen on a cold server only: the sapevent link's
+  // click raised no event)
+  await page.waitForLoadState("networkidle");
   await page.evaluate(
     (content) =>
       new Promise((resolve) => {
