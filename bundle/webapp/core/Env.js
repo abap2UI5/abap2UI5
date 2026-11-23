@@ -280,7 +280,8 @@ sap.ui.define(
 
     // The namespaces a view declares: every xmlns value that is a dotted
     // name. The frontend's own custom controls (xmlns:z2ui5="z2ui5.cc") are
-    // in no library and are left out up front.
+    // in no library and are left out up front - they are a bundle of the
+    // backend's, which core/CustomControls.js brings in for the same views.
     function viewNamespaces(xml) {
       const result = new Set();
       for (const [, , namespace] of String(xml ?? "").matchAll(XMLNS)) {

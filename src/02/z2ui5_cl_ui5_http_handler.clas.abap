@@ -121,6 +121,22 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " (the tools open on load), and a GET with it is the page as always.
     CONSTANTS c_bundle_devtools TYPE string VALUE `devtools`.
 
+    " The value of c_bundle_param that asks for the CUSTOM CONTROLS bundle:
+    " GET <node>?z2ui5-bundle=cc answers the files of bundle/webapp/cc/
+    " (z2ui5_cl_ui5f_preload=>get_cc), which the frontend bundle does not
+    " carry - about one app in forty uses a control, and every page paid
+    " for all of them. z2ui5/core/CustomControls loads it with a <script>
+    " element before the first view that names a control is built.
+    CONSTANTS c_bundle_cc TYPE string VALUE `cc`.
+
+    " The parameter the custom controls bundle is asked BY ITS VERSION with:
+    " ?z2ui5-bundle=cc&z2ui5-version=<z2ui5_cl_ui5f_preload=>cc_hash>. The
+    " frontend bundle knows that digest (it is generated into its z2ui5/embed
+    " module), so the answer may be kept without asking again - see
+    " _is_bundle_versioned. A parameter of its own, not a part of the value:
+    " the value stays the one word _is_cc_request compares.
+    CONSTANTS c_bundle_version TYPE string VALUE `z2ui5-version`.
+
     " The token in the bundle's tail (bundle/tail/embed.js, NODE_PATH_TOKEN
     " in tools/app2abap/trans2abap.js) that _http_get_bundle replaces with
     " the path of the request as the system saw it.
@@ -221,8 +237,9 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " a GET that asks for the frontend bundle by its version - c_bundle_param
-    " with the current build hash as its value
+    " a GET that asks for a bundle by its version: the frontend bundle with
+    " the current build hash as the value of c_bundle_param, the custom
+    " controls bundle with its own digest in c_bundle_version
     CLASS-METHODS _is_bundle_versioned
       IMPORTING
         it_params     TYPE z2ui5_if_client=>ty_t_name_value
@@ -232,6 +249,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " a GET that asks for the devtools bundle - c_bundle_param with the
     " value c_bundle_devtools
     CLASS-METHODS _is_devtools_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " a GET that asks for the custom controls bundle - c_bundle_param with
+    " the value c_bundle_cc
+    CLASS-METHODS _is_cc_request
       IMPORTING
         it_params     TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
@@ -251,11 +276,18 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
-    " the validator of a bundle response: the frontend bundle's, or the
-    " devtools bundle's, which changes with the devtools files alone
+    " the custom controls as a script of their own - see the method
+    CLASS-METHODS _http_get_cc
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
+    " the validator of a bundle response: the frontend bundle's, the
+    " devtools bundle's, which changes with the devtools files alone, or
+    " the custom controls bundle's, which changes with the controls alone
     CLASS-METHODS _bundle_etag
       IMPORTING
         iv_devtools   TYPE abap_bool
+        iv_cc         TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1069,6 +1101,17 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _is_bundle_versioned.
 
+    " The custom controls bundle carries its version in a parameter of its
+    " own (c_bundle_version). Asked for with another digest - a page that
+    " was loaded before the frontend was redeployed - it is still answered,
+    " with the controls of today, and revalidated like a bundle asked for
+    " without a version: the URL does not name these bytes.
+    IF _is_cc_request( it_params ) = abap_true.
+      result = xsdbool( line_exists( it_params[ n = c_bundle_version
+                                                v = z2ui5_cl_ui5f_preload=>cc_hash ] ) ). "#EC CI_SORTSEQ
+      RETURN.
+    ENDIF.
+
     " the one parameter with the one value - the hash is lower-case hex
     result = xsdbool( line_exists( it_params[ n = c_bundle_param
                                               v = z2ui5_cl_ui5f_preload=>build_hash ] ) ). "#EC CI_SORTSEQ
@@ -1083,14 +1126,25 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _is_cc_request.
+
+    " the one parameter with the one value - see c_bundle_cc
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param
+                                              v = c_bundle_cc ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
   METHOD _bundle_etag.
 
     " the frontend bundle's tag carries the build hash through _get_etag
     " itself; the devtools bundle's files are not part of that digest (the
     " hash is taken over the shell's script, which they are not in), so
     " their own digest goes into the key - a redeployed developer tool
-    " changes the tag, a redeployed shell alone changes it too, harmlessly
-    IF iv_devtools = abap_true.
+    " changes the tag, a redeployed shell alone changes it too, harmlessly.
+    " The custom controls bundle has its digest in the key the same way
+    IF iv_cc = abap_true.
+      result = _get_etag( |{ c_bundle_param }={ c_bundle_cc }:{ z2ui5_cl_ui5f_preload=>cc_hash }| ).
+    ELSEIF iv_devtools = abap_true.
       result = _get_etag( |{ c_bundle_param }={ c_bundle_devtools }:{ z2ui5_cl_ui5f_preload=>devtools_hash }| ).
     ELSE.
       result = _get_etag( c_bundle_param ).
@@ -1127,6 +1181,39 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDIF.
 
     result-body          = z2ui5_cl_ui5f_preload=>get_devtools( ).
+    result-status_code   = 200.
+    result-status_reason = `OK`.
+
+  ENDMETHOD.
+
+  METHOD _http_get_cc.
+
+    " GET <node>?z2ui5-bundle=cc - the custom controls as a script of their
+    " own: every file of bundle/webapp/cc/, which the frontend bundle left
+    " out (tools/app2abap/trans2abap.js, CC_DIR). The same shape as the
+    " devtools bundle - sap.ui.require.preload( ) over the generated
+    " entries, nothing run, nothing evaluated from a string - and one
+    " module defined behind it that tells the frontend the script it loaded
+    " was this one (z2ui5/core/CustomControls). Served the same way: as
+    " JavaScript, with nosniff, under a tag of its own (_bundle_etag) that a
+    " conditional GET revalidates to a bodyless 304 - and, asked for by its
+    " version as the frontend does, kept by the browser without asking
+    " (set_response). A <script> element of the page's origin, which
+    " script-src 'self' allows. No user or app data, the same for everybody.
+    DATA(lv_etag) = _bundle_etag( iv_devtools = abap_false
+                                  iv_cc       = abap_true ).
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
+                                                         etag          = lv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+      RETURN.
+    ENDIF.
+
+    result-body          = z2ui5_cl_ui5f_preload=>get_cc( ).
     result-status_code   = 200.
     result-status_reason = `OK`.
 
@@ -1259,14 +1346,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " compare below stays for a 200 that reached this method without
     " main( ) having read the header (a direct _main( ) call), and costs one
     " header read on a full shell reply
-    " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools) revalidate the
-    " same way, each under its own tag
+    " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools, ?z2ui5-bundle=cc)
+    " revalidate the same way, each under its own tag
     DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
                                AND _is_bundle_request( ms_req-t_params ) = abap_true ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
       lv_etag_get = COND #( WHEN lv_bundle = abap_true
-                            THEN _bundle_etag( _is_devtools_request( ms_req-t_params ) )
+                            THEN _bundle_etag( iv_devtools = _is_devtools_request( ms_req-t_params )
+                                               iv_cc       = _is_cc_request( ms_req-t_params ) )
                             ELSE sv_get_etag ).
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
@@ -1327,7 +1415,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " that names it is itself revalidated on every load. So it may be kept
     " without asking again, and a start costs no request for the frontend
     " at all. A bundle asked for without the version (a host that does not
-    " know it) revalidates as before.
+    " know it) revalidates as before. The custom controls bundle is asked
+    " for by ITS version (_is_bundle_versioned) and kept the same way.
     IF lv_etag_get IS NOT INITIAL AND lv_bundle = abap_true
         AND _is_bundle_versioned( ms_req-t_params ) = abap_true.
       mo_server->set_header_field( n = `cache-control`
@@ -1508,6 +1597,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
           WHEN `GET`.
             IF _is_devtools_request( is_req-t_params ) = abap_true.
               result = _http_get_devtools( ).
+            ELSEIF _is_cc_request( is_req-t_params ) = abap_true.
+              result = _http_get_cc( ).
             ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
             ELSE.

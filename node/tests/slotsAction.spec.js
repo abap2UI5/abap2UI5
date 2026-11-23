@@ -22,8 +22,14 @@ function load({
   // the views ViewSlots.getView answers per slot key - none unless a spec
   // fills it (the window requests ask whether their table is still there)
   openViews = {},
+  // what core/CustomControls.ensure answers for a view - by default the
+  // controls are simply there; a spec hands in a pending or a rejected load
+  ensureControls = async () => {},
 } = {}) {
   const errors = [];
+  // the order in which a display asks for what the view needs and builds
+  // it: "controls", "preload" (the fragment's modules, UI5 1.71), "build"
+  const order = [];
   const destroyed = [];
   const setViews = [];
   const opened = [];
@@ -92,8 +98,18 @@ function load({
 
   const { module } = loadModule("core/actions/Slots.js", {
     deps: {
-      "sap/ui/core/mvc/XMLView": { create: () => Promise.resolve(view) },
-      "sap/ui/core/Fragment": { load: () => Promise.resolve(fragment) },
+      "sap/ui/core/mvc/XMLView": {
+        create: () => {
+          order.push("build");
+          return Promise.resolve(view);
+        },
+      },
+      "sap/ui/core/Fragment": {
+        load: () => {
+          order.push("build");
+          return Promise.resolve(fragment);
+        },
+      },
       "sap/ui/model/json/JSONModel": JSONModel,
       // the framework model of a slot (actions/Slots) - a JSONModel with
       // the windowed list binding, the same stub stands in for it
@@ -111,8 +127,16 @@ function load({
         whenRendered: (control, _owner, fn) => fn(control),
       },
       "z2ui5/core/Env": {
-        preloadFragmentModules: async () => {},
+        preloadFragmentModules: async () => {
+          order.push("preload");
+        },
         loadViewLibraries: async () => {},
+      },
+      "z2ui5/core/CustomControls": {
+        ensure: (c, xml) => {
+          order.push("controls");
+          return ensureControls(c, xml);
+        },
       },
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
@@ -149,6 +173,7 @@ function load({
     opened,
     fragment,
     view,
+    order,
   };
 }
 
@@ -219,6 +244,89 @@ test("a superseded display is dropped before anything is torn down", () => {
   // seq 1 against Server._requestSeq 7: a newer request owns the slots
   expect(Slots.action("display", "POPUP", "<Dialog/>", {}, 1)).toBe(undefined);
   expect(destroyed).toEqual([]);
+});
+
+// The frontend's custom controls are a bundle of their own, loaded when a
+// view names one (core/CustomControls.js). Every build waits for that load
+// - a view built before its controls are registered asks the loader for
+// cc/<Name>.js, and the node answers every GET with the page - and a load
+// that fails fails the display: the rejection reaches the error overlay
+// (View1._processAfterRendering) instead of a view without its control.
+test.describe("a display waits for the custom controls its view names", () => {
+  const VIEW = '<mvc:View xmlns:z2ui5="z2ui5.cc"><z2ui5:Dirty/></mvc:View>';
+  const displays = [
+    ["MAIN", {}],
+    ["NEST", { id: "panel", methodInsert: "addContent" }],
+    ["NEST2", { id: "panel", methodInsert: "addContent" }],
+    ["POPUP", {}],
+    ["POPOVER", { openById: "btn" }],
+  ];
+
+  for (const [slot, options] of displays) {
+    test(`${slot}: asked with the view's XML, and the build starts only once they are in`, async () => {
+      let arrive;
+      const asked = [];
+      const h = load({
+        resolveById: { id: "btn" },
+        byId: { addContent() {} },
+        ensureControls: (ctx, xml) => {
+          asked.push({ ctx, xml });
+          return new Promise((resolve) => {
+            arrive = resolve;
+          });
+        },
+      });
+      const done = h.Slots.action("display", slot, VIEW, options);
+      await new Promise((resolve) => setImmediate(resolve));
+      // the context (its endpoint is where the bundle comes from) and the
+      // text the decision is taken from
+      expect(asked).toEqual([{ ctx: h.ctx, xml: VIEW }]);
+      expect(h.order).toEqual(["controls"]);
+      expect(h.setViews).toEqual([]);
+      arrive();
+      await done;
+      // a fragment's control modules are required (UI5 1.71) only after
+      // the bundle registered them
+      expect(h.order).toEqual(
+        slot === "POPUP" || slot === "POPOVER"
+          ? ["controls", "preload", "build"]
+          : ["controls", "build"],
+      );
+      expect(h.setViews.map((entry) => entry.key)).toEqual([slot]);
+    });
+
+    test(`${slot}: a bundle that cannot be loaded fails the display, nothing is built`, async () => {
+      const h = load({
+        resolveById: { id: "btn" },
+        byId: { addContent() {} },
+        ensureControls: () =>
+          Promise.reject(new Error("the custom controls could not be loaded")),
+      });
+      const failure = await h.Slots.action("display", slot, VIEW, options).then(
+        () => null,
+        (e) => e,
+      );
+      expect(failure?.message).toBe("the custom controls could not be loaded");
+      expect(h.order).toEqual(["controls"]);
+      expect(h.setViews).toEqual([]);
+    });
+  }
+
+  test("a failed display does not block the next one", async () => {
+    let fail = true;
+    const h = load({
+      ensureControls: () =>
+        fail ? Promise.reject(new Error("offline")) : Promise.resolve(),
+    });
+    const failure = await h.Slots.action("display", "MAIN", VIEW).then(
+      () => null,
+      (e) => e,
+    );
+    expect(failure?.message).toBe("offline");
+    fail = false;
+    await h.Slots.action("display", "MAIN", VIEW);
+    expect(h.setViews.map((entry) => entry.key)).toEqual(["MAIN"]);
+  });
 });
 
 // Every display under a FIXED id goes through ONE serialized build chain
@@ -295,6 +403,7 @@ test.describe("the fragment slots build through the serialized chain", () => {
         preloadFragmentModules: async () => {},
         loadViewLibraries: async () => {},
       },
+        "z2ui5/core/CustomControls": { ensure: async () => {} },
         "z2ui5/core/ViewSlots": {
           ownId: (_ctx, id) => id,
           slots: [],

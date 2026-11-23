@@ -49,6 +49,55 @@ The following items may look like gaps but are intentional design choices:
   tools opened never asks for the bundle (`devtools-bundle` e2e). The old
   numbers (2026-08-28: `devtools/` was 32.7% of the preload, 23.2% deferrable)
   were the measurement this change was made on.
+- **The custom controls are a bundle of their own, loaded when a view names
+  one.** Until 2026-11-23 the 17 files of `bundle/webapp/cc/` rode in the
+  frontend bundle of every page: 56 KB of its 247 KB as delivered (minified),
+  14 of 70 KB gzipped, for controls that 19 of the 763 apps of
+  abap2UI5/samples-controls and abap2UI5/samples-stack use (2.5%). They are
+  the third generated text now — `z2ui5_cl_ui5f_cc`,
+  `z2ui5_cl_ui5f_preload=>get_cc( )`, served on `?z2ui5-bundle=cc`
+  (`_http_get_cc`, the headers and the 304 of the other bundles, a validator
+  of its own in `cc_hash`) — and `core/CustomControls.js` loads it with a
+  `<script>` element before the first view that needs it is built:
+  `actions/Slots` awaits it at each of its three builds (MAIN, nested, the
+  fragment of a popup or popover), which are the only places of the frontend
+  that turn XML into controls. Measured 2026-11-23: the frontend bundle went
+  from 246,555 to 191,411 bytes and from 69,892 to 55,621 gzipped; the
+  controls bundle is 57,505 bytes, 15,447 gzipped. Three things were decided
+  with it, and are not to be re-opened as cleanups:
+  (1) **The trigger is the text of the view, and it is wider than the
+  namespace.** In both sample repositories every app reaches a control the
+  same way, `xmlns:z2ui5="z2ui5.cc"` on the view; the test also takes a
+  module id (`z2ui5/cc/<Name>` in a `core:require` or in JavaScript the view
+  carries) and the two sibling BSPs the frontend wires in (`z2ui5_cci`,
+  `z2ui5_ccc`): their code is not ours to read, and a control there that is
+  built on one of ours would send the loader to the node for it. Neither
+  add-on repository does that today (checked 2026-11-23), so for their users
+  the rule costs one cached request and buys nothing — narrow it only with
+  that in mind. What no test of the view can see is a module in a namespace
+  of its own that depends on a control; such a view declares the namespace.
+  (2) **The bundle is asked for by its version, of the node the frontend
+  came from.** The frontend bundle's tail carries the digest (`ccBundle`),
+  the request names it (`z2ui5-version`), and the handler answers
+  `immutable` for exactly that digest — an app with a control would
+  otherwise revalidate the bundle on every page load, before its first view.
+  The tail also remembers the URL its own script was loaded from
+  (`bundleUrl`), and the controls are asked of that node rather than of the
+  endpoint of the view's component (the developer tools ask the latter):
+  they are a part of that frontend and call its `core/` modules, and on a
+  page with apps of several backends the view's backend may be another
+  release - one from before the split would answer with its whole frontend. The field is also how the frontend knows the controls have
+  to be fetched at all: where its files are served one by one (the protocol
+  conformance suite, a build of the classic app) there is no tail, nothing is
+  loaded, and the UI5 loader finds `cc/<Name>.js` itself.
+  (3) **A load that fails fails the view.** The bundle ends in a module of
+  its own (`z2ui5/cc/bundle`), so a 200 that is not the bundle — a logon
+  page — counts as a failure too; the build that waited rejects with the URL
+  and surfaces in the error overlay, and the next view tries again. Going on
+  without the bundle would end in a loader error about a file that was never
+  there. `trans2abap.js` refuses a module that names a module of a deferred
+  bundle it is not part of as a `sap.ui.define` dependency — a control from
+  the shell, a developer tool from a control, either way.
 - **An app implements `z2ui5_if_app` — there is deliberately NO app base
   class, and the dispatcher boilerplate is accepted.** Every app hand-writes
   the same `main( )` lifecycle branching (`check_on_init` / `check_on_event`

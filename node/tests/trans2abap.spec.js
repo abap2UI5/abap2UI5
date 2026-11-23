@@ -192,3 +192,83 @@ test.describe("the devtools bundle split", () => {
     expect(() => GEN.assertNoEagerDependencyOnDeferred(sources)).not.toThrow();
   });
 });
+
+// The custom controls are the third bundle: every file under cc/, served on
+// ?z2ui5-bundle=cc and loaded by core/CustomControls.js when a view names a
+// control. About one app in forty uses one, and every page paid for all of
+// them. Nothing of them is eager, so no module outside cc/ may name one as
+// a sap.ui.define dependency - the loader would ask the node for it before
+// the bundle is in.
+test.describe("the custom controls bundle split", () => {
+  const fs = require("fs");
+  const webapp = path.join(__dirname, "..", "..", "bundle", "webapp");
+
+  test("every file under cc/ is deferred, and nothing else is", () => {
+    for (const control of fs.readdirSync(path.join(webapp, "cc"))) {
+      expect(GEN.isDeferredCc(`cc/${control}`), control).toBe(true);
+      expect(GEN.deferredBundleOf(`cc/${control}`), control).toBe("cc");
+    }
+    // the module that loads them is the frontend bundle's
+    expect(GEN.deferredBundleOf("core/CustomControls.js")).toBe(null);
+    expect(GEN.deferredBundleOf("core/Lib.js")).toBe(null);
+    expect(GEN.deferredBundleOf("Component.js")).toBe(null);
+    // the two deferred bundles are two
+    expect(GEN.deferredBundleOf("devtools/Tabs.js")).toBe("devtools");
+    expect(GEN.deferredBundleOf("devtools/DevTools.js")).toBe(null);
+    expect(GEN.isDeferredCc("devtools/Tabs.js")).toBe(false);
+  });
+
+  test("the frontend bundle's tail has the place the bundle's version goes", () => {
+    // z2ui5/core/CustomControls reads it off the z2ui5/embed module: it is
+    // the version the bundle is asked for by, and how the frontend knows
+    // there is a bundle to ask for
+    const tail = fs.readFileSync(
+      path.join(__dirname, "..", "..", "bundle", "tail", "embed.js"),
+      "utf8",
+    );
+    expect(tail).toContain(`ccBundle: "${GEN.CC_VERSION_TOKEN}"`);
+    // ...and where it asks: the URL the frontend bundle's own script was
+    // loaded from, read while that script runs
+    expect(tail).toContain("document.currentScript");
+    expect(tail).toContain("bundleUrl: bundleUrl");
+  });
+
+  test("refuses a module outside cc/ that depends on a control", () => {
+    const sources = new Map([
+      // a control depends on the shell, and may depend on another control
+      ["cc/Dirty.js", 'sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/Context"], () => {});'],
+      ["cc/InputExt.js", 'sap.ui.define(["sap/m/Input", "z2ui5/cc/Dirty"], () => {});'],
+      // the shell talks to a control through the one-id probe, never a dependency
+      ["Component.js", 'sap.ui.define(["z2ui5/core/Lib"], () => { sap.ui.require("z2ui5/cc/Dirty"); });'],
+    ]);
+    expect(() => GEN.assertNoEagerDependencyOnDeferred(sources)).not.toThrow();
+    sources.set(
+      "Component.js",
+      'sap.ui.define(["z2ui5/core/Lib", "z2ui5/cc/Dirty"], () => {});',
+    );
+    expect(() => GEN.assertNoEagerDependencyOnDeferred(sources)).toThrow(
+      /Component\.js: sap\.ui\.define names z2ui5\/cc\/Dirty, a module of the custom controls bundle/,
+    );
+  });
+
+  test("refuses a dependency between the two deferred bundles, either way", () => {
+    // the developer tools open on a page that never loaded the controls,
+    // and a view with a control builds on a page that never opened the tools
+    expect(() =>
+      GEN.assertNoEagerDependencyOnDeferred(
+        new Map([["devtools/Inspect.js", 'sap.ui.define(["z2ui5/cc/Tree"], () => {});']]),
+      ),
+    ).toThrow(/devtools\/Inspect\.js: sap\.ui\.define names z2ui5\/cc\/Tree/);
+    expect(() =>
+      GEN.assertNoEagerDependencyOnDeferred(
+        new Map([["cc/Tree.js", 'sap.ui.define(["z2ui5/devtools/Inspect"], () => {});']]),
+      ),
+    ).toThrow(/cc\/Tree\.js: sap\.ui\.define names z2ui5\/devtools\/Inspect, a module of the devtools bundle/);
+    // the eager half of the tools is the frontend bundle's - a control may name it
+    expect(() =>
+      GEN.assertNoEagerDependencyOnDeferred(
+        new Map([["cc/Tree.js", 'sap.ui.define(["z2ui5/devtools/Format"], () => {});']]),
+      ),
+    ).not.toThrow();
+  });
+});

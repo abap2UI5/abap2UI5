@@ -455,6 +455,24 @@ const BUNDLE_CLOSE = [
 const DEVTOOLS_OPEN = ["sap.ui.require.preload({"];
 const DEVTOOLS_CLOSE = ["});"];
 
+// The CUSTOM CONTROLS bundle (?z2ui5-bundle=cc, _http_get_cc, see CC_DIR)
+// has the same preload, and one module behind it that is DEFINED the moment
+// the script has run, like the frontend bundle's z2ui5/embed: it is how
+// z2ui5/core/CustomControls tells that what it loaded was this bundle. A
+// <script> element reports a load for any 200 answer - a logon page, a
+// proxy's error page - and the view that waited would then ask the loader
+// for a control nobody registered. No control: its name is lower-case, and
+// nothing ever requires it.
+const CC_MARKER = "z2ui5/cc/bundle";
+const CC_OPEN = DEVTOOLS_OPEN;
+const CC_CLOSE = [
+  "});",
+  `sap.ui.define("${CC_MARKER}", function () {`,
+  '  "use strict";',
+  "  return {};",
+  "});",
+];
+
 // The developer tools are split in two. What has to be there from the
 // first roundtrip on stays in the shell's inline script and in the embed
 // bundle: devtools/DevTools.js (the facade the component installs - the
@@ -485,6 +503,40 @@ function isDeferredDevtools(relPath) {
   return relPath.startsWith(DEVTOOLS_DIR) && !DEVTOOLS_EAGER.has(relPath);
 }
 
+// The custom controls are the THIRD bundle: every file under cc/, served on
+// ?z2ui5-bundle=cc (z2ui5_cl_ui5_http_handler=>_http_get_cc) and loaded by
+// z2ui5/core/CustomControls with a <script> element before the first view
+// that names one is built. They are about a quarter of the frontend, and
+// about one app in forty uses one (measured 2026-11-23 on abap2UI5/
+// samples-controls and samples-stack: 19 of 763 apps) - every other page
+// paid for them on its cold start. None of them is eager: a control enters
+// a page through a view, and the view is what the load waits for. The one
+// module of the shell that talks to a control (Component.js, cc/Dirty)
+// probes it with the one-id sap.ui.require and finds nothing where no view
+// brought the bundle in - which is exactly when there is nothing to tell
+// it.
+//
+// The frontend bundle says that the controls are a bundle of their own, and
+// which: the digest of the cc bundle's text goes into the tail
+// (bundle/tail/embed.js) in place of CC_VERSION_TOKEN at generation time.
+// z2ui5/core/CustomControls asks for the bundle under that version, so the
+// handler may let a browser keep it without asking again - and a frontend
+// that came as single files (no tail, the UI5 loader finds cc/<Name>.js
+// itself) asks for no bundle at all.
+const CC_DIR = "cc/";
+const CC_VERSION_TOKEN = "@z2ui5-cc-version@";
+function isDeferredCc(relPath) {
+  return relPath.startsWith(CC_DIR);
+}
+
+// The bundle a file of bundle/webapp is delivered in besides the frontend
+// bundle: "devtools", "cc", or null for the frontend bundle itself.
+function deferredBundleOf(relPath) {
+  if (isDeferredDevtools(relPath)) return "devtools";
+  if (isDeferredCc(relPath)) return "cc";
+  return null;
+}
+
 // The sap.ui.define dependency arrays of a module's source: every quoted
 // module id inside the first array literal after `sap.ui.define(`.
 const DEFINE_DEPS = /sap\.ui\.define\(\s*\[([^\]]*)\]/;
@@ -494,23 +546,40 @@ function defineDependencies(source) {
   return [...match[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
 }
 
-// Guard 4: no module outside the devtools bundle may depend on one inside
-// it - see DEVTOOLS_EAGER. `sources` maps the relative path of every .js
-// file to its source text.
+// How a module outside a deferred bundle has to reach one inside it - the
+// second half of the guard's message.
+const DEFERRED_REMEDY = {
+  devtools:
+    "a module of the devtools bundle - " +
+    "a module outside the bundle (the inline preload, the embed bundle) must reach it " +
+    "lazily through DevTools.js, or the file has to join DEVTOOLS_EAGER in " +
+    "tools/app2abap/trans2abap.js",
+  cc:
+    "a module of the custom controls bundle - " +
+    "nothing outside bundle/webapp/cc/ may depend on a control: a view brings the " +
+    "bundle in (core/CustomControls.js), and a module that has to talk to a control " +
+    "probes it with sap.ui.require( id ) and takes undefined for an answer",
+};
+
+// Guard 4: no module may name, as a sap.ui.define dependency, a module of a
+// deferred bundle it is not part of itself - see DEVTOOLS_EAGER and CC_DIR.
+// The dependency would be asked of the loader before that bundle is in, and
+// the loader would fetch it from the node, which answers every GET with the
+// page. That holds for the frontend bundle's modules and between the two
+// deferred bundles alike (the developer tools open without the controls,
+// a view with a control builds without the tools). `sources` maps the
+// relative path of every .js file to its source text.
 function assertNoEagerDependencyOnDeferred(sources) {
   for (const [relPath, source] of sources) {
-    if (isDeferredDevtools(relPath)) continue;
+    const own = deferredBundleOf(relPath);
     for (const dep of defineDependencies(source)) {
       if (!dep.startsWith("z2ui5/")) continue;
       const depPath = `${dep.slice("z2ui5/".length)}.js`;
-      if (isDeferredDevtools(depPath)) {
-        throw new Error(
-          `${relPath}: sap.ui.define names ${dep}, a module of the devtools bundle - ` +
-            "a module outside the bundle (the inline preload, the embed bundle) must reach it " +
-            "lazily through DevTools.js, or the file has to join DEVTOOLS_EAGER in " +
-            "tools/app2abap/trans2abap.js",
-        );
-      }
+      const bundle = deferredBundleOf(depPath);
+      if (!bundle || bundle === own) continue;
+      throw new Error(
+        `${relPath}: sap.ui.define names ${dep}, ${DEFERRED_REMEDY[bundle]}`,
+      );
     }
   }
 }
@@ -532,8 +601,9 @@ function inlineScript(entries) {
 }
 
 // The complete text of a bundle script (get_bundle( ) without the embed
-// module the handler appends, get_devtools( )) - the devtools bundle's
-// validator is a digest of it.
+// module the handler appends, get_devtools( ), get_cc( )) - the validator
+// of the devtools bundle and of the custom controls bundle is a digest of
+// theirs.
 function bundleScript(entries, open = BUNDLE_OPEN, close = BUNDLE_CLOSE) {
   return [...open, ...entries.map(preloadEntryText), ...close]
     .map((line) => `${line}\n`)
@@ -548,14 +618,15 @@ function bundleScript(entries, open = BUNDLE_OPEN, close = BUNDLE_CLOSE) {
 const MAX_CLASS_NAME_LENGTH = 25;
 const CLASSES = {
   bundle: "z2ui5_cl_ui5f_bundle",
+  cc: "z2ui5_cl_ui5f_cc",
   devtools: "z2ui5_cl_ui5f_devtools",
   page: "z2ui5_cl_ui5f_page",
   preload: "z2ui5_cl_ui5f_preload",
 };
 
 // Builds z2ui5_cl_ui5f_preload, the one class z2ui5_cl_ui5_http_handler asks:
-// it hands out the four generated texts and the three constants taken over
-// them at generation time.
+// it hands out the generated texts and the constants taken over them at
+// generation time.
 //   script_hash    the SHA-256 of the page's inline script as a CSP hash
 //                  source - _http_get lists it in the policy's script-src, so
 //                  the script runs without 'unsafe-inline' and nothing else
@@ -565,9 +636,11 @@ const CLASSES = {
 //                  frontend with the same version constant still changes the
 //                  tag
 //   devtools_hash  the same for the devtools bundle
+//   cc_hash        the same for the custom controls bundle - and the version
+//                  the frontend asks for it by (CC_VERSION_TOKEN)
 // Nothing configurable may enter a text: an exit value in it would make the
 // digests a runtime question.
-function buildPreloadClass(buildHash, scriptHash, devtoolsHash) {
+function buildPreloadClass(buildHash, scriptHash, devtoolsHash, ccHash) {
   return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * The texts the HTTP service serves, generated from bundle/webapp/ and
@@ -583,7 +656,8 @@ CLASS ${CLASSES.preload} DEFINITION
   PUBLIC SECTION.
 
     " a digest of everything the node serves a browser - the page's script
-    " get( ) returns and the frontend bundle get_bundle( ) returns - fixed
+    " get( ) returns and the frontend bundle get_bundle( ) returns, which
+    " names the custom controls bundle by its own digest - fixed
     " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
     CONSTANTS build_hash TYPE string VALUE '${buildHash}'.
@@ -600,6 +674,14 @@ CLASS ${CLASSES.preload} DEFINITION
     " of the developer tools the frontend bundle does not carry. The ETag of
     " that bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
     CONSTANTS devtools_hash TYPE string VALUE '${devtoolsHash}'.
+
+    " a digest of the custom controls bundle get_cc( ) returns. The
+    " frontend bundle carries it too (the ccBundle of its z2ui5/embed
+    " module) and asks for the controls by it - as ?z2ui5-bundle=cc with
+    " this value as z2ui5-version, which lets a browser keep the answer
+    " (z2ui5_cl_ui5_http_handler=>_is_bundle_versioned). The ETag of that
+    " bundle carries it as well
+    CONSTANTS cc_hash TYPE string VALUE '${ccHash}'.
 
     " the one inline script of the GET page: the page's minimal app (a
     " component with one view) and the embed control that view holds
@@ -628,6 +710,16 @@ CLASS ${CLASSES.preload} DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the custom controls as a script of the same shape: every file of
+    " bundle/webapp/cc/, which the frontend bundle does not carry.
+    " Served on ?z2ui5-bundle=cc
+    " (z2ui5_cl_ui5_http_handler=>_http_get_cc) and loaded by
+    " z2ui5/core/CustomControls before the first view that names a
+    " control is built
+    CLASS-METHODS get_cc
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -650,6 +742,12 @@ CLASS ${CLASSES.preload} IMPLEMENTATION.
   METHOD get_devtools.
 
     result = ${CLASSES.devtools}=>get( ).
+
+  ENDMETHOD.
+
+  METHOD get_cc.
+
+    result = ${CLASSES.cc}=>get( ).
 
   ENDMETHOD.
 
@@ -677,7 +775,8 @@ function getAllFiles(dirPath, arrayOfFiles) {
 
 // The texts the node serves, put together from the sources: the page's
 // inline script, the frontend bundle (with its tail, the node-path token
-// still in it) and the devtools bundle. main( ) writes them into src/01/03;
+// still in it), the devtools bundle and the custom controls bundle. main( )
+// writes them into src/01/03;
 // the live dev server (node/srv/live.mjs) answers a bundle request with them
 // straight from the working tree - with `strip: false`, the comments stay
 // and no Prettier is needed.
@@ -687,6 +786,8 @@ async function buildTexts({ strip = true } = {}) {
   // order.
   const preloadEntries = [];
   const devtoolsEntries = [];
+  const ccEntries = [];
+  const entriesOf = { devtools: devtoolsEntries, cc: ccEntries };
   // the .js sources by relative path, for guard 4
   const jsSources = new Map();
   for (const file of getAllFiles(sourceDir).sort()) {
@@ -697,7 +798,7 @@ async function buildTexts({ strip = true } = {}) {
       `bundle/webapp/${relPath}`,
       strip,
     );
-    (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
+    (entriesOf[deferredBundleOf(relPath)] || preloadEntries).push({
       urlPath: `z2ui5/${relPath}`,
       isJs,
       value,
@@ -723,10 +824,20 @@ async function buildTexts({ strip = true } = {}) {
   preloadEntries.sort(byUrlPath);
   pageEntries.sort(byUrlPath);
   devtoolsEntries.sort(byUrlPath);
+  ccEntries.sort(byUrlPath);
   assertNoEagerDependencyOnDeferred(jsSources);
 
-  // The four texts, as the node serves them
+  // The texts, as the node serves them
   const pageText = inlineScript(pageEntries);
+  // ... the custom controls bundle first: the frontend bundle names it by
+  // its digest. 16 hex characters like the other two validators - it is a
+  // cache key, not a security digest
+  const ccText = bundleScript(ccEntries, CC_OPEN, CC_CLOSE);
+  const ccHash = crypto
+    .createHash("sha256")
+    .update(ccText, "utf8")
+    .digest("hex")
+    .slice(0, 16);
   // ... the frontend bundle with its tail behind the preload: the
   // z2ui5/embed module a host finds the bundle by (BUNDLE_TAIL)
   const tail = await readSource(
@@ -739,7 +850,14 @@ async function buildTexts({ strip = true } = {}) {
       `${BUNDLE_TAIL}: ${NODE_PATH_TOKEN} not found - the handler writes the node's path there`,
     );
   }
-  const bundleText = bundleScript(preloadEntries) + tail.value;
+  if (!tail.value.includes(CC_VERSION_TOKEN)) {
+    throw new Error(
+      `${BUNDLE_TAIL}: ${CC_VERSION_TOKEN} not found - the version of the custom controls bundle goes there`,
+    );
+  }
+  const bundleText =
+    bundleScript(preloadEntries) +
+    tail.value.replace(CC_VERSION_TOKEN, () => ccHash);
   const devtoolsText = bundleScript(
     devtoolsEntries,
     DEVTOOLS_OPEN,
@@ -749,9 +867,12 @@ async function buildTexts({ strip = true } = {}) {
     pageText,
     bundleText,
     devtoolsText,
+    ccText,
+    ccHash,
     pageEntries,
     preloadEntries,
     devtoolsEntries,
+    ccEntries,
   };
 }
 
@@ -804,9 +925,12 @@ async function main() {
       pageText,
       bundleText,
       devtoolsText,
+      ccText,
+      ccHash,
       pageEntries,
       preloadEntries,
       devtoolsEntries,
+      ccEntries,
     } = await buildTexts();
 
     // One SHA-256 over the script text the page will carry, UTF-8 like the
@@ -818,7 +942,8 @@ async function main() {
       .digest("base64")}`;
     // The validator covers everything the node serves a browser, not the
     // page's script alone: the bundle is the frontend, and its ETag carries
-    // this hash as the page's does. 16 hex characters: a validator, not a
+    // this hash as the page's does. The custom controls bundle is covered
+    // through the bundle's tail, which carries that bundle's digest. 16 hex characters: a validator, not a
     // security digest, and the tag travels in every GET response header
     const buildHash = crypto
       .createHash("sha256")
@@ -844,8 +969,8 @@ async function main() {
       abapTextClass(CLASSES.bundle, bundleText, [
         "The frontend bundle - what GET <node>?z2ui5-bundle answers with,",
         "once the handler has written the node's path into its tail. Source:",
-        "bundle/webapp/, every file outside the devtools bundle, and",
-        "bundle/tail/embed.js behind them.",
+        "bundle/webapp/, every file outside the devtools bundle and the",
+        "custom controls bundle, and bundle/tail/embed.js behind them.",
         ...wrap(sourcesOf(preloadEntries)),
       ]),
       "abap2UI5 - frontend bundle",
@@ -860,6 +985,15 @@ async function main() {
       "abap2UI5 - devtools bundle",
     );
     emitClass(
+      CLASSES.cc,
+      abapTextClass(CLASSES.cc, ccText, [
+        "The custom controls bundle - what GET <node>?z2ui5-bundle=cc answers",
+        "with. Source: bundle/webapp/cc/, loaded when a view names a control.",
+        ...wrap(sourcesOf(ccEntries)),
+      ]),
+      "abap2UI5 - custom controls bundle",
+    );
+    emitClass(
       CLASSES.page,
       abapTextClass(CLASSES.page, pageText, [
         "The one inline script of the page a GET answers with: the minimal",
@@ -870,7 +1004,7 @@ async function main() {
     );
     emitClass(
       CLASSES.preload,
-      buildPreloadClass(buildHash, scriptHash, devtoolsHash),
+      buildPreloadClass(buildHash, scriptHash, devtoolsHash, ccHash),
       "abap2UI5 - preload mapping",
     );
 
@@ -949,6 +1083,9 @@ module.exports = {
   minifyJs,
   assertSameProgram,
   isDeferredDevtools,
+  isDeferredCc,
+  deferredBundleOf,
+  CC_VERSION_TOKEN,
   defineDependencies,
   assertNoEagerDependencyOnDeferred,
   DEVTOOLS_EAGER,

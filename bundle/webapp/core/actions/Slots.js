@@ -7,8 +7,18 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/Context",
     "z2ui5/core/WindowModel",
+    "z2ui5/core/CustomControls",
   ],
-  (XMLView, Fragment, Lib, Env, ViewSlots, Context, WindowModel) => {
+  (
+    XMLView,
+    Fragment,
+    Lib,
+    Env,
+    ViewSlots,
+    Context,
+    WindowModel,
+    CustomControls,
+  ) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -208,6 +218,23 @@ sap.ui.define(
     // Display: popups, popovers, nested views, main view
     // ------------------------------------------------------------------
 
+    // What a view's XML names and the page may not have yet, loaded before
+    // the build - in parallel, both are requests: the libraries, as their
+    // preload bundles (Env.loadViewLibraries), and the frontend's own custom
+    // controls, which are a bundle of their own (core/CustomControls.js). All
+    // three builds of this module wait here, and they are the only places
+    // that turn XML into controls. The libraries never fail the build; the
+    // controls do when their bundle cannot be loaded, and the rejection is
+    // the build's - it surfaces in the error overlay like any view that
+    // cannot be built, instead of a loader error about a file that was
+    // never there.
+    function loadViewResources(ctx, xml) {
+      return Promise.all([
+        Env.loadViewLibraries(xml),
+        CustomControls.ensure(ctx, xml),
+      ]);
+    }
+
     // Shared load path of the two fragment slots (popup, popover): create
     // the slot's own JSON model, load the fragment and attach the model.
     // Returns null when the app was torn down while the fragment loaded or a
@@ -217,10 +244,13 @@ sap.ui.define(
       const oModel = createViewModel(ctx, slotKey);
       applyStoredSizeLimit(ctx, slotKey, oModel);
       // the libraries the fragment names, as their preload bundles - one
-      // request per library instead of one per control (Env, there)
-      await Env.loadViewLibraries(xml);
+      // request per library instead of one per control (Env, there) - and
+      // the custom controls it names
+      await loadViewResources(ctx, xml);
       // UI5 1.71 to 1.82 process a fragment synchronously - the controls it
-      // needs must be loaded before, or they are eval'd (Lib, there)
+      // needs must be loaded before, or they are eval'd (Lib, there). After
+      // the line above on purpose: a custom control is required here by its
+      // module id, which only its bundle registers
       await Env.preloadFragmentModules(xml);
       // under the component as owner, so every control of the fragment
       // resolves its context (Context.of) - UI5 carries the owner into
@@ -315,8 +345,9 @@ sap.ui.define(
       const oMainView = ViewSlots.getView(ctx, "MAIN");
       const oTemplateModel =
         oMainView?.getModel("http") ?? oMainView?.getModel();
-      // the libraries the view names, as their preload bundles (Env)
-      await Env.loadViewLibraries(xml);
+      // the libraries the view names, as their preload bundles (Env), and
+      // the custom controls it names
+      await loadViewResources(ctx, xml);
       const oView = await Context.runAsOwner(ctx, () =>
         XMLView.create({
           definition: xml,
@@ -446,9 +477,10 @@ sap.ui.define(
       // The libraries the view names, loaded as their preload bundles
       // before the build: XMLView.create would otherwise fetch every
       // control of a library not loaded yet as a module of its own (Env
-      // loadViewLibraries has the numbers). The old page is still up
+      // loadViewLibraries has the numbers) - and the custom controls it
+      // names, which are a bundle of their own. The old page is still up
       // while this waits (displayMain).
-      await Env.loadViewLibraries(xml);
+      await loadViewResources(ctx, xml);
       const oView = await Context.runAsOwner(ctx, () =>
         XMLView.create({
           definition: xml,

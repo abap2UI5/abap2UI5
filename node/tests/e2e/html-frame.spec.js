@@ -42,22 +42,31 @@ test.beforeAll(async ({ browser }) => {
         const host = document.createElement("div");
         host.id = "htmlFrameHost";
         document.body.appendChild(host);
-        w.sap.ui.require(["z2ui5/cc/HTMLFrame"], (/** @type {any} */ HTMLFrame) => {
-          // the content through the setter: a settings object reads the
-          // braces of the <style> as binding syntax - an app binds it
-          const frame = new HTMLFrame({
-            height: "20rem",
-            sapevent: (/** @type {any} */ e) =>
-              w.__htmlFrameEvents.push({
-                action: e.getParameter("action"),
-                getdata: e.getParameter("getdata"),
-                postdata: e.getParameter("postdata"),
-              }),
+        // The custom controls are a bundle of their own, which a view that
+        // names one brings in (core/CustomControls.js). This spec creates
+        // the control without a view, so it brings the bundle in itself -
+        // the loader asked for z2ui5/cc/HTMLFrame before that would fetch
+        // it from the node, which answers every GET with the page.
+        const bundle = document.createElement("script");
+        bundle.src = "/?z2ui5-bundle=cc";
+        bundle.onload = () =>
+          w.sap.ui.require(["z2ui5/cc/HTMLFrame"], (/** @type {any} */ HTMLFrame) => {
+            // the content through the setter: a settings object reads the
+            // braces of the <style> as binding syntax - an app binds it
+            const frame = new HTMLFrame({
+              height: "20rem",
+              sapevent: (/** @type {any} */ e) =>
+                w.__htmlFrameEvents.push({
+                  action: e.getParameter("action"),
+                  getdata: e.getParameter("getdata"),
+                  postdata: e.getParameter("postdata"),
+                }),
+            });
+            frame.setContent(content);
+            frame.placeAt("htmlFrameHost");
+            resolve(undefined);
           });
-          frame.setContent(content);
-          frame.placeAt("htmlFrameHost");
-          resolve(undefined);
-        });
+        document.head.appendChild(bundle);
       }),
     DOCUMENT,
   );

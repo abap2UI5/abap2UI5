@@ -128,6 +128,8 @@ function withSlots(
   const ctx = specContext({ oResponse });
   const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
     deps: {
+      // no view in these specs names a custom control
+      "z2ui5/core/CustomControls": { ensure: async () => {} },
       "z2ui5/core/Env": classEnv,
       "z2ui5/core/Context": contextStub(ctx),
       "z2ui5/core/Lib": {
@@ -1118,6 +1120,8 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
     ctx.server.requestSeq = requestSeq;
     const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
+        // no view in these specs names a custom control
+        "z2ui5/core/CustomControls": { ensure: async () => {} },
         "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/XMLView": { create: async () => oView },
         "sap/ui/model/json/JSONModel": JSONModel,
@@ -1279,6 +1283,8 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     };
     const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
+        // no view in these specs names a custom control
+        "z2ui5/core/CustomControls": { ensure: async () => {} },
         "z2ui5/core/Env": classEnv,
         ...shared,
         "sap/ui/core/mvc/XMLView": {

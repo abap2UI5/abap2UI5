@@ -120,10 +120,15 @@ module.exports = defineConfig(
        And library-preload: the libraries a view names come as their
        bundles through sap.ui.getCore().loadLibraries there and through
        sap/ui/core/Lib.load on the current release - the request count is
-       asked for on both. */
+       asked for on both.
+       And cc-bundle: on 1.71 a popup's fragment is processed synchronously,
+       so its controls are required before Fragment.load (Env.
+       preloadFragmentModules) - a custom control among them is there only
+       once its bundle is, and the order of the two is what 1.71 would
+       break. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details|library-preload|window)\.spec\.js$/,
+      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details|library-preload|window|cc-bundle)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */

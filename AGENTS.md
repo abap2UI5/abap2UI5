@@ -440,6 +440,10 @@ again:
   without `tools/app2abap/trans2abap.js` (`DEVTOOLS_EAGER`), which refuses a shell module depending on a bundled one.
   How a developer starts the tools (Ctrl+F12, `?z2ui5-devtools=1`, `?z2ui5-devtools=<KEY>`, "Open on Error") is
   section 10 of `docs/agents/building-apps.md`.
+- **The custom controls are a bundle of their own** (`?z2ui5-bundle=cc`, loaded by `core/CustomControls.js` before
+  the first view that names one is built) — nothing outside `bundle/webapp/cc/` may name a control as a
+  `sap.ui.define` dependency (`trans2abap.js` refuses it), and no control moves back into the frontend bundle
+  because one app needs it at start. Details: `bundle/AGENTS.md`, rule 2.
 - **No app base class and no lifecycle hooks on `z2ui5_if_app`**; the repeated dispatcher is not duplication.
 - **No named frontend-action wrappers on `z2ui5_if_client`** — `follow_up_action` stays the only API.
 - **Embedding as a reuse component goes as far as demand asked** — do not re-propose the rest as cleanup.

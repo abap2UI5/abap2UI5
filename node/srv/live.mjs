@@ -10,7 +10,8 @@
 // request itself, with the bundle put together from the sources at that
 // moment (tools/app2abap/trans2abap.js, buildTexts - the same code that
 // writes the classes, without the comment strip): edit a file, reload the
-// page. The same for the developer tools (?z2ui5-bundle=devtools).
+// page. The same for the developer tools (?z2ui5-bundle=devtools) and the
+// custom controls (?z2ui5-bundle=cc).
 //
 // Everything else - the page, the roundtrips - is the built backend, as in
 // `npm run express`. So the page's own app (app_source/webapp) and the
@@ -38,10 +39,13 @@ async function liveBundle(req, res) {
   const url = new URL(req.url, "http://localhost");
   if (req.method !== "GET" || !url.searchParams.has("z2ui5-bundle")) return false;
   try {
-    const { bundleText, devtoolsText } = await buildTexts({ strip: false });
-    const body = url.searchParams.get("z2ui5-bundle") === "devtools"
+    const { bundleText, devtoolsText, ccText } = await buildTexts({ strip: false });
+    const kind = url.searchParams.get("z2ui5-bundle");
+    const body = kind === "devtools"
       ? devtoolsText
-      : bundleText.replace(NODE_PATH_TOKEN, () => escapeJs(url.pathname));
+      : kind === "cc"
+        ? ccText
+        : bundleText.replace(NODE_PATH_TOKEN, () => escapeJs(url.pathname));
     res.writeHead(200, {
       "content-type": "application/javascript; charset=UTF-8",
       // never kept: the next reload has to see the next edit - also under

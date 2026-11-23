@@ -353,6 +353,7 @@
     ],
     "src/01/03": [
       "z2ui5_cl_ui5f_bundle",
+      "z2ui5_cl_ui5f_cc",
       "z2ui5_cl_ui5f_devtools",
       "z2ui5_cl_ui5f_page",
       "z2ui5_cl_ui5f_preload"
