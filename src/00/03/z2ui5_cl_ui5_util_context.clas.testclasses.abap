@@ -22,6 +22,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_impl_intf_lower_case FOR TESTING RAISING cx_static_check.
     METHODS test_impl_intf_no_app     FOR TESTING RAISING cx_static_check.
     METHODS test_impl_intf_no_class   FOR TESTING RAISING cx_static_check.
+    METHODS test_class_load_error_none FOR TESTING RAISING cx_static_check.
     METHODS test_impl_intf_interface  FOR TESTING RAISING cx_static_check.
     METHODS test_ref_type_name_intf   FOR TESTING RAISING cx_static_check.
     METHODS test_ref_type_name_class  FOR TESTING RAISING cx_static_check.
@@ -65,6 +66,17 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false(
         z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = `ZCL_THIS_CLASS_DOES_NOT_EXIST`
                                                                intf  = `Z2UI5_IF_APP` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_class_load_error_none.
+
+    " a class that describes fine and one that does not exist at all have
+    " no load error - only a class that exists and fails to load has one
+    cl_abap_unit_assert=>assert_not_bound(
+        z2ui5_cl_ui5_util_context=>rtti_get_class_load_error( `Z2UI5_CL_UI5_APP_HI_WORLD` ) ).
+    cl_abap_unit_assert=>assert_not_bound(
+        z2ui5_cl_ui5_util_context=>rtti_get_class_load_error( `ZCL_THIS_CLASS_DOES_NOT_EXIST` ) ).
 
   ENDMETHOD.
 

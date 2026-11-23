@@ -656,6 +656,18 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    " why a class cannot be described - the exception describe_by_name
+    " raised for a class that exists but cannot be loaded (a syntax error in
+    " it, a missing dependency); unbound when the class describes fine or
+    " does not exist at all. The follow-up question to a "no" of
+    " rtti_check_class_impl_intf, so a caller can say "broken" instead of
+    " "does not exist". Not cached: it is asked once, after a failure
+    CLASS-METHODS rtti_get_class_load_error
+      IMPORTING
+        class         TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO cx_root.
+
     CLASS-METHODS rtti_get_type_kind
       IMPORTING
         val           TYPE any
@@ -1704,12 +1716,30 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           result = xsdbool( line_exists( lo_classdescr->interfaces[ name = lv_intf ] ) ). "#EC CI_SORTSEQ
         ENDIF.
 
-      CATCH cx_root ##NO_HANDLER.
+      CATCH cx_sy_move_cast_error ##NO_HANDLER.
+        " an interface or a data type - no class, a plain abap_false
+      CATCH cx_root.
+        " the descriptor failed - not cached, so a class fixed meanwhile is
+        " checked anew; rtti_get_class_load_error( ) says why
+        RETURN.
     ENDTRY.
 
     INSERT VALUE #( name   = lv_class
                     intf   = lv_intf
                     result = result ) INTO TABLE gt_class_impl_intf.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_class_load_error.
+
+    DATA lo_typedescr TYPE REF TO cl_abap_typedescr.
+
+    TRY.
+        cl_abap_classdescr=>describe_by_name( EXPORTING p_name          = to_upper( class )
+                                              RECEIVING p_descr_ref     = lo_typedescr
+                                              EXCEPTIONS type_not_found = 1 ).
+      CATCH cx_root INTO result ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
