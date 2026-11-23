@@ -277,7 +277,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                           actions          = actions
                           emphasizedaction = emphasizedaction
                           initialfocus     = initialfocus
-                          details          = details ).
+                          details          = details
+                          icon             = icon ).
 
   ENDMETHOD.
 

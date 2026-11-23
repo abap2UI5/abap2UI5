@@ -688,9 +688,10 @@ INTERFACE z2ui5_if_client
   "! ``client->follow_up_action( val = client->cs_event-control_global t_arg = VALUE #( ( `MESSAGE_BOX` ) ( `error` ) ( `Not saved.` ) ( `\{"contentWidth":"30rem","icon":"WARNING"\}` ) ) )``
   "!
   "! The method IS the box type there, and the option object lands in the
-  "! same frontend code this method reaches. `textDirection`, `icon`,
+  "! same frontend code this method reaches. `textDirection`,
   "! `closeOnNavigation`, `dependentOn` (UI5 1.124 on) and `contentWidth`
-  "! were parameters here until 2026-09 and travel that way now.
+  "! were parameters here until 2026-09 and travel that way now; `icon`
+  "! left with them by mistake and is a parameter again (2026-11).
   "!
   "! @parameter text | what to show - a text, or any of the shapes above.
   "! @parameter type | the kind of box, which decides icon and default title:
@@ -719,6 +720,9 @@ INTERFACE z2ui5_if_client
   "! @parameter details | a further text (or JSON) shown below the message,
   "!                  already unfolded (the box's "Show details" link is
   "!                  hidden).
+  "! @parameter icon | the icon of the box instead of the type's own: a
+  "!                  sap.m.MessageBox.Icon name (`WARNING`) or a
+  "!                  `sap-icon://` URI.
   METHODS message_box_display
     IMPORTING
       text             TYPE any
@@ -729,7 +733,8 @@ INTERFACE z2ui5_if_client
       actions          TYPE string_table OPTIONAL
       emphasizedaction TYPE clike        OPTIONAL
       initialfocus     TYPE clike        OPTIONAL
-      details          TYPE clike        OPTIONAL.
+      details          TYPE clike        OPTIONAL
+      icon             TYPE clike        OPTIONAL.
 
   "! Show a sap.m.MessageToast with text - the fire-and-forget notification
   "! for a saved record or a copied link, gone again after a few seconds.

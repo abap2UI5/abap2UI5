@@ -98,7 +98,8 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
         actions          TYPE string_table OPTIONAL
         emphasizedaction TYPE clike        OPTIONAL
         initialfocus     TYPE clike        OPTIONAL
-        details          TYPE clike        OPTIONAL.
+        details          TYPE clike        OPTIONAL
+        icon             TYPE clike        OPTIONAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -443,10 +444,11 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " the emphasized action derived from them ), so sending a value for an
         " option the app left alone would override those. What is left here is
         " what an ABAP app decides; a pure pass-through option ( textDirection,
-        " icon, closeOnNavigation, dependentOn, contentWidth ) is no parameter
-        " of this method anymore ( 2026-09 ) and is set on the control, as the
+        " closeOnNavigation, dependentOn, contentWidth ) is no parameter of
+        " this method anymore ( 2026-09 ) and is set on the control, as the
         " option object of a CONTROL_GLOBAL MESSAGE_BOX call - which is the
-        " very object built here, so both ways meet in showBox( ).
+        " very object built here, so both ways meet in showBox( ). The icon
+        " left with them by mistake and is a parameter again ( 2026-11 )
         set_opt_strings(
             json = li_opt
             opt  = VALUE #( ( name = `title`            val = ls_msg-title )
@@ -454,7 +456,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                             ( name = `onClose`          val = onclose )
                             ( name = `emphasizedAction` val = emphasizedaction )
                             ( name = `initialFocus`     val = initialfocus )
-                            ( name = `details`          val = ls_msg-details ) ) ).
+                            ( name = `details`          val = ls_msg-details )
+                            ( name = `icon`             val = icon ) ) ).
 
         IF actions IS NOT INITIAL.
           li_opt->set( iv_path = `/actions`

@@ -16,6 +16,7 @@ CLASS ltcl_test_frontend DEFINITION FINAL
     METHODS test_box_explicit_type    FOR TESTING RAISING cx_static_check.
     METHODS test_box_unknown_type     FOR TESTING RAISING cx_static_check.
     METHODS test_box_actions          FOR TESTING RAISING cx_static_check.
+    METHODS test_box_icon             FOR TESTING RAISING cx_static_check.
     METHODS test_box_msg_table_empty  FOR TESTING RAISING cx_static_check.
     METHODS test_box_unmappable_comp  FOR TESTING RAISING cx_static_check.
     METHODS test_main_drops_teardowns FOR TESTING RAISING cx_static_check.
@@ -148,7 +149,7 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
     " what is left on the method is what an ABAP app decides: the data, the
     " kind of box, the buttons, the focus among them, the backend event. A
-    " pure sap.m.MessageBox option ( icon, contentWidth, textDirection, ... )
+    " pure sap.m.MessageBox option ( contentWidth, textDirection, ... )
     " has no parameter here at all - it is set on the control, as the option
     " object of a CONTROL_GLOBAL MESSAGE_BOX call
     mo_cut->msg_box( text             = `Delete?`
@@ -160,6 +161,19 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","confirm","Delete?",{"actions":["DELETE","CANCEL"],"emphasizedAction":"DELETE","initialFocus":"CANCEL","onClose":"ANSWERED"}]`
+        act = queued( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_box_icon.
+
+    " the icon travels as the option the frontend hands sap.m.MessageBox
+    mo_cut->msg_box( text = `Duplicate entries error.`
+                     type = `error`
+                     icon = `sap-icon://key` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","error","Duplicate entries error.",{"icon":"sap-icon://key"}]`
         act = queued( ) ).
 
   ENDMETHOD.

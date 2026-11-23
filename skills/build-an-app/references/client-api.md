@@ -233,7 +233,8 @@ message_box_display(
     actions TYPE string_table OPTIONAL
     emphasizedaction TYPE clike OPTIONAL
     initialfocus TYPE clike OPTIONAL
-    details TYPE clike OPTIONAL )
+    details TYPE clike OPTIONAL
+    icon TYPE clike OPTIONAL )
 ```
 
 Show a sap.m.MessageBox. `text` is TYPE any and takes whatever the app has: a text, a message structure or table (BAPIRET2, T100, RAP, symsg, a log object, an exception), an HTML string, a business table, a nested structure or tree, an object, a number.
