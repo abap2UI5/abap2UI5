@@ -8,8 +8,8 @@ CLASS lcl_node_value DEFINITION FINAL.
 
   PUBLIC SECTION.
     " a number is initial in every spelling of zero - the one predicate
-    " for that is z2ui5_cl_ui5_util_json_fl=>check_number_initial, shared
-    " with the framework's no-empty-values filter. A boolean is initial
+    " for that is z2ui5_cl_ui5_util_json_fl=>check_number_initial. A
+    " boolean is initial
     " when it is `false`: ajson writes abap_false as that literal, never as
     " an empty value, so an emptiness test kept every abap_false - the very
     " value omit_initial is documented to drop (_bind( ) in z2ui5_if_client)

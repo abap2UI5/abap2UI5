@@ -46,7 +46,6 @@ INTERFACE z2ui5_if_ui5_types
   " wire contract as cs_slot_action-target above, so never a literal.
   CONSTANTS:
     BEGIN OF cs_global_target,
-      router        TYPE string VALUE `ROUTER`,
       message_toast TYPE string VALUE `MESSAGE_TOAST`,
       message_box   TYPE string VALUE `MESSAGE_BOX`,
     END OF cs_global_target.
@@ -303,8 +302,9 @@ INTERFACE z2ui5_if_ui5_types
         s_action TYPE ty_s_action,
         id       TYPE string,
         app      TYPE string,
-        " see c_protocol - stamped by z2ui5_cl_ui5_handler on every response
-        protocol TYPE i,
+        " PROTOCOL has no field here: z2ui5_cl_ui5_handler
+        " =>response_abap_to_json stamps c_protocol on every response
+        " itself, so no caller can set - or forget - it
         " VIEWS: one entry per slot this roundtrip changes -
         "   "MAIN": { "XML": "<mvc:View ...>", "OPT": { ... } }   a display
         "   "POPUP": { "DESTROY": true }                          a teardown

@@ -1,8 +1,17 @@
-" The framework's own STATELESS ajson helpers - the no-empty-values filter
-" and the upper-case field mapping, both implemented by this class. Neither
-" carries any state, so ONE instance of each serves the whole roll area
-" instead of a pair of objects per serialization: response_abap_to_json
-" built both on every single response, main_json_stringify one per model.
+" The framework's own STATELESS ajson helpers - the upper-case field
+" mapping this class implements, and two static predicates on JSON text.
+" The mapping carries no state, so ONE instance serves the whole roll area
+" instead of an object per serialization: response_abap_to_json built one
+" on every single response, main_json_stringify one per model.
+"
+" The class used to implement a second thing, the no-empty-values filter
+" (create_no_empty_values, z2ui5_if_ajson_filter~keep_node), for the
+" generic conversion of the response structure. Since protocol 3 the
+" response is written field by field (z2ui5_cl_ui5_handler
+" =>response_abap_to_json) and nothing asked for the filter any more; it
+" went on 2026-11-23. What _bind( omit_initial ) filters by are the
+" row-preserving filters local to z2ui5_cl_ui5_client, which share
+" check_number_initial below.
 "
 " The mapping used to be ajson's own create_upper_case( ): its to_json
 " delegates to a field mapping (to_upper plus a READ on a field table that
@@ -26,12 +35,7 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
     INTERFACES z2ui5_if_ajson_mapping.
-
-    CLASS-METHODS create_no_empty_values
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson_filter.
 
     "! The upper-case field mapping every model and response serialization
     "! attaches. A caller that needs a mapper of its OWN still builds one -
@@ -48,9 +52,9 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
     "! float as `0.0E+00` (both are |{ value }|), and a plain compare
     "! against `0` kept exactly the "price" column omit_initial is
     "! documented for. CO: every character is one of the set, i.e. there
-    "! is no non-zero digit. The one predicate for this filter and for the
-    "! row-preserving filters local to z2ui5_cl_ui5_client, which used to
-    "! carry a copy of the line
+    "! is no non-zero digit. The one predicate of the row-preserving
+    "! filters local to z2ui5_cl_ui5_client, which used to carry a copy of
+    "! the line each
     CLASS-METHODS check_number_initial
       IMPORTING
         val           TYPE string
@@ -77,7 +81,6 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
     " the bytes of the set, in the order gv_controls holds the characters
     CONSTANTS c_controls_hex TYPE string VALUE `0001020304050607080B0C0E0F101112131415161718191A1B1C1D1E1F`.
 
-    CLASS-DATA gi_no_empty_values TYPE REF TO z2ui5_if_ajson_filter.
     CLASS-DATA gi_mapper_upper    TYPE REF TO z2ui5_if_ajson_mapping.
     CLASS-DATA gv_controls        TYPE string.
     CLASS-DATA gv_controls_built  TYPE abap_bool.
@@ -85,15 +88,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
-
-  METHOD create_no_empty_values.
-
-    IF gi_no_empty_values IS NOT BOUND.
-      gi_no_empty_values = NEW z2ui5_cl_ui5_util_json_fl( ).
-    ENDIF.
-    result = gi_no_empty_values.
-
-  ENDMETHOD.
 
   METHOD mapper_upper.
 
@@ -167,30 +161,6 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
       ENDIF.
       lv_off = lv_off + 1.
     ENDWHILE.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_ajson_filter~keep_node.
-
-    rv_keep = abap_true.
-
-    CASE iv_visit.
-
-      WHEN z2ui5_if_ajson_filter=>visit_type-value.
-
-        CASE is_node-type.
-          WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            rv_keep = xsdbool( is_node-value <> `false` ).
-          WHEN z2ui5_if_ajson_types=>node_type-number.
-            rv_keep = xsdbool( check_number_initial( is_node-value ) = abap_false ).
-          WHEN z2ui5_if_ajson_types=>node_type-string.
-            rv_keep = xsdbool( is_node-value <> `` ).
-        ENDCASE.
-
-      WHEN z2ui5_if_ajson_filter=>visit_type-close.
-        rv_keep = xsdbool( is_node-children <> 0 ).
-
-    ENDCASE.
 
   ENDMETHOD.
 
