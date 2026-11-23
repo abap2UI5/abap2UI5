@@ -13,10 +13,11 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
   PUBLIC SECTION.
 
     " a digest of everything the node serves a browser - the page's script
-    " get( ) returns and the frontend bundle get_bundle( ) returns - fixed
+    " get( ) returns and the frontend bundle get_bundle( ) returns, which
+    " names the custom controls bundle by its own digest - fixed
     " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '796d7ff62e0ac595'.
+    CONSTANTS build_hash TYPE string VALUE '1092a42b6a68086e'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:
@@ -30,6 +31,14 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " of the developer tools the frontend bundle does not carry. The ETag of
     " that bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
     CONSTANTS devtools_hash TYPE string VALUE '3ee84dbdb6452998'.
+
+    " a digest of the custom controls bundle get_cc( ) returns. The
+    " frontend bundle carries it too (the ccBundle of its z2ui5/embed
+    " module) and asks for the controls by it - as ?z2ui5-bundle=cc with
+    " this value as z2ui5-version, which lets a browser keep the answer
+    " (z2ui5_cl_ui5_http_handler=>_is_bundle_versioned). The ETag of that
+    " bundle carries it as well
+    CONSTANTS cc_hash TYPE string VALUE '2237964eab170b59'.
 
     " the one inline script of the GET page: the page's minimal app (a
     " component with one view) and the embed control that view holds
@@ -58,6 +67,16 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the custom controls as a script of the same shape: every file of
+    " bundle/webapp/cc/, which the frontend bundle does not carry.
+    " Served on ?z2ui5-bundle=cc
+    " (z2ui5_cl_ui5_http_handler=>_http_get_cc) and loaded by
+    " z2ui5/core/CustomControls before the first view that names a
+    " control is built
+    CLASS-METHODS get_cc
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -80,6 +99,12 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
   METHOD get_devtools.
 
     result = z2ui5_cl_ui5f_devtools=>get( ).
+
+  ENDMETHOD.
+
+  METHOD get_cc.
+
+    result = z2ui5_cl_ui5f_cc=>get( ).
 
   ENDMETHOD.
 
