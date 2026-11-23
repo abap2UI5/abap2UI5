@@ -100,9 +100,10 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
   PRIVATE SECTION.
     "! The JSON text of the value behind ir_ref written directly - a
     "! STANDARD table of flat rows, or one flat structure, every cell an
-    "! elementary type ajson renders from |{ }| (z2ui5_cl_ui5_util_context
-    "! =>rtti_get_flat_components says which). Empty when the value is
-    "! anything else, and the caller takes the general road through ajson.
+    "! elementary type (z2ui5_cl_ui5_util_context=>rtti_get_flat_components
+    "! says which, and lists the fields of an include in its place). Empty
+    "! when the value is anything else, and the caller takes the general
+    "! road through ajson.
     "! Byte for byte what ajson writes for the same value under the
     "! upper-case mapping with format_datetime (the model's instance): the
     "! keys upper-cased and in the order of ajson's node table (by name),
@@ -1069,6 +1070,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                             ELSE |"{ lv_text(2) }:{ lv_text+2(2) }:{ lv_text+4(2) }"| ).
         WHEN `B`.
           lv_text = COND #( WHEN <cell> IS NOT INITIAL THEN `true` ELSE `false` ).
+        WHEN `U`.
+          " a packed field typed timestamp or timestampl: ajson's
+          " format_timestamp / format_timestampl, an ISO instant in UTC -
+          " never empty, an initial one is 0000-00-00T00:00:00Z. Nothing
+          " to escape: digits and the punctuation of the format
+          lv_text = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stamp( <cell> ) }"|.
+        WHEN `L`.
+          lv_text = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( <cell> ) }"|.
       ENDCASE.
       APPEND |"{ lr_comp->name }":{ lv_text }| TO lt_member.
     ENDLOOP.

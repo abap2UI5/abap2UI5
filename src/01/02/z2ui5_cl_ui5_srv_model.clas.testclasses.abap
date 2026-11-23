@@ -4791,9 +4791,19 @@ CLASS ltcl_app_fast DEFINITION FINAL CREATE PUBLIC.
         day   TYPE d,
       END OF ty_s_row.
     TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    " a row type as a DDIC table or a reuse structure gives it: an include
+    " with a suffix, and the two time stamp kinds
+    TYPES BEGIN OF ty_s_log.
+    TYPES id TYPE i.
+    INCLUDE TYPE ty_s_row AS s_row RENAMING WITH SUFFIX _r.
+    TYPES created_at TYPE timestamp.
+    TYPES changed_at TYPE timestampl.
+    TYPES END OF ty_s_log.
+    TYPES ty_t_log TYPE STANDARD TABLE OF ty_s_log WITH EMPTY KEY.
     DATA mt_rows  TYPE ty_t_row.
     DATA ms_head  TYPE ty_s_row.
     DATA mv_title TYPE string.
+    DATA mt_log   TYPE ty_t_log.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -4844,10 +4854,43 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
     TYPES ty_t_nested TYPE STANDARD TABLE OF ty_s_nested WITH EMPTY KEY.
     TYPES:
       BEGIN OF ty_s_stamp,
-        id TYPE i,
-        ts TYPE timestamp,
+        id  TYPE i,
+        ts  TYPE timestamp,
+        tsl TYPE timestampl,
       END OF ty_s_stamp.
     TYPES ty_t_stamp TYPE STANDARD TABLE OF ty_s_stamp WITH EMPTY KEY.
+
+    " row types with includes: plain, an include of an include, the same
+    " structure twice under two suffixes, and one whose include is not flat
+    TYPES:
+      BEGIN OF ty_s_inc_base,
+        b_id   TYPE i,
+        b_text TYPE string,
+        b_day  TYPE d,
+        b_ok   TYPE abap_bool,
+      END OF ty_s_inc_base.
+    TYPES BEGIN OF ty_s_inc_plain.
+    TYPES z_own TYPE string.
+    INCLUDE TYPE ty_s_inc_base.
+    TYPES a_own TYPE i.
+    TYPES END OF ty_s_inc_plain.
+    TYPES ty_t_inc_plain TYPE STANDARD TABLE OF ty_s_inc_plain WITH EMPTY KEY.
+    TYPES BEGIN OF ty_s_inc_nested.
+    INCLUDE TYPE ty_s_inc_plain.
+    TYPES m_own TYPE t.
+    TYPES END OF ty_s_inc_nested.
+    TYPES ty_t_inc_nested TYPE STANDARD TABLE OF ty_s_inc_nested WITH EMPTY KEY.
+    TYPES BEGIN OF ty_s_inc_suffix.
+    TYPES key TYPE i.
+    INCLUDE TYPE ty_s_inc_base AS s_old RENAMING WITH SUFFIX _old.
+    INCLUDE TYPE ty_s_inc_base AS s_new RENAMING WITH SUFFIX _new.
+    TYPES END OF ty_s_inc_suffix.
+    TYPES ty_t_inc_suffix TYPE STANDARD TABLE OF ty_s_inc_suffix WITH EMPTY KEY.
+    TYPES BEGIN OF ty_s_inc_deep.
+    TYPES key TYPE i.
+    INCLUDE TYPE ty_s_nested AS s_deep RENAMING WITH SUFFIX _d.
+    TYPES END OF ty_s_inc_deep.
+    TYPES ty_t_inc_deep TYPE STANDARD TABLE OF ty_s_inc_deep WITH EMPTY KEY.
 
     DATA mo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
 
@@ -4873,6 +4916,13 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
     METHODS keys_in_ajson_order      FOR TESTING RAISING cx_static_check.
     METHODS escape_as_ajson          FOR TESTING RAISING cx_static_check.
     METHODS not_taken_falls_back     FOR TESTING RAISING cx_static_check.
+    METHODS include_plain_identical  FOR TESTING RAISING cx_static_check.
+    METHODS include_nested_identical FOR TESTING RAISING cx_static_check.
+    METHODS include_suffix_identical FOR TESTING RAISING cx_static_check.
+    METHODS include_deep_falls_back  FOR TESTING RAISING cx_static_check.
+    METHODS timestamp_identical      FOR TESTING RAISING cx_static_check.
+    METHODS timestamp_struct_identical FOR TESTING RAISING cx_static_check.
+    METHODS model_log_identical      FOR TESTING RAISING cx_static_check.
     METHODS model_identical          FOR TESTING RAISING cx_static_check.
     METHODS model_dollar_and_token   FOR TESTING RAISING cx_static_check.
     METHODS splice_any_order         FOR TESTING RAISING cx_static_check.
@@ -5029,24 +5079,165 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
   METHOD not_taken_falls_back.
 
     " a nested structure in the row, a sorted table, a table of scalars, a
-    " scalar, a column typed timestamp (ajson converts it through the time
-    " zone): none of them is written here - the general road through ajson
-    " stays the reference for them
+    " scalar: none of them is written here - the general road through
+    " ajson stays the reference for them
     DATA lt_nested TYPE ty_t_nested.
     DATA lt_sorted TYPE ty_t_kinds_sorted.
     DATA lt_scalar TYPE string_table.
-    DATA lt_stamp  TYPE ty_t_stamp.
     DATA lv_scalar TYPE string.
     APPEND VALUE #( id = 1 ) TO lt_nested.
     INSERT VALUE #( v_i = 1 ) INTO TABLE lt_sorted.
     APPEND `x` TO lt_scalar.
-    APPEND VALUE #( id = 1 ts = '20240229230000' ) TO lt_stamp.
 
-    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_stamp ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_nested ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_sorted ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_scalar ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lv_scalar ) ) ).
+
+  ENDMETHOD.
+
+  METHOD include_plain_identical.
+
+    " the fields of an include are members of the row like its own - in
+    " ajson's order (by name), whatever the order of the components
+    DATA lt_rows TYPE ty_t_inc_plain.
+    APPEND VALUE #( z_own = `z` b_id = 1 b_text = `in "clu" de` b_day = '20240229' b_ok = abap_true a_own = 7 ) TO lt_rows.
+    APPEND INITIAL LINE TO lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"A_OWN":7,"B_DAY":"2024-02-29","B_ID":1,"B_OK":true,"B_TEXT":"in \"clu\" de","Z_OWN":"z"}` ) ).
+    " and the structure itself
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows[ 1 ] )
+                                        act = mo_model->attri_json_fast( REF #( lt_rows[ 1 ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD include_nested_identical.
+
+    " an include whose structure has an include of its own
+    DATA lt_rows TYPE ty_t_inc_nested.
+    APPEND VALUE #( z_own = `z` b_id = 1 b_text = `deep` b_ok = abap_true a_own = 7 m_own = '120000' ) TO lt_rows.
+    APPEND INITIAL LINE TO lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_TEXT":"deep","M_OWN":"12:00:00","Z_OWN":"z"}` ) ).
+
+  ENDMETHOD.
+
+  METHOD include_suffix_identical.
+
+    " the same structure twice, told apart by RENAMING WITH SUFFIX: the
+    " members carry the suffixed names, and the name of the include itself
+    " (AS s_old) is no member
+    DATA lt_rows TYPE ty_t_inc_suffix.
+    APPEND VALUE #( key = 1 b_id_old = 10 b_text_old = `before` b_id_new = 11 b_text_new = `after` b_ok_new = abap_true )
+           TO lt_rows.
+    APPEND INITIAL LINE TO lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_ID_NEW":11,"B_ID_OLD":10,` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_TEXT_NEW":"after","B_TEXT_OLD":"before","KEY":1}` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `S_OLD` ) ).
+
+  ENDMETHOD.
+
+  METHOD include_deep_falls_back.
+
+    " an include that brings a nested structure along: not flat, so the
+    " general road - which writes the same document as before
+    DATA lt_rows TYPE ty_t_inc_deep.
+    APPEND VALUE #( key = 1 id_d = 2 ) TO lt_rows.
+
+    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_rows ) ) ).
+
+  ENDMETHOD.
+
+  METHOD timestamp_identical.
+
+    " the two time stamp kinds as ajson writes them - an ISO instant in
+    " UTC, never empty. Row 1 initial, row 2 a typical one, row 3 a long
+    " one with a fraction. The fraction is a half and the time a whole
+    " hour on purpose: the transpiled runtime copies a packed field
+    " through a double (backlog/items/runtime-packed-copy-precision.md),
+    " which holds exactly these and shifts most others by some hundred
+    " nanoseconds - a system holds them all. Row 4 carries such a
+    " fraction and is only compared, not pinned
+    DATA lt_rows TYPE ty_t_stamp.
+    APPEND VALUE #( id = 1 ) TO lt_rows.
+    APPEND VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000' ) TO lt_rows.
+    APPEND VALUE #( id = 3 ts = '19991231120000' tsl = '20240229230000.5' ) TO lt_rows.
+    APPEND VALUE #( id = 4 ts = '20240229235959' tsl = '20240229235959.1234567' ) TO lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"ID":1,"TS":"0000-00-00T00:00:00Z","TSL":"0000-00-00T00:00:00.0Z"}` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"ID":2,"TS":"2024-02-29T23:00:00Z","TSL":"2024-02-29T23:00:00.0Z"}` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"ID":3,"TS":"1999-12-31T12:00:00Z","TSL":"2024-02-29T23:00:00.5Z"}` ) ).
+
+  ENDMETHOD.
+
+  METHOD timestamp_struct_identical.
+
+    " a flat structure with time stamps, row by row
+    DATA lt_rows TYPE ty_t_stamp.
+    APPEND VALUE #( id = 1 ) TO lt_rows.
+    APPEND VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000.5' ) TO lt_rows.
+
+    LOOP AT lt_rows REFERENCE INTO DATA(lr_row).
+      cl_abap_unit_assert=>assert_not_initial( mo_model->attri_json_fast( lr_row ) ).
+      cl_abap_unit_assert=>assert_equals( exp = ajson_text( lr_row->* )
+                                          act = mo_model->attri_json_fast( lr_row ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD model_log_identical.
+
+    " the whole model with a table whose row type has an include and both
+    " time stamp kinds: the document the tree alone writes
+    DATA(lo_app) = CAST ltcl_app_fast( mo_model->mo_app ).
+    lo_app->mt_log = VALUE #( ( id = 1 id_r = 10 name_r = `one` price_r = '1.50' ok_r = abap_true day_r = '20240101'
+                                created_at = '20240229230000' changed_at = '20240229230000.5' )
+                              ( ) ).
+    mo_model->main_attri_refresh( ).
+    LOOP AT mo_model->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE name = `MT_LOG`.
+      lr_attri->bind        = abap_true.
+      lr_attri->name_client = |/{ lr_attri->name }|.
+    ENDLOOP.
+
+    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_exp->set( iv_ignore_empty = abap_false
+                 iv_path         = `/MT_LOG`
+                 iv_val          = lo_app->mt_log ).
+
+    DATA(lv_act) = mo_model->main_json_stringify( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"MT_LOG":[{"CHANGED_AT":"2024-02-29T23:00:00.5Z","CREATED_AT":"2024-02-29T23:00:00Z","DAY_R":"2024-01-01",` ) ).
+    " through the fast path, not the tree: the row type is taken
+    cl_abap_unit_assert=>assert_not_initial( mo_model->attri_json_fast( REF #( lo_app->mt_log ) ) ).
 
   ENDMETHOD.
 

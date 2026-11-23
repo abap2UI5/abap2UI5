@@ -2970,11 +2970,27 @@ CLASS ltcl_coverage DEFINITION FINAL
     INCLUDE TYPE ty_s_incl.
     TYPES zip TYPE string.
     TYPES END OF ty_s_with_incl.
+    TYPES BEGIN OF ty_s_with_suffix.
+    TYPES zip TYPE string.
+    INCLUDE TYPE ty_s_flat AS s_flat RENAMING WITH SUFFIX _x.
+    TYPES END OF ty_s_with_suffix.
+    TYPES BEGIN OF ty_s_with_deep.
+    TYPES zip TYPE string.
+    INCLUDE TYPE ty_s_nested AS s_nested RENAMING WITH SUFFIX _x.
+    TYPES END OF ty_s_with_deep.
+    TYPES:
+      BEGIN OF ty_s_stamps,
+        ts  TYPE timestamp,
+        tsl TYPE timestampl,
+      END OF ty_s_stamps.
 
     METHODS test_check_table_standard FOR TESTING RAISING cx_static_check.
     METHODS test_typedescr_by_data    FOR TESTING RAISING cx_static_check.
     METHODS test_flat_components      FOR TESTING RAISING cx_static_check.
     METHODS test_flat_components_none FOR TESTING RAISING cx_static_check.
+    METHODS test_flat_components_incl FOR TESTING RAISING cx_static_check.
+    METHODS test_flat_components_stamp FOR TESTING RAISING cx_static_check.
+    METHODS test_iso_by_stamp         FOR TESTING RAISING cx_static_check.
     METHODS test_attri_by_include     FOR TESTING RAISING cx_static_check.
     METHODS test_expand_components    FOR TESTING RAISING cx_static_check.
     METHODS test_unassign_initial     FOR TESTING RAISING cx_static_check.
@@ -3046,13 +3062,90 @@ CLASS ltcl_coverage IMPLEMENTATION.
     DATA ls_nested TYPE ty_s_nested.
     DATA lv_text TYPE string.
 
-    " a sorted table, a nested structure, a scalar: none is flat. (A
-    " structure with an include is refused too on a system - the transpiled
-    " runtime hands its components out already expanded, so it is not
-    " asserted here)
+    " a sorted table, a nested structure, a scalar: none is flat
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>rtti_get_flat_components( REF #( lt_sorted ) ) ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>rtti_get_flat_components( REF #( ls_nested ) ) ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>rtti_get_flat_components( REF #( lv_text ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_flat_components_incl.
+
+    DATA ls_incl   TYPE ty_s_with_incl.
+    DATA ls_suffix TYPE ty_s_with_suffix.
+    DATA ls_deep   TYPE ty_s_with_deep.
+
+    " the fields of an include in its place, under the names the structure
+    " addresses them by - the name of the include itself is none of them
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_flat_components( REF #( ls_incl ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_comp ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_comp[ name = `NAME` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_comp[ name = `ZIP` ] ) ) ).
+
+    lt_comp = z2ui5_cl_ui5_util_context=>rtti_get_flat_components( REF #( ls_suffix ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 6
+                                        act = lines( lt_comp ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `S`
+                                        act = lt_comp[ name = `TEXT_X` ]-json_kind ).
+    cl_abap_unit_assert=>assert_equals( exp = `D`
+                                        act = lt_comp[ name = `DATE_X` ]-json_kind ).
+    cl_abap_unit_assert=>assert_equals( exp = `B`
+                                        act = lt_comp[ name = `FLAG_X` ]-json_kind ).
+    cl_abap_unit_assert=>assert_equals( exp = `N`
+                                        act = lt_comp[ name = `NUM_X` ]-json_kind ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_comp[ name = `S_FLAT` ] ) ) ).
+    " every name is one the row can be read by
+    FIELD-SYMBOLS <cell> TYPE any.
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      UNASSIGN <cell>.
+      ASSIGN COMPONENT lr_comp->name OF STRUCTURE ls_suffix TO <cell>.
+      cl_abap_unit_assert=>assert_true( act = xsdbool( <cell> IS ASSIGNED )
+                                        msg = lr_comp->name ).
+    ENDLOOP.
+
+    " an include that brings a nested structure: not flat
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>rtti_get_flat_components( REF #( ls_deep ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_flat_components_stamp.
+
+    DATA ls_stamps TYPE ty_s_stamps.
+
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_flat_components( REF #( ls_stamps ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `U`
+                                        act = lt_comp[ name = `TS` ]-json_kind ).
+    cl_abap_unit_assert=>assert_equals( exp = `L`
+                                        act = lt_comp[ name = `TSL` ]-json_kind ).
+
+  ENDMETHOD.
+
+  METHOD test_iso_by_stamp.
+
+    DATA lv_ts  TYPE timestamp.
+    DATA lv_tsl TYPE timestampl.
+
+    cl_abap_unit_assert=>assert_equals( exp = `0000-00-00T00:00:00Z`
+                                        act = z2ui5_cl_ui5_util_context=>time_get_iso_by_stamp( lv_ts ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `0000-00-00T00:00:00.0Z`
+                                        act = z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( lv_tsl ) ).
+
+    lv_ts  = '20240229230000'.
+    lv_tsl = '20240229230000.5'.
+    cl_abap_unit_assert=>assert_equals( exp = `2024-02-29T23:00:00Z`
+                                        act = z2ui5_cl_ui5_util_context=>time_get_iso_by_stamp( lv_ts ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `2024-02-29T23:00:00.5Z`
+                                        act = z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( lv_tsl ) ).
+    " set from a literal, so exact on every runtime - every digit of the
+    " fraction, and the trailing zeros of a shorter one dropped
+    lv_tsl = '20240229235959.1234567'.
+    cl_abap_unit_assert=>assert_equals( exp = `2024-02-29T23:59:59.1234567Z`
+                                        act = z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( lv_tsl ) ).
+    lv_tsl = '20240229235959.1200000'.
+    cl_abap_unit_assert=>assert_equals( exp = `2024-02-29T23:59:59.12Z`
+                                        act = z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( lv_tsl ) ).
 
   ENDMETHOD.
 

@@ -256,11 +256,11 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " (every numeric kind), S for a string (character, numeric text, string
     " and binary - all of which |{ }| renders as ajson does), D for a date
     " and T for a time (which ajson writes as ISO text, YYYY-MM-DD and
-    " HH:MM:SS, and empty when initial), and empty for a kind no such
-    " writer should take on - utclong, an enumeration, and a packed field
-    " TYPED timestamp or timestampl, which ajson converts through the time
-    " zone (rare in a bound row, and ajson's own rendering stays the
-    " reference for them)
+    " HH:MM:SS, and empty when initial), U for a packed field TYPED
+    " timestamp and L for one typed timestampl (by type name as well -
+    " ajson writes both as an ISO instant in UTC, time_get_iso_by_stamp
+    " and time_get_iso_by_stampl), and empty for a kind no such writer
+    " should take on - utclong and an enumeration
     TYPES:
       BEGIN OF ty_s_flat_comp,
         name      TYPE string,
@@ -270,14 +270,16 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     "! The components of the FLAT structure behind a data reference - the
     "! structure itself, or the line of the STANDARD table it points to -
-    "! each with its json_kind (see the type). Empty when the reference
-    "! points to anything else (a scalar, a sorted or hashed table, a table
-    "! of scalars), when any component is no elementary one (a nested
-    "! structure, a table, a reference), when the structure has an include
-    "! (whose components are a question of their own), or when a component
-    "! has no json_kind - so a caller that gets rows can write every cell
-    "! of every row as a scalar, and one that gets none takes the general
-    "! road
+    "! each with its json_kind (see the type). The components of an include
+    "! are listed in its place, under the names the structure addresses
+    "! them by (a RENAMING WITH SUFFIX applied, an include of an include
+    "! resolved): the included view of the structure, which is what ajson
+    "! walks. Empty when the reference points to anything else (a scalar, a
+    "! sorted or hashed table, a table of scalars), when any component - an
+    "! included one too - is no elementary one (a nested structure, a
+    "! table, a reference), or when a component has no json_kind - so a
+    "! caller that gets rows can write every cell of every row as a scalar,
+    "! and one that gets none takes the general road
     CLASS-METHODS rtti_get_flat_components
       IMPORTING
         val           TYPE REF TO data
@@ -476,6 +478,28 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         !seconds      TYPE i
       RETURNING
         VALUE(result) TYPE timestampl.
+
+    "! A UTC time stamp as an ISO 8601 instant, `YYYY-MM-DDTHH:MM:SSZ` -
+    "! `0000-00-00T00:00:00Z` for an initial one and for one that is no
+    "! valid point in time. Statement for statement what
+    "! z2ui5_cl_ajson's lcl_abap_to_json=>format_timestamp does, because a
+    "! caller writes it into a document next to what ajson wrote
+    "! (z2ui5_cl_ui5_srv_model=>json_row): the two must not differ in a
+    "! single character, whatever the platform makes of an odd value
+    CLASS-METHODS time_get_iso_by_stamp
+      IMPORTING
+        val           TYPE timestamp
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! The same for a long time stamp, with its fraction -
+    "! `YYYY-MM-DDTHH:MM:SS.fZ`, the trailing zeros of the fraction dropped
+    "! and a single 0 left of an empty one (format_timestampl of ajson)
+    CLASS-METHODS time_get_iso_by_stampl
+      IMPORTING
+        val           TYPE timestampl
+      RETURNING
+        VALUE(result) TYPE string.
 
     "! Milliseconds from time_from to time_to - two time_get_timestampl( )
     "! readings - negative when time_to lies before time_from, 0 when either
@@ -1898,6 +1922,56 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD time_get_iso_by_stamp.
+
+    " the statements of ajson's format_timestamp, unchanged - the zone as
+    " a C(6) constant, the date and the time initial before the
+    " conversion, which leaves them alone for a time stamp it refuses
+    CONSTANTS lc_utc TYPE c LENGTH 6 VALUE 'UTC'.
+
+    DATA lv_date TYPE d.
+    DATA lv_time TYPE t.
+
+    CONVERT TIME STAMP val TIME ZONE lc_utc
+      INTO DATE lv_date TIME lv_time.
+
+    result = lv_date+0(4) && `-` && lv_date+4(2) && `-` && lv_date+6(2) &&
+             `T` &&
+             lv_time+0(2) && `:` && lv_time+2(2) && `:` && lv_time+4(2) &&
+             `Z`.
+
+  ENDMETHOD.
+
+  METHOD time_get_iso_by_stampl.
+
+    " the statements of ajson's format_timestampl, unchanged - see
+    " time_get_iso_by_stamp; the fraction is taken from the rendered
+    " number, not computed
+    CONSTANTS lc_utc TYPE c LENGTH 6 VALUE 'UTC'.
+
+    DATA lv_date TYPE d.
+    DATA lv_time TYPE t.
+    DATA lv_frac TYPE string.
+    DATA lv_int  TYPE string.
+
+    CONVERT TIME STAMP val TIME ZONE lc_utc
+      INTO DATE lv_date TIME lv_time.
+
+    SPLIT |{ val }| AT `.` INTO lv_int lv_frac.
+    SHIFT lv_frac RIGHT DELETING TRAILING `0`.
+    SHIFT lv_frac LEFT DELETING LEADING space.
+    IF lv_frac IS INITIAL.
+      lv_frac = `0`.
+    ENDIF.
+
+    result = lv_date+0(4) && `-` && lv_date+4(2) && `-` && lv_date+6(2) &&
+             `T` &&
+             lv_time+0(2) && `:` && lv_time+2(2) && `:` && lv_time+4(2) &&
+             `.` && lv_frac &&
+             `Z`.
+
+  ENDMETHOD.
+
   METHOD time_diff_milliseconds.
 
     " Plain arithmetic on the digits, and deliberately neither of the two
@@ -2581,10 +2655,20 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         IF lo_type->kind <> cl_abap_typedescr=>kind_struct.
           RETURN.
         ENDIF.
-        DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_components( ).
+        " the included view, not get_components( ): an include arrives
+        " there as ONE component (as_include) that no cell can be read
+        " by, and a row type with an include - an append, a reuse
+        " structure, a DDIC table's .INCLUDE - is what many bound tables
+        " are made of. The view lists every field under the name
+        " ASSIGN COMPONENT takes, suffix applied and nested includes
+        " resolved, and it is the very call ajson's convert_struc makes -
+        " so the names are ajson's on every release, by construction. A
+        " NESTED structure stays one component of a structure kind and
+        " ends the fast path below, as before
+        DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_included_view( ).
         LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
           DATA(ls_flat) = VALUE ty_s_flat_comp( name = lr_comp->name ).
-          IF lr_comp->as_include = abap_true OR lr_comp->type->kind <> cl_abap_typedescr=>kind_elem.
+          IF lr_comp->type->kind <> cl_abap_typedescr=>kind_elem.
             CLEAR result.
             RETURN.
           ENDIF.
@@ -2611,7 +2695,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           OR `\TYPE=FLAG` OR `\TYPE=XFELD`.
         result = `B`.
         RETURN.
-      WHEN `\TYPE=TIMESTAMP` OR `\TYPE=TIMESTAMPL`.
+      WHEN `\TYPE=TIMESTAMP`.
+        result = `U`.
+        RETURN.
+      WHEN `\TYPE=TIMESTAMPL`.
+        result = `L`.
         RETURN.
     ENDCASE.
     CASE val->type_kind.
