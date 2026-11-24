@@ -424,6 +424,14 @@ sap.ui.define(
       out.push(section("Pending backend timers"));
       const timers = Object.keys(state.timers || {});
       out.push(timers.length ? `  ${timers.join(", ")}` : "  (none pending)");
+      // a repeating START_TIMER is armed again after every response, so it
+      // is shown even while no tick of it is pending (actions/ViewOps)
+      const repeat = state.timerRepeat;
+      if (repeat) {
+        out.push(
+          `  repeating: ${repeat.event} every ${repeat.delay} ms${repeat.noBusy ? ", no busy" : ""}`,
+        );
+      }
 
       out.push(section("Framework callbacks registered"));
       for (const name of CALLBACK_ARRAYS) {

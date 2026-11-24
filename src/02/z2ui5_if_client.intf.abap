@@ -75,6 +75,9 @@ INTERFACE z2ui5_if_client
       cross_app_nav_get_links   TYPE string VALUE `CROSS_APP_NAV_GET_LINKS`,
       set_app_full_width        TYPE string VALUE `SET_APP_FULL_WIDTH`,
 
+      " appended at the end (rule 5): the counterpart of start_timer
+      stop_timer                TYPE string VALUE `STOP_TIMER`,
+
     END OF cs_event.
 
   CONSTANTS:
@@ -1372,9 +1375,10 @@ INTERFACE z2ui5_if_client
   "! t_arg = event name, delay in milliseconds:
   "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ) )``.
   "! There is one timer per app: arming it again replaces the pending one,
-  "! and every roundtrip cancels it, so a repeating timer - a poll, a
-  "! carousel - is re-armed by every response that keeps it going. A tick
-  "! that meets a roundtrip in flight waits for it instead of being dropped.
+  "! and every roundtrip cancels it, so a one-shot timer that should go on -
+  "! a poll, a carousel - is re-armed by every response that keeps it going
+  "! (or repeats by itself, see the FOURTH t_arg below). A tick that meets a
+  "! roundtrip in flight waits for it instead of being dropped.
   "! The tick is a roundtrip like any other and raises the global busy
   "! indicator after the usual one-second delay; an optional THIRD t_arg
   "! `X` (abap_bool as `X`/``, like every flag in t_arg) keeps it down - the
@@ -1382,8 +1386,30 @@ INTERFACE z2ui5_if_client
   "! takes longer than that no longer flashes the full-screen overlay:
   "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) )``.
   "! As with check_no_busy only the overlay goes: the tick is still the one
-  "! roundtrip in flight, and a click that lands meanwhile is dropped by the
-  "! busy guard and raises the overlay at once, like every dropped click.
+  "! roundtrip in flight. A click that lands meanwhile is held back and sent
+  "! once the tick's response is applied.
+  "! An optional FOURTH t_arg `X` REPEATS the timer: once a response has been
+  "! applied the browser arms the same tick again - same event, delay and
+  "! no-busy flag - so the app arms it once and does not re-arm it per tick:
+  "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `` ) ( `X` ) ) )``.
+  "! A user event in between does not end it: the pending tick is cancelled
+  "! while the event's roundtrip runs, and armed again, with the full delay,
+  "! after its response. It keeps running under a popup or popover of the same
+  "! app. It ends with cs_event-stop_timer, with a new start_timer (which
+  "! replaces it - one without the fourth t_arg is a one-shot timer again),
+  "! with every navigation to another app (nav_app_call / nav_app_leave, a
+  "! popup app included - an app that wants its poll back after a called app
+  "! returned starts it again in its check_on_navigated( ) branch), with a
+  "! browser Back/Forward restore, with the error overlay and with the end of
+  "! the component. A tick that changed nothing answers with the draft it
+  "! continued and writes none - the repeat needs no state in the app.
+  "!
+  "! **cs_event-stop_timer** - end the timer: the pending tick is cancelled
+  "! and a repeating one is not armed again; no t_arg. Stopping when no timer
+  "! runs does nothing:
+  "! ``client->follow_up_action( client->cs_event-stop_timer )``.
+  "! In the wired form (``v = client->follow_up_action( ... )`` on a press)
+  "! it stops the timer in the browser without a roundtrip.
   "!
   "! **cs_event-hash_attach_changed** - APP-OWNED hash routing
   "! (HashChanger#attachHashChanged), the 1:1 counterpart of a UI5 router's

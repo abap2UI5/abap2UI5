@@ -159,6 +159,10 @@ sap.ui.define(
       view.bindElement(`${path}/${index.trim()}`);
     }
 
+    // The one timer slot every START_TIMER shares (see evStartTimer), and
+    // what STOP_TIMER and the repeating timer's re-arm address.
+    const TIMER_KEY = "START_TIMER";
+
     function evStartTimer(oController, args) {
       // Intentionally a single timer slot: args[0] is always the event
       // name "START_TIMER", so a new START_TIMER replaces the previous
@@ -182,6 +186,31 @@ sap.ui.define(
       // the backend may answer an unchanged tick with the draft it
       // continued (S_FRONT.TIMER).
       const noBusy = ControlCall.castArg("bool", args[3]);
+      // args[4], optional: REPEAT - the same ABAP boolean. A repeating
+      // timer is remembered on the state (timerRepeat) and armed again
+      // with the same event, delay and no-busy flag once a response has
+      // been applied (resumeRepeatTimer, called by View1 at the end of
+      // _processAfterRendering) - the tick's own response and the
+      // response of a user event alike, so a click in between no longer
+      // ends the poll. Every START_TIMER decides it anew: a plain one
+      // replaces a repeating one, which is how an app that never asks for
+      // a repeat keeps exactly the one-shot timer it always had.
+      const repeat = ControlCall.castArg("bool", args[4]);
+      oController.ctx.state.timerRepeat = repeat
+        ? {
+            controller: oController,
+            timerKey,
+            event: callbackEvent,
+            delay,
+            noBusy,
+          }
+        : null;
+      armTimer(oController, timerKey, callbackEvent, delay, noBusy);
+    }
+
+    // Put one tick into the slot. Shared by START_TIMER and the repeating
+    // timer's re-arm, so both wait, defer and dispatch alike.
+    function armTimer(oController, timerKey, callbackEvent, delay, noBusy) {
       const timers = oController.ctx.state.timers;
       Lib.cancelTimer(timers[timerKey]);
       const fire = () => {
@@ -231,6 +260,54 @@ sap.ui.define(
         oController.eB([callbackEvent, { noBusy, timer: true }]);
       };
       timers[timerKey] = setTimeout(fire, delay);
+    }
+
+    // ["STOP_TIMER"] - end the timer: the pending tick is cancelled and a
+    // repeating timer is not armed again. Nothing to stop is no error - an
+    // app may say it on every roundtrip that leaves its polling screen.
+    function evStopTimer(oController) {
+      const state = oController.ctx.state;
+      state.timerRepeat = null;
+      Lib.cancelTimer(state.timers[TIMER_KEY]);
+      delete state.timers[TIMER_KEY];
+    }
+
+    // Arm the repeating timer again (state.timerRepeat, see evStartTimer)
+    // once a response has been applied - View1._processAfterRendering calls
+    // it last, after the follow-up actions and after the queued events
+    // went out. Nothing is armed while a roundtrip is in flight again (a
+    // click held back by the tick, a check_queue_last event, a parked hash
+    // change were just dispatched): that roundtrip's own response arms it,
+    // so no tick runs while a user event waits or is in flight. Nothing
+    // either when the slot holds a tick already - the response armed one
+    // itself (a START_TIMER among its follow-up actions) or a tick is
+    // waiting for the roundtrip (afterRoundtrip in armTimer). The tick
+    // goes through the controller that armed it, or the MAIN view's when
+    // that one is gone (a popup closed, the MAIN view rebuilt); with no
+    // live controller at all the timer ends. What ends it otherwise -
+    // STOP_TIMER, a START_TIMER without the repeat flag, an app switch, a
+    // Back/Forward restore, the error overlay, the component's exit - sets
+    // the field to null (View1, core/Server, Context.destroy).
+    function resumeRepeatTimer(ctx) {
+      const state = ctx?.state;
+      const repeat = state?.timerRepeat;
+      if (!repeat) return;
+      if (state.isBusy || repeat.timerKey in state.timers) return;
+      if (!Lib.isControllerAlive(repeat.controller)) {
+        const main = ViewSlots.getController(ctx, "MAIN");
+        if (!Lib.isControllerAlive(main)) {
+          state.timerRepeat = null;
+          return;
+        }
+        repeat.controller = main;
+      }
+      armTimer(
+        repeat.controller,
+        repeat.timerKey,
+        repeat.event,
+        repeat.delay,
+        repeat.noBusy,
+      );
     }
 
     // The three handlers below resolve their target with ViewSlots.resolveById
@@ -437,11 +514,12 @@ sap.ui.define(
       SET_ODATA_MODEL: evSetODataModel,
       BIND_ELEMENT: evBindElement,
       START_TIMER: evStartTimer,
+      STOP_TIMER: evStopTimer,
       SET_FOCUS: evSetFocus,
       SCROLL_TO: evScrollTo,
       SCROLL_INTO_VIEW: evScrollIntoView,
     };
 
-    return { handlers };
+    return { handlers, resumeRepeatTimer };
   },
 );

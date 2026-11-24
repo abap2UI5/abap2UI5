@@ -327,3 +327,71 @@ test("responseError drops a queued event - the overlay ends the app", () => {
   expect(appState.state.isBusy).toBe(false);
   expect(appState.state.oQueuedEvent).toBeNull();
 });
+
+// A repeating START_TIMER (actions/ViewOps) ends with the screen it polls:
+// the restore and the error overlay set it back, so no response arms it
+// again; the overlay also cancels its pending tick.
+test("restoreFromRoute() ends a repeating timer", () => {
+  const ctx = specContext({ timerRepeat: { event: "POLL", delay: 10 } });
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/Lib": { cancelPendingTimers: () => {} },
+    },
+  });
+  Server.roundtrip = () => {};
+
+  Server.restoreFromRoute(ctx);
+
+  expect(ctx.state.timerRepeat).toBeNull();
+});
+
+test("responseError ends a repeating timer and cancels its tick", () => {
+  const cancelled = [];
+  const ctx = specContext({
+    isBusy: true,
+    timerRepeat: { event: "POLL", delay: 10 },
+  });
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/Lib": { cancelPendingTimers: (c) => cancelled.push(c) },
+      "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
+    },
+  });
+
+  Server.responseError(ctx, "HTTP 500");
+
+  expect(ctx.state.timerRepeat).toBeNull();
+  expect(cancelled).toEqual([ctx]);
+});
+
+test("responseError leaves the timer slot alone when nothing repeats", () => {
+  const cancelled = [];
+  const ctx = specContext({ isBusy: true });
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/Lib": { cancelPendingTimers: (c) => cancelled.push(c) },
+      "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
+    },
+  });
+
+  Server.responseError(ctx, "HTTP 500");
+
+  expect(cancelled).toEqual([]);
+});
+
+test("reset() ends a repeating timer", () => {
+  const ctx = specContext({ timerRepeat: { event: "POLL", delay: 10 } });
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "z2ui5/core/ErrorView": { reset: () => {} },
+    },
+  });
+  Server._abortInflight = () => {};
+
+  Server.reset(ctx);
+
+  expect(ctx.state.timerRepeat).toBeNull();
+});

@@ -210,6 +210,8 @@ sap.ui.define(
         ctx.state.oTickQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
         ctx.state.aRenderEvents = [];
+        // ... nor a repeating timer of it (actions/ViewOps)
+        ctx.state.timerRepeat = null;
         // the error overlay's record is the same kind of survivor - the
         // last error dump stays referenced across the teardown otherwise
         ErrorView.reset(ctx);
@@ -235,6 +237,10 @@ sap.ui.define(
         // dispatch) - a poll armed one Back ago otherwise kept ticking its
         // old event into the app the restore just brought up.
         Lib.cancelPendingTimers(ctx);
+        // ... a repeating one included: it is not armed again after the
+        // restore's response (actions/ViewOps resumeRepeatTimer) - the
+        // restored screen arms its own
+        ctx.state.timerRepeat = null;
         // ... and so does the event a check_queue_last wire kept for the
         // screen being left: it was typed into a view the restore replaces,
         // and dispatching it after the restore's response would send the
@@ -915,6 +921,14 @@ sap.ui.define(
         ctx.state.oTickQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
         ctx.state.aRenderEvents = [];
+        // ... and a repeating timer ends: it would tick roundtrips under the
+        // overlay. Only then is the slot cleared here - a one-shot timer is
+        // left as it always was (the roundtrip that failed cancelled it when
+        // it went out).
+        if (ctx.state.timerRepeat) {
+          ctx.state.timerRepeat = null;
+          Lib.cancelPendingTimers(ctx);
+        }
         ErrorView.show(ctx, response, title, oOptions);
       },
     };

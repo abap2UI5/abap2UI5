@@ -556,7 +556,8 @@ reasoning:
   `t_arg` spells every flag — is the tick's `check_no_busy`:
   `` client->follow_up_action( val = z2ui5_if_client=>cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ``.
   Like the flag, it takes the overlay down and nothing else — a click that
-  lands while the tick is in flight is still dropped, and still raises it.
+  lands while the tick is in flight is held back and sent once the tick's
+  response is applied.
   `check_prevent_default` / `prevent_default_expr` cancel the
   control's built-in default before the roundtrip, `check_arg_literal`
   quotes every argument — see the doc on `z2ui5_if_client=>_event`.
@@ -571,6 +572,27 @@ reasoning:
   method on a control), `binding_call` (filter/sort an aggregation binding).
   The full catalog with per-action `t_arg` documentation sits on
   `z2ui5_if_client=>follow_up_action` and in `cs_event`.
+- Timers: `cs_event-start_timer` raises a backend event once after a delay,
+  `t_arg` = event, delay in ms, optional no-busy flag, optional REPEAT flag.
+  A one-shot timer is cancelled by every roundtrip, so it has to be armed
+  again by each response that keeps it going. A poll arms a REPEATING timer
+  instead, ONCE — the fourth `t_arg` `` `X` ``:
+  `` client->follow_up_action( val = z2ui5_if_client=>cs_event-start_timer t_arg = VALUE #( ( `POLL` ) ( `5000` ) ( `X` ) ( `X` ) ) ) ``
+  (no-busy and repeat; `` ( `` ) `` in third place for a repeat that shows the
+  overlay). The browser arms the same tick again after every applied response:
+  a user event in between pauses it and it goes on, with the full delay, after
+  that event's response; no tick is sent while a user event waits or is in
+  flight. It keeps running under a popup or popover of the same app. It ends
+  with `cs_event-stop_timer` (`` client->follow_up_action( z2ui5_if_client=>cs_event-stop_timer ) ``,
+  or round-trip free on a press), with a new `start_timer` (it replaces the
+  timer; one without the repeat flag is one-shot again), with every navigation
+  to another app — a called popup app too; restart it in the
+  `check_on_navigated( )` branch — with a browser Back/Forward restore and the
+  error overlay. One timer per app. The handler of the tick is an ordinary
+  `check_on_event( `POLL` )` branch and arms nothing; a tick that leaves the
+  app unchanged writes no draft. Switching an existing poll: replace the
+  `start_timer` call made on every roundtrip by one call with the repeat flag
+  where the screen is shown, and call `stop_timer` where polling should end.
 
 ## 6. Popups, popovers, messages
 

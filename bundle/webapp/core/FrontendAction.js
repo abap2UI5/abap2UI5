@@ -156,6 +156,12 @@ sap.ui.define(
       return undefined;
     }
 
-    return { execute, runCustom };
+    // the repeating timer's re-arm (actions/ViewOps), for View1 - which
+    // reaches the action modules through this one
+    return {
+      execute,
+      runCustom,
+      resumeRepeatTimer: ViewOps.resumeRepeatTimer,
+    };
   },
 );

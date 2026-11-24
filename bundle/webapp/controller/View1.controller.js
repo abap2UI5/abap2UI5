@@ -117,6 +117,10 @@ sap.ui.define(
           if (oResponse.APP && previousApp !== oResponse.APP) {
             state.oQueuedEvent = null;
             state.oTickQueuedEvent = null;
+            // a repeating START_TIMER belongs to the app that armed it - a
+            // poll of the leaving app must not tick into the next one, and
+            // the next one arms its own (actions/ViewOps resumeRepeatTimer)
+            state.timerRepeat = null;
             state.oQueuedWindow = null;
             // ... and what a control of the leaving app fired while its
             // view was built and that has not gone out yet
@@ -323,6 +327,13 @@ sap.ui.define(
             // arrived while this roundtrip was in flight was parked by the
             // router - deliver it now that the busy guard would let it through
             Router.dispatchPendingAppHash(this.ctx);
+            // Last: a repeating START_TIMER arms its next tick, now that the
+            // response is applied and its follow-up actions ran - unless one
+            // of the dispatches above made the app busy again; that
+            // roundtrip's response arms it then (actions/ViewOps).
+            if (this.ctx.state.timerRepeat) {
+              FrontendAction.resumeRepeatTimer(this.ctx);
+            }
           }
         }
       },

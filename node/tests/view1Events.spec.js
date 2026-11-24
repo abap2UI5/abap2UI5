@@ -453,6 +453,10 @@ test.describe("_processAfterRendering (action-free responses)", () => {
             customs.push(item);
             return hooks.onRunCustom?.(item);
           },
+          // the repeating timer's re-arm (actions/ViewOps), recorded with
+          // the busy state it met
+          resumeRepeatTimer: () =>
+            customs.push(["RESUME_REPEAT", state.isBusy]),
         },
         "z2ui5/core/actions/Slots": {
           // the model push names no slot; a VIEWS entry does. A spec may
@@ -767,6 +771,67 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     ]);
     expect(busy).toEqual(["hide"]);
     expect(state.isBusy).toBe(false);
+  });
+
+  // A repeating START_TIMER (its fifth argument) is armed again once a
+  // response is applied - last, after the follow-up actions and the queued
+  // dispatches, and only while the app is not busy again
+  // (frontendAction.spec.js holds the re-arm itself).
+  test.describe("the repeating timer", () => {
+    test("is armed again last, after the follow-up actions", async () => {
+      const { ctrl, state, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.timerRepeat = { event: "POLL", delay: 1000 };
+      state.oResponse = {
+        ID: "D2",
+        APP: "Z2UI5_CL_APP_A",
+        _pendingActions: [["TOAST"]],
+      };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(customs).toEqual([["TOAST"], ["RESUME_REPEAT", false]]);
+    });
+
+    test("is not asked for when none repeats - a one-shot app is untouched", async () => {
+      const { ctrl, state, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_A" };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(customs).toEqual([]);
+    });
+
+    test("ends with an app switch", async () => {
+      const { ctrl, state, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.timerRepeat = { event: "POLL", delay: 1000 };
+      state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_B" };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(state.timerRepeat).toBe(null);
+      expect(customs).toEqual([]);
+    });
+
+    test("is not armed after a failed build", async () => {
+      const { ctrl, state, hooks, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.timerRepeat = { event: "POLL", delay: 1000 };
+      state.oResponse = {
+        ID: "D2",
+        APP: "Z2UI5_CL_APP_A",
+        VIEWS: { MAIN: { XML: "<View/>" } },
+      };
+      hooks.onRunSystem = () => {
+        throw new Error("view XML broken");
+      };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(customs).toEqual([]);
+    });
   });
 
   test("after the overlay of a failed build nothing of the response runs any more", async () => {

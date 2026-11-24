@@ -198,6 +198,14 @@
 //
 // Control / helper state
 //   timers            single pending backend timer (actions/ViewOps)
+//   timerRepeat       the repeating START_TIMER (its fifth argument), null
+//                     or { controller, timerKey, event, delay, noBusy }:
+//                     armed again after every applied response
+//                     (ViewOps.resumeRepeatTimer, from View1.
+//                     _processAfterRendering). Ended by STOP_TIMER, by a
+//                     START_TIMER without the flag, an app switch (View1),
+//                     Server.reset / restoreFromRoute / responseError, and
+//                     the component's exit (Context.destroy)
 //   shortcuts         registered keyboard shortcuts, normalized combo ->
 //                     scope -> { event, controller }, the scope being a view
 //                     slot key or "" for unscoped (actions/Shortcuts). Dispatch takes the innermost OPEN
@@ -360,6 +368,7 @@ sap.ui.define([], () => {
       // core/actions/ControlCall.js are built with Object.create(null).
       // (The error log is not here: Lib.logError's ring is page-wide.)
       timers: Object.create(null),
+      timerRepeat: null,
       shortcuts: Object.create(null),
       lastScrolled: {},
       odataClients: new Set(),

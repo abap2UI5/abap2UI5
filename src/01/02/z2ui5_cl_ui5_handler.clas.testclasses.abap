@@ -3051,6 +3051,26 @@ CLASS ltcl_app_count IMPLEMENTATION.
 
 ENDCLASS.
 
+" arms a REPEATING START_TIMER once (its fourth t_arg) and does nothing on
+" a tick - the shape a polling app takes once it no longer re-arms the timer
+CLASS ltcl_app_poll DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_poll IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_event( `ARM` ).
+      client->follow_up_action( val   = client->cs_event-start_timer
+                                t_arg = VALUE #( ( `TICK` ) ( `1000` ) ( `` ) ( `X` ) ) ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
 " an exit that switches the pruning off
 CLASS ltcl_exit_keep_all DEFINITION FINAL.
   PUBLIC SECTION.
@@ -3118,6 +3138,7 @@ CLASS ltcl_06_draft DEFINITION FINAL INHERITING FROM ltcl_00_base
         VALUE(result) TYPE abap_bool.
 
     METHODS tick_unchanged_reuses_id  FOR TESTING RAISING cx_static_check.
+    METHODS tick_repeat_reuses_id     FOR TESTING RAISING cx_static_check.
     METHODS tick_changed_new_draft    FOR TESTING RAISING cx_static_check.
     METHODS event_unchanged_new_id    FOR TESTING RAISING cx_static_check.
     METHODS tick_share_writes_draft   FOR TESTING RAISING cx_static_check.
@@ -3183,6 +3204,34 @@ CLASS ltcl_06_draft IMPLEMENTATION.
     " and the draft goes on - the next tick continues it
     cl_abap_unit_assert=>assert_equals( exp = lv_first
                                         act = tick_on( lv_second ) ).
+
+  ENDMETHOD.
+
+  METHOD tick_repeat_reuses_id.
+
+    DATA(lv_start) = started_with( NEW ltcl_app_poll( ) )->ms_response-s_front-id.
+
+    " armed once: the repeat travels as the fourth argument, the no-busy
+    " slot before it kept empty
+    DATA(lo_arm) = event_on( iv_id    = lv_start
+                             iv_event = `ARM` ).
+    cl_abap_unit_assert=>assert_true(
+        act = xsdbool( lo_arm->mv_response CS `["START_TIMER","TICK","1000","","X"]` )
+        msg = `the repeating timer is armed with its flag` ).
+
+    " the browser re-arms the tick itself - the app answers a tick with no
+    " action at all, and an unchanged one with the draft it continued
+    DATA(lv_first) = tick_on( lo_arm->ms_response-s_front-id ).
+    DATA(lo_second) = NEW z2ui5_cl_ui5_handler(
+        val = `{"value":{"S_FRONT":{"ID":"` && lv_first && `","EVENT":"TICK","TIMER":true}}}` ).
+    lo_second->main_begin( ).
+    lo_second->main_loop( ).
+    cl_abap_unit_assert=>assert_false(
+        act = xsdbool( lo_second->mv_response CS `START_TIMER` )
+        msg = `a tick of a repeating timer re-arms nothing` ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_first
+                                        act = lo_second->ms_response-s_front-id
+                                        msg = `an unchanged tick answers the draft it continued` ).
 
   ENDMETHOD.
 

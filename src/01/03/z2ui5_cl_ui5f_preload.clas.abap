@@ -17,7 +17,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " names the custom controls bundle by its own digest - fixed
     " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '6d57d7e497788b6f'.
+    CONSTANTS build_hash TYPE string VALUE 'e894c9b6d356aec9'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:
@@ -30,7 +30,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the frontend bundle does not carry. The ETag of
     " that bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
-    CONSTANTS devtools_hash TYPE string VALUE '3ee84dbdb6452998'.
+    CONSTANTS devtools_hash TYPE string VALUE '1d64f4a633ee5f2e'.
 
     " a digest of the custom controls bundle get_cc( ) returns. The
     " frontend bundle carries it too (the ccBundle of its z2ui5/embed

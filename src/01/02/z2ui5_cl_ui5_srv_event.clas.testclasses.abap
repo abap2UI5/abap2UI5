@@ -77,6 +77,8 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS json_escaping FOR TESTING.
     METHODS json_bind_element FOR TESTING.
     METHODS json_start_timer_no_busy FOR TESTING.
+    METHODS json_start_timer_repeat FOR TESTING.
+    METHODS json_stop_timer FOR TESTING.
 
   PROTECTED SECTION.
 
@@ -882,6 +884,53 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = `.eF('START_TIMER', 'TICK', '5000', 'X')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-start_timer
                                           t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_start_timer_repeat.
+
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+
+    " START_TIMER's optional fourth argument repeats the timer
+    " (core/actions/ViewOps.js, evStartTimer reads it as args[4]). A repeat
+    " without the no-busy flag keeps the empty third argument in its place -
+    " only TRAILING empties are dropped ...
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["START_TIMER","TICK","5000","","X"]`
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-start_timer
+                             t_arg    = VALUE #( ( `TICK` ) ( `5000` ) ( `` ) ( `X` ) ) ) ).
+
+    " ... both flags together ...
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["START_TIMER","TICK","5000","X","X"]`
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-start_timer
+                             t_arg    = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ( `X` ) ) ) ).
+
+    " ... and abap_false for both is the wire every one-shot timer sends
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["START_TIMER","TICK","5000"]`
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-start_timer
+                             t_arg    = VALUE #( ( `TICK` ) ( `5000` ) ( `` ) ( `` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_stop_timer.
+
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+
+    " STOP_TIMER takes no argument - as a follow-up action ...
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["STOP_TIMER"]`
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-stop_timer ) ).
+
+    " ... and as the roundtrip-free wire of a press
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('STOP_TIMER')`
+        act = lo_event->get_event_client( z2ui5_if_client=>cs_event-stop_timer ) ).
 
   ENDMETHOD.
 

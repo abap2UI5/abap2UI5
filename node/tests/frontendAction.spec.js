@@ -3205,6 +3205,200 @@ test.describe("START_TIMER (backend timer liveness)", () => {
   });
 });
 
+// START_TIMER's optional FIFTH argument repeats the timer: it is armed
+// again with the same event, delay and no-busy flag after every applied
+// response (ViewOps.resumeRepeatTimer, which View1._processAfterRendering
+// calls last - its side is pinned in view1Events.spec.js), so neither the
+// app nor a user event in between has to re-arm it. STOP_TIMER ends it.
+test.describe("START_TIMER repeat and STOP_TIMER", () => {
+  function loadRepeat(deps) {
+    const timers = [];
+    const loaded = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+      deps,
+    });
+    const state = loaded.AppState.state;
+    state.timers = {};
+    state.onRoundtripEnd = [];
+    state.timerRepeat = null;
+    const ebCalls = [];
+    let destroyed = false;
+    const oController = loaded.carrying({
+      isDestroyed: () => destroyed,
+      eB: (a) => ebCalls.push(a),
+    });
+    const resume = () =>
+      loaded.FrontendAction.resumeRepeatTimer(oController.ctx);
+    return {
+      ...loaded,
+      state,
+      timers,
+      ebCalls,
+      oController,
+      resume,
+      destroy: () => (destroyed = true),
+    };
+  }
+
+  test("a repeating timer is armed again after each applied response", () => {
+    const { FrontendAction, state, timers, ebCalls, oController, resume } =
+      loadRepeat();
+
+    FrontendAction.execute(oController, [
+      "START_TIMER",
+      "POLL",
+      "2000",
+      "X",
+      "X",
+    ]);
+    expect(state.timerRepeat).toMatchObject({
+      event: "POLL",
+      delay: 2000,
+      noBusy: true,
+      timerKey: "START_TIMER",
+    });
+    timers[0].fn();
+    expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
+    expect(state.timers).toEqual({});
+
+    // the tick's response is applied: the same tick is armed again
+    resume();
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(2000);
+    timers[1].fn();
+    expect(ebCalls).toHaveLength(2);
+    expect(ebCalls[1]).toEqual(["POLL", { noBusy: true, timer: true }]);
+
+    // ... as often as responses come
+    resume();
+    expect(timers).toHaveLength(3);
+  });
+
+  test("the repeat flag is the fifth argument - a middle empty no-busy flag stays plain", () => {
+    const { FrontendAction, state, timers, ebCalls, oController } =
+      loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    expect(state.timerRepeat).toMatchObject({ noBusy: false });
+    timers[0].fn();
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
+  });
+
+  test("without the flag nothing is armed again (the one-shot timer as before)", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
+    expect(state.timerRepeat).toBe(null);
+    timers[0].fn();
+    resume();
+    expect(timers).toHaveLength(1);
+  });
+
+  test("a START_TIMER without the flag replaces a repeating one", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "A", "10", "", "X"]);
+    FrontendAction.execute(oController, ["START_TIMER", "B", "20"]);
+    expect(state.timerRepeat).toBe(null);
+    timers[1].fn();
+    resume();
+    expect(timers).toHaveLength(2);
+  });
+
+  test("nothing is armed while a roundtrip is in flight, or when the slot holds a tick", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    timers[0].fn();
+
+    // a user event (or the click the tick held back) went out right after
+    // the response: its own response arms the timer
+    state.isBusy = true;
+    resume();
+    expect(timers).toHaveLength(1);
+    state.isBusy = false;
+
+    // the response armed a tick itself (a START_TIMER among its actions)
+    state.timers.START_TIMER = 99;
+    resume();
+    expect(timers).toHaveLength(1);
+    delete state.timers.START_TIMER;
+
+    resume();
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(10);
+  });
+
+  test("STOP_TIMER cancels the pending tick and ends the repeat", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    expect(state.timers).toEqual({ START_TIMER: 1 });
+
+    FrontendAction.execute(oController, ["STOP_TIMER"]);
+    expect(state.timers).toEqual({});
+    expect(state.timerRepeat).toBe(null);
+    resume();
+    expect(timers).toHaveLength(1);
+
+    // nothing to stop is no error
+    FrontendAction.execute(oController, ["STOP_TIMER"]);
+    expect(state.timers).toEqual({});
+  });
+
+  test("STOP_TIMER also cancels a one-shot timer, and a tick waiting for a roundtrip", () => {
+    const { FrontendAction, state, timers, ebCalls, oController } =
+      loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10"]);
+    state.isBusy = true;
+    timers[0].fn();
+    expect(state.onRoundtripEnd).toHaveLength(1);
+    FrontendAction.execute(oController, ["STOP_TIMER"]);
+    expect(state.onRoundtripEnd).toEqual([]);
+    expect(state.timers).toEqual({});
+    expect(ebCalls).toEqual([]);
+  });
+
+  test("a gone controller hands the tick to the MAIN view's, and none ends it", () => {
+    const mainCalls = [];
+    let mainAlive = true;
+    const main = {
+      isDestroyed: () => !mainAlive,
+      eB: (a) => mainCalls.push(a),
+    };
+    const {
+      FrontendAction,
+      state,
+      timers,
+      oController,
+      resume,
+      destroy,
+      carrying,
+    } = loadRepeat({
+      "z2ui5/core/ViewSlots": {
+        getController: (_ctx, key) => (key === "MAIN" ? main : undefined),
+      },
+    });
+    carrying(main);
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    timers[0].fn();
+
+    // the popup that armed it closed: the MAIN controller ticks on
+    destroy();
+    resume();
+    timers[1].fn();
+    expect(mainCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
+    expect(state.timerRepeat.controller).toBe(main);
+
+    // no live controller at all: the timer ends
+    mainAlive = false;
+    resume();
+    expect(timers).toHaveLength(2);
+    expect(state.timerRepeat).toBe(null);
+  });
+});
+
 test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
   // Minimal focus fixture: a control whose DOM accepts focus only while
   // `focusable` is true - the disabled-input case of a view_model_update that

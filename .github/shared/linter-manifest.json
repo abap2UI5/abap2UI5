@@ -54,7 +54,8 @@
     "SET_NAV_ROUTING",
     "SET_APP_STATE_ACTIVE",
     "CROSS_APP_NAV_GET_LINKS",
-    "SET_APP_FULL_WIDTH"
+    "SET_APP_FULL_WIDTH",
+    "STOP_TIMER"
   ],
   "companionControls": {
     "CameraPicture": {
@@ -497,6 +498,7 @@
     "SET_ODATA_MODEL",
     "BIND_ELEMENT",
     "START_TIMER",
+    "STOP_TIMER",
     "SET_FOCUS",
     "SCROLL_TO",
     "SCROLL_INTO_VIEW"
