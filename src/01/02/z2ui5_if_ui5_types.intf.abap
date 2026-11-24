@@ -262,6 +262,11 @@ INTERFACE z2ui5_if_ui5_types
       " concern - z2ui5_cl_ui5_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
       s_stateful     TYPE ty_s_http_res-s_stateful,
+      " BACKEND-ONLY: nav_app_call( keep_messages ) / nav_app_leave(
+      " keep_messages ) - the hop carries the message toasts and boxes this
+      " app queued over to the app navigated to (z2ui5_cl_ui5_action
+      " =>prepare_app_stack); every other queued action is dropped as before
+      keep_messages  TYPE abap_bool,
     END OF ty_s_next.
 
   "! The WIRE protocol version, carried in every response as

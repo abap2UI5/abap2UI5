@@ -215,7 +215,8 @@ The handler expression for a view attribute that LEAVES this app on press - a Pa
 nav_app_leave(
     app TYPE REF TO z2ui5_if_app OPTIONAL
     event TYPE clike OPTIONAL
-    r_data TYPE data OPTIONAL )
+    r_data TYPE data OPTIONAL
+    keep_messages TYPE abap_bool DEFAULT abap_false )
     -> string
 ```
 
@@ -226,7 +227,8 @@ Hand the screen back to the previous app on the stack - the one that called this
 ```abap
 nav_app_call(
     app TYPE REF TO z2ui5_if_app
-    tag TYPE clike OPTIONAL )
+    tag TYPE clike OPTIONAL
+    keep_messages TYPE abap_bool DEFAULT abap_false )
     -> string
 ```
 

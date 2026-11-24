@@ -661,11 +661,21 @@ INTERFACE z2ui5_if_client
   "! @parameter r_data | data handed to the target, read there as
   "!                  get( )-r_event_data (a reference to a copy of it). An
   "!                  intentionally empty value still arrives.
+  "! @parameter keep_messages | abap_true: the message toasts and boxes this
+  "!                  app queued in this roundtrip (message_toast_display( ),
+  "!                  message_box_display( ), a follow_up_action( ) of
+  "!                  cs_event-control_global on MESSAGE_TOAST/MESSAGE_BOX)
+  "!                  are shown after the target has rendered, ahead of the
+  "!                  target's own - `Saved.` survives the return to the
+  "!                  list. Not supplied, everything this app queued is
+  "!                  dropped with its screen, as always. Appended at the END
+  "!                  of the list (rule 5).
   METHODS nav_app_leave
     IMPORTING
       VALUE(app)    TYPE REF TO z2ui5_if_app OPTIONAL
       event         TYPE clike                OPTIONAL
       r_data        TYPE data                 OPTIONAL
+      keep_messages TYPE abap_bool            DEFAULT abap_false
         PREFERRED PARAMETER app
     RETURNING
       VALUE(result) TYPE string.
@@ -690,10 +700,15 @@ INTERFACE z2ui5_if_client
   "!                  apart without a flag attribute per purpose. Not
   "!                  supplied, the app has no tag. Appended at the END of
   "!                  the list (rule 5).
+  "! @parameter keep_messages | abap_true: the message toasts and boxes this
+  "!                  app queued in this roundtrip are shown after the called
+  "!                  app has rendered, ahead of its own (see nav_app_leave( )).
+  "!                  Not supplied, they are dropped with this app's screen.
   METHODS nav_app_call
     IMPORTING
       app           TYPE REF TO z2ui5_if_app
-      tag           TYPE clike OPTIONAL
+      tag           TYPE clike     OPTIONAL
+      keep_messages TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result) TYPE string.
 

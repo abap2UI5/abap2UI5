@@ -359,6 +359,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " that does not happen must not replace the tag. Written on the CALLER's
     " container, which the hop saves - see mv_nav_tag there
     mo_action->mo_app->mv_nav_tag = tag.
+    mo_action->ms_next-keep_messages = keep_messages.
 
   ENDMETHOD.
 
@@ -385,6 +386,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
     mo_action->ms_next-o_app_leave = app.
     mo_action->ms_next-next_event  = event.
+    mo_action->ms_next-keep_messages = keep_messages.
 
     " IS SUPPLIED (not IS NOT INITIAL) so an intentionally empty return
     " value still reaches the previous app (https://github.com/abap2UI5/abap2UI5/issues/2404)

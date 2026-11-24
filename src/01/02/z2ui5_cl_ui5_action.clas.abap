@@ -76,6 +76,14 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_app.
 
+    "! the queued actions of this roundtrip that show a message - a
+    "! MESSAGE_TOAST or MESSAGE_BOX call, as message_toast_display( ) and
+    "! message_box_display( ) queue it or as follow_up_action( cs_event-
+    "! control_global ) does - in the order they were queued
+    METHODS messages_queued
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_queued_action.
+
     " set by prepare_app_stack on the action it builds: whether the target
     " came out of a persisted draft. Read by factory_stack_leave right
     " after, which used to ask the database a third time for the same fact
@@ -383,6 +391,27 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD messages_queued.
+
+    LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action).
+      TRY.
+          " ["MESSAGE_TOAST","show",...] as the client's own methods queue
+          " it, ["CONTROL_GLOBAL","MESSAGE_BOX",...] as follow_up_action
+          DATA(lv_name) = lr_action->o_json->get_string( `/1` ).
+          IF lv_name = z2ui5_if_client=>cs_event-control_global.
+            lv_name = lr_action->o_json->get_string( `/2` ).
+          ENDIF.
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+      IF lv_name = z2ui5_if_ui5_types=>cs_global_target-message_toast
+          OR lv_name = z2ui5_if_ui5_types=>cs_global_target-message_box.
+        APPEND lr_action->* TO result.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD check_draft_on_stack.
 
     IF id = mo_app->ms_draft-id.
@@ -493,6 +522,20 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     CLEAR result->ms_next-s_nav-set_nav_routing.
     result->ms_next-s_stateful = ms_next-s_stateful.
     result->mv_check_sticky_start = mv_check_sticky_start.
+
+    " ... unless the app asked to keep its MESSAGES (nav_app_call/
+    " nav_app_leave with keep_messages): a "Saved." toast or an error box
+    " queued right before the hop is about the work just done, not about
+    " the screen being replaced, and it is shown after the target renders -
+    " the frontend runs ACTIONS last, once the views of the response are in
+    " the DOM (View1._processAfterRendering). They go ahead of whatever the
+    " target queues itself, in the order they were queued. Only the
+    " messages: a focus, a scroll or a control call names a control of
+    " the old screen. Per hop - a target that navigates on keeps them only
+    " if it asks again
+    IF ms_next-keep_messages = abap_true.
+      result->ms_next-s_action-t_custom = messages_queued( ).
+    ENDIF.
 
     result->ms_actual-event  = ms_next-next_event.
     result->ms_actual-r_data = ms_next-r_data.

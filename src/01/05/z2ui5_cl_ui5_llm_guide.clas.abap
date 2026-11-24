@@ -668,6 +668,16 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``Z2UI5_CL_SMP_APP_381`` and ``Z2UI5_CL_SMP_APP_512`` are the two samples that` && |\n| &&
              `  show that half. Wired into a view the same call runs without a round-trip` && |\n| &&
              `  at all, and extra arguments fill ``{0}``, ``{1}`` placeholders in the text.` && |\n| &&
+             `- A message queued right before a navigation is dropped with the screen it` && |\n| &&
+             `  was queued on - a ``nav_app_leave( )`` or ``nav_app_call( )`` replaces it. To` && |\n| &&
+             `  show it on the next screen instead (the "Saved." of a detail page that` && |\n| &&
+             `  returns to its list), navigate with ``keep_messages = abap_true``:` && |\n| &&
+             `  ```` client->message_toast_display( ``Saved.`` ) ```` then` && |\n| &&
+             `  ``client->nav_app_leave( keep_messages = abap_true )``. The toasts and` && |\n| &&
+             `  boxes of this roundtrip appear after the target app has rendered, ahead` && |\n| &&
+             `  of the target's own; a focus or a control call queued with them is still` && |\n| &&
+             `  dropped, since it names a control of the old screen.` && |\n|.
+    result = result &&
              `- Bind popup data exactly like main-view data; changed bound data reaches` && |\n| &&
              `  an open popup automatically.` && |\n| &&
              `- A popup or popover is closed automatically by anything that replaces the` && |\n| &&
@@ -676,8 +686,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  roundtrip if it is meant to stay - ``view_display( )`` first, then` && |\n| &&
              `  ``popup_display( )`` - and call ``popup_destroy( )`` only when you close it` && |\n| &&
              `  without rebuilding the view.` && |\n| &&
-             |\n|.
-    result = result &&
+             |\n| &&
              `## 7. Multi-view, navigation, routing` && |\n| &&
              |\n| &&
              `- One app can render ``main``, two nested views, a popup and a popover` && |\n| &&
@@ -709,7 +718,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  Back/Forward buttons - the mode rides in ``t_arg``: ``cs_nav_mode-keep`` (the` && |\n| &&
              `  default when ``t_arg`` is empty) restores the exact draft state,` && |\n| &&
              `  ``cs_nav_mode-fresh`` restarts clean. Works inside the Fiori Launchpad.` && |\n| &&
-             `- The URL hash and the app state have named APIs of their own:` && |\n| &&
+             `- The URL hash and the app state have named APIs of their own:` && |\n|.
+    result = result &&
              `  ``client->hash_set( val )`` writes ``val`` as the app's URL hash with a pushed` && |\n| &&
              `  history entry (the UI5 router's ``navTo``), ``client->hash_replace( val )``` && |\n| &&
              `  writes it without one (``navTo( ..., true )`` - e.g. a layout arrow whose` && |\n| &&
@@ -718,8 +728,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  nothing is written. ``client->app_state_set_active( )``` && |\n| &&
              `  keeps the id of the CURRENT app state in the URL on every roundtrip, so a` && |\n| &&
              `  reload/bookmark/shared link restores the exact state;` && |\n| &&
-             `  ``client->app_state_get_href( )`` returns the absolute, FLP-safe link to` && |\n|.
-    result = result &&
+             `  ``client->app_state_get_href( )`` returns the absolute, FLP-safe link to` && |\n| &&
              `  that state for the app to copy, show, mail or render as a QR code.` && |\n| &&
              `  The matching ``cs_event`` constants for ``follow_up_action( )`` wires:` && |\n| &&
              `  ``hash_set`` / ``hash_replace`` (the same two writes as frontend actions),` && |\n| &&
@@ -751,7 +760,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  aggregation name 404s the whole view on old releases.` && |\n| &&
              `- **State discipline**: every PUBLIC attribute is serialized into the draft` && |\n| &&
              `  and sent to the browser on every render. Large helper data, catalogs and` && |\n| &&
-             `  anything not bound belongs in PROTECTED (or is re-read per request) - a` && |\n| &&
+             `  anything not bound belongs in PROTECTED (or is re-read per request) - a` && |\n|.
+    result = result &&
              `  bloated public section makes every click slower.` && |\n| &&
              `- Authorization is **the app's job**: any user who can reach the ICF node can` && |\n| &&
              `  start any ``z2ui5_if_app`` class. The framework performs no ``AUTHORITY-CHECK``` && |\n| &&
@@ -761,8 +771,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  does it. The shipped Hello World has no check because it guards nothing;` && |\n| &&
              `  an app that reads or writes business data starts like this:` && |\n| &&
              |\n| &&
-             `  ``````abap` && |\n|.
-    result = result &&
+             `  ``````abap` && |\n| &&
              `  METHOD z2ui5_if_app~main.` && |\n| &&
              |\n| &&
              `    AUTHORITY-CHECK OBJECT 'Z_MY_APP' ID 'ACTVT' FIELD '03'.` && |\n| &&
@@ -794,7 +803,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  (``sap.ui.loader.config`` path mapping + ``sap.ui.define``) and drive it from a` && |\n| &&
              `  custom control; do **not** rely on the jQuery ``$`` global - UI5 2.x no` && |\n| &&
              `  longer ships it - and keep the library call itself free of business` && |\n| &&
-             `  decisions (see "thin frontend" above).` && |\n| &&
+             `  decisions (see "thin frontend" above).` && |\n|.
+    result = result &&
              `- **An imperative UI5 method that has no bindable equivalent** - the` && |\n| &&
              `  ``sap.m.p13n.*`` panels take their item list only through ``setP13nData( )``,` && |\n| &&
              `  a ``sap.m.Carousel`` only moves via ``setActivePage( )`` - is reached with` && |\n| &&
@@ -805,8 +815,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `## 9. Validate and iterate like the framework does` && |\n| &&
              |\n| &&
-             `- **Starting a new app repo? Use` && |\n|.
-    result = result &&
+             `- **Starting a new app repo? Use` && |\n| &&
              `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** - it` && |\n| &&
              `  ships the starter app, abaplint + linter CI, this guide as its AGENTS.md` && |\n| &&
              `  and the agent permission setup preconfigured.` && |\n| &&
@@ -836,7 +845,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  can express at all is answered in samples-controls' ``CAPABILITIES.md``, each` && |\n| &&
              `  claim naming the port that proves it.` && |\n| &&
              `- **Unit-test the app class without a system**: a local test double` && |\n| &&
-             `  ``ltd_client`` with ``INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.`` in` && |\n| &&
+             `  ``ltd_client`` with ``INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.`` in` && |\n|.
+    result = result &&
              `  the class's ``.clas.testclasses.abap`` answers ``check_on_init`` /` && |\n| &&
              `  ``check_on_event`` / ``get_event`` from attributes and records what` && |\n| &&
              `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n| &&
@@ -846,8 +856,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  it on the system, and the MCP server's ``run_unit_tests`` runs it in the` && |\n| &&
              `  transpiled backend; ``npm run test:unit`` in the project and the` && |\n| &&
              `  ``abap2UI5/mcp-server`` GitHub Action do the same at the terminal and in CI,` && |\n| &&
-             `  no system involved. Implement every method the app calls in the double:` && |\n|.
-    result = result &&
+             `  no system involved. Implement every method the app calls in the double:` && |\n| &&
              `  the transpiled runtime generates no empty stubs for a ``PARTIALLY` && |\n| &&
              `  IMPLEMENTED`` interface, a system does. The double and one test, for the` && |\n| &&
              `  template of section 2:` && |\n| &&
@@ -878,7 +887,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~get_event.` && |\n| &&
              `      result = event_id.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
+             `    ENDMETHOD.` && |\n|.
+    result = result &&
              `    METHOD z2ui5_if_client~view_display.` && |\n| &&
              `      APPEND val TO t_view.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
@@ -888,8 +898,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    METHOD z2ui5_if_client~_bind.` && |\n| &&
              `      result = ``bound``.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~_event.` && |\n|.
-    result = result &&
+             `    METHOD z2ui5_if_client~_event.` && |\n| &&
              `      result = val.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
              `  ENDCLASS.` && |\n| &&
@@ -922,7 +931,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  A first-start test sets ``init`` and ``navigated`` both (the framework answers` && |\n| &&
              `  both with true on a fresh instance) and asserts on ``t_view[ 1 ]``; a` && |\n| &&
              `  navigated test sets ``navigated`` alone.` && |\n| &&
-             `- **Getting the class into a system.** An app is delivered as abapGit files -` && |\n| &&
+             `- **Getting the class into a system.** An app is delivered as abapGit files -` && |\n|.
+    result = result &&
              `  ``zcl_my_app.clas.abap`` and its ``zcl_my_app.clas.xml`` sidecar, in a` && |\n| &&
              `  repository the system pulls with abapGit - or its source is pasted into the` && |\n| &&
              `  class in ADT / SE24. Nothing else is deployed: no BSP application, no` && |\n| &&
@@ -932,8 +942,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  gates above ran.` && |\n| &&
              `- **``npm run doctor``** in a project made from app-template: the environment` && |\n| &&
              `  check - Node, the two gates, Chromium for the render gate, the framework` && |\n| &&
-             `  pin, the sidecars - that names the remedy for each failure.` && |\n|.
-    result = result &&
+             `  pin, the sidecars - that names the remedy for each failure.` && |\n| &&
              `- **``npm create abap2ui5-app@latest my-app -- --class zcl_my_app``**: the` && |\n| &&
              `  project scaffold without a GitHub template button or an editor.` && |\n| &&
              `- **``interact_app``** in the MCP server: click, type and fire events in the` && |\n| &&
@@ -971,7 +980,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `roundtrip on, whether the dialog was ever opened or not: opening the tools` && |\n| &&
              `after the problem still shows what happened before. The dialog itself and` && |\n| &&
              `the inspectors arrive on the first Ctrl+F12 as a second bundle` && |\n| &&
-             `(``GET <page url>&z2ui5-bundle=devtools``, cached by ETag), so a plain app` && |\n| &&
+             `(``GET <page url>&z2ui5-bundle=devtools``, cached by ETag), so a plain app` && |\n|.
+    result = result &&
              `start does not pay for them. There is no backend switch and no ABAP call to` && |\n| &&
              `open them; they are a frontend affair.` && |\n| &&
              |\n| &&
@@ -982,8 +992,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **Problems**: the last fatal error (with Retry / Restart / Logout) and one` && |\n| &&
              `  Log timeline of everything: the framework's error log with stack traces,` && |\n| &&
              `  UI5's log, uncaught errors, rejections, every ``console.*`` call and the` && |\n| &&
-             `  messages the user was shown.` && |\n|.
-    result = result &&
+             `  messages the user was shown.` && |\n| &&
              `- **Roundtrips**: every roundtrip with backend vs. render time, payload sizes` && |\n| &&
              `  and draft ids, the raw request and response JSON, the follow-up actions and` && |\n| &&
              `  a diff of the model between two roundtrips. The **Journey** view records a` && |\n| &&
@@ -1014,7 +1023,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- On a Fiori launchpad or a BSP page the dialog's modules are asked from the` && |\n| &&
              `  page's own loader first and from the bundle second; a 404 in between is` && |\n| &&
              `  expected and harmless.` && |\n| &&
-             `- An embedded component (``@abap2ui5/embed-control``, ``?z2ui5-bundle``) has the` && |\n| &&
+             `- An embedded component (``@abap2ui5/embed-control``, ``?z2ui5-bundle``) has the` && |\n|.
+    result = result &&
              `  tools too, loaded from its own backend endpoint, but without the page-wide` && |\n| &&
              `  console capture: the host's page is not the app's.` && |\n| &&
              |\n| &&
@@ -1025,8 +1035,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              ```content``) and model/``max_tokens``/``temperature``, and answers ``text``,` && |\n| &&
              ```stop_reason`` and ``s_usage``; every failure is ``z2ui5_cx_ui5_llm`` (``get_text( )``` && |\n| &&
              `for the user, ``retryable`` for a 408/429/5xx or a timeout). Get a provider from` && |\n| &&
-             ```z2ui5_cl_ui5_llm``: ``create_claude( )`` (Messages API), ``create_openai( )``` && |\n|.
-    result = result &&
+             ```z2ui5_cl_ui5_llm``: ``create_claude( )`` (Messages API), ``create_openai( )``` && |\n| &&
              `(Chat Completions - OpenAI, Azure with ``auth_header`` set to ``api-key``, Ollama,` && |\n| &&
              `LM Studio, gateways) or ``create_local( t_rule = ... )``, a deterministic` && |\n| &&
              `rule-based provider without HTTP for 7.02, unit tests and demos.` && |\n| &&

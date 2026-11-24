@@ -620,6 +620,15 @@ reasoning:
   `Z2UI5_CL_SMP_APP_381` and `Z2UI5_CL_SMP_APP_512` are the two samples that
   show that half. Wired into a view the same call runs without a round-trip
   at all, and extra arguments fill `{0}`, `{1}` placeholders in the text.
+- A message queued right before a navigation is dropped with the screen it
+  was queued on — a `nav_app_leave( )` or `nav_app_call( )` replaces it. To
+  show it on the next screen instead (the "Saved." of a detail page that
+  returns to its list), navigate with `keep_messages = abap_true`:
+  `` client->message_toast_display( `Saved.` ) `` then
+  `client->nav_app_leave( keep_messages = abap_true )`. The toasts and
+  boxes of this roundtrip appear after the target app has rendered, ahead
+  of the target's own; a focus or a control call queued with them is still
+  dropped, since it names a control of the old screen.
 - Bind popup data exactly like main-view data; changed bound data reaches
   an open popup automatically.
 - A popup or popover is closed automatically by anything that replaces the

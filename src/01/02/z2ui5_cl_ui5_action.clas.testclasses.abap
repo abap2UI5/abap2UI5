@@ -62,6 +62,10 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_stack_call_popup_open FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
+    " nav_app_leave/nav_app_call( keep_messages = abap_true ): the toasts
+    " and boxes the leaving app queued follow it, nothing else does
+    METHODS test_leave_keeps_messages FOR TESTING RAISING cx_static_check.
+    METHODS test_call_keeps_messages FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_fresh_target FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_own_stack FOR TESTING RAISING cx_static_check.
@@ -651,6 +655,72 @@ CLASS ltcl_test IMPLEMENTATION.
     " no routing mode anywhere - a plain nav carries no NAV intent
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_result->ms_next-s_nav-check_nav_app_call ).
+
+  ENDMETHOD.
+
+  METHOD test_leave_keeps_messages.
+
+    DATA(lo_action) = NEW z2ui5_cl_ui5_action( val = NEW z2ui5_cl_ui5_handler( val = `` ) ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client = NEW z2ui5_cl_ui5_client( action = lo_action ).
+
+    " a message of each kind, and an action that names the old screen
+    li_client->message_toast_display( `Saved.` ).
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SET_FOCUS","input1"]` ) )
+           INTO TABLE lo_action->ms_next-s_action-t_custom.
+    li_client->message_box_display( text = `Check the quantity.`
+                                    type = `warning` ).
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
+                                 t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Also kept.` ) ) ).
+    li_client->nav_app_leave( app           = NEW ltcl_test_app( )
+                              keep_messages = abap_true ).
+
+    DATA(lo_result) = lo_action->factory_stack_leave( ).
+
+    " the three messages in the order they were queued - the focus is gone
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lo_result->ms_next-s_action-t_custom ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_TOAST","show","Saved."]`
+        act = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lo_result->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) CS `["MESSAGE_BOX","warning","Check the quantity."` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lo_result->ms_next-s_action-t_custom[ 3 ]-o_json->stringify( ) CS `"MESSAGE_TOAST","show","Also kept."` ) ).
+    " the flag belongs to the hop - the target starts without it
+    cl_abap_unit_assert=>assert_false( lo_result->ms_next-keep_messages ).
+
+  ENDMETHOD.
+
+  METHOD test_call_keeps_messages.
+
+    DATA(lo_action) = NEW z2ui5_cl_ui5_action( val = NEW z2ui5_cl_ui5_handler( val = `` ) ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client = NEW z2ui5_cl_ui5_client( action = lo_action ).
+
+    li_client->message_toast_display( `Order created.` ).
+    li_client->nav_app_call( app           = NEW ltcl_test_app( )
+                             keep_messages = abap_true ).
+    DATA(lo_result) = lo_action->factory_stack_call( ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_result->ms_next-s_action-t_custom ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_TOAST","show","Order created."]`
+        act = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+
+    " without the flag the default stands: dropped with the screen
+    lo_action = NEW z2ui5_cl_ui5_action( val = NEW z2ui5_cl_ui5_handler( val = `` ) ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT_2`.
+    li_client = NEW z2ui5_cl_ui5_client( action = lo_action ).
+    li_client->message_toast_display( `Order created.` ).
+    li_client->nav_app_call( NEW ltcl_test_app( ) ).
+    lo_result = lo_action->factory_stack_call( ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_action-t_custom ).
 
   ENDMETHOD.
 
