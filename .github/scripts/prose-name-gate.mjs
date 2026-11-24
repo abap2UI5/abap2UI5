@@ -78,6 +78,7 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_TM_001", "ships in abap2UI5-addons/table-maintenance"],
   ["Z2UI5_CL_POPUP_CALCULATOR", "ships in abap2UI5-addons/popups"],
   ["Z2UI5_CL_POPUP_SAMPLE_22", "ships in abap2UI5-addons/popups"],
+  ["Z2UI5_CL_POPUP_CONTEXT", "ships in abap2UI5-addons/popups"],
   ["Z2UI5_CL_LAYO_XML_TREE", "ships in abap2UI5-addons/layout-management"],
   ["Z2UI5_CL_LAYO_XML_BUILDER", "ships in abap2UI5-addons/layout-management"],
   ["Z2UI5_CL_LOCK_MANAGER", "ships in abap2UI5-addons/lock-manager"],

@@ -645,6 +645,49 @@ external input by definition. No rule id is minted here on purpose: the id
 comes with the rule, and a backticked id that resolves to nothing is exactly
 what check:skills exists to refuse.
 
+- **An `OverflowToolbar` resets its layout on every property change of its
+  content - including one set with `setProperty( name, value, true )` - and
+  that closes its open overflow menu.** The suppressed invalidation does not
+  help: `ManagedObject.setProperty` fires the internal `_change` event for
+  every real change whatever `bSuppressInvalidate` says, and
+  `OverflowToolbar._onContentPropertyChangedOverflowToolbar` answers it with
+  `_resetAndInvalidateToolbar( )` - unless the control's config names the
+  property as unrelated to size. A custom control gets that config only by
+  implementing `sap.m.IOverflowToolbarContent`:
+  `OverflowToolbarAssociativePopoverControls.getControlConfig` checks the
+  interface, calls `getOverflowToolbarConfig( )` and maps its
+  `propsUnrelatedToSize` to the list the handler skips. Read in the OpenUI5
+  1.120 sources (`sap/m/OverflowToolbar.js`,
+  `sap/m/OverflowToolbarAssociativePopoverControls.js`,
+  `sap/ui/base/ManagedObject.js`) and in 1.71.80, where the same handler and
+  the same mapping exist - so the fix works on the floor.
+
+  The case: `abap2UI5-addons/custom-controls`' NetworkStatus pings every five
+  seconds and writes `status`, `latency` and `quality` with suppressed
+  invalidation. In S5S's footer (an `OverflowToolbar` with a clock and
+  buttons) the overflow menu closed a few seconds after it was opened - at the
+  next ping. Fixed in custom-controls `700301c` (2026-11-24): the control
+  implements `sap.m.IOverflowToolbarContent`, `getOverflowToolbarConfig( )`
+  returns `canOverflow: false` and `propsUnrelatedToSize: [ "status",
+  "latency", "quality" ]`. Any custom control that updates itself on a timer
+  or on an external event and can sit in a toolbar needs the same.
+
+  Why nothing saw it: it is runtime behaviour of a JS custom control, which no
+  linter here reads, and no e2e spec opens an overflow menu and waits.
+
+**Linter:** **cannot be decided by the abap2UI5 linter** - the view only says
+that a custom control sits in an `OverflowToolbar`; whether that control
+writes its own properties after rendering is in its JS module, which the
+linter does not read. What a rule would need to decide it: the custom
+control's source (a ui5lint-style rule over the `cc/*.js` modules) - a
+`Control.extend` whose methods call `setProperty`/`set<Property>` from a
+`setInterval`/`setTimeout`/event callback, and whose metadata lacks
+`interfaces: [ "sap.m.IOverflowToolbarContent" ]` or whose
+`getOverflowToolbarConfig( )` does not name those properties in
+`propsUnrelatedToSize`. Report it as a warning on the control, since only a
+toolbar placement makes it a defect. It stays prose until a custom-control
+linter exists.
+
 ---
 
 ## 5. Reading a bug report about a missing icon
