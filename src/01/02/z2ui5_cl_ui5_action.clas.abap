@@ -230,8 +230,12 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " a bookmark without ?app_start= whose draft is gone names no app to
     " start fresh - it lands where a request without one lands, on the
     " start page (factory_system_startup), with the toast above
+    " ... or, under the test harness, the instance its test prepared (see
+    " mo_app_start on the handler)
     DATA li_app TYPE REF TO z2ui5_if_app.
-    IF mo_handler->ms_request-s_control-app_start IS INITIAL.
+    IF mo_handler->mo_app_start IS BOUND.
+      li_app = mo_handler->mo_app_start.
+    ELSEIF mo_handler->ms_request-s_control-app_start IS INITIAL.
       li_app = z2ui5_cl_ui5_app_start=>factory( ).
     ELSE.
       li_app = app_create( ).

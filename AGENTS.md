@@ -116,7 +116,7 @@ src/
 │   ├── 04/   Shipped apps + default exit (z2ui5_cl_ui5_app_start, _app_hi_world, _user_exit)
 │   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http),
 │             and z2ui5_cl_ui5_llm_guide — GENERATED from docs/agents/building-apps.md (`npm run guide-class`), never edit
-├── 02/   Layer 2: Public API — the whole contract, nine objects (rule 5)
+├── 02/   Layer 2: Public API — the whole contract, ten objects (rule 5)
 └── 03/   The service and the launchpad app — Standard ABAP only
     ├── 01/   ICF node /sap/bc/z2ui5 and its handler z2ui5_cl_ui5_icf_handler
     └── 02/   BSP Z2UI5 — GENERATED from app_source/webapp/, never edit (rule 2)
@@ -129,7 +129,8 @@ There is no `src/99` any more: the frozen legacy package left the core on 2026-1
   `z2ui5_cl_ui5_*` segment is everything hand-written. There is no `z2ui5_cl_app_*` object any more.
 - **Layer 2** — `z2ui5_if_app`, `z2ui5_if_client`, `z2ui5_if_ui5_exit`, `z2ui5_if_ui5_monitor`,
   `z2ui5_cl_ui5_http_handler`, `z2ui5_cl_ui5_view_builder`, and the language model seam `z2ui5_if_ui5_llm`,
-  `z2ui5_cx_ui5_llm`, `z2ui5_cl_ui5_llm`. Recorded symbol for symbol in
+  `z2ui5_cx_ui5_llm`, `z2ui5_cl_ui5_llm`, and the app test harness `z2ui5_cl_ui5_test` (a global `FOR TESTING` class -
+  test code only; it drives the real handler through `mo_app_start`, its one hook in Layer 1). Recorded symbol for symbol in
   `.github/api-snapshot.json`. **A type lives on the object that uses it** (`ty_s_get` on `z2ui5_if_client`,
   the HTTP-config types on the exit) — nothing in `src/00`–`src/02` resolves into the retired `z2ui5_if_types`.
 - **`src/03` — what makes one pull a running installation**, and the one package that is not the same on every

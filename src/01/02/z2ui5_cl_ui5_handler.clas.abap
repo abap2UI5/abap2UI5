@@ -20,6 +20,16 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " handler and z2ui5_cl_ui5_action reach it - neither is a friend
     DATA mv_session_sticky TYPE abap_bool.
 
+    " the app INSTANCE a first start runs, in place of a new instance of
+    " the class the request names - set by the test harness
+    " z2ui5_cl_ui5_test=>start( ) only, which hands in an app its test has
+    " prepared. Never set from a request: a request names a class, and
+    " app_create checks that name before anything is created. Bound, it
+    " makes a request without a draft id a first start (main_begin) whether
+    " or not the request names an app - the harness names none, a local test
+    " class has no name a URL could carry
+    DATA mo_app_start TYPE REF TO z2ui5_if_app.
+
     METHODS constructor
       IMPORTING
         val TYPE string.
@@ -1043,7 +1053,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " has no ?app_start= in it - such a link used to open the start page
     " and drop the saved state without a word
     ELSEIF ms_request-s_control-app_start IS NOT INITIAL
-        OR ms_request-s_control-app_start_draft IS NOT INITIAL.
+        OR ms_request-s_control-app_start_draft IS NOT INITIAL
+        OR mo_app_start IS BOUND.
       " on every first start, a bookmark or route restore included (each
       " Back/Forward under KEEP routing re-creates the app and lands here):
       " one DELETE and a COMMIT WORK per such request, inside an existing

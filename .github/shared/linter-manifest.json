@@ -375,6 +375,7 @@
     "src/02": [
       "z2ui5_cl_ui5_http_handler",
       "z2ui5_cl_ui5_llm",
+      "z2ui5_cl_ui5_test",
       "z2ui5_cl_ui5_view_builder",
       "z2ui5_cx_ui5_llm",
       "z2ui5_if_app",

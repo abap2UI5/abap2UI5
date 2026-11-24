@@ -23,24 +23,29 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_post_names_input.
 
     " the one thing the app does: BUTTON_POST answers with a message box
-    " that names what was typed - run through the real client, the way the
-    " start page's tests do. This replaced a test that cast the app to
-    " z2ui5_if_app and asserted the reference was bound, which the compiler
-    " already guarantees for a class that implements the interface
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->ms_actual-event = `BUTTON_POST`.
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app_hi_world( ).
-    lo_app->name = `Ada`.
+    " that names what was typed - driven like the browser drives it, through
+    " the public test harness: the first start renders the form, the user
+    " types into the bound input, the press sends the edit with the event
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW z2ui5_cl_ui5_app_hi_world( ) ).
 
-    lo_app->z2ui5_if_app~main( NEW z2ui5_cl_ui5_client( lo_handler->mo_action ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_test->view_xml( ) CS `abap2UI5 - Hello World` )
+                                      msg = lo_test->view_xml( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_test->model( `/NAME` ) ).
 
-    DATA lv_json TYPE string.
-    LOOP AT lo_handler->mo_action->ms_next-s_action-t_custom INTO DATA(ls_action).
-      lv_json = lv_json && ls_action-o_json->stringify( ).
-    ENDLOOP.
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS `Your name is Ada` )
-                                      msg = lv_json ).
+    lo_test->set_model( path = `/NAME`
+                        val  = `Ada` )->event( `BUTTON_POST` ).
+
+    DATA(lt_message) = lo_test->messages( ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_message ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Your name is Ada`
+                                        act = lt_message[ 1 ]-text ).
+    " the edit reached the attribute of the instance the draft restored
+    cl_abap_unit_assert=>assert_equals( exp = `Ada`
+                                        act = CAST z2ui5_cl_ui5_app_hi_world( lo_test->app( ) )->name ).
+    " an event does not rebuild the view - the form stays on screen
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->view_xml( ) CS `BUTTON_POST` ) ).
 
   ENDMETHOD.
 

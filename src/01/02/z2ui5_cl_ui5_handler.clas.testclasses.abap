@@ -2481,24 +2481,23 @@ CLASS ltcl_04_nav IMPLEMENTATION.
 
   METHOD popup_app_answers_alone.
 
-    DATA(lv_id) = caller_started( ).
-    DATA(lo_handler) = event_on( iv_id    = lv_id
-                                 iv_event = `ROW_SELECT` ).
+    " driven through the public harness (z2ui5_cl_ui5_test) - the browser's
+    " view of the same roundtrip: the row click hands over to the popup app
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_popup_caller( ) )->event( `ROW_SELECT` ).
 
     " the response names the CALLED app...
-    DATA(lv_app) = lo_handler->ms_response-s_front-app.
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_app CS `POPUP_BOUND` )
-                                      msg = |the response names { lv_app }, not the popup app| ).
-    " ...displays its popup and no main view...
-    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
-                                                     iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
-    cl_abap_unit_assert=>assert_false( check_display( io_handler = lo_handler
-                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
+    " (a CAST that fails is the assertion - IS INSTANCE OF is not 7.02)
+    DATA(lo_popup) = CAST ltcl_app_popup_bound( lo_test->app( ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->nav_called( ) = lo_popup ) ).
+    " ...opens its popup over the caller's table, which stays on screen...
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->popup_xml( ) CS `/MS_ROW/NAME` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->view_xml( ) CS `/MT_TAB` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lo_test->response( ) CS `"MAIN"` ) ).
     " ...and ships ITS model, which knows nothing of the caller's table -
     " the reason the frontend must not push it into the caller's view
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"MS_ROW"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"edit me"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lo_handler->ms_response-model CS `"MT_TAB"` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `edit me`
+                                        act = lo_test->model( `/MS_ROW/NAME` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_test->model( `/MT_TAB` ) ).
 
   ENDMETHOD.
 
@@ -2522,19 +2521,24 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     " samples 500/501: the popup app closes and leaves, the caller comes
     " back with check_on_navigated, reads the edit out of the popup app
     " (get_app_prev) and re-displays its table - one roundtrip, and the
-    " response is the CALLER's again: its class, its main view, its model
-    DATA(lv_id) = caller_started( ).
-    DATA(lo_popup) = event_on( iv_id    = lv_id
-                               iv_event = `ROW_SELECT` ).
-    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
-                              iv_event = `CLOSE` ).
+    " response is the CALLER's again: its class, its main view, its model.
+    " Driven through the public harness (z2ui5_cl_ui5_test)
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_popup_caller( )
+                                       )->event( `ROW_SELECT`
+                                       )->event( `CLOSE` ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `POPUP_CALLER` ) ).
-    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
-                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"MT_TAB"` ) ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"edited"` )
-                                      msg = `the caller could not read the popup app back` ).
+    cl_abap_unit_assert=>assert_bound( CAST ltcl_app_popup_caller( lo_test->app( ) ) ).
+    DATA(lo_left) = CAST ltcl_app_popup_bound( lo_test->nav_left( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lo_left->ms_row-name ).
+    cl_abap_unit_assert=>assert_initial( lo_test->nav_called( ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->response( ) CS `"MAIN"` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_test->popup_xml( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `one`
+                                        act = lo_test->model( `/MT_TAB/0/NAME` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lo_test->model( `/MV_FROM_POPUP` )
+                                        msg = `the caller could not read the popup app back` ).
 
   ENDMETHOD.
 
@@ -3871,6 +3875,228 @@ CLASS ltcl_07_timer IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = lv_first
                                         act = lo_second->ms_response-s_front-id
                                         msg = `an unchanged tick answers the draft it continued` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" 08 - the public test harness z2ui5_cl_ui5_test on what it promises: user
+" input as a model delta (a table cell included), the reload from a draft,
+" the timer tick, a called app and its way back, the stateful session.
+" It drives the handler through its public members only, so this class
+" needs no friendship
+" ---------------------------------------------------------------------------
+CLASS ltcl_app_harness DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    DATA mt_tab      TYPE ty_t_row.
+    DATA mv_count    TYPE i.
+    DATA mv_flag     TYPE abap_bool.
+    DATA mv_restored TYPE abap_bool.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    METHODS view_display
+      IMPORTING
+        client TYPE REF TO z2ui5_if_client.
+    METHODS on_event
+      IMPORTING
+        client TYPE REF TO z2ui5_if_client.
+ENDCLASS.
+
+CLASS ltcl_app_harness IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      mt_tab = VALUE #( ( name = `one` ) ( name = `two` ) ).
+      view_display( client ).
+    ELSEIF client->check_on_navigated( ).
+      mv_restored = abap_true.
+      view_display( client ).
+    ELSE.
+      on_event( client ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD view_display.
+    client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/>| &&
+                          |<CheckBox selected="{ client->_bind( mv_flag ) }"/>| &&
+                          |<Button press="{ client->_event( `COUNT` ) }"/></mvc:View>| ).
+  ENDMETHOD.
+
+  METHOD on_event.
+    CASE client->get_event( ).
+      WHEN `COUNT` OR `TICK`.
+        mv_count = mv_count + 1.
+        client->message_toast_display( |{ mv_count }: { mt_tab[ 2 ]-name }| ).
+      WHEN `TIMER_ON`.
+        client->follow_up_action( val   = client->cs_event-start_timer
+                                  t_arg = VALUE #( ( `TICK` ) ( `1000` ) ) ).
+      WHEN `ARG`.
+        client->message_box_display( text  = client->get_event_arg( 1 )
+                                     type  = `error`
+                                     title = `T` ).
+      WHEN `STICKY`.
+        client->set_session_stateful( ).
+    ENDCASE.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_08_harness DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    METHODS cell_edit_reaches_app FOR TESTING RAISING cx_static_check.
+    METHODS bool_edit_and_args FOR TESTING RAISING cx_static_check.
+    METHODS restore_from_draft FOR TESTING RAISING cx_static_check.
+    METHODS timer_tick_one_shot FOR TESTING RAISING cx_static_check.
+    METHODS timer_set_repeats FOR TESTING RAISING cx_static_check.
+    METHODS called_app_leaves FOR TESTING RAISING cx_static_check.
+    METHODS sticky_keeps_instance FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_08_harness IMPLEMENTATION.
+
+  METHOD cell_edit_reaches_app.
+
+    " the first start renders the table, the model carries its rows
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_harness( ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->view_xml( ) CS `/MT_TAB` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `two`
+                                        act = lo_test->model( `/MT_TAB/1/NAME` ) ).
+
+    " a cell typed into travels as the row delta and lands in the row
+    lo_test->set_model( path = `/MT_TAB/1/NAME`
+                        val  = `zwei` )->event( `COUNT` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->response( ) NS `"MAIN"` ) ).
+    DATA(lo_app) = CAST ltcl_app_harness( lo_test->app( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `zwei`
+                                        act = lo_app->mt_tab[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `one`
+                                        act = lo_app->mt_tab[ 1 ]-name ).
+    DATA(lt_message) = lo_test->messages( ).
+    cl_abap_unit_assert=>assert_equals( exp = `toast`
+                                        act = lt_message[ 1 ]-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `1: zwei`
+                                        act = lt_message[ 1 ]-text ).
+    " the view stays on screen, and the browser's model keeps the edit
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->view_xml( ) CS `COUNT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `zwei`
+                                        act = lo_test->model( `/MT_TAB/1/NAME` ) ).
+
+  ENDMETHOD.
+
+  METHOD bool_edit_and_args.
+
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_harness( ) ).
+    lo_test->set_model( path = `/MV_FLAG`
+                        val  = abap_true
+               )->event( val   = `ARG`
+                         t_arg = VALUE #( ( `from the view` ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = CAST ltcl_app_harness( lo_test->app( ) )->mv_flag ).
+    DATA(lt_message) = lo_test->messages( ).
+    cl_abap_unit_assert=>assert_equals( exp = `error`
+                                        act = lt_message[ 1 ]-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `from the view`
+                                        act = lt_message[ 1 ]-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `T`
+                                        act = lt_message[ 1 ]-title ).
+    DATA(lt_action) = lo_test->actions( ).
+    cl_abap_unit_assert=>assert_equals( exp = `MESSAGE_BOX`
+                                        act = lt_action[ 1 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD restore_from_draft.
+
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_harness( ) )->event( `COUNT` ).
+    lo_test->restore( ).
+
+    " a reload: the app comes back from its draft, navigated and not new
+    DATA(lo_app) = CAST ltcl_app_harness( lo_test->app( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_app->mv_count ).
+    cl_abap_unit_assert=>assert_true( lo_app->mv_restored ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->view_xml( ) CS `/MT_TAB` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `two`
+                                        act = lo_test->model( `/MT_TAB/1/NAME` ) ).
+
+  ENDMETHOD.
+
+  METHOD timer_tick_one_shot.
+
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_harness( ) )->event( `TIMER_ON` ).
+    cl_abap_unit_assert=>assert_equals( exp = `TICK`
+                                        act = lo_test->timer_event( ) ).
+
+    lo_test->timer( ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = CAST ltcl_app_harness( lo_test->app( ) )->mv_count ).
+    " a one-shot timer is spent by the roundtrip that did not arm it again
+    cl_abap_unit_assert=>assert_initial( lo_test->timer_event( ) ).
+    TRY.
+        lo_test->timer( ).
+        cl_abap_unit_assert=>fail( `no timer is armed` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD timer_set_repeats.
+
+    " client->timer_set( ) in check_on_init: the declared timer is armed
+    " once and keeps ticking - every tick is a roundtrip for its event
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_timer( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `REFRESH`
+                                        act = lo_test->timer_event( ) ).
+    lo_test->timer( )->timer( ).
+    cl_abap_unit_assert=>assert_equals( exp = `REFRESH`
+                                        act = lo_test->timer_event( ) ).
+
+    lo_test->event( `STOP` ).
+    cl_abap_unit_assert=>assert_initial( lo_test->timer_event( ) ).
+
+  ENDMETHOD.
+
+  METHOD called_app_leaves.
+
+    " the popup app as the target of a call - its leave goes back
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start_called( NEW ltcl_app_popup_bound( ) ).
+    cl_abap_unit_assert=>assert_bound( CAST ltcl_app_popup_bound( lo_test->nav_called( ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->popup_xml( ) CS `<Dialog>` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `edit me`
+                                        act = lo_test->model( `/MS_ROW/NAME` ) ).
+
+    lo_test->event( `CLOSE` ).
+    cl_abap_unit_assert=>assert_initial( lo_test->popup_xml( ) ).
+    DATA(lo_left) = CAST ltcl_app_popup_bound( lo_test->nav_left( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lo_left->ms_row-name ).
+
+  ENDMETHOD.
+
+  METHOD sticky_keeps_instance.
+
+    DATA(lo_test) = z2ui5_cl_ui5_test=>start( NEW ltcl_app_harness( ) ).
+    DATA(li_first) = lo_test->event( `COUNT` )->app( ).
+    " a stateless app is restored from its draft - a new instance
+    DATA(li_sticky) = lo_test->event( `STICKY` )->app( ).
+    cl_abap_unit_assert=>assert_false( xsdbool( li_sticky = li_first ) ).
+    " a stateful one keeps it, as the session keeps the handler
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_test->event( `COUNT` )->app( ) = li_sticky ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = CAST ltcl_app_harness( lo_test->app( ) )->mv_count ).
 
   ENDMETHOD.
 
