@@ -784,7 +784,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " `. - :` (the XML name rule the view builder holds its names to) - and
     " a row whose name is not one is left out
     LOOP AT t_add_config REFERENCE INTO DATA(lr_config).
-      DATA(lv_name) = CONV string( lr_config->n ).
+      DATA(lv_name) = lr_config->n.
       DATA(lv_first) = substring( val = lv_name && ` `
                                   len = 1 ).
       IF lv_name IS INITIAL
