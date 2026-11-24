@@ -394,3 +394,11 @@ break one of those four.
   script patches is upstream already (abaplint/abaplint#3735, #3240), and
   `syfixes` only runs when the `--fix` call before it may fail:
   `(abaplint --fix ... || true) && npm run syfixes`.
+
+- **`ASSIGN COMPONENT name OF STRUCTURE <tab>[ n ] TO <fs>` assigns the ROW
+  under the transpiler** (found 2026-11-24, `ltcl_06_fast_json->ns_*`): the
+  table expression is read into `<fs>` and the component is never taken, so a
+  `CLEAR <fs>` that follows clears the whole row - green on a system, a wrong
+  test on Node. Read the row first (`READ TABLE <tab> INDEX n ASSIGNING
+  <row>`), then `ASSIGN COMPONENT ... OF STRUCTURE <row>`. No gate: the
+  statement is valid ABAP and right on every release.

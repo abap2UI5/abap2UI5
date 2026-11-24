@@ -375,6 +375,23 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  **relative to the row** with braces on the upper-cased field name:` && |\n| &&
              `  ```` ``{PRODUCT}`` ````. A camelCase ABAP field ``supplierName`` becomes` && |\n| &&
              `  ``{SUPPLIERNAME}``.` && |\n| &&
+             `- A column whose name carries a **namespace** - ``/CWM/XCWMAT``, the fields an` && |\n| &&
+             `  industry solution or a customer appends to a DDIC table - is a level of` && |\n| &&
+             `  its row in the model: ``"CWM":{"XCWMAT":...}``. Bind it relatively as` && |\n| &&
+             `  ``{CWM/XCWMAT}``, never ``{/CWM/XCWMAT}``, which UI5 reads as an *absolute*` && |\n| &&
+             `  path from the model root (an empty cell, and the edit goes nowhere). When` && |\n| &&
+             `  the column name is only known at run time (a table maintenance, a layout` && |\n| &&
+             `  over any table), let` && |\n| &&
+             `  ``z2ui5_cl_ui5_view_builder=>component_path( lv_name )`` write it:` && |\n| &&
+             `  ```` v = |\{{ z2ui5_cl_ui5_view_builder=>component_path( lv_name ) }\}| ````` && |\n|.
+    result = result &&
+             `  - ``/CWM/XCWMAT`` becomes ``CWM/XCWMAT``, every other name comes back as it` && |\n| &&
+             `  is. A cell bound with ``_bind( val = ... tab = ... tab_index = ... )`` gets the` && |\n| &&
+             `  same path by itself, and an edit comes back onto the component.` && |\n| &&
+             `- Bind a public attribute of the **app class itself**. An attribute an` && |\n| &&
+             `  *interface* declares (``zif_my_state~mv_value``, written into the class by` && |\n| &&
+             `  ``INTERFACES``) is not bindable: ``_bind( )`` raises ``BINDING_ERROR`` for it.` && |\n| &&
+             `  Copy it into an attribute of the class, or declare it there.` && |\n| &&
              `- A value shared by the whole app lives at the model **root** - inside a row` && |\n| &&
              `  template a relative ``{FIELD}`` resolves against the row and silently renders` && |\n| &&
              `  empty if the row has no such column; bind root values with` && |\n| &&
@@ -383,8 +400,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``_bind``, so renames cannot break bindings. For raw binding-info strings` && |\n| &&
              `  (typed bindings, sorters) get the bare path via` && |\n| &&
              `  ``client->_bind_path( t_items )``, e.g.` && |\n| &&
-             `  ```` v = |\{ path: '{ client->_bind_path( t_items ) }', sorter: \{ path: 'PRODUCT' \} \}| ````.` && |\n|.
-    result = result &&
+             `  ```` v = |\{ path: '{ client->_bind_path( t_items ) }', sorter: \{ path: 'PRODUCT' \} \}| ````.` && |\n| &&
              `- Typed/complex bindings pass through verbatim (braces escaped):` && |\n| &&
              `  ```` v = |\{ path: 'PRICE', type: 'sap.ui.model.type.Float' \}| ```` - note the` && |\n| &&
              `  ``path:`` uses the upper-cased ABAP field name.` && |\n| &&
@@ -408,7 +424,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  manifest as a manifest **URL**. Keep the JSON in a ``string`` attribute and` && |\n| &&
              `  bind it with ``client->_bind( val = manifest json = abap_true )`` - the` && |\n| &&
              `  serializer then splices its content into the model as a JSON node instead of` && |\n| &&
-             `  a quoted string. Outbound only (the client renders such a payload, it never` && |\n| &&
+             `  a quoted string. Outbound only (the client renders such a payload, it never` && |\n|.
+    result = result &&
              `  authors it), and a string that does not parse raises rather than shipping` && |\n| &&
              `  broken JSON. Where the sample keeps one manifest per file, bind its URL` && |\n| &&
              `  instead - that path needs no flag.` && |\n| &&
@@ -425,8 +442,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``main( )`` runs with the event ``ROWS`` and the request in ``get( )-r_event_data``:` && |\n| &&
              |\n| &&
              `  ``````abap` && |\n| &&
-             `  WHEN ``ROWS``.` && |\n|.
-    result = result &&
+             `  WHEN ``ROWS``.` && |\n| &&
              `    FIELD-SYMBOLS <req> TYPE z2ui5_if_client=>ty_s_window_request.` && |\n| &&
              `    DATA(lr_req) = client->get( )-r_event_data.` && |\n| &&
              `    ASSIGN lr_req->* TO <req>.` && |\n| &&
@@ -450,7 +466,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  sorters and filters written into the binding info are not applied.` && |\n| &&
              `- **Bound data changed in an event handler is pushed automatically** - the` && |\n| &&
              `  framework compares the model before and after ``main( )`` on every event` && |\n| &&
-             `  round-trip and, when it differs, sends it to every open view slot (MAIN,` && |\n| &&
+             `  round-trip and, when it differs, sends it to every open view slot (MAIN,` && |\n|.
+    result = result &&
              `  POPUP, POPOVER; the nested views inherit MAIN's model). A handler cannot` && |\n| &&
              `  render stale by forgetting anything: there is nothing to call and nothing` && |\n| &&
              `  to switch on. Call ``view_display`` again only when the view **structure**` && |\n| &&
@@ -467,8 +484,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  it is.` && |\n| &&
              `- ``view_model_update( )``, ``popup_model_update( )``, ``popover_model_update( )``` && |\n| &&
              `  and the two nested variants are **removed** - they had done nothing since` && |\n| &&
-             `  the push became automatic. An app written for an older release deletes` && |\n|.
-    result = result &&
+             `  the push became automatic. An app written for an older release deletes` && |\n| &&
              `  the calls; nothing changes at runtime.` && |\n| &&
              |\n| &&
              `## 5. Events` && |\n| &&
@@ -492,7 +508,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  hand over a control or a whole array of controls rather than a scalar -` && |\n| &&
              `  ``ViewSettingsDialog.confirm`` gives ``filterItems``,` && |\n| &&
              `  ``SinglePlanningCalendar.selectedDatesChange`` a list of ``DateRange``. Pass the` && |\n| &&
-             `  parameter like any other (```` ``${$parameters>/filterItems}`` ````); the frontend` && |\n| &&
+             `  parameter like any other (```` ``${$parameters>/filterItems}`` ````); the frontend` && |\n|.
+    result = result &&
              `  marshals each control into an object carrying its ``ID`` plus its public` && |\n| &&
              `  properties, so ``client->get_event_arg( )`` returns a JSON array. Read the one` && |\n| &&
              `  property you need out of it BY HAND, per the bullet below - not with` && |\n| &&
@@ -509,8 +526,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``bundle/webapp/core/Lib.js`` passes an object- or array-valued property through` && |\n| &&
              `  unchanged (up to ``MAX_ARG_DEPTH``), so a control with a property typed` && |\n| &&
              `  ``object``/``any`` marshals as a nested node. When that is what you are looking` && |\n| &&
-             `  at, do not grow the reader: bind the value into the model instead and let` && |\n|.
-    result = result &&
+             `  at, do not grow the reader: bind the value into the model instead and let` && |\n| &&
              `  the framework's own write-back fill the ABAP structure - ``whole_value_apply``` && |\n| &&
              `  in ``z2ui5_cl_ui5_srv_model`` converts a whole object or array with` && |\n| &&
              `  ``to_abap( iv_corresponding = abap_true )``, which is the corresponding-only` && |\n| &&
@@ -533,7 +549,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    one field of a flat object) in ``abap2UI5/samples`` are the pattern to copy.` && |\n| &&
              `    Two cases need more than that, and both have an answer that is not a` && |\n| &&
              `    bigger parser:` && |\n| &&
-             `    - **The payload is NESTED** (see the control-parameter bullet above):` && |\n| &&
+             `    - **The payload is NESTED** (see the control-parameter bullet above):` && |\n|.
+    result = result &&
              `      bind the value instead of parsing the event argument. A two-way bound` && |\n| &&
              `      attribute is filled by the framework's own write-back, corresponding` && |\n| &&
              `      fields only, with no app-side parsing at all.` && |\n| &&
@@ -550,8 +567,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    An app parsing genuinely arbitrary, nested JSON is doing something this` && |\n| &&
              `    framework does not hand it a tool for.` && |\n| &&
              `- **A dynamic type names a type the SYSTEM has, not one abap2UI5 ships.**` && |\n| &&
-             `  ``CREATE DATA ... TYPE STANDARD TABLE OF (name)`` needs a name that exists at` && |\n|.
-    result = result &&
+             `  ``CREATE DATA ... TYPE STANDARD TABLE OF (name)`` needs a name that exists at` && |\n| &&
              `  runtime, and the name belongs to the app's own domain - a DDIC structure of` && |\n| &&
              `  the customer's, a CDS view, whatever the app is browsing. abap2UI5 ships` && |\n| &&
              `  no dictionary object an app is supposed to point at (section  *No new dictionary objects* in ``AGENTS.md``), a` &&
@@ -575,7 +591,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  overlay is not shown). There is no flag for` && |\n| &&
              `  sending every firing at once: only the newest response may commit, so the` && |\n| &&
              `  earlier roundtrips would be work thrown away. A background wire that must` && |\n| &&
-             `  not wait - a timer tick, a poll - needs no queue flag either: ``START_TIMER``` && |\n| &&
+             `  not wait - a timer tick, a poll - needs no queue flag either: ``START_TIMER``` && |\n|.
+    result = result &&
              `  carries its own slot and waits out the roundtrip in flight` && |\n| &&
              `  (``core/actions/ViewOps.js``, ``evStartTimer``). What it does share with a` && |\n| &&
              `  click is the overlay: a tick raises it after the usual one-second delay,` && |\n| &&
@@ -592,8 +609,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- Roundtrip-free client actions: ``client->follow_up_action( val = ... t_arg = ... )``` && |\n| &&
              `  written where its RESULT is consumed - in a view attribute - runs a` && |\n| &&
              `  whitelisted frontend action without a server call (toast from a row value,` && |\n| &&
-             `  client-side sort/filter via ``binding_call``, ...). ``client->_event_client( )``` && |\n|.
-    result = result &&
+             `  client-side sort/filter via ``binding_call``, ...). ``client->_event_client( )``` && |\n| &&
              `  is the obsolete name for exactly this and emits the identical wire.` && |\n| &&
              `- After the response, ``client->follow_up_action( val = ... t_arg = ... )`` as a` && |\n| &&
              `  STATEMENT schedules a frontend action: focus (``cs_event-set_focus``), scroll, title,` && |\n| &&
@@ -618,7 +634,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  nothing by itself.` && |\n| &&
              `- ``client->popover_display( xml = ... by_id = ... )`` anchors a popover to a` && |\n| &&
              `  control id. **Mind the asymmetry**: the popup takes its XML as ``val``, the` && |\n| &&
-             `  popover as ``xml`` - one of the most common first-try mistakes.` && |\n| &&
+             `  popover as ``xml`` - one of the most common first-try mistakes.` && |\n|.
+    result = result &&
              `- ``client->message_toast_display( text )`` and` && |\n| &&
              `  ``client->message_box_display( text type title actions ... )`` for messages -` && |\n| &&
              `  never build your own toast/dialog for these.` && |\n| &&
@@ -634,8 +651,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  anything and you do not branch on what you have. The one case that shows no` && |\n| &&
              `  box at all is complex data that is initial, so` && |\n| &&
              `  ``message_box_display( lt_return )`` after a call that returned nothing stays` && |\n| &&
-             `  silent, as it always has. The sample ``Z2UI5_CL_SMP_APP_502`` in` && |\n|.
-    result = result &&
+             `  silent, as it always has. The sample ``Z2UI5_CL_SMP_APP_502`` in` && |\n| &&
              `  [abap2UI5/samples](https://github.com/abap2UI5/samples) walks every one of` && |\n| &&
              `  those cases with one button each.` && |\n| &&
              `- **A pure UI5 option is not a parameter of those two methods.** They carry` && |\n| &&
@@ -660,7 +676,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  roundtrip if it is meant to stay - ``view_display( )`` first, then` && |\n| &&
              `  ``popup_display( )`` - and call ``popup_destroy( )`` only when you close it` && |\n| &&
              `  without rebuilding the view.` && |\n| &&
-             |\n| &&
+             |\n|.
+    result = result &&
              `## 7. Multi-view, navigation, routing` && |\n| &&
              |\n| &&
              `- One app can render ``main``, two nested views, a popup and a popover` && |\n| &&
@@ -677,8 +694,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  and reads it on the way back: ``client->get_nav_tag( )`` answers the tag on` && |\n| &&
              `  the roundtrip the called app returns on, and is empty on every other one.` && |\n| &&
              `  No flag attribute per popup, no ``CAST`` in a ``TRY`` to find out which one` && |\n| &&
-             `  came back.` && |\n|.
-    result = result &&
+             `  came back.` && |\n| &&
              `- URL routing: ``client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )``` && |\n| &&
              `  in ``check_on_init`` makes the app bookmarkable and wires the browser` && |\n| &&
              `  Back/Forward buttons - the mode rides in ``t_arg``: ``cs_nav_mode-keep`` (the` && |\n| &&
@@ -702,7 +718,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  changes under the app - Back/Forward, a manual edit; app-owned routing` && |\n| &&
              `  with ``hash_routing`` off), ``hash_routing`` (the routing modes above) and` && |\n| &&
              `  ``app_state_set_active``. ``hash_routing``, ``hash_attach_changed`` and` && |\n| &&
-             `  ``app_state_set_active`` are mutually exclusive - each claims the whole app` && |\n| &&
+             `  ``app_state_set_active`` are mutually exclusive - each claims the whole app` && |\n|.
+    result = result &&
              `  hash.` && |\n| &&
              |\n| &&
              `## 8. Rules that keep apps portable` && |\n| &&
@@ -719,8 +736,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``ValueState``/icon is your app's job: compute it in ABAP and bind it` && |\n| &&
              `  (``state="{STATUS_STATE}"``). The module header states the admission criteria` && |\n| &&
              `  and ``npm run check:formatter`` enforces them.` && |\n| &&
-             `- **UI5 1.71 floor**: the framework supports OpenUI5 down to 1.71. Before` && |\n|.
-    result = result &&
+             `- **UI5 1.71 floor**: the framework supports OpenUI5 down to 1.71. Before` && |\n| &&
              `  using a control/property/aggregation, check its "available since" in the` && |\n| &&
              `  UI5 API - post-1.71 members need a UI5 release that has them; a wrong` && |\n| &&
              `  aggregation name 404s the whole view on old releases.` && |\n| &&
@@ -746,7 +762,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `      RETURN.` && |\n| &&
              `    ENDIF.` && |\n| &&
              |\n| &&
-             `    me->client = client.` && |\n| &&
+             `    me->client = client.` && |\n|.
+    result = result &&
              `    IF client->check_on_init( ).` && |\n| &&
              `    ...` && |\n| &&
              `  ``````` && |\n| &&
@@ -762,8 +779,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``openui5.hana.ondemand.com``, ``sdk.openui5.org``) - general-purpose CDNs` && |\n| &&
              `  such as ``cdn.jsdelivr.net`` and ``cdnjs.cloudflare.com`` are deliberately` && |\n| &&
              `  NOT on it. Every other host needs your own` && |\n| &&
-             `  ``content_security_policy`` in the exit, and a system-local copy served by` && |\n|.
-    result = result &&
+             `  ``content_security_policy`` in the exit, and a system-local copy served by` && |\n| &&
              `  your own ICF node is the option that survives an offline system. Whichever` && |\n| &&
              `  you pick, load the library through the UI5 loader` && |\n| &&
              `  (``sap.ui.loader.config`` path mapping + ``sap.ui.define``) and drive it from a` && |\n| &&
@@ -789,7 +805,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n| &&
              `  ``npx --yes @abap2ui5/linter my_app.clas.abap`` - also` && |\n| &&
              `  available as a GitHub Action and inside the VS Code extension.` && |\n| &&
-             `- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents` && |\n| &&
+             `- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents` && |\n|.
+    result = result &&
              `  the full loop without a SAP system: ``capabilities`` -> ``deploy_app`` ->` && |\n| &&
              `  ``build_backend`` -> ``run_app`` (headless screenshot + errors).` && |\n| &&
              `- **Need a UI5 fact - which properties a control has, what an aggregation is` && |\n| &&
@@ -804,8 +821,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  reads all of them: curated apps for "has somebody built this pattern" in` && |\n| &&
              `  [abap2UI5/samples](https://github.com/abap2UI5/samples), 622 gate-verified` && |\n| &&
              `  demo-kit ports for "how is this control expressed" in` && |\n| &&
-             `  [samples-controls](https://github.com/abap2UI5/samples-controls) (``src/``), and` && |\n|.
-    result = result &&
+             `  [samples-controls](https://github.com/abap2UI5/samples-controls) (``src/``), and` && |\n| &&
              `  apps that need something from your stack - OData, RAP, APC, the launchpad -` && |\n| &&
              `  in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5` && |\n| &&
              `  can express at all is answered in samples-controls' ``CAPABILITIES.md``, each` && |\n| &&
@@ -831,7 +847,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    PUBLIC SECTION.` && |\n| &&
              `      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` && |\n| &&
              `      " what the lifecycle questions are answered with` && |\n| &&
-             `      DATA init      TYPE abap_bool.` && |\n| &&
+             `      DATA init      TYPE abap_bool.` && |\n|.
+    result = result &&
              `      DATA navigated TYPE abap_bool.` && |\n| &&
              `      DATA event     TYPE abap_bool.` && |\n| &&
              `      DATA event_id  TYPE string.` && |\n| &&
@@ -846,8 +863,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~check_on_navigated.` && |\n| &&
              `      result = navigated.` && |\n| &&
-             `    ENDMETHOD.` && |\n|.
-    result = result &&
+             `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~check_on_event.` && |\n| &&
              `      result = event.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
@@ -874,7 +890,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ENDCLASS.` && |\n| &&
              |\n| &&
              `  CLASS ltcl_app IMPLEMENTATION.` && |\n| &&
-             `    METHOD save_toasts_the_name.` && |\n| &&
+             `    METHOD save_toasts_the_name.` && |\n|.
+    result = result &&
              `      DATA(app)    = NEW zcl_my_app( ).` && |\n| &&
              `      DATA(double) = NEW ltd_client( ).` && |\n| &&
              `      " an event roundtrip: the framework has already written the user's` && |\n| &&
@@ -889,8 +906,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `                                          act = double->t_toast[ 1 ] ).` && |\n| &&
              `      " an event does not rebuild the view` && |\n| &&
              `      cl_abap_unit_assert=>assert_initial( double->t_view ).` && |\n| &&
-             `    ENDMETHOD.` && |\n|.
-    result = result &&
+             `    ENDMETHOD.` && |\n| &&
              `  ENDCLASS.` && |\n| &&
              `  ``````` && |\n| &&
              |\n| &&
@@ -918,7 +934,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n| &&
              `app that shows the roundtrips, the view XML and the model, the log and the` && |\n| &&
              `environment, without the browser's devtools. They are part of the frontend` && |\n| &&
-             `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
+             `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n|.
+    result = result &&
              `app, with nothing to install and nothing to configure.` && |\n| &&
              |\n| &&
              `### Starting them` && |\n| &&
@@ -939,8 +956,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              ` default, remembered per browser tab |` && |\n| &&
              `| From the **start app** (``z2ui5_cl_ui5_app_start``) | The System information popup covers the backend (setting` &&
              `s, user exit, drafts); its text points to Ctrl+F12 for the frontend side (UI5 version, theme, device, requests` &&
-             `, logs) |` && |\n|.
-    result = result &&
+             `, logs) |` && |\n| &&
              |\n| &&
              `The roundtrip history and the console capture record from the first` && |\n| &&
              `roundtrip on, whether the dialog was ever opened or not: opening the tools` && |\n| &&
@@ -967,7 +983,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  - ``set_value( )`` for what was typed, ``click( )`` for every event, assertions` && |\n| &&
              `  on the messages, layers, control ids and events the screens showed. Paste it` && |\n| &&
              `  into the app's test include; record from the app start, because the test` && |\n| &&
-             `  starts the app fresh.` && |\n| &&
+             `  starts the app fresh.` && |\n|.
+    result = result &&
              `- **View & Data**: the XML of the main view, the popup, the popover and the` && |\n| &&
              `  nested views as the backend sent it, the model that fills each, and the` && |\n| &&
              `  bindings with a missing-path check and a size ranking. The picker marks a` && |\n| &&
@@ -983,8 +1000,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `- The page runs under the shipped CSP; the devtools bundle is a same-origin` && |\n| &&
              `  file and needs nothing beyond ``script-src 'self'``. A CSP of your own that` && |\n| &&
-             `  drops ``'self'`` blocks it, and the Log of the browser's console names the` && |\n|.
-    result = result &&
+             `  drops ``'self'`` blocks it, and the Log of the browser's console names the` && |\n| &&
              `  blocked URL.` && |\n| &&
              `- On a Fiori launchpad or a BSP page the dialog's modules are asked from the` && |\n| &&
              `  page's own loader first and from the bundle second; a 404 in between is` && |\n| &&
@@ -1011,7 +1027,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `DATA(ls_answer) = li_llm->chat( system    = ``Answer briefly.``` && |\n| &&
              `                                t_message = mt_chat ).` && |\n| &&
              ```````` && |\n| &&
-             |\n| &&
+             |\n|.
+    result = result &&
              `- **No key, model or endpoint in the class.** Read them from your own` && |\n| &&
              `  configuration and pass a destination (SM59 on Standard, a communication` && |\n| &&
              `  arrangement or BTP destination on Cloud) or a URL plus key; there is no` && |\n| &&

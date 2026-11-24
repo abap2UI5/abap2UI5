@@ -120,6 +120,22 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! The binding path of a column RELATIVE to its row - for a row
+    "! template of a bound table (`{CWM/XCWMAT}`) when the column name is
+    "! not known when the app is written (a table maintenance, a layout
+    "! over any DDIC table). A name with a namespace, `/CWM/XCWMAT`, comes
+    "! back as `CWM/XCWMAT`: the model writes the namespace as a level of
+    "! the row (`"CWM":{"XCWMAT":...}`), and `{/CWM/XCWMAT}` - the name as
+    "! it is - would be an ABSOLUTE path in UI5, read from the model root
+    "! and edited nowhere. Every other name comes back unchanged. Pass the
+    "! name as RTTI writes it - upper case, the case of the model's keys:
+    "!   )-&gt;a( n = `text` v = |\{{ z2ui5_cl_ui5_view_builder=&gt;component_path( lv_name ) }\}| )
+    CLASS-METHODS component_path
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
     TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
     TYPES:
@@ -407,6 +423,17 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD component_path.
+
+    " the leading slash of a namespace, and only that: `/CWM/XCWMAT` is
+    " the level CWM and its member XCWMAT. The same rule as the cell path
+    " z2ui5_cl_ui5_srv_bind writes for a column of a bound table
+    result = val.
+    result = shift_left( val = result
+                         sub = `/` ).
+
+  ENDMETHOD.
 
   METHOD escape_literal.
 

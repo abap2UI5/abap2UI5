@@ -337,6 +337,22 @@ reasoning:
   **relative to the row** with braces on the upper-cased field name:
   `` `{PRODUCT}` ``. A camelCase ABAP field `supplierName` becomes
   `{SUPPLIERNAME}`.
+- A column whose name carries a **namespace** — `/CWM/XCWMAT`, the fields an
+  industry solution or a customer appends to a DDIC table — is a level of
+  its row in the model: `"CWM":{"XCWMAT":…}`. Bind it relatively as
+  `{CWM/XCWMAT}`, never `{/CWM/XCWMAT}`, which UI5 reads as an *absolute*
+  path from the model root (an empty cell, and the edit goes nowhere). When
+  the column name is only known at run time (a table maintenance, a layout
+  over any table), let
+  `z2ui5_cl_ui5_view_builder=>component_path( lv_name )` write it:
+  `` v = |\{{ z2ui5_cl_ui5_view_builder=>component_path( lv_name ) }\}| ``
+  — `/CWM/XCWMAT` becomes `CWM/XCWMAT`, every other name comes back as it
+  is. A cell bound with `_bind( val = … tab = … tab_index = … )` gets the
+  same path by itself, and an edit comes back onto the component.
+- Bind a public attribute of the **app class itself**. An attribute an
+  *interface* declares (`zif_my_state~mv_value`, written into the class by
+  `INTERFACES`) is not bindable: `_bind( )` raises `BINDING_ERROR` for it.
+  Copy it into an attribute of the class, or declare it there.
 - A value shared by the whole app lives at the model **root** — inside a row
   template a relative `{FIELD}` resolves against the row and silently renders
   empty if the row has no such column; bind root values with

@@ -4884,6 +4884,111 @@ CLASS ltcl_app_tm_pop IMPLEMENTATION.
 ENDCLASS.
 
 
+CLASS ltcl_app_ns DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    " a table of flat rows with namespaced columns (the fast path), the
+    " same row as one structure, and a table whose rows carry a table of
+    " such rows as well (the general road) - built at run time, the only
+    " way a component gets a name with a namespace in a unit test
+    DATA mr_tab  TYPE REF TO data.
+    DATA mr_row  TYPE REF TO data.
+    DATA mr_deep TYPE REF TO data.
+    METHODS build.
+    " one cell of a row, by component name
+    CLASS-METHODS cell
+      IMPORTING
+        is_row        TYPE any
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_ns IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+
+  METHOD build.
+
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+    DATA lv_text TYPE string.
+    DATA lv_int  TYPE i.
+    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>  TYPE any.
+    FIELD-SYMBOLS <cell> TYPE any.
+
+    " MATNR sorts between the namespace CWM and the plain ZZ_LAST - the
+    " namespace object takes its place by its own name
+    lt_comp = VALUE #( ( name = `MATNR`       type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `/CWM/XCWMAT` type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `/CWM/VALUM`  type = CAST #( cl_abap_typedescr=>describe_by_data( lv_int ) ) )
+                       ( name = `/VSO/R_TILT` type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `AA_FIRST`    type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) ) ).
+    DATA(lo_row) = cl_abap_structdescr=>create( lt_comp ).
+    DATA(lo_tab) = cl_abap_tabledescr=>create( lo_row ).
+    CREATE DATA mr_row TYPE HANDLE lo_row.
+    CREATE DATA mr_tab TYPE HANDLE lo_tab.
+
+    ASSIGN mr_tab->* TO <tab>.
+    DO 2 TIMES.
+      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      ASSIGN COMPONENT `MATNR` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |M{ sy-index }|.
+      ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |X{ sy-index }|.
+      ASSIGN COMPONENT `/CWM/VALUM` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = sy-index * 10.
+      ASSIGN COMPONENT `/VSO/R_TILT` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |T{ sy-index }|.
+      ASSIGN COMPONENT `AA_FIRST` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |A{ sy-index }|.
+    ENDDO.
+    ASSIGN mr_row->* TO <cell>.
+    <cell> = <tab>[ 1 ].
+
+    " the deep rows: a key, a namespaced column and a namespaced table of
+    " the flat rows above
+    lt_comp = VALUE #( ( name = `ID`         type = CAST #( cl_abap_typedescr=>describe_by_data( lv_int ) ) )
+                       ( name = `/ABC/NOTE`  type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `/ABC/ITEMS` type = lo_tab ) ).
+    DATA(lo_deep_row) = cl_abap_structdescr=>create( lt_comp ).
+    DATA(lo_deep) = cl_abap_tabledescr=>create( lo_deep_row ).
+    CREATE DATA mr_deep TYPE HANDLE lo_deep.
+    FIELD-SYMBOLS <deep> TYPE STANDARD TABLE.
+    ASSIGN mr_deep->* TO <deep>.
+    APPEND INITIAL LINE TO <deep> ASSIGNING <row>.
+    ASSIGN COMPONENT `ID` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <cell> = 1.
+    ASSIGN COMPONENT `/ABC/NOTE` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <cell> = `note`.
+    ASSIGN COMPONENT `/ABC/ITEMS` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <cell> = <tab>.
+
+  ENDMETHOD.
+
+  METHOD cell.
+
+    FIELD-SYMBOLS <cell> TYPE any.
+    ASSIGN COMPONENT iv_name OF STRUCTURE is_row TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    result = <cell>.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_06_fast_json DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
@@ -5006,6 +5111,27 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
     " a token overwritten by a later attribute at the same path
     METHODS tm_pop_token_overwritten FOR TESTING RAISING cx_static_check.
     METHODS splice_lost_token_skipped FOR TESTING RAISING cx_static_check.
+    " a namespaced column of a bound table is a level of its row
+    " (`"CWM":{"XCWMAT":...}`), so a row template can bind it relatively -
+    " the fast path and the general road alike, and every other row as
+    " before, byte for byte
+    METHODS ns_fast_path_grouped     FOR TESTING RAISING cx_static_check.
+    METHODS ns_struct_grouped        FOR TESTING RAISING cx_static_check.
+    METHODS ns_general_road_grouped  FOR TESTING RAISING cx_static_check.
+    METHODS ns_text_plain_identical  FOR TESTING RAISING cx_static_check.
+    METHODS ns_omit_initial_grouped  FOR TESTING RAISING cx_static_check.
+    " and an edit comes back onto the component
+    METHODS ns_delta_applied         FOR TESTING RAISING cx_static_check.
+    METHODS ns_whole_value_applied   FOR TESTING RAISING cx_static_check.
+    METHODS ns_deep_whole_applied    FOR TESTING RAISING cx_static_check.
+    METHODS ns_cell_bind_path        FOR TESTING RAISING cx_static_check.
+
+    " the app of the ns_* tests with its three values bound
+    METHODS ns_setup
+      EXPORTING
+        eo_app  TYPE REF TO ltcl_app_ns
+        eo_cont TYPE REF TO z2ui5_cl_ui5_app_cont
+        et_path TYPE string_table.
 
     " the popup's render: every field bound as value and as fixed values,
     " through the real bind service - the bind paths, field by field
@@ -5653,6 +5779,378 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
                                         act = lv_act ).
     cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"CWM":[{"DESCR":"a of CWM"` ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_setup.
+
+    eo_app = NEW #( ).
+    eo_app->build( ).
+    eo_cont = NEW #( ).
+    eo_cont->mo_app = eo_app.
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( eo_cont ).
+    APPEND lo_bind->main( val    = eo_app->mr_tab
+                          config = VALUE #( path_only = abap_true ) ) TO et_path.
+    APPEND lo_bind->main( val    = eo_app->mr_deep
+                          config = VALUE #( path_only = abap_true ) ) TO et_path.
+
+  ENDMETHOD.
+
+  METHOD ns_fast_path_grouped.
+
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+
+    DATA(lv_exp) = `[{"AA_FIRST":"A1","CWM":{"VALUM":10,"XCWMAT":"X1"},"MATNR":"M1","VSO":{"R_TILT":"T1"}},` &&
+                   `{"AA_FIRST":"A2","CWM":{"VALUM":20,"XCWMAT":"X2"},"MATNR":"M2","VSO":{"R_TILT":"T2"}}]`.
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp
+                                        act = lo_model->attri_json_fast( lo_app->mr_tab ) ).
+
+    " the general road writes the same text for the same table
+    DATA(li_tree) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    FIELD-SYMBOLS <tab> TYPE any.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    li_tree->set( iv_ignore_empty = abap_false
+                  iv_path         = `/`
+                  iv_val          = <tab> ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp
+                                        act = z2ui5_cl_ui5_srv_model=>json_ns_text( li_tree->mt_json_tree ) ).
+
+    " and the model carries it, a relative row path resolves in it
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `X2`
+                                        act = li_doc->get_string( |{ lt_path[ 1 ] }/2/CWM/XCWMAT| ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `CWM/XCWMAT`
+                                        act = z2ui5_cl_ui5_view_builder=>component_path( `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MATNR`
+                                        act = z2ui5_cl_ui5_view_builder=>component_path( `MATNR` ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_struct_grouped.
+
+    DATA(lo_app) = NEW ltcl_app_ns( ).
+    lo_app->build( ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"AA_FIRST":"A1","CWM":{"VALUM":10,"XCWMAT":"X1"},"MATNR":"M1","VSO":{"R_TILT":"T1"}}`
+        act = mo_model->attri_json_fast( lo_app->mr_row ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_general_road_grouped.
+
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    " a deep row is no fast path case
+    cl_abap_unit_assert=>assert_initial( lo_model->attri_json_fast( lo_app->mr_deep ) ).
+
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `"/` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS
+        `[{"ABC":{"ITEMS":[{"AA_FIRST":"A1","CWM":{"VALUM":10,"XCWMAT":"X1"},"MATNR":"M1","VSO":{"R_TILT":"T1"}},` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `],"NOTE":"note"},"ID":1}]` ) ).
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = `X2`
+                                        act = li_doc->get_string( |{ lt_path[ 2 ] }/1/ABC/ITEMS/2/CWM/XCWMAT| ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_text_plain_identical.
+
+    " the renderer of the general road writes what ajson writes for a value
+    " without a namespace - the shapes the identity tests above hold
+    DATA(lt_rows) = rows( ).
+    DATA(li_tree) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_tree->set( iv_ignore_empty = abap_false
+                  iv_path         = `/`
+                  iv_val          = lt_rows ).
+    cl_abap_unit_assert=>assert_equals( exp = li_tree->stringify( )
+                                        act = z2ui5_cl_ui5_srv_model=>json_ns_text( li_tree->mt_json_tree ) ).
+
+    DATA lt_nested TYPE ty_t_nested.
+    lt_nested = VALUE #( ( id = 1 ) ( id = 2 ) ).
+    li_tree = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_tree->set( iv_ignore_empty = abap_false
+                  iv_path         = `/`
+                  iv_val          = lt_nested ).
+    cl_abap_unit_assert=>assert_equals( exp = li_tree->stringify( )
+                                        act = z2ui5_cl_ui5_srv_model=>json_ns_text( li_tree->mt_json_tree ) ).
+
+    " and the plain table on the fast path is the text it always was
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = mo_model->attri_json_fast( REF #( lt_rows ) ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_omit_initial_grouped.
+
+    " omit_initial is a filter on the compatibility branch - the namespace
+    " is grouped there too, the initial cells left out (the test filter
+    " drops an initial string; a namespace left without a member is gone)
+    DATA(lo_app) = NEW ltcl_app_ns( ).
+    lo_app->build( ).
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    DELETE <tab> FROM 2.
+    " a READ first: the transpiled runtime assigns the ROW for a component
+    " of a table expression (ASSIGN COMPONENT ... OF STRUCTURE <tab>[ 1 ])
+    READ TABLE <tab> INDEX 1 ASSIGNING FIELD-SYMBOL(<row>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    CLEAR <cell>.
+    ASSIGN COMPONENT `/VSO/R_TILT` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    CLEAR <cell>.
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    DATA(lo_client) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).
+    lo_client->main( val    = lo_app->mr_tab
+                     config = VALUE #( path_only     = abap_true
+                                       custom_filter = NEW ltcl_shp_filter( ) ) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true(
+        act = xsdbool( lv_act CS `[{"AA_FIRST":"A1","CWM":{"VALUM":10},"MATNR":"M1"}]` )
+        msg = lv_act ).
+
+  ENDMETHOD.
+
+  METHOD ns_delta_applied.
+
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    " what Lib.buildDeltaFromPaths sends for an edit at /<table>/1/CWM/XCWMAT:
+    " the row's member CWM whole, read from the client's model
+    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/CWM/XCWMAT|
+                   iv_val  = `edited` ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/CWM/VALUM|
+                   iv_val  = `abc` ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/MATNR|
+                   iv_val  = `M-edited` ).
+    lo_model->main_json_to_attri( li_front ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `M-edited`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `MATNR` ) ).
+    " row 1 untouched
+    cl_abap_unit_assert=>assert_equals( exp = `X1`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    " a refused cell is traced under the component's own name, its old
+    " value kept
+    cl_abap_unit_assert=>assert_equals( exp = `20`
+                                        act = condense( ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                           iv_name = `/CWM/VALUM` ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/CWM/VALUM`
+                                        act = lo_model->mt_skipped[ 1 ]-field ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_model->mt_skipped[ 1 ]-row ).
+
+  ENDMETHOD.
+
+  METHOD ns_whole_value_applied.
+
+    " the table sent whole - what the client ships for an edit it cannot
+    " express as a row delta (Lib.buildDeltaFromPaths): the array as the
+    " model holds it, the namespaces as levels of the rows
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(li_out) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    li_front->set( iv_path = lt_path[ 1 ]
+                   iv_val  = li_out->slice( lt_path[ 1 ] ) ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/1/CWM/XCWMAT|
+                   iv_val  = `whole` ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/2/VSO/R_TILT|
+                   iv_val  = `tilt` ).
+    lo_model->main_json_to_attri( li_front ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <tab> ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `whole`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `tilt`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `/VSO/R_TILT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `T1`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                                                 iv_name = `/VSO/R_TILT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `20`
+                                        act = condense( ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                           iv_name = `/CWM/VALUM` ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `M2`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `MATNR` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD ns_deep_whole_applied.
+
+    " a nested table edited (the cell sits below a namespaced table of the
+    " row - the client ships the row's member ABC whole) comes back down
+    " to the namespaced cell of the inner row
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(li_out) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC|
+                   iv_val  = li_out->slice( |{ lt_path[ 2 ] }/1/ABC| ) ).
+    li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC/ITEMS/2/CWM/XCWMAT|
+                   iv_val  = `deep` ).
+    li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC/NOTE|
+                   iv_val  = `note2` ).
+    lo_model->main_json_to_attri( li_front ).
+
+    FIELD-SYMBOLS <deep>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <items> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_deep->* TO <deep>.
+    cl_abap_unit_assert=>assert_equals( exp = `note2`
+                                        act = ltcl_app_ns=>cell( is_row  = <deep>[ 1 ]
+                                                                 iv_name = `/ABC/NOTE` ) ).
+    READ TABLE <deep> INDEX 1 ASSIGNING FIELD-SYMBOL(<deep_row>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN COMPONENT `/ABC/ITEMS` OF STRUCTURE <deep_row> TO <items>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <items> ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `deep`
+                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 2 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `X1`
+                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 1 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `T1`
+                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 1 ]
+                                                                 iv_name = `/VSO/R_TILT` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD ns_cell_bind_path.
+
+    " _bind( val = <row>-/cwm/xcwmat tab = ... tab_index = 2 ): the cell
+    " path carries the namespace as a level, as the model does
+    DATA(lo_app) = NEW ltcl_app_ns( ).
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    READ TABLE <tab> INDEX 2 ASSIGNING FIELD-SYMBOL(<row>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).
+    DATA(lv_path) = lo_bind->main( val    = REF #( <cell> )
+                                   config = VALUE #( tab       = lo_app->mr_tab
+                                                     tab_index = 2
+                                                     path_only = abap_true ) ).
+    DATA(lv_tab) = lo_bind->main( val    = lo_app->mr_tab
+                                  config = VALUE #( path_only = abap_true ) ).
+    " UI5 counts the rows from 0
+    cl_abap_unit_assert=>assert_equals( exp = |{ lv_tab }/1/CWM/XCWMAT|
+                                        act = lv_path ).
+
+    " and the model holds the cell there - ajson counts from 1
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `X2`
+                                        act = li_doc->get_string( |{ lv_tab }/2/CWM/XCWMAT| ) ).
+
+  ENDMETHOD.
+
+
+ENDCLASS.
+
+
+INTERFACE lif_intf_attr.
+  DATA mv_intf TYPE string.
+ENDINTERFACE.
+
+CLASS ltcl_app_intf DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    INTERFACES lif_intf_attr.
+    DATA mv_own TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_intf IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" Pins what a binding to an attribute an INTERFACE declares does: it is
+" refused. diss_oref leaves out every attribute with is_interface (the
+" `LIF~ATTR` names, the app's own z2ui5_if_app~id_draft and check_sticky
+" among them), so the search finds no row and _bind( ) raises the
+" BINDING_ERROR an attribute that is no public one of the class raises.
+" An app binds a public attribute of its own class instead (building-apps,
+" section 4). Changing that is a decision, not a fix - this test says so
+CLASS ltcl_07_intf_attr DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS intf_attribute_refused FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_07_intf_attr IMPLEMENTATION.
+
+  METHOD intf_attribute_refused.
+
+    DATA(lo_app) = NEW ltcl_app_intf( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).
+
+    " the class's own attribute binds
+    cl_abap_unit_assert=>assert_equals( exp = `/MV_OWN`
+                                        act = lo_bind->main( val    = REF #( lo_app->mv_own )
+                                                             config = VALUE #( path_only = abap_true ) ) ).
+
+    TRY.
+        lo_bind->main( val    = REF #( lo_app->lif_intf_attr~mv_intf )
+                       config = VALUE #( path_only = abap_true ) ).
+        cl_abap_unit_assert=>fail( `an attribute of an interface is not bound` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( act = xsdbool( lx->get_text( ) CS `BINDING_ERROR` )
+                                          msg = lx->get_text( ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

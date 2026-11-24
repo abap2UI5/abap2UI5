@@ -266,3 +266,18 @@ for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
   `ltcl_06_fast_json->tm_pop_namespaced_fields` is the shape.
 - **Gate: none.** Whether a name can carry a namespace is a question of
   where it comes from at run time, not of the source.
+- **The second half (same day): a namespaced COLUMN of a bound table.** A
+  table row carried the key `"/CWM/XCWMAT"`, and the row template's
+  `{/CWM/XCWMAT}` is an ABSOLUTE path in UI5 - an empty cell, and the edit
+  went nowhere, without an error anywhere (S5S, /KRO/ EWM apps over
+  /SCWM/ tables). The model now writes a namespace as a level of its row,
+  `"CWM":{"XCWMAT":...}` - on the fast path (`json_row_ns`) and on the
+  general road, where ajson cannot address a node named `/CWM/XCWMAT`
+  (`split_path` again), so the tree is rendered by `json_ns_text` instead of
+  moved. Back in, `CWM` is no component: the row delta asks
+  `delta_apply_ns`, a whole value `json_ns_to_abap` after `to_abap( )`.
+  A template binds `{CWM/XCWMAT}` -
+  `z2ui5_cl_ui5_view_builder=>component_path( )` writes it. The tests
+  (`ltcl_06_fast_json->ns_*`) build the row types with
+  `cl_abap_structdescr=>create( )`: no typed declaration can carry such a
+  name.

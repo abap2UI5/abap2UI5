@@ -286,6 +286,18 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_flat_comp.
 
+    "! Whether the type of the data object behind a data reference names a
+    "! component with a namespace (`/ABC/FIELD`) - in the structure itself,
+    "! in the line of the table it is, and in every structure and table line
+    "! below them (an include's components count, under the names the
+    "! structure addresses them by). References are not followed, and a
+    "! reference RTTI cannot describe answers false
+    CLASS-METHODS rtti_check_namespaced
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     TYPES:
       BEGIN OF ty_s_sel_tab_type,
         tabledescr       TYPE REF TO cl_abap_tabledescr,
@@ -977,6 +989,15 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " class down with it
     CLASS-DATA gv_xml_escape_specials TYPE string.
     CLASS-DATA gv_xml_escape_controls TYPE string.
+
+    " the type half of rtti_check_namespaced: a structure, the line of a
+    " table, and what is below them - depth-bounded like expand_components
+    CLASS-METHODS rtti_check_namespaced_type
+      IMPORTING
+        type          TYPE REF TO cl_abap_typedescr
+        depth         TYPE i DEFAULT 0
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     " the json_kind of one elementary type (see ty_s_flat_comp)
     CLASS-METHODS rtti_get_json_kind
@@ -2664,6 +2685,58 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         result = xsdbool( CAST cl_abap_tabledescr( lo_type )->table_kind = cl_abap_tabledescr=>tablekind_std ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_namespaced.
+
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    " REFERENCE_IS_INITIAL is a classic exception, the CATCH below cannot see it
+    cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
+                                             RECEIVING p_descr_ref           = lo_type
+                                             EXCEPTIONS reference_is_initial = 1
+                                                        OTHERS               = 2 ).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    TRY.
+        result = rtti_check_namespaced_type( lo_type ).
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_namespaced_type.
+
+    " no type nests deeper than this without a reference, which is not
+    " followed - the bound is a guard, not a limit an app meets
+    IF depth > 32.
+      RETURN.
+    ENDIF.
+    DATA(lo_type) = type.
+    IF lo_type->kind = cl_abap_typedescr=>kind_table.
+      lo_type = CAST cl_abap_tabledescr( lo_type )->get_table_line_type( ).
+    ENDIF.
+    IF lo_type->kind <> cl_abap_typedescr=>kind_struct.
+      RETURN.
+    ENDIF.
+    " the included view, as rtti_get_flat_components reads it: the name of
+    " an include's component is the one the structure addresses it by
+    DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_included_view( ).
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      IF strlen( lr_comp->name ) > 1 AND lr_comp->name(1) = `/`.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+      IF ( lr_comp->type->kind = cl_abap_typedescr=>kind_struct
+           OR lr_comp->type->kind = cl_abap_typedescr=>kind_table )
+          AND rtti_check_namespaced_type( type  = lr_comp->type
+                                          depth = depth + 1 ) = abap_true.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 

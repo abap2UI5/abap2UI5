@@ -227,7 +227,11 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       lr_ref_in = REF #( <ele> ).
 
       IF iv_val = lr_ref_in.
-        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ lv_comp_name }|.
+        " a namespaced column (`/CWM/XCWMAT`) sits below an object of its
+        " namespace in the row (z2ui5_cl_ui5_srv_model=>json_ns_text): its
+        " leading slash goes, the namespace is a level of the path
+        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ shift_left( val   = lv_comp_name
+                                                                          sub = `/` ) }|.
         RETURN.
       ENDIF.
 
