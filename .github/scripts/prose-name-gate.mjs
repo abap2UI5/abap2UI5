@@ -82,6 +82,8 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_LAYO_XML_TREE", "ships in abap2UI5-addons/layout-management"],
   ["Z2UI5_CL_LAYO_XML_BUILDER", "ships in abap2UI5-addons/layout-management"],
   ["Z2UI5_CL_LOCK_MANAGER", "ships in abap2UI5-addons/lock-manager"],
+  ["Z2UI5_CL_LAYO_MANAGER", "ships in abap2UI5-addons/layout-management"],
+  ["Z2UI5_IF_LAYO_AUTH", "the layout authority interface of abap2UI5-addons/layout-management"],
   ["Z2UI5_CL_SEL_MULTISEL", "ships in abap2UI5-addons/range-filter"],
   ["Z2UI5_CL_SEL_SAMPLE_01", "ships in abap2UI5-addons/range-filter"],
   ["Z2UI5_CL_TCL_APP_01", "ships in abap2UI5-addons/table-content-loader"],
