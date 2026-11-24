@@ -381,7 +381,12 @@
       "depth": 5
     },
     "newline_between_methods": true,
-    "no_aliases": true,
+    // one exception: the test that proves an alias and the interface
+    // attribute it names are bound as one row (ltcl_07_intf_attr) needs an
+    // ALIASES to exist
+    "no_aliases": {
+      "exclude": ["src/01/02/z2ui5_cl_ui5_srv_model.clas.testclasses.abap"]
+    },
     "no_chained_assignment": true,
     "no_comments_between_methods": true,
     "no_external_form_calls": true,

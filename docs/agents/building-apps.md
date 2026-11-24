@@ -349,10 +349,15 @@ reasoning:
   — `/CWM/XCWMAT` becomes `CWM/XCWMAT`, every other name comes back as it
   is. A cell bound with `_bind( val = … tab = … tab_index = … )` gets the
   same path by itself, and an edit comes back onto the component.
-- Bind a public attribute of the **app class itself**. An attribute an
-  *interface* declares (`zif_my_state~mv_value`, written into the class by
-  `INTERFACES`) is not bindable: `_bind( )` raises `BINDING_ERROR` for it.
-  Copy it into an attribute of the class, or declare it there.
+- An attribute an *interface* declares binds like one of the class:
+  `client->_bind( zif_my_state~mv_value )`, and through a reference typed
+  with the interface `client->_bind( mi_state->mv_value )`. Its path keeps
+  the `~` - `{/ZIF_MY_STATE~MV_VALUE}`, `{/MI_STATE/ZIF_MY_STATE~MV_VALUE}`,
+  a namespaced interface a level like every namespace
+  (`{/NS/IF_STATE~MV_VALUE}`) - so never spell it by hand: take it from
+  `_bind( )` / `_bind_path( )`. With `ALIASES mv_value FOR
+  zif_my_state~mv_value`, both spellings are one attribute and bind to the
+  same path.
 - A value shared by the whole app lives at the model **root** — inside a row
   template a relative `{FIELD}` resolves against the row and silently renders
   empty if the row has no such column; bind root values with

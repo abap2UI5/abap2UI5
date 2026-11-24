@@ -257,10 +257,39 @@ CLASS ltcl_01_path DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS path_decorations       FOR TESTING RAISING cx_static_check.
     " a value that is no attribute of the app - the model's error
     METHODS foreign_value_refused  FOR TESTING RAISING cx_static_check.
+    " an attribute an interface declares keeps its `~`; a namespaced
+    " interface is a level like every namespace
+    METHODS interface_names        FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
 CLASS ltcl_01_path IMPLEMENTATION.
+
+  METHOD interface_names.
+
+    " no class attribute can carry a `~`, so the interface spelling cannot
+    " meet one; no local interface can be named with a namespace, so the
+    " names are handed to the method as the dissolve writes them
+    DATA ls_attri TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    mo_bind->mr_attri = REF #( ls_attri ).
+
+    ls_attri-name = `ZIF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/ZIF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `ZIF_STATE~MS_DATA-FIELD`.
+    cl_abap_unit_assert=>assert_equals( exp = `/ZIF_STATE~MS_DATA/FIELD`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `MI_STATE->ZIF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/MI_STATE/ZIF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `/NS/IF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/IF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `MO_HELPER->/NS/IF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/MO_HELPER/NS/IF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+
+  ENDMETHOD.
 
   METHOD root_value.
 

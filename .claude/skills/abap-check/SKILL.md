@@ -1619,6 +1619,23 @@ break one of those four.
   <row>`), then `ASSIGN COMPONENT ... OF STRUCTURE <row>`. No gate: the
   statement is valid ABAP and right on every release.
 
+- **An interface attribute and the transpiler: four differences in one
+  test class** (found 2026-11-24, `z2ui5_cl_ui5_srv_model`
+  `ltcl_07_intf_attr`, when interface attributes became bindable).
+  (1) The transpiled RTTI lists **no `ALIASES`** among a class's attributes
+  (`cl_abap_classdescr->attributes` holds `LIF~ATTR` only), where a system
+  lists the alias as an attribute of its own - so a test that expects the
+  alias row is red on Node and one that expects the interface row is red on
+  a system; assert what both share (one row, one path for both spellings).
+  (2) `NEW lif_x=>ty_t( ... )` of a type of a LOCAL interface is downported
+  to `CREATE OBJECT ... TYPE lif_x` (a check_syntax error of the downported
+  tree). (3) The runtime refuses `CREATE DATA ... TYPE lif_x=>ty_t`
+  (`CX_SY_CREATE_DATA_ERROR`) - write `CREATE DATA ... LIKE` a typed
+  attribute. (4) `xsdbool( ... ) + xsdbool( ... )` is left unparsed by the
+  downport (a parser_error its lint reports in `node/downport` - read that
+  line of the log, the step itself does not fail on it). No gate: all four are valid ABAP; the downport's own
+  lint names (2) and (4), the unit run (1) and (3).
+
 ## 5. Runtime — green here, wrong there
 
 **Gate: mostly open.** Three entries have moved: **linter —

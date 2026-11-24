@@ -462,6 +462,18 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
 
+    METHODS diss_oref_intf
+      IMPORTING
+        it_attri  TYPE abap_attrdescr_tab
+        iv_prefix TYPE string
+        iv_parent TYPE string
+      CHANGING
+        ct_result TYPE z2ui5_if_ui5_types=>ty_t_attri.
+
+    " dissolve the attributes interfaces declare as well (`<intf>~<attr>`) -
+    " off until a binding asks for one, see main_attri_search
+    DATA mv_intf TYPE abap_bool.
+
     METHODS attri_create_new
       IMPORTING
         name          TYPE string
@@ -2113,6 +2125,26 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " the fourth attempt: an attribute an INTERFACE declares
+    " (`zif_state~mv_value`, or `mi_state->mv_value` through an interface
+    " reference without ALIASES). Those rows are left out of the dissolve
+    " until a binding misses everything else - every app implements
+    " z2ui5_if_app, and dissolving its id_draft and id_app, and whatever
+    " other interface an app or an object it holds implements, put rows
+    " into every draft that no app binds. Once on, the rebuilt table keeps
+    " them, and the next roundtrip finds the bound row in the draft;
+    " main_attri_refresh turns it on again for a table that carries a bound
+    " interface row. An app that never binds one pays nothing, and its
+    " draft and model stay what they were
+    IF mv_intf = abap_false.
+      mv_intf = abap_true.
+      main_attri_refresh( ).
+      result = attri_search( val ).
+      IF result IS BOUND.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
@@ -2371,6 +2403,54 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           DATA(ls_new) = attri_create_new( lv_prefix && lr_attri->name ).
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
+
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+    IF mv_intf = abap_true.
+      diss_oref_intf( EXPORTING it_attri  = lt_attri
+                                iv_prefix = lv_prefix
+                                iv_parent = ir_attri->name
+                      CHANGING  ct_result = result ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD diss_oref_intf.
+
+    " The attributes an INTERFACE declares, `<intf>~<attr>` - only once a
+    " binding asked for one (mv_intf, see main_attri_search). The rows the
+    " class pass wrote come first: an ALIASES name is a row of its own
+    " there (`MV_VALUE` for `ZIF_STATE~MV_VALUE`) and addresses the SAME
+    " data object, so the interface spelling of an attribute an alias
+    " already carries is left out - compared by reference, the way the
+    " binding search decides (attri_search), not by the alias_for of the
+    " descriptor, which not every runtime fills. One row per data object:
+    " a _bind( ) of either spelling finds the alias row and answers its
+    " path, and the attribute is written and read back once
+    DATA lt_refs TYPE STANDARD TABLE OF REF TO data WITH EMPTY KEY.
+
+    LOOP AT ct_result REFERENCE INTO DATA(lr_row).
+      TRY.
+          INSERT attri_get_val_ref( lr_row->name ) INTO TABLE lt_refs.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+    LOOP AT it_attri REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE visibility   = z2ui5_cl_ui5_util_context=>cv_objectdescr_public
+               AND is_interface = abap_true
+               AND is_class     = abap_false
+               AND is_constant  = abap_false.
+      TRY.
+          DATA(ls_new) = attri_create_new( iv_prefix && lr_attri->name ).
+          DATA(lr_ref) = attri_get_val_ref( ls_new-name ).
+          IF line_exists( lt_refs[ table_line = lr_ref ] ). "#EC CI_SORTSEQ
+            CONTINUE.
+          ENDIF.
+          ls_new-name_parent = iv_parent.
+          INSERT ls_new INTO TABLE ct_result.
 
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.
@@ -2733,6 +2813,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_bound)   "#EC CI_SORTSEQ
          WHERE bind = abap_true.
       INSERT lr_bound->* INTO TABLE lt_attri.
+      " a bound attribute an interface declares is only found again with
+      " the interface rows dissolved - see main_attri_search
+      IF lr_bound->name CA `~`.
+        mv_intf = abap_true.
+      ENDIF.
     ENDLOOP.
     CLEAR mt_attri->*.
 

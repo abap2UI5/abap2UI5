@@ -697,9 +697,10 @@ CLASS ltcl_03_model_out DEFINITION DEFERRED.
 CLASS ltcl_04_model_in DEFINITION DEFERRED.
 CLASS ltcl_05_draft DEFINITION DEFERRED.
 CLASS ltcl_06_fast_json DEFINITION DEFERRED.
+CLASS ltcl_07_intf_attr DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_dissolve ltcl_02_search
                                                      ltcl_03_model_out ltcl_04_model_in ltcl_05_draft
-                                                     ltcl_06_fast_json.
+                                                     ltcl_06_fast_json ltcl_07_intf_attr.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -6095,14 +6096,42 @@ ENDCLASS.
 
 
 INTERFACE lif_intf_attr.
+  TYPES:
+    BEGIN OF ty_s_row,
+      name TYPE string,
+      qty  TYPE i,
+    END OF ty_s_row.
+  TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+  CONSTANTS c_const TYPE string VALUE `C` ##NEEDED.
   DATA mv_intf TYPE string.
+  DATA ms_intf TYPE ty_s_row.
+  DATA mt_intf TYPE ty_t_row.
+  DATA mr_intf TYPE REF TO data.
 ENDINTERFACE.
+
+INTERFACE lif_intf_alias.
+  DATA mv_shared TYPE string.
+ENDINTERFACE.
+
+CLASS ltcl_intf_impl DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES lif_intf_attr.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_intf_impl IMPLEMENTATION.
+ENDCLASS.
 
 CLASS ltcl_app_intf DEFINITION FINAL CREATE PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
     INTERFACES lif_intf_attr.
-    DATA mv_own TYPE string.
+    INTERFACES lif_intf_alias.
+    ALIASES mv_shared FOR lif_intf_alias~mv_shared.
+    DATA mv_own   TYPE string.
+    DATA mi_state TYPE REF TO lif_intf_attr.
+    DATA mo_state TYPE REF TO ltcl_intf_impl.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -6115,38 +6144,294 @@ CLASS ltcl_app_intf IMPLEMENTATION.
 ENDCLASS.
 
 
-" Pins what a binding to an attribute an INTERFACE declares does: it is
-" refused. diss_oref leaves out every attribute with is_interface (the
-" `LIF~ATTR` names, the app's own z2ui5_if_app~id_draft and check_sticky
-" among them), so the search finds no row and _bind( ) raises the
-" BINDING_ERROR an attribute that is no public one of the class raises.
-" An app binds a public attribute of its own class instead (building-apps,
-" section 4). Changing that is a decision, not a fix - this test says so
+" An attribute an INTERFACE declares binds (decided 2026-11-24, it raised
+" BINDING_ERROR before): the app's own `LIF~ATTR`, one reached through an
+" interface reference without ALIASES (`mi_state->attr`) or through an
+" object (`mo_state->lif~attr`). The client path keeps the `~` - no class
+" attribute can carry it, so the name cannot meet one; a namespaced
+" interface becomes a level like every namespace (`/NS/IF~ATTR`). The
+" interface rows are dissolved only once a binding misses every class
+" row (main_attri_search): an app that never binds one keeps the draft and
+" the model it had
 CLASS ltcl_07_intf_attr DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    METHODS intf_attribute_refused FOR TESTING RAISING cx_static_check.
+    DATA mo_app  TYPE REF TO ltcl_app_intf.
+    DATA mo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA mo_bind TYPE REF TO z2ui5_cl_ui5_srv_bind.
+
+    METHODS setup.
+    METHODS bind
+      IMPORTING
+        ir_val        TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE string.
+    METHODS model
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
+    METHODS intf_rows
+      RETURNING
+        VALUE(result) TYPE i.
+
+    METHODS intf_attribute_bound FOR TESTING RAISING cx_static_check.
+    METHODS class_attribute_stays_lean FOR TESTING RAISING cx_static_check.
+    METHODS intf_reference_bound FOR TESTING RAISING cx_static_check.
+    METHODS intf_struct_and_table FOR TESTING RAISING cx_static_check.
+    METHODS intf_model_out_and_back FOR TESTING RAISING cx_static_check.
+    METHODS intf_namespaced_level FOR TESTING RAISING cx_static_check.
+    METHODS alias_and_intf_one_row FOR TESTING RAISING cx_static_check.
+    METHODS alias_dedupe_by_reference FOR TESTING RAISING cx_static_check.
+    METHODS intf_survives_refresh FOR TESTING RAISING cx_static_check.
+    METHODS intf_dref_save_load FOR TESTING RAISING cx_static_check.
+    METHODS no_attribute_still_refused FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_07_intf_attr IMPLEMENTATION.
 
-  METHOD intf_attribute_refused.
+  METHOD setup.
 
-    DATA(lo_app) = NEW ltcl_app_intf( ).
-    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
-    lo_cont->mo_app = lo_app.
-    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).
+    mo_app = NEW #( ).
+    mo_app->mo_state = NEW #( ).
+    mo_app->mi_state = NEW ltcl_intf_impl( ).
+    mo_cont = NEW #( ).
+    mo_cont->mo_app = mo_app.
+    mo_bind = NEW #( mo_cont ).
 
-    " the class's own attribute binds
+  ENDMETHOD.
+
+  METHOD bind.
+
+    result = mo_bind->main( val    = ir_val
+                            config = VALUE #( path_only = abap_true ) ).
+
+  ENDMETHOD.
+
+  METHOD model.
+
+    result = NEW z2ui5_cl_ui5_srv_model( attri = mo_cont->mt_attri
+                                         app   = mo_app ).
+
+  ENDMETHOD.
+
+  METHOD intf_rows.
+
+    LOOP AT mo_cont->mt_attri->* TRANSPORTING NO FIELDS WHERE name CA `~`. "#EC CI_SORTSEQ
+      result = result + 1.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD intf_attribute_bound.
+
     cl_abap_unit_assert=>assert_equals( exp = `/MV_OWN`
-                                        act = lo_bind->main( val    = REF #( lo_app->mv_own )
-                                                             config = VALUE #( path_only = abap_true ) ) ).
+                                        act = bind( REF #( mo_app->mv_own ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->lif_intf_attr~mv_intf ) ) ).
+    " a second bind finds the row the first one created
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->lif_intf_attr~mv_intf ) ) ).
+    " and the class attribute keeps its path
+    cl_abap_unit_assert=>assert_equals( exp = `/MV_OWN`
+                                        act = bind( REF #( mo_app->mv_own ) ) ).
+
+  ENDMETHOD.
+
+  METHOD class_attribute_stays_lean.
+
+    " the app implements three interfaces - none of their attributes is
+    " dissolved while nothing binds one
+    bind( REF #( mo_app->mv_own ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = intf_rows( ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_reference_bound.
+
+    " a reference typed with the interface, no alias: the class of the
+    " object behind it declares nothing of its own
+    cl_abap_unit_assert=>assert_equals( exp = `/MI_STATE/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->mi_state->mv_intf ) ) ).
+    " an object reference, its interface attribute spelled out
+    cl_abap_unit_assert=>assert_equals( exp = `/MO_STATE/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->mo_state->lif_intf_attr~mv_intf ) ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_struct_and_table.
+
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MS_INTF/NAME`
+                                        act = bind( REF #( mo_app->lif_intf_attr~ms_intf-name ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MT_INTF`
+                                        act = bind( REF #( mo_app->lif_intf_attr~mt_intf ) ) ).
+    " a constant of the interface is no row
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mo_cont->mt_attri->*[ name = `LIF_INTF_ATTR~C_CONST` ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_model_out_and_back.
+
+    mo_app->lif_intf_attr~mv_intf = `out`.
+    mo_app->lif_intf_attr~mt_intf = VALUE #( ( name = `A` qty = 1 ) ( name = `B` qty = 2 ) ).
+    mo_app->mi_state->mv_intf = `ref-out`.
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    bind( REF #( mo_app->lif_intf_attr~mt_intf ) ).
+    bind( REF #( mo_app->mi_state->mv_intf ) ).
+
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( model( )->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `out`
+                                        act = li_doc->get_string( `/LIF_INTF_ATTR~MV_INTF` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `B`
+                                        act = li_doc->get_string( `/LIF_INTF_ATTR~MT_INTF/2/NAME` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `ref-out`
+                                        act = li_doc->get_string( `/MI_STATE/LIF_INTF_ATTR~MV_INTF` ) ).
+
+    " back in: a whole value, a row delta and a value behind the reference
+    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse(
+        `{"LIF_INTF_ATTR~MV_INTF":"in","LIF_INTF_ATTR~MT_INTF":{"__delta":{"1":{"QTY":7}}},` &&
+        `"MI_STATE":{"LIF_INTF_ATTR~MV_INTF":"ref-in"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `in`
+                                        act = mo_app->lif_intf_attr~mv_intf ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = mo_app->lif_intf_attr~mt_intf[ 2 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = mo_app->lif_intf_attr~mt_intf[ 1 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = `ref-in`
+                                        act = mo_app->mi_state->mv_intf ).
+
+  ENDMETHOD.
+
+  METHOD intf_namespaced_level.
+
+    " a namespaced interface - `/NS/IF~ATTR`, no local interface can be
+    " named so - becomes a level of the model like every namespace
+    " (z2ui5_cl_ui5_srv_bind=>get_client_name, ltcl_01_path): the row is
+    " given that client name, and the value travels out and back under it
+    mo_app->lif_intf_attr~mv_intf = `out`.
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    mo_cont->mt_attri->*[ name = `LIF_INTF_ATTR~MV_INTF` ]-name_client = `/NS/LIF_INTF_ATTR~MV_INTF`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `{"NS":{"LIF_INTF_ATTR~MV_INTF":"out"}}`
+                                        act = model( )->main_json_stringify( ) ).
+
+    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse( `{"NS":{"LIF_INTF_ATTR~MV_INTF":"in"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `in`
+                                        act = mo_app->lif_intf_attr~mv_intf ).
+
+  ENDMETHOD.
+
+  METHOD alias_and_intf_one_row.
+
+    " the alias and the interface spelling are one data object: either
+    " name answers the same path, and one row carries it. Which row is a
+    " question of the runtime: a system lists the alias among the class's
+    " attributes (`MV_SHARED`) and the interface spelling is left out
+    " (diss_oref_intf, alias_dedupe_by_reference below); the transpiled
+    " runtime lists no ALIASES at all, so there it is the interface row
+    DATA(lv_path) = bind( REF #( mo_app->lif_intf_alias~mv_shared ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_path
+                                        act = bind( REF #( mo_app->mv_shared ) ) ).
+    " with the interface rows on (another interface attribute was looked
+    " for), still the same row
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_path
+                                        act = bind( REF #( mo_app->lif_intf_alias~mv_shared ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_path
+                                        act = bind( REF #( mo_app->mv_shared ) ) ).
+    DATA(lv_alias_row) = xsdbool( line_exists( mo_cont->mt_attri->*[ name = `MV_SHARED` ] ) ).
+    DATA(lv_intf_row) = xsdbool( line_exists( mo_cont->mt_attri->*[ name = `LIF_INTF_ALIAS~MV_SHARED` ] ) ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_alias_row
+                                         act = lv_intf_row ).
+
+    " written once, out and back
+    mo_app->mv_shared = `out`.
+    DATA(lv_member) = substring( val = lv_path
+                                 off = 1 ).
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( model( )->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( li_doc->members( `/` ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `out`
+                                        act = li_doc->get_string( lv_path ) ).
+    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse( |\{"{ lv_member }":"in"\}| ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `in`
+                                        act = mo_app->lif_intf_alias~mv_shared ).
+
+  ENDMETHOD.
+
+  METHOD alias_dedupe_by_reference.
+
+    " the class pass wrote the alias's row - the interface spelling of the
+    " same data object is not added next to it, another one is
+    DATA lt_result TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    INSERT VALUE #( name = `MV_SHARED` ) INTO TABLE lt_result.
+    DATA(lt_descr) = VALUE abap_attrdescr_tab(
+        ( name = `LIF_INTF_ALIAS~MV_SHARED` visibility = z2ui5_cl_ui5_util_context=>cv_objectdescr_public is_interface = abap_true )
+        ( name = `LIF_INTF_ATTR~MV_INTF`    visibility = z2ui5_cl_ui5_util_context=>cv_objectdescr_public is_interface = abap_true ) ).
+
+    model( )->diss_oref_intf( EXPORTING it_attri  = lt_descr
+                                        iv_prefix = ``
+                                        iv_parent = ``
+                              CHANGING  ct_result = lt_result ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_result ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_result[ name = `LIF_INTF_ALIAS~MV_SHARED` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_result[ name = `LIF_INTF_ATTR~MV_INTF` ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_survives_refresh.
+
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+
+    " the next roundtrip: a fresh model instance over the draft's rows,
+    " rebuilt - the bound interface row is found again, bound
+    DATA(lo_model) = model( ).
+    lo_model->main_attri_refresh( ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = mo_cont->mt_attri->*[ name = `LIF_INTF_ATTR~MV_INTF` ]-bind ).
+    DATA(lr_row) = lo_model->main_attri_search( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `LIF_INTF_ATTR~MV_INTF`
+                                        act = lr_row->name ).
+
+  ENDMETHOD.
+
+  METHOD intf_dref_save_load.
+
+    FIELD-SYMBOLS <tab> TYPE lif_intf_attr=>ty_t_row.
+
+    " CREATE DATA ... LIKE, not NEW: the downport writes the NEW of a type
+    " of a local interface as CREATE OBJECT ... TYPE lif_intf_attr, and the
+    " transpiled runtime refuses CREATE DATA ... TYPE lif_intf_attr=>ty_t_row
+    CREATE DATA mo_app->lif_intf_attr~mr_intf LIKE mo_app->lif_intf_attr~mt_intf.
+    ASSIGN mo_app->lif_intf_attr~mr_intf->* TO <tab>.
+    INSERT VALUE #( name = `R`
+                    qty  = 3 ) INTO TABLE <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MR_INTF/*`
+                                        act = bind( REF #( <tab> ) ) ).
+
+    " the draft: the data reference is detached and its payload written,
+    " the load puts it back - by the row's name, `~` and all
+    DATA(lo_model) = model( ).
+    DATA(lv_before) = lo_model->main_json_stringify( ).
+    lo_model->main_attri_db_save_srtti( ).
+    cl_abap_unit_assert=>assert_not_bound( mo_app->lif_intf_attr~mr_intf ).
+    lo_model->main_attri_db_load( ).
+    cl_abap_unit_assert=>assert_bound( mo_app->lif_intf_attr~mr_intf ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = model( )->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD no_attribute_still_refused.
+
+    DATA lv_local TYPE string.
 
     TRY.
-        lo_bind->main( val    = REF #( lo_app->lif_intf_attr~mv_intf )
-                       config = VALUE #( path_only = abap_true ) ).
-        cl_abap_unit_assert=>fail( `an attribute of an interface is not bound` ).
+        bind( REF #( lv_local ) ).
+        cl_abap_unit_assert=>fail( `a local variable is no attribute` ).
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_true( act = xsdbool( lx->get_text( ) CS `BINDING_ERROR` )
                                           msg = lx->get_text( ) ).
