@@ -9,7 +9,7 @@ the per-parameter documentation, is `src/02/z2ui5_if_client.intf.abap` in
 [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_if_client.intf.abap) —
 read a method's block there when this page is not enough.
 
-## Methods (36)
+## Methods (37)
 
 ### `view_destroy`
 
@@ -160,6 +160,16 @@ get( )
 ```
 
 Everything the frontend sent with this roundtrip, as one structure (ty_s_get): the event and its arguments, the device, focus, scroll and UI5 runtime information, the browser location (s_config), the launchpad startup parameters (t_comp_params), the draft ids, data a returning app handed over (r_event_data) and the …
+
+### `get_start_param`
+
+```abap
+get_start_param(
+    name TYPE clike )
+    -> string
+```
+
+One start parameter of the page, by name - whichever way the app was started: standalone with `?lgn=0001&app=MENU`, from a launchpad tile whose target mapping hands `lgn` and `app` over as startupParameters, or from a launchpad intent `#Object-action?lgn=0001`.
 
 ### `get_event`
 

@@ -237,6 +237,48 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~get_start_param.
+
+    " what the seven copies of "url_param_get( s_config-search ), else
+    " t_comp_params, else ..." in the apps of one installation did, once:
+    " the first source that has the parameter with a value - the order is
+    " the one the interface documents
+    DATA(lv_name) = z2ui5_cl_ui5_util_context=>c_trim_lower( name ).
+    IF lv_name IS INITIAL.
+      RETURN.
+    ENDIF.
+    DATA(ls_get) = z2ui5_if_client~get( ).
+
+    " 1. the URL query - url_param_get_tab unpacks sap-startup-params and
+    " lower-cases the names
+    result = z2ui5_cl_ui5_util_context=>url_param_get( val = lv_name
+                                                       url = ls_get-s_config-search ).
+    IF result IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    " 2. the launchpad startupParameters, under the tile's own spelling
+    LOOP AT ls_get-t_comp_params REFERENCE INTO DATA(lr_param).
+      IF z2ui5_cl_ui5_util_context=>c_trim_lower( lr_param->n ) = lv_name
+          AND lr_param->v IS NOT INITIAL.
+        result = lr_param->v.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+    " 3. the query of the launchpad intent - the shell's part of the hash
+    " (`#Object-action?p=v&/app-route`). A raw location hash: a bare
+    " intent without the separator is all shell
+    DATA(lv_shell) = z2ui5_cl_ui5_handler=>hash_get_shell_part( iv_hash            = ls_get-s_config-hash
+                                                               check_bare_is_shell = abap_true ).
+    IF lv_shell CS `?`.
+      result = z2ui5_cl_ui5_util_context=>url_param_get( val = lv_name
+                                                         url = lv_shell ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~get_event.
 
     result = mo_action->ms_actual-event.

@@ -161,6 +161,10 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
     METHODS test_bind_path_alias      FOR TESTING RAISING cx_static_check.
     METHODS test_get_comp_params_memo FOR TESTING RAISING cx_static_check.
+    " get_start_param( ): the URL query first, then the launchpad's
+    " startupParameters, then the query of the launchpad intent in the hash
+    METHODS test_start_param_order    FOR TESTING RAISING cx_static_check.
+    METHODS test_start_param_sources  FOR TESTING RAISING cx_static_check.
     METHODS test_get_nav_flags_live   FOR TESTING RAISING cx_static_check.
     METHODS test_check_nav_pending    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
@@ -1163,6 +1167,67 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = ls_get_1-t_comp_params
                                         act = ls_get_2-t_comp_params ).
+
+  ENDMETHOD.
+
+
+  METHOD test_start_param_order.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " the same parameter in all three sources - the URL query answers, in
+    " whatever case the name is asked or written
+    mo_action->mo_handler->ms_request-s_front-search = `?sap-client=100&LGN=0001&app=menu`.
+    mo_action->mo_handler->ms_request-s_front-o_comp_data =
+        z2ui5_cl_ajson=>parse( `{"startupParameters":{"lgn":["FLP1"],"App":["FLP"],"MaintenanceOrder":["4711"]}}` ).
+    mo_action->mo_handler->ms_request-s_front-hash = `#EWM-display?lgn=HASH&vc=CLUSTER&/app/ZCL_X?vc=ROUTE`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `0001`
+                                        act = li_client->get_start_param( `lgn` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `menu`
+                                        act = li_client->get_start_param( `APP` ) ).
+    " only in the startupParameters - the tile's own spelling, any case
+    cl_abap_unit_assert=>assert_equals( exp = `4711`
+                                        act = li_client->get_start_param( `maintenanceorder` ) ).
+    " only in the launchpad intent - and the app's route behind &/ is not read
+    cl_abap_unit_assert=>assert_equals( exp = `CLUSTER`
+                                        act = li_client->get_start_param( `vc` ) ).
+    " nowhere
+    cl_abap_unit_assert=>assert_initial( li_client->get_start_param( `nothing` ) ).
+    cl_abap_unit_assert=>assert_initial( li_client->get_start_param( `` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_start_param_sources.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " the launchpad packs the target's parameters into sap-startup-params
+    mo_action->mo_handler->ms_request-s_front-search = `?sap-startup-params=lgn%3D0002%26app%3DMENU`.
+    cl_abap_unit_assert=>assert_equals( exp = `0002`
+                                        act = li_client->get_start_param( `LGN` ) ).
+
+    " an EMPTY value in the URL is no answer - the next source is asked
+    mo_action->mo_handler->ms_request-s_front-search = `?lgn=`.
+    mo_action->mo_handler->ms_request-s_front-o_comp_data =
+        z2ui5_cl_ajson=>parse( `{"startupParameters":{"LGN":["0003"]}}` ).
+    CLEAR mo_client->mv_comp_params_set.
+    cl_abap_unit_assert=>assert_equals( exp = `0003`
+                                        act = li_client->get_start_param( `lgn` ) ).
+
+    " a bare intent without &/ is all shell; an app hash (#/...) is none
+    CLEAR: mo_action->mo_handler->ms_request-s_front-search,
+           mo_action->mo_handler->ms_request-s_front-o_comp_data,
+           mo_client->mv_comp_params_set,
+           mo_client->mt_comp_params.
+    mo_action->mo_handler->ms_request-s_front-hash = `#Object-action?wp=W1`.
+    cl_abap_unit_assert=>assert_equals( exp = `W1`
+                                        act = li_client->get_start_param( `WP` ) ).
+    mo_action->mo_handler->ms_request-s_front-hash = `#/app/ZCL_X?wp=W1`.
+    cl_abap_unit_assert=>assert_initial( li_client->get_start_param( `wp` ) ).
 
   ENDMETHOD.
 

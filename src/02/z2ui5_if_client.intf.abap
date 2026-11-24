@@ -563,6 +563,34 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE ty_s_get.
 
+  "! One start parameter of the page, by name - whichever way the app was
+  "! started: standalone with `?lgn=0001&app=MENU`, from a launchpad tile
+  "! whose target mapping hands `lgn` and `app` over as startupParameters,
+  "! or from a launchpad intent `#Object-action?lgn=0001`. The sources are
+  "! asked in this order and the first that has the parameter with a value
+  "! answers:
+  "!
+  "! 1. the URL query (get( )-s_config-search), including what the
+  "!    launchpad packs into `sap-startup-params`;
+  "! 2. the launchpad startupParameters (get( )-t_comp_params - the first
+  "!    value of a parameter with several);
+  "! 3. the query of the launchpad intent in the URL hash - the part in
+  "!    front of `&amp;/` (the app's own route behind it is not read).
+  "!
+  "! The name is matched without regard to case (`LGN`, `lgn` and `Lgn` are
+  "! one parameter); the value comes back exactly as the source carries it -
+  "! not upper-cased, and in the URL not percent-decoded. Empty when no
+  "! source has the parameter. Meant for main( ) of the first app; it stays
+  "! readable on every later roundtrip and in every app the user navigates
+  "! to, since the parameters belong to the page.
+  "!
+  "! @parameter name | the parameter's name, in any case.
+  METHODS get_start_param
+    IMPORTING
+      name          TYPE clike
+    RETURNING
+      VALUE(result) TYPE string.
+
   "! The name of the event that triggered this roundtrip - empty when no
   "! event is being handled (e.g. on the initial call). Shortcut for
   "! get( )-event, made for the dispatcher idiom CASE client->get_event( ).

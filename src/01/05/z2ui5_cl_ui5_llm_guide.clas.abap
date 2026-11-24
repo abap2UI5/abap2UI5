@@ -695,6 +695,15 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  the roundtrip the called app returns on, and is empty on every other one.` && |\n| &&
              `  No flag attribute per popup, no ``CAST`` in a ``TRY`` to find out which one` && |\n| &&
              `  came back.` && |\n| &&
+             `- **Start parameters** - a value the app is started with (``?lgn=0001`` on` && |\n| &&
+             `  the URL, a ``startupParameters`` entry of a launchpad tile, the query of a` && |\n| &&
+             `  launchpad intent ``#Object-action?lgn=0001``) - are read with one call,` && |\n| &&
+             `  whichever way the app was started: ```` client->get_start_param( ``lgn`` ) ````.` && |\n| &&
+             `  The URL query answers first, then the launchpad's startupParameters,` && |\n| &&
+             `  then the intent in the hash; the name matches in any case, the value` && |\n| &&
+             `  comes back as it was written (upper-case it yourself where a key needs` && |\n| &&
+             `  it). The sources themselves stay in ``get( )-s_config-search``,` && |\n| &&
+             `  ``get( )-t_comp_params`` and ``get( )-s_config-hash``.` && |\n| &&
              `- URL routing: ``client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )``` && |\n| &&
              `  in ``check_on_init`` makes the app bookmarkable and wires the browser` && |\n| &&
              `  Back/Forward buttons - the mode rides in ``t_arg``: ``cs_nav_mode-keep`` (the` && |\n| &&
@@ -709,7 +718,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  nothing is written. ``client->app_state_set_active( )``` && |\n| &&
              `  keeps the id of the CURRENT app state in the URL on every roundtrip, so a` && |\n| &&
              `  reload/bookmark/shared link restores the exact state;` && |\n| &&
-             `  ``client->app_state_get_href( )`` returns the absolute, FLP-safe link to` && |\n| &&
+             `  ``client->app_state_get_href( )`` returns the absolute, FLP-safe link to` && |\n|.
+    result = result &&
              `  that state for the app to copy, show, mail or render as a QR code.` && |\n| &&
              `  The matching ``cs_event`` constants for ``follow_up_action( )`` wires:` && |\n| &&
              `  ``hash_set`` / ``hash_replace`` (the same two writes as frontend actions),` && |\n| &&
@@ -718,8 +728,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  changes under the app - Back/Forward, a manual edit; app-owned routing` && |\n| &&
              `  with ``hash_routing`` off), ``hash_routing`` (the routing modes above) and` && |\n| &&
              `  ``app_state_set_active``. ``hash_routing``, ``hash_attach_changed`` and` && |\n| &&
-             `  ``app_state_set_active`` are mutually exclusive - each claims the whole app` && |\n|.
-    result = result &&
+             `  ``app_state_set_active`` are mutually exclusive - each claims the whole app` && |\n| &&
              `  hash.` && |\n| &&
              |\n| &&
              `## 8. Rules that keep apps portable` && |\n| &&
@@ -752,7 +761,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  does it. The shipped Hello World has no check because it guards nothing;` && |\n| &&
              `  an app that reads or writes business data starts like this:` && |\n| &&
              |\n| &&
-             `  ``````abap` && |\n| &&
+             `  ``````abap` && |\n|.
+    result = result &&
              `  METHOD z2ui5_if_app~main.` && |\n| &&
              |\n| &&
              `    AUTHORITY-CHECK OBJECT 'Z_MY_APP' ID 'ACTVT' FIELD '03'.` && |\n| &&
@@ -762,8 +772,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `      RETURN.` && |\n| &&
              `    ENDIF.` && |\n| &&
              |\n| &&
-             `    me->client = client.` && |\n|.
-    result = result &&
+             `    me->client = client.` && |\n| &&
              `    IF client->check_on_init( ).` && |\n| &&
              `    ...` && |\n| &&
              `  ``````` && |\n| &&
@@ -796,7 +805,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `## 9. Validate and iterate like the framework does` && |\n| &&
              |\n| &&
-             `- **Starting a new app repo? Use` && |\n| &&
+             `- **Starting a new app repo? Use` && |\n|.
+    result = result &&
              `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** - it` && |\n| &&
              `  ships the starter app, abaplint + linter CI, this guide as its AGENTS.md` && |\n| &&
              `  and the agent permission setup preconfigured.` && |\n| &&
@@ -805,8 +815,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n| &&
              `  ``npx --yes @abap2ui5/linter my_app.clas.abap`` - also` && |\n| &&
              `  available as a GitHub Action and inside the VS Code extension.` && |\n| &&
-             `- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents` && |\n|.
-    result = result &&
+             `- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents` && |\n| &&
              `  the full loop without a SAP system: ``capabilities`` -> ``deploy_app`` ->` && |\n| &&
              `  ``build_backend`` -> ``run_app`` (headless screenshot + errors).` && |\n| &&
              `- **Need a UI5 fact - which properties a control has, what an aggregation is` && |\n| &&
@@ -837,7 +846,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  it on the system, and the MCP server's ``run_unit_tests`` runs it in the` && |\n| &&
              `  transpiled backend; ``npm run test:unit`` in the project and the` && |\n| &&
              `  ``abap2UI5/mcp-server`` GitHub Action do the same at the terminal and in CI,` && |\n| &&
-             `  no system involved. Implement every method the app calls in the double:` && |\n| &&
+             `  no system involved. Implement every method the app calls in the double:` && |\n|.
+    result = result &&
              `  the transpiled runtime generates no empty stubs for a ``PARTIALLY` && |\n| &&
              `  IMPLEMENTED`` interface, a system does. The double and one test, for the` && |\n| &&
              `  template of section 2:` && |\n| &&
@@ -847,8 +857,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    PUBLIC SECTION.` && |\n| &&
              `      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` && |\n| &&
              `      " what the lifecycle questions are answered with` && |\n| &&
-             `      DATA init      TYPE abap_bool.` && |\n|.
-    result = result &&
+             `      DATA init      TYPE abap_bool.` && |\n| &&
              `      DATA navigated TYPE abap_bool.` && |\n| &&
              `      DATA event     TYPE abap_bool.` && |\n| &&
              `      DATA event_id  TYPE string.` && |\n| &&
@@ -879,7 +888,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    METHOD z2ui5_if_client~_bind.` && |\n| &&
              `      result = ``bound``.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~_event.` && |\n| &&
+             `    METHOD z2ui5_if_client~_event.` && |\n|.
+    result = result &&
              `      result = val.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
              `  ENDCLASS.` && |\n| &&
@@ -890,8 +900,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ENDCLASS.` && |\n| &&
              |\n| &&
              `  CLASS ltcl_app IMPLEMENTATION.` && |\n| &&
-             `    METHOD save_toasts_the_name.` && |\n|.
-    result = result &&
+             `    METHOD save_toasts_the_name.` && |\n| &&
              `      DATA(app)    = NEW zcl_my_app( ).` && |\n| &&
              `      DATA(double) = NEW ltd_client( ).` && |\n| &&
              `      " an event roundtrip: the framework has already written the user's` && |\n| &&
@@ -923,7 +932,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  gates above ran.` && |\n| &&
              `- **``npm run doctor``** in a project made from app-template: the environment` && |\n| &&
              `  check - Node, the two gates, Chromium for the render gate, the framework` && |\n| &&
-             `  pin, the sidecars - that names the remedy for each failure.` && |\n| &&
+             `  pin, the sidecars - that names the remedy for each failure.` && |\n|.
+    result = result &&
              `- **``npm create abap2ui5-app@latest my-app -- --class zcl_my_app``**: the` && |\n| &&
              `  project scaffold without a GitHub template button or an editor.` && |\n| &&
              `- **``interact_app``** in the MCP server: click, type and fire events in the` && |\n| &&
@@ -934,8 +944,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n| &&
              `app that shows the roundtrips, the view XML and the model, the log and the` && |\n| &&
              `environment, without the browser's devtools. They are part of the frontend` && |\n| &&
-             `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n|.
-    result = result &&
+             `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
              `app, with nothing to install and nothing to configure.` && |\n| &&
              |\n| &&
              `### Starting them` && |\n| &&
@@ -973,7 +982,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **Problems**: the last fatal error (with Retry / Restart / Logout) and one` && |\n| &&
              `  Log timeline of everything: the framework's error log with stack traces,` && |\n| &&
              `  UI5's log, uncaught errors, rejections, every ``console.*`` call and the` && |\n| &&
-             `  messages the user was shown.` && |\n| &&
+             `  messages the user was shown.` && |\n|.
+    result = result &&
              `- **Roundtrips**: every roundtrip with backend vs. render time, payload sizes` && |\n| &&
              `  and draft ids, the raw request and response JSON, the follow-up actions and` && |\n| &&
              `  a diff of the model between two roundtrips. The **Journey** view records a` && |\n| &&
@@ -983,8 +993,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  - ``set_value( )`` for what was typed, ``click( )`` for every event, assertions` && |\n| &&
              `  on the messages, layers, control ids and events the screens showed. Paste it` && |\n| &&
              `  into the app's test include; record from the app start, because the test` && |\n| &&
-             `  starts the app fresh.` && |\n|.
-    result = result &&
+             `  starts the app fresh.` && |\n| &&
              `- **View & Data**: the XML of the main view, the popup, the popover and the` && |\n| &&
              `  nested views as the backend sent it, the model that fills each, and the` && |\n| &&
              `  bindings with a missing-path check and a size ranking. The picker marks a` && |\n| &&
@@ -1016,7 +1025,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              ```content``) and model/``max_tokens``/``temperature``, and answers ``text``,` && |\n| &&
              ```stop_reason`` and ``s_usage``; every failure is ``z2ui5_cx_ui5_llm`` (``get_text( )``` && |\n| &&
              `for the user, ``retryable`` for a 408/429/5xx or a timeout). Get a provider from` && |\n| &&
-             ```z2ui5_cl_ui5_llm``: ``create_claude( )`` (Messages API), ``create_openai( )``` && |\n| &&
+             ```z2ui5_cl_ui5_llm``: ``create_claude( )`` (Messages API), ``create_openai( )``` && |\n|.
+    result = result &&
              `(Chat Completions - OpenAI, Azure with ``auth_header`` set to ``api-key``, Ollama,` && |\n| &&
              `LM Studio, gateways) or ``create_local( t_rule = ... )``, a deterministic` && |\n| &&
              `rule-based provider without HTTP for 7.02, unit tests and demos.` && |\n| &&
@@ -1027,8 +1037,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `DATA(ls_answer) = li_llm->chat( system    = ``Answer briefly.``` && |\n| &&
              `                                t_message = mt_chat ).` && |\n| &&
              ```````` && |\n| &&
-             |\n|.
-    result = result &&
+             |\n| &&
              `- **No key, model or endpoint in the class.** Read them from your own` && |\n| &&
              `  configuration and pass a destination (SM59 on Standard, a communication` && |\n| &&
              `  arrangement or BTP destination on Cloud) or a URL plus key; there is no` && |\n| &&

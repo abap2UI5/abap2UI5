@@ -648,6 +648,15 @@ reasoning:
   the roundtrip the called app returns on, and is empty on every other one.
   No flag attribute per popup, no `CAST` in a `TRY` to find out which one
   came back.
+- **Start parameters** — a value the app is started with (`?lgn=0001` on
+  the URL, a `startupParameters` entry of a launchpad tile, the query of a
+  launchpad intent `#Object-action?lgn=0001`) — are read with one call,
+  whichever way the app was started: `` client->get_start_param( `lgn` ) ``.
+  The URL query answers first, then the launchpad's startupParameters,
+  then the intent in the hash; the name matches in any case, the value
+  comes back as it was written (upper-case it yourself where a key needs
+  it). The sources themselves stay in `get( )-s_config-search`,
+  `get( )-t_comp_params` and `get( )-s_config-hash`.
 - URL routing: `client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )`
   in `check_on_init` makes the app bookmarkable and wires the browser
   Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the
