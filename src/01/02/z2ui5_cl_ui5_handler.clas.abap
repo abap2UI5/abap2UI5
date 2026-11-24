@@ -1334,7 +1334,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " frontend sees whether an event changed anything. For a click or a
     " keystroke that holds as it was. A tick is the one roundtrip the user
     " did not ask for, and the one that repeats without end - so it is the
-    " one exception, and an exception the protocol does not state yet. What
+    " one exception, stated so by the protocol since revision 0.7 (spec/
+    " sessions.md; S_FRONT.TIMER in spec/request.md "The timer tick"). What
     " the rule protects holds for it all the same: a draft is a snapshot,
     " so the retry of a lost response and the browser history continue the
     " same id as before; the hash of a route or an app state link does not

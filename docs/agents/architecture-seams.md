@@ -64,9 +64,9 @@ so that a frontend sees whether an event changed anything), and for a click
 that stays so. The tick is the one roundtrip the user did not ask for and the
 one that repeats without end; for it the reuse is safe because a draft is a
 snapshot - the retry of a lost response, Back/Forward under KEEP routing and an
-app state link all continue an id that still names the state it named. It is
-an exception the protocol does not state yet (it also has to admit the
-`TIMER` key, `spec/request.md` allows no unknown key from a frontend). Not
+app state link all continue an id that still names the state it named. The
+protocol states it as the one exception to `session.new-id` since revision 0.7
+(`spec/sessions.md`; the `TIMER` key in `spec/request.md` "The timer tick"). Not
 reused: a sticky app (it writes no draft per roundtrip anyway), a roundtrip
 with a hop, a host serializer (`set_serializer( )` - the Node host's answers a
 fresh id per call, so the compare could never succeed), and a tick whose
