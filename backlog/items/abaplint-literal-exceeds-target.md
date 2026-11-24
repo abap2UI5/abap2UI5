@@ -6,13 +6,15 @@ priority: medium
 state: filed
 filed: https://github.com/abaplint/abaplint/issues/1343
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
   - 'extended check on an ABAP Cloud trial system, 2026-11-11: """" is not an admissible value for type "D". Admissible: 00010101 (yyyymmdd)" and the same for type "T" (message GTW) on a test of z2ui5_cl_ui5_srv_model, `VALUE #( … adate = `` atime = `` )`. Probed 2026-11-11 against abaplint 2.120.92, every default rule on: `lv_date = ```, `lv_date = ''2024''` and the VALUE form are not reported'
   - 'abap2xlsx/abap2xlsx 0744e0c: `CLASS-DATA eol TYPE char01 VALUE cl_abap_char_utilities=>cr_lf` lost its LF in every CSV'
   - 'abaplint/abaplint#1343 asks for it'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
+  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "*" is not an admissible value for type "N(10)". Admissible: 0 (/KRO/UI502_CL_APP_010->get_docno), "Admissible: 9" for "98"/"99" into a C(1) button position (/KRO/UI502_CL_APP_002->call_conf_put_popup, /KRO/UI502_CL_APP_011->set_buttons, /KRO/UI501_CL_APP_000->xml_build_buttons) and The type of "''''" cannot be converted to the type of "DALEN" for WHERE dalen <> '''' on a DATS field (/KRO/UI502_CL_SHIPMENT_HANDLER->set_complete_*_status)'
+  - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: lv_n10 = ''*'', lv_n12 = `*`, lv_c1 = `98`, lv_c1 = ''99'', VALUE #( pos = `98` ), lv_d = '''', IF lv_d <> '''' and SELECT ... WHERE dalen <> '''' (DATS field of a TABL in the project) - no finding on any of them'
 ---
 
 # Report literals and constants that do not fit their target
@@ -35,6 +37,27 @@ ls_row = VALUE #( adate = `` atime = `` ).
 ```
 
 Report a literal assigned to, or passed for, a d or t target whose content is not exactly the type's digits. Not reported: a variable or an expression as the source; the initial values `'00000000'` and `'000000'`.
+
+Three more shapes, from one activation of a consumer system on S/4HANA
+(2026-11-24), all silent in abaplint 2.120.116:
+
+```abap
+DATA lv_itemno TYPE n LENGTH 10.
+lv_itemno = '*'.            " "*" is not an admissible value for type "N(10)". Admissible: 0
+DATA lv_pos TYPE c LENGTH 1.
+lv_pos = '99'.              " ... Admissible: 9  (a two-character literal into C(1))
+add( VALUE #( pos = `98` ) ).
+SELECT COUNT( * ) FROM zp_dats WHERE dalen <> ''.   " DALEN TYPE dats:
+IF lv_date <> ''.                                   " The type of "''" cannot be converted to the type of "DALEN"
+```
+
+- a literal with a non-digit into a NUMC target - the system names the
+  admissible value;
+- a literal longer than a C(1) target - the length rule above, for a literal
+  that is a number written as text;
+- the empty literal `''` compared with (or assigned to) a d field, in ABAP
+  code and in an SQL `WHERE`: the comparison means `'00000000'`, which is the
+  literal to write, or `IS INITIAL`.
 
 **Not reported.** Generic targets; strings.
 

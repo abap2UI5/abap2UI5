@@ -679,7 +679,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps, abaplint-timestampl-to-timestamp, abaplint-abapdoc-empty-documentation, abaplint-abapdoc-html-tag-namespaced, abaplint-inline-packed-computation-gaps, abaplint-modify-key-only-table, abaplint-implement-methods-alias-name, abaplint-conv-generic-formal-fixed-type, abaplint-replacement-object-tables, abaplint-select-from-itab-key
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -1139,6 +1139,52 @@ and points here, so a new trap is added here and nowhere else.
   six statements are how every binding finds its value, they behave
   differently per release (#1937, comments at the sites), and a rewrite to
   `mo_app->(name)` needs a 7.02 and a cloud system to be tested on first.
+
+- **One activation of a consumer system (S5S on S/4HANA EWM, 2026-11-24)**
+  brought a batch of SLIN warnings abaplint 2.120.116 does not report -
+  measured in an isolated, syntax-clean probe with every rule on, a control
+  finding firing (fixes in `oblomov-dev/s5s_dev` `3173ec5`). Each is a stock
+  item:
+  - *"Empty documentation is not allowed"* - `"! @parameter client |` with no
+    text, a lone `"!` in front of `CLASS` or ending a block (~20 times in
+    `/KRO/UI501_CL_APP_VIEW`). Fix: write the text or drop the line; an empty
+    `"!` between two text lines is fine.
+  - *"HTML tag <html:style> is not supported in ABAP Doc"* / *"... is not
+    closed"* - `abapdoc_html_tag` reports `<layoutData>` but not a namespaced
+    tag. Fix: `&lt;html:style&gt;`.
+  - *"... the type P(8,0) is used here implicitly"* on `DATA(x) = ( a + b ).`
+    and `DATA(t) = a + VALUE #( lt[ 1 ]-quan OPTIONAL ).` -
+    `inline_packed_computation` reports the bare chain only. The decimals go:
+    a weight difference below 0.5 counted as none. Fix: declare the target
+    with the operands' type, or `CONV ty_quan( ... )`.
+  - *"Table ... contains only key fields. Entries can be inserted, but not
+    modified"* - `MODIFY` of a table without non-key fields only ever inserts.
+    Fix: `DELETE` + `INSERT`, or give the table a data field.
+  - *"The component addressed here under the name COUNT is accessed in the
+    current context under a different name"* - a `REDEFINITION` of
+    `zif~count` implemented as `METHOD count.` via the superclass alias;
+    abaplint reports a missing implementation instead. Fix:
+    `METHOD zif~count.`
+  - *"The fixed type STRING is used for the generic type CLIKE"* -
+    `CONV #( lv_quan )` (packed) into `v1 TYPE clike`. Fix: `CONV string( )`.
+  - *"The table MARD has a replacement object and hence should no longer be
+    used"* - MARD, MCHB, MBEW, EBEW, MARC, MKPF, MSEG, MSKA, MSLB, MSKU, MKOL,
+    /SAPAPO/MATMAP, 20+ sites. Fix: the NSDM_* / I_* replacements.
+  - `SELECT ... FROM @itab`: *"The primary key of LT_X is ignored because it is
+    generic or is the standard key"* and, for an aggregate or a join,
+    *"The SELECT command is executed on the database"*. Fix: an explicit key;
+    aggregate in ABAP (`REDUCE`) where the round trip is not wanted.
+  - More shapes of three existing items: `'*'` into N(10) and `'98'` into
+    C(1), `''` against a DATS (`WHERE dalen <> ''` - write `'00000000'` or
+    `IS INITIAL`); `CONV #( 'LIT' )` into a `clike` formal and
+    `CONV string( lr->n )` as an actual; `ts = get_timestampl( )` and the
+    DDIC aliases TZNTSTMPS, TSEGEVTFRS, TSEGEVTTOS.
+
+  The same run also had warnings abaplint DOES report once the rule is on -
+  `strict_sql` (INTO not last), `wrong_abapdoc_position`, `try_without_catch`,
+  `implement_methods` (a truly missing implementation) and most
+  `redundant_conversion` shapes (57 sites, the rule was off there): for those
+  the fix is to switch the rule on, not a stock item.
 
 **Not gated: the BUNDLE.**
 `check:atc` walks this repository's `src/` — that is its stated scope, and
