@@ -13,12 +13,12 @@
 
 ## Session persistence — the store is swappable
 
-**The store is swappable (`z2ui5_if_ui5_draft_store`).** The draft service's seven
+**The store is swappable (`z2ui5_if_ui5_draft_store`).** The draft service's nine
 methods are an interface, `z2ui5_cl_ui5_srv_draft` is its shipped implementation, and
 every caller goes through `z2ui5_cl_ui5_srv_draft=>get_instance( )`. On a system
 nothing changes: without `set_instance( )` that call answers a fresh
 `NEW z2ui5_cl_ui5_srv_draft( )` per call, which is literally what each call site
-did before, so `Z2UI5_T_01` and all nine of its SQL statements are still what
+did before, so `Z2UI5_T_01` and all twelve of its SQL statements are still what
 runs.
 
 The seam exists for the runtimes that are not an SAP system. `node/srv/express.mjs`
@@ -41,6 +41,68 @@ Note there are no `ALIASES` on the class — `no_aliases` is an error here, and
 none are needed: an interface reference takes the plain method names. A caller
 holding a concrete `z2ui5_cl_ui5_srv_draft` would have to qualify, which is the
 second reason everything goes through `get_instance( )`.
+
+## Fewer drafts - the unchanged tick and the pruned chain
+
+Every roundtrip used to write a draft, and only `cleanup( )` removed them, by
+age (`draft_exp_time_in_hours`). A screen that polls with `START_TIMER` every
+two seconds wrote 1,800 rows of its whole state per hour and user. Two
+changes, independent of each other:
+
+**An unchanged tick answers with the draft it continued**
+(`z2ui5_cl_ui5_handler=>main_end_reuse`). The frontend marks the request of a
+START_TIMER tick (`S_FRONT.TIMER: true`, `core/actions/ViewOps.js` through
+`View1.eB`). When `main( )` left the app so that the container, serialized
+under the ids of the loaded draft, is that draft byte for byte
+(`z2ui5_cl_ui5_app_cont=>db_check_unchanged`), the response names the loaded
+id and no row is written; `touch( )` renews the row's time at most every five
+minutes, so a poll that finds nothing new for longer than the expiry keeps its
+draft. Restricted to ticks on purpose: the protocol has every 2xx response name
+an id other than the one its request continued (abap2UI5/protocol,
+`spec/sessions.md` "Draft ids", check `session.new-id`, decided in revision 0.3
+so that a frontend sees whether an event changed anything), and for a click
+that stays so. The tick is the one roundtrip the user did not ask for and the
+one that repeats without end; for it the reuse is safe because a draft is a
+snapshot - the retry of a lost response, Back/Forward under KEEP routing and an
+app state link all continue an id that still names the state it named. It is
+an exception the protocol does not state yet (it also has to admit the
+`TIMER` key, `spec/request.md` allows no unknown key from a frontend). Not
+reused: a sticky app (it writes no draft per roundtrip anyway), a roundtrip
+with a hop, a host serializer (`set_serializer( )` - the Node host's answers a
+fresh id per call, so the compare could never succeed), and a tick whose
+`main( )` called `app_state_get_href( )` - the link's id is put on the app's
+keep list, which makes the state differ, so the draft the link names is
+written. The id `get( )-s_draft-id` shows during an unchanged tick is minted
+and never written; a link is made with `app_state_get_href( )`.
+
+**The chain is pruned - opt-in** (`draft_keep_per_chain` in
+`z2ui5_if_ui5_exit=>ty_s_http_config_post`, 0 by default). With N > 0 every
+`db_save( )` asks the store to `prune_chain( )`: the draft just saved is depth
+1 of its `id_prev` chain, N of them survive, and the one at depth N + 1 is
+deleted - one per save, N - 1 keyed reads, whatever the length of the chain.
+**The minimum is 2** (`z2ui5_cl_ui5_srv_draft=>c_min_keep_per_chain`; 1 is
+raised to it, more than 50 cut to 50): the frontend may continue the draft
+before the newest one - the retry of a request whose response was lost, a
+request a newer one superseded after the backend had processed it, the error
+overlay's retry - and after the newest save that one is depth 2. Nothing older
+is reached through the chain; everything that does reach an older draft is
+protected and ends the walk:
+
+| Draft | Why it survives |
+|---|---|
+| the caller on the app stack (`id_prev_app_stack`) and the app a hop came from (`id_prev_app`) of the draft being saved | in the store's stop list; the first draft after a hop has the caller's hop draft as `id_prev` too, so the walk never crosses into another app |
+| any draft another draft of the user names as `id_prev_app` / `id_prev_app_stack` | checked before the delete (one SELECT on the two unindexed columns - the cost of having no new column; the table it reads is the one pruning keeps small) |
+| the draft an app state link names (`app_state_get_href( )`) and the draft a route or app state restore started from | `z2ui5_cl_ui5_app_cont=>mt_draft_keep`, serialized with the app (last 50) and passed as `t_protect` |
+| every draft of an app whose app state hash is active (`app_state_set_active`) | not pruned at all: its URL names every draft, and any of them can be bookmarked |
+
+KEEP routing needs no rule of its own: within an app the router replaces its
+history entry with the newest draft (depth 1), the caller's entry is repointed
+at the hop draft (protected above), and a route restore starts a new chain
+whose `id_prev` is the restored draft (protected above). After a leave the
+caller resumes under its hop id, whose `id_prev` is then the called app's last
+draft - the stop list ends the walk there, so the Forward entry of the called
+app keeps its draft. What pruning leaves behind (the drafts before a hop, a
+draft skipped because it was protected) expires by age as before.
 
 ## App state serialization (`z2ui5_if_ui5_serializer`)
 

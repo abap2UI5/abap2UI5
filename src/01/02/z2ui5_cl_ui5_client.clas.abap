@@ -630,6 +630,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " Router.splitHash) - never re-implement it here.
     DATA(ls_front) = mo_action->mo_handler->ms_request-s_front.
     DATA(lv_state) = |z2ui5-xapp-state={ mo_action->mo_app->ms_draft-id }|.
+    " the link outlives this session: pruning the chain (draft_keep_per_chain)
+    " must keep the draft it names. On the app, so it is in the draft this
+    " roundtrip writes - which also makes the state differ from the draft
+    " the roundtrip continued, so an unchanged timer tick that hands out a
+    " link still writes the draft the link names (main_end_reuse)
+    mo_action->mo_app->draft_keep( mo_action->mo_app->ms_draft-id ).
 
     " check_bare_is_shell: s_front-hash is the RAW location hash, so a bare
     " '#So-action' (FLP intent, no app part yet) is all shell - without it

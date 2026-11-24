@@ -202,7 +202,9 @@ real UI5 one-way model that is not `_bind( )` (the `device>` JSONModel).
 
 `z2ui5_cl_ui5_srv_draft` stores the serialized app in table `Z2UI5_T_01`, keyed
 by UUID; every roundtrip loads, runs `main( )` and saves under a new id, chained
-by `id_prev`. There is deliberately **no read buffer** (`test_buffer`). **Owner
+by `id_prev` - except a START_TIMER tick that changed nothing, which answers the id
+it continued; pruning the chain is opt-in (`draft_keep_per_chain`, minimum 2). Both
+in `docs/agents/architecture-seams.md`. There is deliberately **no read buffer** (`test_buffer`). **Owner
 binding:** a draft is returned only to the `sy-uname` that wrote it, and a
 mismatch fails closed exactly like "not found" — do not weaken either. The store
 (`z2ui5_if_ui5_draft_store`) and the serializer (`z2ui5_if_ui5_serializer`) are

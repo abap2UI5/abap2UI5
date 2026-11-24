@@ -114,6 +114,21 @@ INTERFACE z2ui5_if_ui5_exit
       " Read on every roundtrip, so switching it off again takes effect on
       " the next one.
       check_monitor_active       TYPE abap_bool,
+      " opt-in: how many drafts of a chain survive each save, the one just
+      " saved included. 0 (the default, nothing seeds it) keeps every draft
+      " until draft_exp_time_in_hours takes it by age. N > 0 deletes, on
+      " every save, the one draft at depth N + 1 of the chain the roundtrips
+      " of one app build (z2ui5_if_ui5_draft_store=>prune_chain) - so a
+      " polling app keeps N drafts instead of one per tick for hours.
+      " Values below 2 are raised to 2: the retry of a lost response
+      " continues the draft before the newest one
+      " (z2ui5_cl_ui5_srv_draft=>c_min_keep_per_chain), more than 50 are cut
+      " to 50. Never deleted: the drafts of the app stack (Back, popups),
+      " the draft of an app state link and of a route restore. An app whose
+      " app state hash is active (app_state_set_active) is not pruned - its
+      " URL names every draft. Recommended: 2 for polling apps.
+      "   cs_config-draft_keep_per_chain = 2.
+      draft_keep_per_chain       TYPE i,
     END OF ty_s_http_config_post.
 
   METHODS set_config_http_get

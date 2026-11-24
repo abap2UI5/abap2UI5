@@ -13,6 +13,11 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
     " value is taken from the container the request began with and carried
     " through prepare_app_stack like the switch itself
     DATA mv_check_sticky_start TYPE abap_bool.
+    " the draft this action continues, as factory_by_frontend read it -
+    " what an unchanged timer tick answers with instead of a new one
+    " (z2ui5_cl_ui5_handler=>main_end_reuse). Empty on every other factory:
+    " a hop, a start and a sticky session never reuse a draft
+    DATA ms_loaded TYPE z2ui5_cl_ui5_app_cont=>ty_s_buffer.
 
     METHODS factory_system_startup
       RETURNING
@@ -100,6 +105,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       IF mo_handler->mv_session_sticky = abap_false.
         CLEAR result->mo_app->mv_check_sticky.
       ENDIF.
+      result->ms_loaded = z2ui5_cl_ui5_app_cont=>db_load_buffered( mo_handler->ms_request-s_front-id ).
     ENDIF.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
@@ -175,6 +181,10 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           " whatever id was serialized in a previous session
           result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_control-app_start_draft.
           result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+          " the restored draft is what the bookmark, the shared link or the
+          " browser history entry names - pruning this session's chain
+          " (draft_keep_per_chain) must stop there, not delete it
+          result->mo_app->draft_keep( mo_handler->ms_request-s_control-app_start_draft ).
           RETURN.
         CATCH cx_root INTO DATA(lx_restore).
           " A draft that is there, is the user's and still could not be

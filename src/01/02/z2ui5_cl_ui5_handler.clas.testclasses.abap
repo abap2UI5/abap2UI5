@@ -278,8 +278,10 @@ CLASS ltcl_02_response DEFINITION DEFERRED.
 CLASS ltcl_03_dispatch DEFINITION DEFERRED.
 CLASS ltcl_04_nav DEFINITION DEFERRED.
 CLASS ltcl_05_monitor DEFINITION DEFERRED.
+CLASS ltcl_06_draft DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_handler DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_request ltcl_02_response
-                                                  ltcl_03_dispatch ltcl_04_nav ltcl_05_monitor.
+                                                  ltcl_03_dispatch ltcl_04_nav ltcl_05_monitor
+                                                  ltcl_06_draft.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -3010,6 +3012,297 @@ CLASS ltcl_05_monitor IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 500
                                         act = ls_roundtrip-ms_main ).
     cl_abap_unit_assert=>assert_initial( ls_roundtrip-ms_render ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" 06 - the drafts a roundtrip writes: an unchanged timer tick answers with
+" the draft it continued (main_end_reuse), and the opt-in pruning of the
+" chain (draft_keep_per_chain) keeps the drafts Back and links need
+" ---------------------------------------------------------------------------
+
+" counts its events; SHARE hands out an app state link without keeping it
+" anywhere bound - a toast, the way an app would show it once
+CLASS ltcl_app_count DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_count TYPE i.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_count IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    CASE client->get( )-event.
+      WHEN `EV`.
+        mv_count = mv_count + 1.
+      WHEN `SHARE`.
+        client->message_toast_display( client->app_state_get_href( ) ).
+      WHEN `CALL`.
+        client->nav_app_call( NEW ltcl_app_count( ) ).
+      WHEN `LEAVE`.
+        client->nav_app_leave( ).
+    ENDCASE.
+  ENDMETHOD.
+
+ENDCLASS.
+
+" an exit that switches the pruning on
+CLASS ltcl_exit_keep DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_exit.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_exit_keep IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_get ##NEEDED.
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_post.
+    cs_config-draft_keep_per_chain = 2.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_06_draft DEFINITION FINAL INHERITING FROM ltcl_00_base
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    METHODS teardown.
+
+    " a START_TIMER tick on the draft, as the frontend sends it
+    METHODS tick_on
+      IMPORTING
+        iv_id         TYPE string
+        iv_event      TYPE string DEFAULT `TICK`
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS id_after
+      IMPORTING
+        iv_id         TYPE string
+        iv_event      TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS exists
+      IMPORTING
+        iv_id         TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    METHODS tick_unchanged_reuses_id  FOR TESTING RAISING cx_static_check.
+    METHODS tick_changed_new_draft    FOR TESTING RAISING cx_static_check.
+    METHODS event_unchanged_new_id    FOR TESTING RAISING cx_static_check.
+    METHODS tick_share_writes_draft   FOR TESTING RAISING cx_static_check.
+    METHODS prune_off_keeps_chain     FOR TESTING RAISING cx_static_check.
+    METHODS prune_keeps_two           FOR TESTING RAISING cx_static_check.
+    METHODS prune_keeps_app_stack     FOR TESTING RAISING cx_static_check.
+    METHODS prune_keeps_share_link    FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_06_draft IMPLEMENTATION.
+
+  METHOD teardown.
+
+    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+  ENDMETHOD.
+
+  METHOD tick_on.
+
+    DATA(lo_handler) = NEW z2ui5_cl_ui5_handler(
+        val = `{"value":{"S_FRONT":{"ID":"` && iv_id && `","EVENT":"` && iv_event && `","TIMER":true}}}` ).
+    lo_handler->main_begin( ).
+    lo_handler->main_loop( ).
+    result = lo_handler->ms_response-s_front-id.
+
+  ENDMETHOD.
+
+  METHOD id_after.
+
+    result = event_on( iv_id    = iv_id
+                       iv_event = iv_event )->ms_response-s_front-id.
+
+  ENDMETHOD.
+
+  METHOD exists.
+
+    result = z2ui5_cl_ui5_srv_draft=>get_instance( )->check_exists( iv_id ).
+
+  ENDMETHOD.
+
+  METHOD tick_unchanged_reuses_id.
+
+    DATA(lv_start) = started_with( NEW ltcl_app_noop( ) )->ms_response-s_front-id.
+    " the first tick changes the app (check_on_init( ) is false from now on)
+    DATA(lv_first) = tick_on( lv_start ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_start
+                                         act = lv_first ).
+
+    DATA(li_store) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
+    DATA(lv_count) = li_store->count_entries( ).
+
+    " the second finds nothing to change: the same id, no row written
+    DATA(lv_second) = tick_on( lv_first ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_first
+                                        act = lv_second
+                                        msg = `an unchanged tick answers the draft it continued` ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_count
+                                        act = li_store->count_entries( )
+                                        msg = `an unchanged tick writes no draft` ).
+
+    " and the draft goes on - the next tick continues it
+    cl_abap_unit_assert=>assert_equals( exp = lv_first
+                                        act = tick_on( lv_second ) ).
+
+  ENDMETHOD.
+
+  METHOD tick_changed_new_draft.
+
+    DATA(lv_start) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
+    DATA(lv_first) = tick_on( iv_id    = lv_start
+                              iv_event = `EV` ).
+    DATA(lv_second) = tick_on( iv_id    = lv_first
+                               iv_event = `EV` ).
+
+    cl_abap_unit_assert=>assert_differs( exp = lv_first
+                                         act = lv_second ).
+    cl_abap_unit_assert=>assert_true( exists( lv_second ) ).
+
+  ENDMETHOD.
+
+  METHOD event_unchanged_new_id.
+
+    DATA(lv_start) = started_with( NEW ltcl_app_noop( ) )->ms_response-s_front-id.
+    DATA(lv_first) = id_after( iv_id    = lv_start
+                               iv_event = `CLICK` ).
+
+    " the protocol's rule for every request that is not a tick: a new id,
+    " also when nothing changed (spec/sessions.md, session.new-id)
+    DATA(lv_second) = id_after( iv_id    = lv_first
+                                iv_event = `CLICK` ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_first
+                                         act = lv_second ).
+    cl_abap_unit_assert=>assert_true( exists( lv_second ) ).
+
+  ENDMETHOD.
+
+  METHOD tick_share_writes_draft.
+
+    DATA(lv_start) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
+    DATA(lv_first) = tick_on( lv_start ).
+
+    " a tick that hands out a link changes nothing bound - but the link
+    " names the id this roundtrip answers, and that draft has to exist
+    DATA(lv_shared) = tick_on( iv_id    = lv_first
+                               iv_event = `SHARE` ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_first
+                                         act = lv_shared ).
+    cl_abap_unit_assert=>assert_true( exists( lv_shared ) ).
+
+  ENDMETHOD.
+
+  METHOD prune_off_keeps_chain.
+
+    DATA(lv_id) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
+    DATA(lt_id) = VALUE string_table( ( lv_id ) ).
+    DO 4 TIMES.
+      lv_id = id_after( iv_id    = lv_id
+                        iv_event = `EV` ).
+      INSERT lv_id INTO TABLE lt_id.
+    ENDDO.
+
+    " no exit, draft_keep_per_chain 0: every draft stays until its expiry
+    LOOP AT lt_id INTO lv_id.
+      cl_abap_unit_assert=>assert_true( exists( lv_id ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD prune_keeps_two.
+
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_keep( ) ).
+
+    DATA(lv_id) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
+    DATA(lt_id) = VALUE string_table( ( lv_id ) ).
+    DO 4 TIMES.
+      lv_id = id_after( iv_id    = lv_id
+                        iv_event = `EV` ).
+      INSERT lv_id INTO TABLE lt_id.
+    ENDDO.
+
+    cl_abap_unit_assert=>assert_false( exists( lt_id[ 1 ] ) ).
+    cl_abap_unit_assert=>assert_false( exists( lt_id[ 2 ] ) ).
+    cl_abap_unit_assert=>assert_false( exists( lt_id[ 3 ] ) ).
+    cl_abap_unit_assert=>assert_true( exists( lt_id[ 4 ] ) ).
+    cl_abap_unit_assert=>assert_true( exists( lt_id[ 5 ] ) ).
+
+  ENDMETHOD.
+
+  METHOD prune_keeps_app_stack.
+
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_keep( ) ).
+
+    DATA(lv_id) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
+    lv_id = id_after( iv_id    = lv_id
+                      iv_event = `EV` ).
+
+    " the caller calls a second instance; the callee runs a few roundtrips
+    DATA(lo_call) = event_on( iv_id    = lv_id
+                              iv_event = `CALL` ).
+    DATA(lv_callee) = lo_call->ms_response-s_front-id.
+    DATA(lv_hop) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_info( lv_callee )-id_prev_app_stack.
+    cl_abap_unit_assert=>assert_not_initial( lv_hop ).
+    DO 4 TIMES.
+      lv_callee = id_after( iv_id    = lv_callee
+                            iv_event = `EV` ).
+    ENDDO.
+
+    " the caller's draft is what Back loads - it is still there
+    cl_abap_unit_assert=>assert_true( exists( lv_hop ) ).
+
+    " and the leave lands on it, with the caller's count
+    DATA(lo_leave) = event_on( iv_id    = lv_callee
+                               iv_event = `LEAVE` ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_hop
+                                        act = lo_leave->ms_response-s_front-id ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = 1
+        act = CAST ltcl_app_count( lo_leave->mo_action->mo_app->mo_app )->mv_count ).
+
+    " the caller goes on after the leave; its draft chain stays whole
+    lv_id = id_after( iv_id    = lv_hop
+                      iv_event = `EV` ).
+    lv_id = id_after( iv_id    = lv_id
+                      iv_event = `EV` ).
+    cl_abap_unit_assert=>assert_true( exists( lv_id ) ).
+
+  ENDMETHOD.
+
+  METHOD prune_keeps_share_link.
+
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_keep( ) ).
+
+    DATA(lv_id) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
+    DATA(lv_shared) = id_after( iv_id    = lv_id
+                                iv_event = `SHARE` ).
+    lv_id = lv_shared.
+    DO 4 TIMES.
+      lv_id = id_after( iv_id    = lv_id
+                        iv_event = `EV` ).
+    ENDDO.
+
+    cl_abap_unit_assert=>assert_true( act = exists( lv_shared )
+                                      msg = `the draft an app state link names survives the pruning` ).
 
   ENDMETHOD.
 

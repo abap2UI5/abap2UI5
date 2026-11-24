@@ -371,6 +371,11 @@ INTERFACE z2ui5_if_ui5_types
         " only (z2ui5_if_ui5_monitor=>ty_s_roundtrip-ms_client_prev); 0
         " when the request carries none or an unreadable one
         ms_client_prev TYPE i,
+        " the request is a START_TIMER tick (core/actions/ViewOps.js, wire
+        " S_FRONT.TIMER) - the one kind of roundtrip that may answer with
+        " the draft it continued when main( ) changed nothing
+        " (z2ui5_cl_ui5_handler=>main_end_reuse)
+        check_timer    TYPE abap_bool,
         BEGIN OF s_device,
           system      TYPE string,
           orientation TYPE string,

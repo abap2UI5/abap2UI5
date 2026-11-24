@@ -134,6 +134,16 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! a route or app-state link carries its draft id
     METHODS main_end_save.
 
+    "! whether this roundtrip answers with the draft it continued instead
+    "! of saving a new one - an unchanged timer tick, see the method body
+    METHODS main_end_reuse
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " set by main_end when main_end_reuse said yes - main_end_save then
+    " writes no draft
+    DATA mv_draft_reused TYPE abap_bool.
+
     METHODS response_abap_to_json
       IMPORTING
         val           TYPE z2ui5_if_ui5_types=>ty_s_response
@@ -157,6 +167,11 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " test lowers it (ltcl_03_dispatch): the alternative is 1000 real hops,
     " each of them a draft save. Nothing in production writes it
     DATA mv_dispatch_limit TYPE i VALUE 1000.
+
+    " how old the draft an unchanged tick answers with may get before its
+    " time is renewed (main_end_save) - well below the shortest expiry the
+    " exit allows (one hour)
+    CONSTANTS c_reuse_touch_seconds TYPE i VALUE 300.
 
     " whether THIS request's body has been parsed into ms_request - see
     " main_begin and request_context_info
@@ -458,6 +473,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     IF result-s_front-ms_client_prev < 0.
       CLEAR result-s_front-ms_client_prev.
     ENDIF.
+    " a flag, nothing else: whatever is not the JSON true reads as false
+    result-s_front-check_timer = lo_ajson->get_boolean( lv_front && `/TIMER` ).
 
     DATA(lv_config) = lv_front && `/CONFIG`.
     IF lo_ajson->exists( lv_config ) = abap_true.
@@ -1285,6 +1302,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " injects the response id)
     DATA(li_nav) = lo_front->nav_serialize( ).
 
+    " the last change to the container before it is saved - the response
+    " names the id main_end_reuse settled on
+    mv_draft_reused = main_end_reuse( ).
+
     ms_response = VALUE #( s_front-s_action = mo_action->ms_next-s_action
                            s_front-o_views  = li_views
                            s_front-o_nav    = li_nav
@@ -1300,9 +1321,58 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD main_end_reuse.
+
+    " A START_TIMER tick (S_FRONT.TIMER) whose main( ) left the app exactly
+    " as the draft it continued answers with THAT draft's id and writes
+    " nothing: a poll every two seconds no longer writes a row of the whole
+    " app state per tick, and the chain stops growing while nothing happens.
+    "
+    " Only a tick. The protocol (abap2UI5/protocol, spec/sessions.md "Draft
+    " ids", check session.new-id) has every 2xx response name an id other
+    " than the one its request continued, decided in revision 0.3 so that a
+    " frontend sees whether an event changed anything. For a click or a
+    " keystroke that holds as it was. A tick is the one roundtrip the user
+    " did not ask for, and the one that repeats without end - so it is the
+    " one exception, and an exception the protocol does not state yet. What
+    " the rule protects holds for it all the same: a draft is a snapshot,
+    " so the retry of a lost response and the browser history continue the
+    " same id as before; the hash of a route or an app state link does not
+    " change because nothing did.
+    "
+    " Not for a sticky app (it saves no draft per roundtrip anyway), not
+    " after a hop (the action of a hop loaded nothing, ms_loaded is empty),
+    " not for a draft read in another request. And not when main( ) handed
+    " out the new id: app_state_get_href( ) puts it on the app's keep list,
+    " so the state differs and the draft is written. The id get( )-s_draft-id
+    " shows during such a tick is the one minted for it and is not written -
+    " a link is made with app_state_get_href( ), never from that field.
+    IF ms_request-s_front-check_timer = abap_false
+        OR mo_action->mo_app->mv_check_sticky = abap_true
+        OR mo_action->ms_loaded-data IS INITIAL
+        OR mo_action->ms_loaded-id <> ms_request-s_front-id.
+      RETURN.
+    ENDIF.
+
+    result = mo_action->mo_app->db_check_unchanged( mo_action->ms_loaded ).
+
+  ENDMETHOD.
+
   METHOD main_end_save.
 
-    IF mo_action->mo_app->mv_check_sticky = abap_false.
+    IF mv_draft_reused = abap_true.
+      " nothing to write - but cleanup( ) counts a draft's age from its
+      " write, and a poll that finds nothing new for longer than
+      " draft_exp_time_in_hours would lose the draft it keeps answering
+      " with. So its time is renewed - at most every c_reuse_touch_seconds,
+      " an UPDATE of one field instead of an INSERT of the app's state
+      DATA(lv_due) = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
+                         time    = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
+                         seconds = c_reuse_touch_seconds ).
+      IF mo_action->ms_loaded-timestampl < lv_due.
+        z2ui5_cl_ui5_srv_draft=>get_instance( )->touch( mo_action->ms_loaded-id ).
+      ENDIF.
+    ELSEIF mo_action->mo_app->mv_check_sticky = abap_false.
       mo_action->mo_app->db_save( ).
     ELSEIF mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep
         OR mo_action->mo_app->mv_app_state_active = abap_true.
