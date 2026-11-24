@@ -141,6 +141,16 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " next response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
         mo_action->mo_app->mv_app_state_active = mo_action->ms_next-s_nav-set_app_state_active.
         RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-start_timer
+          OR z2ui5_if_client=>cs_event-stop_timer.
+        " the app takes the one timer slot over itself: the declaration of
+        " timer_set( ) goes, and so does the record of what was sent for it -
+        " the browser's slot holds this action now, and main_end_timer must
+        " neither stop it nor arm the declared one over it. Queued below as
+        " ever
+        CLEAR: mo_action->mo_app->ms_timer,
+               mo_action->mo_app->ms_timer_sent.
     ENDCASE.
 
     " a frontend event travels as pure data - a JSON array built and escaped
@@ -779,6 +789,31 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " asks before it answers. A leave to a fresh instance, a call and every
     " start (route restore and app-state bookmark included) leave it unset
     result = mo_action->ms_actual-check_nav_back.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~timer_set.
+
+    " declared, not sent: main_end_timer of the handler decides at the end
+    " of the roundtrip whether the browser needs it - see
+    " z2ui5_cl_ui5_app_cont->ms_timer. An empty event or no delay is no timer
+    IF event IS INITIAL OR delay_ms <= 0.
+      z2ui5_if_client~timer_stop( ).
+      RETURN.
+    ENDIF.
+    mo_action->mo_app->ms_timer = VALUE #( event    = event
+                                           delay_ms = delay_ms
+                                           no_busy  = no_busy ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~timer_stop.
+
+    " the STOP_TIMER goes out with this response only when the browser runs
+    " the declared timer (ms_timer_sent) - see main_end_timer
+    CLEAR mo_action->mo_app->ms_timer.
 
   ENDMETHOD.
 

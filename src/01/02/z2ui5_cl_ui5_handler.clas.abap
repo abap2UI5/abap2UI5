@@ -129,6 +129,9 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " re-asserted from what the app remembers; the state machine main_end
     " used to carry inline
     METHODS main_end_nav.
+    " the declarative timer of the app answering (client->timer_set): armed
+    " when the browser may not run it, stopped when it was taken back
+    METHODS main_end_timer.
 
     "! the draft save at the end of main_end - a sticky app saves only when
     "! a route or app-state link carries its draft id
@@ -1250,12 +1253,67 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD main_end_timer.
+
+    " The timer an app declared with client->timer_set( ) is the repeating
+    " START_TIMER (ViewOps.evStartTimer, fourth argument X), sent by the
+    " framework in the response of the app it belongs to - the same latch as
+    " the routing mode in main_end_nav. The browser ends a repeating timer
+    " on its own on every app switch, Back/Forward restore, error overlay and
+    " component end, and keeps it running otherwise; so it is sent whenever
+    " the browser may not run it, and on no other roundtrip:
+    " - a request without a draft id (a page load, a Back/Forward restore,
+    "   an app-state link - the page holds no timer of this app),
+    " - a hop to this app (check_on_navigated: first display, the return from
+    "   a called app, a popup app closing),
+    " - a declaration other than the one last sent (ms_timer_sent).
+    " An unchanged running timer sends nothing, so a tick that changed
+    " nothing still answers with the draft it continued (main_end_reuse).
+    DATA(lo_app) = mo_action->mo_app.
+    DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
+
+    IF lo_app->ms_timer IS INITIAL.
+      " no timer (any more): stop the one this app had running, and the one
+      " of an app a hop of this request left (check_timer_end - another
+      " instance of the same class keeps it running in the browser). At the
+      " FRONT of the actions, so a START_TIMER this app queued itself in the
+      " same roundtrip still wins
+      IF lo_app->ms_timer_sent IS NOT INITIAL
+          OR mo_action->ms_next-check_timer_end = abap_true.
+        lo_front->queue_app_event( z2ui5_if_client=>cs_event-stop_timer ).
+        DATA(ls_stop) = mo_action->ms_next-s_action-t_custom[ lines( mo_action->ms_next-s_action-t_custom ) ].
+        DELETE mo_action->ms_next-s_action-t_custom INDEX lines( mo_action->ms_next-s_action-t_custom ).
+        INSERT ls_stop INTO mo_action->ms_next-s_action-t_custom INDEX 1.
+        CLEAR lo_app->ms_timer_sent.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    IF ms_request-s_front-id IS NOT INITIAL
+        AND mo_action->ms_actual-check_on_navigated = abap_false
+        AND lo_app->ms_timer = lo_app->ms_timer_sent.
+      RETURN.
+    ENDIF.
+
+    lo_front->queue_app_event( val   = z2ui5_if_client=>cs_event-start_timer
+                               t_arg = VALUE #( ( lo_app->ms_timer-event )
+                                                ( |{ lo_app->ms_timer-delay_ms }| )
+                                                ( COND #( WHEN lo_app->ms_timer-no_busy = abap_true
+                                                          THEN `X` ) )
+                                                ( `X` ) ) ).
+    lo_app->ms_timer_sent = lo_app->ms_timer.
+
+  ENDMETHOD.
+
   METHOD main_end.
 
     ms_monitor_time-render_start = monitor_clock( ).
 
     " the URL intent first - see main_end_nav
     main_end_nav( ).
+    " the app's declarative timer - before main_end_reuse compares the
+    " container with the draft it continued
+    main_end_timer( ).
 
     DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
 

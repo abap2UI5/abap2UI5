@@ -370,9 +370,17 @@ sap.ui.define(
       return oController?.ctx?.state?.ownsPage !== false;
     }
 
+    // The title of the screen: the document title, and inside the launchpad
+    // the shell title as well - there the user reads the shell header, and
+    // an app no longer branches between SET_TITLE and SET_TITLE_LAUNCHPAD
+    // (z2ui5_if_client=>cs_event-set_title). Both are the page's, so an
+    // embedded component that does not own the page (a section of a Fiori
+    // elements app inside the launchpad) changes neither; the launchpad's
+    // own BSP hands the page over (app_source, ownsPage).
     function evSetTitle(oController, args) {
       if (!ownsPage(oController)) return;
       const title = Lib.toText(args[1]);
+      Lib.setShellTitle(oController?.ctx, title, "SET_TITLE");
       try {
         document.title = title;
       } catch (e) {

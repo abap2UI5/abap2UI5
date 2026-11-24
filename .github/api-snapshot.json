@@ -93,6 +93,8 @@
   "z2ui5_if_client.intf.abap#methods:check_nav_pending": "methods check_nav_pending returning value(result) type abap_bool",
   "z2ui5_if_client.intf.abap#methods:get_nav_tag": "methods get_nav_tag returning value(result) type string",
   "z2ui5_if_client.intf.abap#methods:check_on_nav_back": "methods check_on_nav_back returning value(result) type abap_bool",
+  "z2ui5_if_client.intf.abap#methods:timer_set": "methods timer_set importing event type clike delay_ms type i no_busy type abap_bool default abap_false",
+  "z2ui5_if_client.intf.abap#methods:timer_stop": "methods timer_stop",
   "z2ui5_if_ui5_exit.intf.abap#types:ty_s_http_context": "types begin of ty_s_http_context . types path type string . types app_start type string . types t_params type z2ui5_if_client=>ty_t_name_value . types end of ty_s_http_context",
   "z2ui5_if_ui5_exit.intf.abap#types:ty_s_http_config": "types begin of ty_s_http_config . types src type string . types theme type string . types content_security_policy type string . types styles_css type string . types t_add_config type z2ui5_if_client=>ty_t_name_value . types t_security_header type z2ui5_if_client=>ty_t_name_value . types end of ty_s_http_config",
   "z2ui5_if_ui5_exit.intf.abap#types:ty_s_http_config_post": "types begin of ty_s_http_config_post . types draft_exp_time_in_hours type i . types check_hide_error_details type abap_bool . types check_csrf_active type abap_bool . types check_trust_forwarded_host type abap_bool . types check_monitor_active type abap_bool . types draft_keep_per_chain type i . types end of ty_s_http_config_post",

@@ -864,6 +864,61 @@ test("SET_TITLE sets the title only for a component that owns the page", () => {
   expect(document.title).toBe("App");
 });
 
+// Inside the launchpad SET_TITLE titles the shell as well (Lib.setShellTitle),
+// so an app sets one title in both environments instead of branching into
+// SET_TITLE_LAUNCHPAD - and still only when the component owns the page.
+test.describe("SET_TITLE inside the launchpad", () => {
+  test("sets the shell title and the document title", () => {
+    const shellTitles = [];
+    const { handlers, document } = load({
+      oLaunchpad: {
+        ShellUIService: { setTitle: (t) => shellTitles.push(t) },
+      },
+    });
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(shellTitles).toEqual(["Stock"]);
+    expect(document.title).toBe("Stock");
+  });
+
+  test("a title before the shell service is kept for it", () => {
+    // ShellUIService resolves asynchronously at component start - the
+    // first response of a launch can outrun it; Component sets the kept
+    // title once the service is there
+    const oLaunchpad = {};
+    const { handlers, errors } = load({ oLaunchpad });
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(oLaunchpad.pendingTitle).toBe("Stock");
+    expect(errors()).toEqual([]);
+  });
+
+  test("an embedded component that does not own the page titles no shell", () => {
+    const shellTitles = [];
+    const { handlers, ctx } = load({
+      oLaunchpad: {
+        ShellUIService: { setTitle: (t) => shellTitles.push(t) },
+      },
+    });
+    ctx.state.ownsPage = false;
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(shellTitles).toEqual([]);
+  });
+
+  test("outside the launchpad only the document title changes", () => {
+    const { handlers, document, errors } = load();
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(document.title).toBe("Stock");
+    expect(errors()).toEqual([]);
+  });
+});
+
 // SET_FAVICON: the one decision in it is which <link> to write - a page
 // that already declares an icon must have THAT link updated, not a second,
 // competing one appended (which of two the browser honours is up to the

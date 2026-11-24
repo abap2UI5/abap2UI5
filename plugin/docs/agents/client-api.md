@@ -9,7 +9,7 @@ the per-parameter documentation, is `src/02/z2ui5_if_client.intf.abap` in
 [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_if_client.intf.abap) —
 read a method's block there when this page is not enough.
 
-## Methods (38)
+## Methods (40)
 
 ### `view_destroy`
 
@@ -393,6 +393,25 @@ check_on_nav_back( )
 ```
 
 TRUE on the one roundtrip on which this app gets the screen BACK from an app it called: the called app (or one it called on) left with nav_app_leave( ) - in a handler or through a press wired with _event_nav_app_leave( ) - and this instance is where the leave lands.
+
+### `timer_set`
+
+```abap
+timer_set(
+    event TYPE clike
+    delay_ms TYPE i
+    no_busy TYPE abap_bool DEFAULT abap_false )
+```
+
+DECLARE the repeating timer of this app: the backend event EVENT is raised every DELAY_MS milliseconds for as long as this app has the screen, and the framework - not the app - keeps it running:
+
+### `timer_stop`
+
+```abap
+timer_stop( )
+```
+
+End the timer declared with timer_set( ): the browser stops it with this response, and it is not armed again when the app gets the screen back. Nothing is sent when it did not run. Appended at the END of the interface (rule 5).
 
 ## Obsolete (1) — still compile, never write them in new code
 

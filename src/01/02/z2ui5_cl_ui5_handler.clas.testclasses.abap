@@ -279,9 +279,10 @@ CLASS ltcl_03_dispatch DEFINITION DEFERRED.
 CLASS ltcl_04_nav DEFINITION DEFERRED.
 CLASS ltcl_05_monitor DEFINITION DEFERRED.
 CLASS ltcl_06_draft DEFINITION DEFERRED.
+CLASS ltcl_07_timer DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_handler DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_request ltcl_02_response
                                                   ltcl_03_dispatch ltcl_04_nav ltcl_05_monitor
-                                                  ltcl_06_draft.
+                                                  ltcl_06_draft ltcl_07_timer.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -3531,6 +3532,345 @@ CLASS ltcl_06_draft IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_true( act = exists( lv_shared )
                                       msg = `the draft an app state link names survives the pruning` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" client->timer_set( ): declares its poll once, in check_on_init, and
+" never re-arms it - the shape the declarative timer is for. A QUIET
+" instance of the same class declares none
+CLASS ltcl_app_timer DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_quiet TYPE abap_bool.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_timer IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      IF mv_quiet = abap_false.
+        client->timer_set( event    = `REFRESH`
+                           delay_ms = 1000 ).
+      ENDIF.
+      client->view_display( `<mvc:View><Text text="timer"/></mvc:View>` ).
+      RETURN.
+    ENDIF.
+    IF client->check_on_navigated( ).
+      client->view_display( `<mvc:View><Text text="timer back"/></mvc:View>` ).
+      RETURN.
+    ENDIF.
+    CASE client->get( )-event.
+      WHEN `SAME`.
+        client->timer_set( event    = `REFRESH`
+                           delay_ms = 1000 ).
+      WHEN `FASTER`.
+        client->timer_set( event    = `REFRESH`
+                           delay_ms = 500
+                           no_busy  = abap_true ).
+      WHEN `STOP`.
+        client->timer_stop( ).
+      WHEN `ZERO`.
+        client->timer_set( event    = `REFRESH`
+                           delay_ms = 0 ).
+      WHEN `RESTART`.
+        client->timer_set( event    = `REFRESH`
+                           delay_ms = 1000 ).
+      WHEN `EXPLICIT`.
+        client->follow_up_action( val   = client->cs_event-start_timer
+                                  t_arg = VALUE #( ( `ONCE` ) ( `200` ) ) ).
+      WHEN `CALL_POPUP`.
+        client->nav_app_call( NEW ltcl_app_hop_popup( ) ).
+      WHEN `CALL_QUIET`.
+        DATA(lo_quiet) = NEW ltcl_app_timer( ).
+        lo_quiet->mv_quiet = abap_true.
+        client->nav_app_call( lo_quiet ).
+      WHEN `CALL_SELF`.
+        client->nav_app_call( me ).
+      WHEN `LEAVE`.
+        client->nav_app_leave( ).
+    ENDCASE.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_07_timer DEFINITION FINAL INHERITING FROM ltcl_00_base
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    CONSTANTS c_armed TYPE string VALUE `["START_TIMER","REFRESH","1000","","X"]`.
+    CONSTANTS c_stop  TYPE string VALUE `["STOP_TIMER"]`.
+    " count_in( ) of either timer action - not a substring: the class name
+    " LTCL_APP_TIMER is in every response, so a bare _TIMER would count it
+    CONSTANTS c_any   TYPE string VALUE `*`.
+
+    " the declared timer goes out with the first display, as a repeating
+    " START_TIMER, and an unchanged one that runs is not sent again
+    METHODS armed_once                FOR TESTING RAISING cx_static_check.
+    " other values replace it, timer_stop( ) stops it once, a zero delay is
+    " a stop, and a new declaration arms it again
+    METHODS changed_and_stopped       FOR TESTING RAISING cx_static_check.
+    " a popup app ends it, its close arms it again
+    METHODS rearmed_after_popup_app   FOR TESTING RAISING cx_static_check.
+    " a called instance of the same class without a timer stops it - the
+    " browser cannot tell the hop - and the way back arms it again
+    METHODS stopped_for_same_class    FOR TESTING RAISING cx_static_check.
+    " nav_app_call( me ) keeps the declaration of the instance
+    METHODS kept_on_call_self         FOR TESTING RAISING cx_static_check.
+    " a Back/Forward restore or an app-state link of the draft arms it
+    METHODS rearmed_on_restore        FOR TESTING RAISING cx_static_check.
+    " a START_TIMER the app queues itself takes the slot over
+    METHODS explicit_action_wins      FOR TESTING RAISING cx_static_check.
+    " an unchanged tick of the declared timer still answers the draft it
+    " continued
+    METHODS tick_reuses_draft         FOR TESTING RAISING cx_static_check.
+
+    METHODS count_in
+      IMPORTING
+        iv_text       TYPE string
+        iv_sub        TYPE string
+      RETURNING
+        VALUE(result) TYPE i.
+ENDCLASS.
+
+
+CLASS ltcl_07_timer IMPLEMENTATION.
+
+  METHOD count_in.
+
+    IF iv_sub = c_any.
+      result = count( val = iv_text
+                      sub = `["START_TIMER"` ) + count( val = iv_text
+                                                       sub  = `["STOP_TIMER"` ).
+      RETURN.
+    ENDIF.
+    result = count( val = iv_text
+                    sub = iv_sub ).
+
+  ENDMETHOD.
+
+  METHOD armed_once.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_start->mv_response
+                                                        iv_sub  = c_armed )
+                                        msg = `the first display arms the declared timer, repeating` ).
+
+    " a plain event: the timer runs, nothing is sent
+    DATA(lo_event) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `NOTHING` ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_event->mv_response
+                                                        iv_sub  = c_any ) ).
+
+    " the same declaration again - idempotent
+    DATA(lo_same) = event_on( iv_id    = lo_event->ms_response-s_front-id
+                              iv_event = `SAME` ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_same->mv_response
+                                                        iv_sub  = c_any )
+                                        msg = `an unchanged running timer is not sent again` ).
+
+  ENDMETHOD.
+
+  METHOD changed_and_stopped.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+
+    DATA(lo_faster) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                                iv_event = `FASTER` ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = 1
+        act = count_in( iv_text = lo_faster->mv_response
+                        iv_sub  = `["START_TIMER","REFRESH","500","X","X"]` )
+        msg = `other values replace the timer` ).
+
+    DATA(lo_stop) = event_on( iv_id    = lo_faster->ms_response-s_front-id
+                              iv_event = `STOP` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_stop->mv_response
+                                                        iv_sub  = c_stop ) ).
+
+    " stopped: a second stop and a zero delay send nothing
+    DATA(lo_again) = event_on( iv_id    = lo_stop->ms_response-s_front-id
+                               iv_event = `STOP` ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_again->mv_response
+                                                        iv_sub  = c_any ) ).
+    DATA(lo_zero) = event_on( iv_id    = lo_again->ms_response-s_front-id
+                              iv_event = `ZERO` ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_zero->mv_response
+                                                        iv_sub  = c_any ) ).
+
+    " declared again: armed again
+    DATA(lo_restart) = event_on( iv_id    = lo_zero->ms_response-s_front-id
+                                 iv_event = `RESTART` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_restart->mv_response
+                                                        iv_sub  = c_armed ) ).
+
+    " and a zero delay on a running timer stops it
+    DATA(lo_zero_run) = event_on( iv_id    = lo_restart->ms_response-s_front-id
+                                  iv_event = `ZERO` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_zero_run->mv_response
+                                                        iv_sub  = c_stop ) ).
+
+  ENDMETHOD.
+
+  METHOD rearmed_after_popup_app.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+
+    " the popup app answers: the caller's timer stops with the hop
+    DATA(lo_popup) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `CALL_POPUP` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_popup->ms_response-s_front-app CS `HOP_POPUP` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_popup->mv_response
+                                                        iv_sub  = c_stop ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_popup->mv_response
+                                                        iv_sub  = `["START_TIMER"` ) ).
+
+    " the popup closes: the caller gets the screen and its timer back,
+    " without a line of its own for it
+    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+                              iv_event = `CLOSE` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `APP_TIMER` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_back->mv_response
+                                                        iv_sub  = c_armed ) ).
+
+    " and runs on unchanged
+    DATA(lo_event) = event_on( iv_id    = lo_back->ms_response-s_front-id
+                               iv_event = `NOTHING` ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_event->mv_response
+                                                        iv_sub  = c_any ) ).
+
+  ENDMETHOD.
+
+  METHOD stopped_for_same_class.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+
+    DATA(lo_quiet) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `CALL_QUIET` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_quiet->mv_response
+                                                        iv_sub  = c_stop )
+                                        msg = `the hop stops the timer the browser would keep for the same class` ).
+
+    DATA(lo_back) = event_on( iv_id    = lo_quiet->ms_response-s_front-id
+                              iv_event = `LEAVE` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_back->mv_response
+                                                        iv_sub  = c_armed ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_back->mv_response
+                                                        iv_sub  = c_stop ) ).
+
+  ENDMETHOD.
+
+  METHOD kept_on_call_self.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+    DATA(lo_self) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                              iv_event = `CALL_SELF` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_self->mv_response
+                                                        iv_sub  = c_armed ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_self->mv_response
+                                                        iv_sub  = c_stop ) ).
+
+  ENDMETHOD.
+
+  METHOD rearmed_on_restore.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+    DATA(lo_event) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `NOTHING` ).
+
+    " the page of a Back/Forward restore or of an app-state link holds no
+    " timer: the request names no draft id, only the draft to restore
+    DATA(lo_restore) = NEW z2ui5_cl_ui5_handler(
+        val = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/","SEARCH":"",` &&
+              `"ROUTE":{"APP_STATE":"` && lo_event->ms_response-s_front-id && `"}}}}` ).
+    lo_restore->main_begin( ).
+    lo_restore->main_loop( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_restore->ms_response-s_front-app CS `APP_TIMER` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_restore->mv_response
+                                                        iv_sub  = c_armed ) ).
+
+  ENDMETHOD.
+
+  METHOD explicit_action_wins.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+
+    " the app's own START_TIMER takes the slot: no stop in front of it
+    DATA(lo_explicit) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                                  iv_event = `EXPLICIT` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_explicit->mv_response
+                                                        iv_sub  = `["START_TIMER","ONCE","200"]` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_explicit->mv_response
+                                                        iv_sub  = c_stop ) ).
+
+    " the declaration is gone: a hop away and back arms nothing
+    DATA(lo_popup) = event_on( iv_id    = lo_explicit->ms_response-s_front-id
+                               iv_event = `CALL_POPUP` ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_popup->mv_response
+                                                        iv_sub  = c_any ) ).
+    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+                              iv_event = `CLOSE` ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_back->mv_response
+                                                        iv_sub  = c_any ) ).
+
+    " timer_set( ) hands it back
+    DATA(lo_restart) = event_on( iv_id    = lo_back->ms_response-s_front-id
+                                 iv_event = `RESTART` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count_in( iv_text = lo_restart->mv_response
+                                                        iv_sub  = c_armed ) ).
+
+  ENDMETHOD.
+
+  METHOD tick_reuses_draft.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_timer( ) ).
+    " the first tick still changes the app (check_on_init( ) is false from
+    " now on); the second changes nothing
+    DATA(lo_first) = NEW z2ui5_cl_ui5_handler(
+        val = `{"value":{"S_FRONT":{"ID":"` && lo_start->ms_response-s_front-id &&
+              `","EVENT":"REFRESH","TIMER":true}}}` ).
+    lo_first->main_begin( ).
+    lo_first->main_loop( ).
+    DATA(lv_first) = lo_first->ms_response-s_front-id.
+
+    DATA(lo_second) = NEW z2ui5_cl_ui5_handler(
+        val = `{"value":{"S_FRONT":{"ID":"` && lv_first && `","EVENT":"REFRESH","TIMER":true}}}` ).
+    lo_second->main_begin( ).
+    lo_second->main_loop( ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = count_in( iv_text = lo_second->mv_response
+                                                        iv_sub  = c_any ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_first
+                                        act = lo_second->ms_response-s_front-id
+                                        msg = `an unchanged tick answers the draft it continued` ).
 
   ENDMETHOD.
 

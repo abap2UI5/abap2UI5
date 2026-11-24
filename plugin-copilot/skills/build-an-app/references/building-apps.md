@@ -600,6 +600,28 @@ reasoning:
   app unchanged writes no draft. Switching an existing poll: replace the
   `start_timer` call made on every roundtrip by one call with the repeat flag
   where the screen is shown, and call `stop_timer` where polling should end.
+- A poll that belongs to the app's screen is best DECLARED:
+  `` client->timer_set( event = `POLL` delay_ms = 5000 no_busy = abap_true ) ``
+  (in `check_on_init( )`, or in the render method on every roundtrip — an
+  unchanged declaration that runs is not sent again). The framework stores it
+  with the app (in its draft, no attribute of yours) and arms it as the
+  repeating `start_timer` whenever the app gets the screen: the first display,
+  the return from a called app (a popup app closing included), a browser
+  Back/Forward restore or app-state link. It stops it when the app is left and
+  arms it again on the way back, so there is no `check_on_navigated( )` re-arm
+  and no "is it still armed" memo in the app. Other values replace it,
+  `client->timer_stop( )` ends it (an empty event or a delay of 0 does the
+  same). The tick is the same repeating timer, so a click pauses it and an
+  unchanged tick still writes no draft. The last statement wins: a
+  `follow_up_action( )` with `start_timer`/`stop_timer` takes the timer over
+  and drops the declaration until the next `timer_set( )`.
+- The title of a screen is one call in both environments:
+  `` client->follow_up_action( val = z2ui5_if_client=>cs_event-set_title t_arg = VALUE #( ( `Stock` ) ) ) ``
+  sets the browser title, and inside the Fiori launchpad the shell title as
+  well — no `check_launchpad_active` branch into `set_title_launchpad`. A
+  `Page` that should not repeat the shell's title inside the launchpad hides
+  its header with one attribute, not a second view:
+  `` )->a( n = `showHeader` b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ) ``.
 
 ## 6. Popups, popovers, messages
 

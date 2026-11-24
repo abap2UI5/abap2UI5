@@ -244,32 +244,51 @@ INTERFACE z2ui5_if_ui5_types
     END OF ty_s_nav.
 
 
+  " The declarative timer of ONE app (z2ui5_if_client~timer_set): the
+  " repeating START_TIMER the framework arms whenever the app gets the
+  " screen. Kept on the app container - and therefore in its draft - twice:
+  " what the app declared (ms_timer) and what was last SENT to the browser
+  " for it (ms_timer_sent), so an unchanged timer that runs is not sent
+  " again (z2ui5_cl_ui5_handler=>main_end_timer). Initial = no timer.
+  TYPES:
+    BEGIN OF ty_s_timer,
+      event    TYPE string,
+      delay_ms TYPE i,
+      no_busy  TYPE abap_bool,
+    END OF ty_s_timer.
+
   TYPES:
     BEGIN OF ty_s_next,
-      o_app_call     TYPE REF TO z2ui5_if_app,
-      o_app_leave    TYPE REF TO z2ui5_if_app,
-      next_event     TYPE string,
+      o_app_call      TYPE REF TO z2ui5_if_app,
+      o_app_leave     TYPE REF TO z2ui5_if_app,
+      next_event      TYPE string,
       " the two action queues of this roundtrip, as the response ships them
-      s_action       TYPE ty_s_action,
-      r_data         TYPE REF TO data,
+      s_action        TYPE ty_s_action,
+      r_data          TYPE REF TO data,
       " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
       " roundtrip, collected while the app runs and turned into the VIEWS
       " section by main_end( ).
-      t_action_front TYPE ty_t_system_action,
+      t_action_front  TYPE ty_t_system_action,
       " BACKEND-ONLY: what the browser history / URL has to reflect after this
       " roundtrip. main_end( ) turns it into the NAV section - the frontend
       " router reads its inputs from that one object, not from one response
       " field per component of ty_s_nav.
-      s_nav          TYPE ty_s_nav,
+      s_nav           TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
       " concern - z2ui5_cl_ui5_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
-      s_stateful     TYPE ty_s_http_res-s_stateful,
+      s_stateful      TYPE ty_s_http_res-s_stateful,
       " BACKEND-ONLY: nav_app_call( keep_messages ) / nav_app_leave(
       " keep_messages ) - the hop carries the message toasts and boxes this
       " app queued over to the app navigated to (z2ui5_cl_ui5_action
       " =>prepare_app_stack); every other queued action is dropped as before
-      keep_messages  TYPE abap_bool,
+      keep_messages   TYPE abap_bool,
+      " BACKEND-ONLY: a hop of this request left an app whose declarative
+      " timer runs in the browser (z2ui5_cl_ui5_action=>prepare_app_stack).
+      " The response stops it unless the app answering declares one of its
+      " own - another instance of the SAME class looks like the same app
+      " to the browser, which ends a repeating timer only on a class change
+      check_timer_end TYPE abap_bool,
     END OF ty_s_next.
 
   "! The WIRE protocol version, carried in every response as

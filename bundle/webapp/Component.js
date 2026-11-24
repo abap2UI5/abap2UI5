@@ -383,6 +383,15 @@ sap.ui.define(
         this.getService("ShellUIService")
           .then((s) => {
             setIfAlive("ShellUIService", s);
+            // a title that arrived before the service (Lib.setShellTitle:
+            // the first response of a launch can outrun it) is set now
+            if (this._launchpad === launchpad && "pendingTitle" in launchpad) {
+              Lib.setShellTitle(
+                this.ctx,
+                launchpad.pendingTitle,
+                "Component: pending shell title",
+              );
+            }
             // cc/Dirty decides its branch per call and only takes the FLP
             // flag once this service is there: a mark set before it arrived
             // (the first render of a restored, dirty app) armed the browser

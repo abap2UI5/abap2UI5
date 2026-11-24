@@ -1403,6 +1403,9 @@ INTERFACE z2ui5_if_client
   "! browser Back/Forward restore, with the error overlay and with the end of
   "! the component. A tick that changed nothing answers with the draft it
   "! continued and writes none - the repeat needs no state in the app.
+  "! A poll that should come back by itself after a navigation is declared
+  "! with timer_set( ) instead: the framework arms it whenever the app gets
+  "! the screen and stops it when the app is left.
   "!
   "! **cs_event-stop_timer** - end the timer: the pending tick is cancelled
   "! and a repeating one is not armed again; no t_arg. Stopping when no timer
@@ -1514,8 +1517,11 @@ INTERFACE z2ui5_if_client
   "!
   "! **The browser actions**, t_arg in order:
   "! clipboard_copy - the text (a JSON object or array is copied as its JSON
-  "! text); set_title - the page title; set_title_launchpad - the shell title
-  "! inside the launchpad (silently nothing outside it); set_app_full_width -
+  "! text); set_title - the title of the screen: the page title, and inside
+  "! the launchpad the shell title as well, so one call titles the app in
+  "! both environments (an embedded app whose host keeps the page changes
+  "! neither); set_title_launchpad - the shell title only, inside the
+  "! launchpad (silently nothing outside it); set_app_full_width -
   "! inside the launchpad the app's width: X (abap_true) for the full screen,
   "! like a Fiori elements app with fullWidth in its manifest, empty or none
   "! for the shell's letterbox again (silently nothing outside it);
@@ -1704,5 +1710,53 @@ INTERFACE z2ui5_if_client
   METHODS check_on_nav_back
     RETURNING
       VALUE(result) TYPE abap_bool.
+
+  "! DECLARE the repeating timer of this app: the backend event EVENT is
+  "! raised every DELAY_MS milliseconds for as long as this app has the
+  "! screen, and the framework - not the app - keeps it running:
+  "!
+  "!     IF client->check_on_init( ).
+  "!       client->timer_set( event = `REFRESH` delay_ms = 5000 no_busy = abap_true ).
+  "!     ENDIF.
+  "!
+  "! The declaration is stored with the app (in its draft, not in an
+  "! attribute of the app) and the framework arms it as a repeating
+  "! cs_event-start_timer whenever this app gets the screen: on its first
+  "! display, when an app it called - a popup app included - leaves again,
+  "! and on a browser Back/Forward restore or an app-state link of its
+  "! draft. It is stopped when the app is left (nav_app_call, nav_app_leave)
+  "! and armed again when it comes back - the app does not re-arm it in a
+  "! check_on_navigated( ) branch. Calling it again with the same values is
+  "! harmless: an unchanged timer that runs is not sent again, so an app may
+  "! state it in every roundtrip (from its render method, say), and the
+  "! unchanged tick keeps answering with the draft it continued. Calling it
+  "! with other values replaces the timer from this response on. A user
+  "! event in between pauses the timer like the repeating START_TIMER: the
+  "! next tick comes the full delay after the event's response.
+  "!
+  "! The imperative actions keep working next to it, and the last statement
+  "! wins: a follow_up_action( ) with cs_event-start_timer or stop_timer
+  "! takes the timer over for this app and drops the declaration (call
+  "! timer_set( ) again to hand it back). timer_stop( ) ends the declared
+  "! timer only. One timer per app, as for START_TIMER. Appended at the END
+  "! of the interface (rule 5).
+  "!
+  "! @parameter event    | the backend event of every tick (check_on_event( )).
+  "!                       Empty: the same as timer_stop( ).
+  "! @parameter delay_ms | milliseconds between two ticks. 0 or less: the
+  "!                       same as timer_stop( ).
+  "! @parameter no_busy  | abap_true keeps the global busy indicator down
+  "!                       during a tick - the check_no_busy of _event( ).
+  METHODS timer_set
+    IMPORTING
+      event    TYPE clike
+      delay_ms TYPE i
+      no_busy  TYPE abap_bool DEFAULT abap_false.
+
+  "! End the timer declared with timer_set( ): the browser stops it with this
+  "! response, and it is not armed again when the app gets the screen back.
+  "! Nothing is sent when it did not run. Appended at the END of the
+  "! interface (rule 5).
+  METHODS timer_stop.
 
 ENDINTERFACE.

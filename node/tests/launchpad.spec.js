@@ -14,8 +14,11 @@ const { loadLib, withSpecController } = require("./loadLibModule");
 //                              through the REAL Lib.isValidRedirectURL guard
 //   SET_TITLE_LAUNCHPAD        setTitle via ShellUIService, the deliberately
 //                              silent absence (the service resolves async and
-//                              can legitimately still be unset inside the FLP),
-//                              and a rejecting setTitle caught into the log
+//                              can legitimately still be unset inside the FLP:
+//                              the title is kept as pendingTitle and set by
+//                              Component._initLaunchpad once it is there),
+//                              and a throwing or rejecting setTitle caught
+//                              into the log
 //   SET_APP_FULL_WIDTH         setApplicationFullWidth with the flag read from
 //                              the argument - on ShellUIService from UI5 1.133,
 //                              on the deprecated AppConfiguration before - the
@@ -383,6 +386,36 @@ test.describe("SET_TITLE_LAUNCHPAD", () => {
     expect(errors()).toEqual([]);
   });
 
+  test("a title before the shell service is kept for the component to set", () => {
+    // Lib.setShellTitle: the first response of a launch can outrun the
+    // asynchronous ShellUIService (Component._initLaunchpad sets it then)
+    const oLaunchpad = {};
+    const { handlers, errors } = load({ oLaunchpad });
+
+    handlers.SET_TITLE_LAUNCHPAD({}, ["SET_TITLE_LAUNCHPAD", "My App"]);
+
+    expect(oLaunchpad.pendingTitle).toBe("My App");
+    expect(errors()).toEqual([]);
+  });
+
+  test("a throwing setTitle lands in the error log", () => {
+    const { handlers, errors } = load({
+      oLaunchpad: {
+        ShellUIService: {
+          setTitle: () => {
+            throw new Error("shell says no");
+          },
+        },
+      },
+    });
+
+    handlers.SET_TITLE_LAUNCHPAD({}, ["SET_TITLE_LAUNCHPAD", "My App"]);
+
+    expect(errors()).toContain(
+      "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
+    );
+  });
+
   test("a rejecting setTitle lands in the error log, not as an unhandled rejection", async () => {
     const { handlers, errors } = load({
       oLaunchpad: {
@@ -673,5 +706,68 @@ test.describe("CROSS_APP_NAV_GET_LINKS", () => {
     ]);
 
     expect(errors()).toContain("CrossAppNav: not running inside Launchpad");
+  });
+});
+
+// Component._initLaunchpad: a shell title that arrived before ShellUIService
+// resolved (Lib.setShellTitle kept it as oLaunchpad.pendingTitle) is set the
+// moment the service is there - the first response of a launch, the one that
+// names the first screen's title, can outrun the service.
+test.describe("Component._initLaunchpad", () => {
+  function startLaunchpad() {
+    const { Lib, ctx } = loadLib({ state: {} });
+    let resolveShell;
+    const shellPromise = new Promise((resolve) => {
+      resolveShell = resolve;
+    });
+    const { module: def } = loadModule("Component.js", {
+      deps: {
+        "sap/ui/core/UIComponent": { extend: (_name, d) => d, prototype: {} },
+        "z2ui5/core/Env": { ownClass: (Class) => Class },
+        "z2ui5/core/Lib": Lib,
+      },
+      sandbox: {
+        sap: {
+          ui: {
+            require: (name) => {
+              if (name === "sap/ushell/Container") {
+                return { getServiceAsync: () => new Promise(() => {}) };
+              }
+              return undefined;
+            },
+          },
+        },
+      },
+    });
+    const inst = Object.create(def);
+    inst.ctx = ctx;
+    inst.getService = () => shellPromise;
+    // Lib.isAlive asks the component whether it was destroyed
+    inst.isDestroyed = () => false;
+    inst._initLaunchpad();
+    return { ctx, resolveShell };
+  }
+
+  test("sets the title kept before the service resolved", async () => {
+    const { ctx, resolveShell } = startLaunchpad();
+    // what SET_TITLE / SET_TITLE_LAUNCHPAD leave while the service is still
+    // on its way (Lib.setShellTitle, specs above)
+    ctx.state.oLaunchpad.pendingTitle = "Stock";
+    const titles = [];
+    resolveShell({ setTitle: (t) => titles.push(t) });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(titles).toEqual(["Stock"]);
+    expect("pendingTitle" in ctx.state.oLaunchpad).toBe(false);
+  });
+
+  test("sets nothing when no title was kept", async () => {
+    const { ctx, resolveShell } = startLaunchpad();
+    const titles = [];
+    resolveShell({ setTitle: (t) => titles.push(t) });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(titles).toEqual([]);
+    expect(ctx.state.oLaunchpad.ShellUIService).toBeTruthy();
   });
 });

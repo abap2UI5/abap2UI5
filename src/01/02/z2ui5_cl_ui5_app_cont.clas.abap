@@ -89,6 +89,19 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
 
     CONSTANTS c_draft_keep_max TYPE i VALUE 50.
 
+    " The declarative timer of THIS app (z2ui5_if_client~timer_set /
+    " timer_stop) and the one last sent to the browser for it - see
+    " z2ui5_if_ui5_types=>ty_s_timer. On the app - and therefore in its
+    " draft - so the app need not remember whether the browser still runs
+    " it: z2ui5_cl_ui5_handler=>main_end_timer arms it again whenever the app
+    " gets the screen (a start, a restore, every hop back to it) and sends
+    " nothing while it is unchanged and running. A hop away clears
+    " ms_timer_sent (z2ui5_cl_ui5_action=>prepare_app_stack). Added 2026-11:
+    " a draft written before carries no element for either and deserializes
+    " with no timer
+    DATA ms_timer      TYPE z2ui5_if_ui5_types=>ty_s_timer.
+    DATA ms_timer_sent TYPE z2ui5_if_ui5_types=>ty_s_timer.
+
     " The windowed tables of the app as the last draft carried them - their
     "! the pre-main( ) snapshot of the bound values - see
     "! z2ui5_cl_ui5_srv_model=>main_snapshot

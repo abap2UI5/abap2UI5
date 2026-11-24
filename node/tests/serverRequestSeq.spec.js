@@ -366,6 +366,53 @@ test("responseError ends a repeating timer and cancels its tick", () => {
   expect(cancelled).toEqual([ctx]);
 });
 
+// ... except for a Retry: it re-sends the failed request under the same
+// draft id, and a declarative timer (client->timer_set) that runs is not
+// sent again by the backend - the repeat the overlay ended is handed to the
+// Retry and goes on once its response is applied.
+test("responseError hands the repeating timer to the Retry it offers", () => {
+  const ctx = specContext({
+    isBusy: true,
+    timerRepeat: { event: "POLL", delay: 10 },
+  });
+  const repeat = ctx.state.timerRepeat;
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/Lib": { cancelPendingTimers: () => {} },
+      "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
+    },
+  });
+  // readHttp's Retry object (serverTimeout spec takes it up again)
+  const oRetry = { onRetry: () => {}, timerRepeat: null };
+
+  Server.responseError(ctx, "timeout", undefined, oRetry);
+
+  // ended under the overlay, kept for the Retry
+  expect(ctx.state.timerRepeat).toBeNull();
+  expect(oRetry.timerRepeat).toBe(repeat);
+});
+
+test("an error without a Retry keeps nothing for later", () => {
+  const ctx = specContext({
+    isBusy: true,
+    timerRepeat: { event: "POLL", delay: 10 },
+  });
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/Lib": { cancelPendingTimers: () => {} },
+      "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
+    },
+  });
+  const options = {};
+
+  Server.responseError(ctx, "HTTP 500", undefined, options);
+
+  expect(ctx.state.timerRepeat).toBeNull();
+  expect(options).toEqual({});
+});
+
 test("responseError leaves the timer slot alone when nothing repeats", () => {
   const cancelled = [];
   const ctx = specContext({ isBusy: true });

@@ -402,8 +402,21 @@ sap.ui.define(
           onRetry: () => {
             ctx.state.isBusy = true;
             showBusy(ctx, 0);
+            // the repeating timer the overlay ended (responseError) goes on
+            // with the retried roundtrip: it re-sends the same draft id, and
+            // the backend does not send a running timer again
+            // (z2ui5_cl_ui5_handler=>main_end_timer), so without it a poll
+            // was lost after every successful Retry. Armed again once the
+            // response is applied, as after any roundtrip; a response of
+            // another app drops it (View1)
+            if (oRetry.timerRepeat) {
+              ctx.state.timerRepeat = oRetry.timerRepeat;
+              oRetry.timerRepeat = null;
+            }
             this.readHttp(ctx, oBody, sessionCarried);
           },
+          // set by responseError: the repeating timer it ended
+          timerRepeat: null,
         };
         // The timeout covers the body reads as well as the fetch: once it
         // fires, response.text( ) / .json( ) reject with the abort too, and
@@ -925,7 +938,12 @@ sap.ui.define(
         // overlay. Only then is the slot cleared here - a one-shot timer is
         // left as it always was (the roundtrip that failed cancelled it when
         // it went out).
+        // A Retry re-sends the failed request (readHttp's onRetry) and gets
+        // it back - the overlay's other way out restarts the app.
         if (ctx.state.timerRepeat) {
+          if (typeof oOptions?.onRetry === "function") {
+            oOptions.timerRepeat = ctx.state.timerRepeat;
+          }
           ctx.state.timerRepeat = null;
           Lib.cancelPendingTimers(ctx);
         }

@@ -234,6 +234,25 @@ test.describe("the timeout -> responseError -> Retry path", () => {
     expect(typeof errors[1].options?.onRetry).toBe("function");
   });
 
+  test("the Retry takes up the repeating timer the overlay ended", async () => {
+    // responseError (stubbed here, serverRequestSeq spec) hands the repeat
+    // it ended to the Retry object; the Retry re-sends the same draft id,
+    // and the backend sends no running declarative timer again
+    // (z2ui5_cl_ui5_handler=>main_end_timer) - so the Retry restores it
+    const { Server, ctx, errors, elapse } = loadForAbort();
+    const p = Server.readHttp(ctx, {}, null);
+    elapse(0);
+    await p;
+    const repeat = { event: "POLL", delay: 10 };
+    expect(errors[0].options.timerRepeat).toBeNull();
+    errors[0].options.timerRepeat = repeat;
+
+    errors[0].options.onRetry();
+
+    expect(ctx.state.timerRepeat).toBe(repeat);
+    expect(errors[0].options.timerRepeat).toBeNull();
+  });
+
   test("a timeout of a request a newer one superseded says nothing", async () => {
     // cannot happen through the timer - _abortInflight released it - but a
     // request that timed out in the very tick it was superseded is stale

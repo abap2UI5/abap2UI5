@@ -180,24 +180,16 @@ sap.ui.define(
       });
     }
 
+    // The shell title - silently nothing outside the launchpad. SET_TITLE
+    // sets it as well inside the launchpad (actions/Browser); both go
+    // through Lib.setShellTitle, which keeps a title that arrives before
+    // the shell service for the component to set once it is there.
     function evSetTitleLaunchpad(oController, args) {
-      const title = Lib.toText(args[1]);
-      try {
-        const shell = oController?.ctx?.state.oLaunchpad?.ShellUIService;
-        if (shell?.setTitle) {
-          const result = shell.setTitle(title);
-          if (result?.catch) {
-            result.catch((e) =>
-              Lib.logError(
-                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
-                e,
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        Lib.logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);
-      }
+      Lib.setShellTitle(
+        oController?.ctx,
+        Lib.toText(args[1]),
+        "SET_TITLE_LAUNCHPAD",
+      );
     }
 
     // Full width instead of the shell's letterbox, what a Fiori elements

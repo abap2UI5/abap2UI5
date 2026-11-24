@@ -348,6 +348,38 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return storageType;
   }
 
+  // The launchpad shell's title (ShellUIService.setTitle), for the two
+  // actions that set it: SET_TITLE_LAUNCHPAD, and SET_TITLE inside the
+  // launchpad (actions/Launchpad, actions/Browser). The service resolves
+  // asynchronously at component start (Component._initLaunchpad), and the
+  // first response of a launch - the one that names the first screen's
+  // title - can outrun it: the title is then kept on the launchpad record
+  // (pendingTitle) and set by the component once the service is there,
+  // instead of being dropped. Answers false outside the launchpad (no
+  // oLaunchpad), where there is no shell to title. `label` names the
+  // action in the log of a failing setTitle, a throw and a rejection alike.
+  function setShellTitle(ctx, title, label) {
+    const launchpad = ctx?.state?.oLaunchpad;
+    if (!launchpad) return false;
+    const shell = launchpad.ShellUIService;
+    if (!shell?.setTitle) {
+      launchpad.pendingTitle = title;
+      return true;
+    }
+    delete launchpad.pendingTitle;
+    try {
+      const result = shell.setTitle(title);
+      if (result?.catch) {
+        result.catch((e) =>
+          logError(`${label}: ShellUIService.setTitle failed`, e),
+        );
+      }
+    } catch (e) {
+      logError(`${label}: ShellUIService.setTitle failed`, e);
+    }
+    return true;
+  }
+
   // A timer slot holds either a setTimeout handle or, while a tick waits
   // for the roundtrip in flight (evStartTimer), the cancel function that
   // afterRoundtrip returned - this is the one place that knows both.
@@ -1417,6 +1449,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     readFilesInTurn,
     cancelPendingTimers,
     cancelTimer,
+    setShellTitle,
     resolveStorageType,
     applyTokenUpdate,
     runCallbacks,

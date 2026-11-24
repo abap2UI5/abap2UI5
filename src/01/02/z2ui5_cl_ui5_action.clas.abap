@@ -442,6 +442,16 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   METHOD prepare_app_stack.
 
+    " The leaving app's declarative timer (client->timer_set) ends with the
+    " hop: the draft saved here says it no longer runs, so the roundtrip that
+    " brings the app back arms it again (z2ui5_cl_ui5_handler=>
+    " main_end_timer), and the response of the app navigated to stops it
+    " unless that app declares one of its own (check_timer_end, carried
+    " across every hop of the request)
+    DATA(lv_timer_end) = xsdbool( ms_next-check_timer_end = abap_true
+                                  OR mo_app->ms_timer_sent IS NOT INITIAL ).
+    CLEAR mo_app->ms_timer_sent.
+
     mo_app->db_save( ).
 
     " A CALLED instance whose draft is the caller's own or one below it on
@@ -522,6 +532,14 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     CLEAR result->ms_next-s_nav-set_nav_routing.
     result->ms_next-s_stateful = ms_next-s_stateful.
     result->mv_check_sticky_start = mv_check_sticky_start.
+    result->ms_next-check_timer_end = lv_timer_end.
+    " nav_app_call( me ) puts the SAME instance into a new container: the
+    " declaration belongs to the instance's screen, so it goes along (and is
+    " armed again, check_on_navigated) - a declaration is otherwise the
+    " container's own, restored with its draft
+    IF lv_minted = abap_true AND result->mo_app->mo_app = mo_app->mo_app.
+      result->mo_app->ms_timer = mo_app->ms_timer.
+    ENDIF.
 
     " ... unless the app asked to keep its MESSAGES (nav_app_call/
     " nav_app_leave with keep_messages): a "Saved." toast or an error box

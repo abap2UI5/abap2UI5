@@ -87,7 +87,9 @@
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else
-//                     null (Component._initLaunchpad)
+//                     null (Component._initLaunchpad). Its pendingTitle
+//                     is a shell title that arrived before ShellUIService
+//                     (Lib.setShellTitle), set once the service resolves
 //
 // Page transitions of the MAIN view (view_display( transition ) - written
 // by actions/Slots, which keeps the reasoning)
@@ -204,8 +206,11 @@
 //                     (ViewOps.resumeRepeatTimer, from View1.
 //                     _processAfterRendering). Ended by STOP_TIMER, by a
 //                     START_TIMER without the flag, an app switch (View1),
-//                     Server.reset / restoreFromRoute / responseError, and
-//                     the component's exit (Context.destroy)
+//                     Server.reset / restoreFromRoute / responseError (the
+//                     overlay's Retry takes it up again), and the
+//                     component's exit (Context.destroy). The backend's
+//                     declarative timer (client->timer_set) is this one,
+//                     sent whenever the app gets the screen
 //   shortcuts         registered keyboard shortcuts, normalized combo ->
 //                     scope -> { event, controller }, the scope being a view
 //                     slot key or "" for unscoped (actions/Shortcuts). Dispatch takes the innermost OPEN
