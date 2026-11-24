@@ -867,91 +867,68 @@ reasoning:
   in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5
   can express at all is answered in samples-controls' `CAPABILITIES.md`, each
   claim naming the port that proves it.
-- **Unit-test the app class without a system**: a local test double
-  `ltd_client` with `INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` in
-  the class's `.clas.testclasses.abap` answers `check_on_init` /
-  `check_on_event` / `get_event` from attributes and records what
-  `view_display( )` and `message_toast_display( )` receive; a test then
-  calls `main( )` and asserts.
-  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships
-  one for its starter class — abaplint checks it statically, ABAP Unit runs
-  it on the system, and the MCP server's `run_unit_tests` runs it in the
-  transpiled backend; `npm run test:unit` in the project and the
-  `abap2UI5/mcp-server` GitHub Action do the same at the terminal and in CI,
-  no system involved. Implement every method the app calls in the double:
-  the transpiled runtime generates no empty stubs for a `PARTIALLY
-  IMPLEMENTED` interface, a system does. The double and one test, for the
-  template of §2:
+- **Unit-test the app class with `z2ui5_cl_ui5_test`** - the framework's
+  own test harness, a global `FOR TESTING` class (usable in test code only).
+  It drives the app through the REAL framework, one roundtrip per call, the
+  way the browser drives it: the handler, the client, `_bind( )` and
+  `_event( )`, the draft. No test double of `z2ui5_if_client`, no framework
+  internals. `start( )` is the first roundtrip (`check_on_init( )` and
+  `check_on_navigated( )` true), `set_model( )` is what the user types into a
+  bound control (it travels as the model delta of the next request and is in
+  the attribute when `main( )` runs), `event( )` is a press of a control wired
+  with `_event( )`:
 
   ```abap
-  CLASS ltd_client DEFINITION FINAL FOR TESTING.
-    PUBLIC SECTION.
-      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.
-      " what the lifecycle questions are answered with
-      DATA init      TYPE abap_bool.
-      DATA navigated TYPE abap_bool.
-      DATA event     TYPE abap_bool.
-      DATA event_id  TYPE string.
-      " what the app did back, in order
-      DATA t_view  TYPE string_table.
-      DATA t_toast TYPE string_table.
-  ENDCLASS.
-
-  CLASS ltd_client IMPLEMENTATION.
-    METHOD z2ui5_if_client~check_on_init.
-      result = init.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~check_on_navigated.
-      result = navigated.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~check_on_event.
-      result = event.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~get_event.
-      result = event_id.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~view_display.
-      APPEND val TO t_view.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~message_toast_display.
-      APPEND text TO t_toast.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~_bind.
-      result = `bound`.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~_event.
-      result = val.
-    ENDMETHOD.
-  ENDCLASS.
-
   CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
     PRIVATE SECTION.
-      METHODS save_toasts_the_name FOR TESTING RAISING cx_static_check.
+      METHODS post_names_the_input FOR TESTING RAISING cx_static_check.
   ENDCLASS.
 
   CLASS ltcl_app IMPLEMENTATION.
-    METHOD save_toasts_the_name.
-      DATA(app)    = NEW zcl_my_app( ).
-      DATA(double) = NEW ltd_client( ).
-      " an event roundtrip: the framework has already written the user's
-      " input into the bound attribute when main( ) is called
-      double->event    = abap_true.
-      double->event_id = `SAVE`.
-      app->name        = `World`.
+    METHOD post_names_the_input.
+      DATA(test) = z2ui5_cl_ui5_test=>start( NEW zcl_my_app( ) ).
+      cl_abap_unit_assert=>assert_true( xsdbool( test->view_xml( ) CS `POST` ) ).
 
-      app->z2ui5_if_app~main( double ).
+      test->set_model( path = `/NAME`
+                       val  = `World` )->event( `POST` ).
 
-      cl_abap_unit_assert=>assert_equals( exp = `Saved, World`
-                                          act = double->t_toast[ 1 ] ).
-      " an event does not rebuild the view
-      cl_abap_unit_assert=>assert_initial( double->t_view ).
+      DATA(messages) = test->messages( ).
+      cl_abap_unit_assert=>assert_equals( exp = `Hello World`
+                                          act = messages[ 1 ]-text ).
+      cl_abap_unit_assert=>assert_equals( exp = `World`
+                                          act = CAST zcl_my_app( test->app( ) )->name ).
     ENDMETHOD.
   ENDCLASS.
   ```
 
-  A first-start test sets `init` and `navigated` both (the framework answers
-  both with true on a fresh instance) and asserts on `t_view[ 1 ]`; a
-  navigated test sets `navigated` alone.
+  What else it does: `event( val t_arg )` with event arguments, `leave( )`
+  (a press wired with `_event_nav_app_leave( )`), `timer( )` (the tick of a timer
+  declared with `timer_set( )` or armed with `cs_event-start_timer`), `restore( )` (a reload from the last draft:
+  `check_on_navigated( )` without `check_on_init( )`), and
+  `start_called( app )` - the app as the target of a `nav_app_call( )`, the
+  way a popup app or a value help is reached, so its `nav_app_leave( )` goes
+  back and `nav_left( )` hands you the instance that left, to read its
+  result. Readers: `view_xml( )`, `nest_xml( )`, `nest2_xml( )`,
+  `popup_xml( )`, `popover_xml( )` (what each slot shows NOW - a slot keeps its
+  view until a roundtrip replaces or destroys it), `model( path )` (the
+  browser's model, your edits included), `actions( )` and `messages( )` (what
+  the LAST roundtrip asked the browser to do), `nav_called( )`, `app( )`,
+  `response( )` (the raw JSON). Model paths are written as in a binding, table
+  rows from 0: `/MT_TAB/0/NAME` is the first row.
+
+  Two things follow from the draft and are worth knowing: every event
+  restores the app from the draft the previous roundtrip saved, so **read
+  `app( )` again after every step** (an older reference is a dead instance)
+  and change a bound value with `set_model( )`, not on the instance; and an
+  attribute the draft cannot carry fails in the test as it fails in the
+  browser. The drafts are kept in memory - no row reaches `Z2UI5_T_01` - and
+  an app that calls `set_session_stateful( )` keeps its instance, as on a
+  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the
+  transpiled backend (`run_unit_tests` of the MCP server, `npm run test:unit`
+  in an app-template project). It ships with the release after 1.150.0; on an older
+  installation a hand-written `ltd_client` with `INTERFACES z2ui5_if_client
+  PARTIALLY IMPLEMENTED.` is the fallback. What only the browser does - a
+  frontend event, rendering - is not covered; that is the linter's render check.
 - **Getting the class into a system.** An app is delivered as abapGit files —
   `zcl_my_app.clas.abap` and its `zcl_my_app.clas.xml` sidecar, in a
   repository the system pulls with abapGit — or its source is pasted into the

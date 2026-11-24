@@ -922,100 +922,77 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5` && |\n| &&
              `  can express at all is answered in samples-controls' ``CAPABILITIES.md``, each` && |\n| &&
              `  claim naming the port that proves it.` && |\n| &&
-             `- **Unit-test the app class without a system**: a local test double` && |\n| &&
-             `  ``ltd_client`` with ``INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.`` in` && |\n| &&
-             `  the class's ``.clas.testclasses.abap`` answers ``check_on_init`` /` && |\n| &&
-             `  ``check_on_event`` / ``get_event`` from attributes and records what` && |\n| &&
-             `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n| &&
-             `  calls ``main( )`` and asserts.` && |\n| &&
-             `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships` && |\n|.
+             `- **Unit-test the app class with ``z2ui5_cl_ui5_test``** - the framework's` && |\n| &&
+             `  own test harness, a global ``FOR TESTING`` class (usable in test code only).` && |\n| &&
+             `  It drives the app through the REAL framework, one roundtrip per call, the` && |\n| &&
+             `  way the browser drives it: the handler, the client, ``_bind( )`` and` && |\n| &&
+             `  ``_event( )``, the draft. No test double of ``z2ui5_if_client``, no framework` && |\n| &&
+             `  internals. ``start( )`` is the first roundtrip (``check_on_init( )`` and` && |\n| &&
+             `  ``check_on_navigated( )`` true), ``set_model( )`` is what the user types into a` && |\n|.
     result = result &&
-             `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n| &&
-             `  it on the system, and the MCP server's ``run_unit_tests`` runs it in the` && |\n| &&
-             `  transpiled backend; ``npm run test:unit`` in the project and the` && |\n| &&
-             `  ``abap2UI5/mcp-server`` GitHub Action do the same at the terminal and in CI,` && |\n| &&
-             `  no system involved. Implement every method the app calls in the double:` && |\n| &&
-             `  the transpiled runtime generates no empty stubs for a ``PARTIALLY` && |\n| &&
-             `  IMPLEMENTED`` interface, a system does. The double and one test, for the` && |\n| &&
-             `  template of section 2:` && |\n| &&
+             `  bound control (it travels as the model delta of the next request and is in` && |\n| &&
+             `  the attribute when ``main( )`` runs), ``event( )`` is a press of a control wired` && |\n| &&
+             `  with ``_event( )``:` && |\n| &&
              |\n| &&
              `  ``````abap` && |\n| &&
-             `  CLASS ltd_client DEFINITION FINAL FOR TESTING.` && |\n| &&
-             `    PUBLIC SECTION.` && |\n| &&
-             `      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` && |\n| &&
-             `      " what the lifecycle questions are answered with` && |\n| &&
-             `      DATA init      TYPE abap_bool.` && |\n| &&
-             `      DATA navigated TYPE abap_bool.` && |\n| &&
-             `      DATA event     TYPE abap_bool.` && |\n| &&
-             `      DATA event_id  TYPE string.` && |\n| &&
-             `      " what the app did back, in order` && |\n| &&
-             `      DATA t_view  TYPE string_table.` && |\n| &&
-             `      DATA t_toast TYPE string_table.` && |\n| &&
-             `  ENDCLASS.` && |\n| &&
-             |\n| &&
-             `  CLASS ltd_client IMPLEMENTATION.` && |\n| &&
-             `    METHOD z2ui5_if_client~check_on_init.` && |\n| &&
-             `      result = init.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~check_on_navigated.` && |\n| &&
-             `      result = navigated.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~check_on_event.` && |\n| &&
-             `      result = event.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~get_event.` && |\n| &&
-             `      result = event_id.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~view_display.` && |\n| &&
-             `      APPEND val TO t_view.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~message_toast_display.` && |\n| &&
-             `      APPEND text TO t_toast.` && |\n|.
-    result = result &&
-             `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~_bind.` && |\n| &&
-             `      result = ``bound``.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~_event.` && |\n| &&
-             `      result = val.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
-             `  ENDCLASS.` && |\n| &&
-             |\n| &&
              `  CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.` && |\n| &&
              `    PRIVATE SECTION.` && |\n| &&
-             `      METHODS save_toasts_the_name FOR TESTING RAISING cx_static_check.` && |\n| &&
+             `      METHODS post_names_the_input FOR TESTING RAISING cx_static_check.` && |\n| &&
              `  ENDCLASS.` && |\n| &&
              |\n| &&
              `  CLASS ltcl_app IMPLEMENTATION.` && |\n| &&
-             `    METHOD save_toasts_the_name.` && |\n| &&
-             `      DATA(app)    = NEW zcl_my_app( ).` && |\n| &&
-             `      DATA(double) = NEW ltd_client( ).` && |\n| &&
-             `      " an event roundtrip: the framework has already written the user's` && |\n| &&
-             `      " input into the bound attribute when main( ) is called` && |\n| &&
-             `      double->event    = abap_true.` && |\n| &&
-             `      double->event_id = ``SAVE``.` && |\n| &&
-             `      app->name        = ``World``.` && |\n| &&
+             `    METHOD post_names_the_input.` && |\n| &&
+             `      DATA(test) = z2ui5_cl_ui5_test=>start( NEW zcl_my_app( ) ).` && |\n| &&
+             `      cl_abap_unit_assert=>assert_true( xsdbool( test->view_xml( ) CS ``POST`` ) ).` && |\n| &&
              |\n| &&
-             `      app->z2ui5_if_app~main( double ).` && |\n| &&
+             `      test->set_model( path = ``/NAME``` && |\n| &&
+             `                       val  = ``World`` )->event( ``POST`` ).` && |\n| &&
              |\n| &&
-             `      cl_abap_unit_assert=>assert_equals( exp = ``Saved, World``` && |\n| &&
-             `                                          act = double->t_toast[ 1 ] ).` && |\n| &&
-             `      " an event does not rebuild the view` && |\n| &&
-             `      cl_abap_unit_assert=>assert_initial( double->t_view ).` && |\n| &&
+             `      DATA(messages) = test->messages( ).` && |\n| &&
+             `      cl_abap_unit_assert=>assert_equals( exp = ``Hello World``` && |\n| &&
+             `                                          act = messages[ 1 ]-text ).` && |\n| &&
+             `      cl_abap_unit_assert=>assert_equals( exp = ``World``` && |\n| &&
+             `                                          act = CAST zcl_my_app( test->app( ) )->name ).` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
              `  ENDCLASS.` && |\n| &&
              `  ``````` && |\n| &&
              |\n| &&
-             `  A first-start test sets ``init`` and ``navigated`` both (the framework answers` && |\n| &&
-             `  both with true on a fresh instance) and asserts on ``t_view[ 1 ]``; a` && |\n| &&
-             `  navigated test sets ``navigated`` alone.` && |\n| &&
+             `  What else it does: ``event( val t_arg )`` with event arguments, ``leave( )``` && |\n| &&
+             `  (a press wired with ``_event_nav_app_leave( )``), ``timer( )`` (the tick of a timer` && |\n| &&
+             `  declared with ``timer_set( )`` or armed with ``cs_event-start_timer``), ``restore( )`` (a reload from the last dra` &&
+             `ft:` && |\n| &&
+             `  ``check_on_navigated( )`` without ``check_on_init( )``), and` && |\n| &&
+             `  ``start_called( app )`` - the app as the target of a ``nav_app_call( )``, the` && |\n| &&
+             `  way a popup app or a value help is reached, so its ``nav_app_leave( )`` goes` && |\n| &&
+             `  back and ``nav_left( )`` hands you the instance that left, to read its` && |\n| &&
+             `  result. Readers: ``view_xml( )``, ``nest_xml( )``, ``nest2_xml( )``,` && |\n| &&
+             `  ``popup_xml( )``, ``popover_xml( )`` (what each slot shows NOW - a slot keeps its` && |\n| &&
+             `  view until a roundtrip replaces or destroys it), ``model( path )`` (the` && |\n| &&
+             `  browser's model, your edits included), ``actions( )`` and ``messages( )`` (what` && |\n| &&
+             `  the LAST roundtrip asked the browser to do), ``nav_called( )``, ``app( )``,` && |\n| &&
+             `  ``response( )`` (the raw JSON). Model paths are written as in a binding, table` && |\n| &&
+             `  rows from 0: ``/MT_TAB/0/NAME`` is the first row.` && |\n| &&
+             |\n| &&
+             `  Two things follow from the draft and are worth knowing: every event` && |\n|.
+    result = result &&
+             `  restores the app from the draft the previous roundtrip saved, so **read` && |\n| &&
+             `  ``app( )`` again after every step** (an older reference is a dead instance)` && |\n| &&
+             `  and change a bound value with ``set_model( )``, not on the instance; and an` && |\n| &&
+             `  attribute the draft cannot carry fails in the test as it fails in the` && |\n| &&
+             `  browser. The drafts are kept in memory - no row reaches ``Z2UI5_T_01`` - and` && |\n| &&
+             `  an app that calls ``set_session_stateful( )`` keeps its instance, as on a` && |\n| &&
+             `  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the` && |\n| &&
+             `  transpiled backend (``run_unit_tests`` of the MCP server, ``npm run test:unit``` && |\n| &&
+             `  in an app-template project). It ships with the release after 1.150.0; on an older` && |\n| &&
+             `  installation a hand-written ``ltd_client`` with ``INTERFACES z2ui5_if_client` && |\n| &&
+             `  PARTIALLY IMPLEMENTED.`` is the fallback. What only the browser does - a` && |\n| &&
+             `  frontend event, rendering - is not covered; that is the linter's render check.` && |\n| &&
              `- **Getting the class into a system.** An app is delivered as abapGit files -` && |\n| &&
              `  ``zcl_my_app.clas.abap`` and its ``zcl_my_app.clas.xml`` sidecar, in a` && |\n| &&
              `  repository the system pulls with abapGit - or its source is pasted into the` && |\n| &&
              `  class in ADT / SE24. Nothing else is deployed: no BSP application, no` && |\n| &&
              `  service, no frontend artefact. Once the class is active it runs at the` && |\n| &&
-             `  framework's endpoint with ``?app_start=zcl_my_app``. An agent without a` && |\n|.
-    result = result &&
+             `  framework's endpoint with ``?app_start=zcl_my_app``. An agent without a` && |\n| &&
              `  connection to the system stops at the files - say so, and say which of the` && |\n| &&
              `  gates above ran.` && |\n| &&
              `- **``npm run doctor``** in a project made from app-template: the environment` && |\n| &&
@@ -1042,7 +1019,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `s where you left off (remembered per browser tab in ``sessionStorage``) |` && |\n| &&
              `| **``?z2ui5-devtools=1``** on the page URL | Opens the tools as soon as the page has booted, on the Overview. F` &&
              `or a problem that happens during startup, where Ctrl+F12 comes too late. Example: ``https://<host>/sap/bc/z2ui5` &&
-             `?sap-client=100&z2ui5-devtools=1`` |` && |\n| &&
+             `?sap-client=100&z2ui5-devtools=1`` |` && |\n|.
+    result = result &&
              `| **``?z2ui5-devtools=<KEY>``** | Opens them directly on one view, by its key. Group keys: ``OVERVIEW``, ``PROBLEMS` &&
              ```, ``ROUNDTRIPS``, ``VIEWDATA``, ``SYSTEM``, ``SEARCH``. View keys: ``ERROR``, ``LOG``, ``HISTORY``, ``REQUEST``, ``PLAIN``, ``AC` &&
              `TIONS``, ``DIFF``, ``VIEWDIFF``, ``VIEW``, ``MODEL``, ``BINDINGS``, ``POPUP``, ``POPUP_MODEL``, ``POPUP_BINDINGS``, ``POPOVER``, ` &&
@@ -1064,8 +1042,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `### What you find there` && |\n| &&
              |\n| &&
-             `- **Overview**: which app, which roundtrip, is anything broken, and where to` && |\n|.
-    result = result &&
+             `- **Overview**: which app, which roundtrip, is anything broken, and where to` && |\n| &&
              `  go next. The landing tab, with the "Open on Error" switch.` && |\n| &&
              `- **Problems**: the last fatal error (with Retry / Restart / Logout) and one` && |\n| &&
              `  Log timeline of everything: the framework's error log with stack traces,` && |\n| &&
@@ -1088,7 +1065,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **System**: UI5 version, theme, device, the running app's ABAP class.` && |\n| &&
              `- **Search**: one term across every other tab at once.` && |\n| &&
              `- **Report a Bug** (toolbar): puts the whole session state on the clipboard as a` && |\n| &&
-             `  GitHub-ready issue body (environment, error, log, roundtrip history, the` && |\n| &&
+             `  GitHub-ready issue body (environment, error, log, roundtrip history, the` && |\n|.
+    result = result &&
              `  app's class, each in a collapsed section). Paste it into an issue as it is.` && |\n| &&
              `- The **(i)** button opens the built-in help with the same keys and shortcuts.` && |\n| &&
              |\n| &&
@@ -1107,8 +1085,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `## 11. Calling a language model` && |\n| &&
              |\n| &&
-             ```z2ui5_if_ui5_llm`` is the one seam: ``chat( system t_message s_options )``` && |\n|.
-    result = result &&
+             ```z2ui5_if_ui5_llm`` is the one seam: ``chat( system t_message s_options )``` && |\n| &&
              `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n| &&
              ```content``) and model/``max_tokens``/``temperature``, and answers ``text``,` && |\n| &&
              ```stop_reason`` and ``s_usage``; every failure is ``z2ui5_cx_ui5_llm`` (``get_text( )``` && |\n| &&
