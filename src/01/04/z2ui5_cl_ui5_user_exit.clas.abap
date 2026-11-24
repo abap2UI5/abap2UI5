@@ -524,6 +524,11 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
     cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
 
+    " the chain is pruned by default to the minimum a retry needs; an
+    " installation that wants every draft until its expiry sets 0 in its
+    " own set_config_http_post
+    cs_config-draft_keep_per_chain = z2ui5_cl_ui5_srv_draft=>c_min_keep_per_chain.
+
     " CSRF protection is on by default: the whole state machine hangs off the
     " POST, so out of the box a cross-origin POST must be rejected rather than
     " relying on a fronting SAP ICF/CSRF layer that may or may not be there.
@@ -552,7 +557,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       cs_config-draft_exp_time_in_hours = z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
     ENDIF.
 
-    " pruning is opt-in; a value that asks for it keeps at least what a
+    " 0 switches the pruning off; any other value keeps at least what a
     " retry of a lost response needs and at most what the walk is meant to
     " cost (z2ui5_cl_ui5_srv_draft=>prune_chain clamps the same way, for a
     " subclass that redefines this method)

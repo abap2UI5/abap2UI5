@@ -74,7 +74,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_model_client_stale TYPE abap_bool.
 
     " Draft ids pruning must never delete (z2ui5_if_ui5_draft_store=>
-    " prune_chain, opt-in through draft_keep_per_chain): an id handed out
+    " prune_chain, through draft_keep_per_chain): an id handed out
     " as an app state link (z2ui5_if_client~app_state_get_href) and the
     " draft a route or app state restore started from. On the app - and
     " therefore in its draft - because pruning walks the chain from the
@@ -366,7 +366,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     li_store->create( draft     = ms_draft
                       model_xml = all_xml_stringify( ) ).
 
-    " opt-in (draft_keep_per_chain): the draft that fell out of the window
+    " draft_keep_per_chain (2 by default): the draft that fell out of the window
     " goes now instead of when cleanup( ) finds it old. Not for an app
     " whose app state hash is active - its URL names every draft, and a
     " bookmark of any of them must last until the expiry. A failure here

@@ -75,8 +75,9 @@ keep list, which makes the state differ, so the draft the link names is
 written. The id `get( )-s_draft-id` shows during an unchanged tick is minted
 and never written; a link is made with `app_state_get_href( )`.
 
-**The chain is pruned - opt-in** (`draft_keep_per_chain` in
-`z2ui5_if_ui5_exit=>ty_s_http_config_post`, 0 by default). With N > 0 every
+**The chain is pruned - by default to 2** (`draft_keep_per_chain` in
+`z2ui5_if_ui5_exit=>ty_s_http_config_post`, seeded with 2 by
+`z2ui5_cl_ui5_user_exit` before the exit runs; 0 switches it off). With N > 0 every
 `db_save( )` asks the store to `prune_chain( )`: the draft just saved is depth
 1 of its `id_prev` chain, N of them survive, and the one at depth N + 1 is
 deleted - one per save, N - 1 keyed reads, whatever the length of the chain.

@@ -3051,7 +3051,26 @@ CLASS ltcl_app_count IMPLEMENTATION.
 
 ENDCLASS.
 
-" an exit that switches the pruning on
+" an exit that switches the pruning off
+CLASS ltcl_exit_keep_all DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_exit.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_exit_keep_all IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_get ##NEEDED.
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_post.
+    cs_config-draft_keep_per_chain = 0.
+  ENDMETHOD.
+
+ENDCLASS.
+
+" an exit that sets the pruning explicitly
 CLASS ltcl_exit_keep DEFINITION FINAL.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ui5_exit.
@@ -3104,6 +3123,7 @@ CLASS ltcl_06_draft DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS tick_share_writes_draft   FOR TESTING RAISING cx_static_check.
     METHODS prune_off_keeps_chain     FOR TESTING RAISING cx_static_check.
     METHODS prune_keeps_two           FOR TESTING RAISING cx_static_check.
+    METHODS prune_default_two         FOR TESTING RAISING cx_static_check.
     METHODS prune_keeps_app_stack     FOR TESTING RAISING cx_static_check.
     METHODS prune_keeps_share_link    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
@@ -3213,6 +3233,8 @@ CLASS ltcl_06_draft IMPLEMENTATION.
 
   METHOD prune_off_keeps_chain.
 
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_keep_all( ) ).
+
     DATA(lv_id) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
     DATA(lt_id) = VALUE string_table( ( lv_id ) ).
     DO 4 TIMES.
@@ -3221,7 +3243,7 @@ CLASS ltcl_06_draft IMPLEMENTATION.
       INSERT lv_id INTO TABLE lt_id.
     ENDDO.
 
-    " no exit, draft_keep_per_chain 0: every draft stays until its expiry
+    " exit sets draft_keep_per_chain 0: every draft stays until its expiry
     LOOP AT lt_id INTO lv_id.
       cl_abap_unit_assert=>assert_true( exists( lv_id ) ).
     ENDLOOP.
@@ -3242,6 +3264,23 @@ CLASS ltcl_06_draft IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_false( exists( lt_id[ 1 ] ) ).
     cl_abap_unit_assert=>assert_false( exists( lt_id[ 2 ] ) ).
+    cl_abap_unit_assert=>assert_false( exists( lt_id[ 3 ] ) ).
+    cl_abap_unit_assert=>assert_true( exists( lt_id[ 4 ] ) ).
+    cl_abap_unit_assert=>assert_true( exists( lt_id[ 5 ] ) ).
+
+  ENDMETHOD.
+
+  METHOD prune_default_two.
+
+    " no exit: the chain is pruned to the minimum by default
+    DATA(lv_id) = started_with( NEW ltcl_app_count( ) )->ms_response-s_front-id.
+    DATA(lt_id) = VALUE string_table( ( lv_id ) ).
+    DO 4 TIMES.
+      lv_id = id_after( iv_id    = lv_id
+                        iv_event = `EV` ).
+      INSERT lv_id INTO TABLE lt_id.
+    ENDDO.
+
     cl_abap_unit_assert=>assert_false( exists( lt_id[ 3 ] ) ).
     cl_abap_unit_assert=>assert_true( exists( lt_id[ 4 ] ) ).
     cl_abap_unit_assert=>assert_true( exists( lt_id[ 5 ] ) ).
