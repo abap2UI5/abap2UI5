@@ -682,6 +682,32 @@ reasoning:
   the roundtrip the called app returns on, and is empty on every other one.
   No flag attribute per popup, no `CAST` in a `TRY` to find out which one
   came back.
+- `client->check_on_nav_back( )` is true on exactly the roundtrip on which
+  this app gets the screen back because an app it called left with
+  `nav_app_leave( )` (or a press wired with `_event_nav_app_leave( )`):
+  with or without a tag, with `event`/`r_data`/`keep_messages`, a popup
+  app closing (value help, confirm, error popup app) included. It is false
+  on the first start, on every roundtrip of the called app (its first one
+  too), on every event after the return, on a browser Back/Forward or
+  reload under hash routing (KEEP and FRESH restore like a start), on an
+  app-state bookmark, on `nav_app_call( me )` and on a leave to a `NEW`
+  instance (that replaces the leaving app - a forward move).
+  `client->check_on_navigated( )` is true in both directions of a hop and
+  on every start; `check_on_nav_back( )` only on the way back, so it is the
+  question to ask before reading a result - never compare class names of
+  `get_app_prev( )`, which is the caller on the way in, the callee on the
+  way back and the app itself on a first start:
+
+  ```abap
+  IF client->check_on_nav_back( ).
+    DATA(li_prev) = client->get_app_prev( ).
+    IF li_prev IS INSTANCE OF zcl_popup_confirm.
+      IF CAST zcl_popup_confirm( li_prev )->result( ) = abap_true.
+        " ...
+      ENDIF.
+    ENDIF.
+  ENDIF.
+  ```
 - **Start parameters** — a value the app is started with (`?lgn=0001` on
   the URL, a `startupParameters` entry of a launchpad tile, the query of a
   launchpad intent `#Object-action?lgn=0001`) — are read with one call,

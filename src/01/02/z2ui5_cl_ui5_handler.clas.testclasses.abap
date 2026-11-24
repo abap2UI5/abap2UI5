@@ -2366,6 +2366,68 @@ CLASS ltcl_app_call_self IMPLEMENTATION.
 ENDCLASS.
 
 
+" check_on_nav_back( ): a caller and a callee that record, on every
+" main( ), what it answered - the caller reaches the callee, a popup app
+" and itself, the callee leaves plain, with messages or to a NEW caller
+CLASS ltcl_app_back_caller DEFINITION DEFERRED.
+
+CLASS ltcl_app_back_callee DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_nav_back TYPE abap_bool.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_back_caller DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_nav_back  TYPE abap_bool.
+    DATA mv_navigated TYPE abap_bool.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_back_callee IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    mv_nav_back = client->check_on_nav_back( ).
+    IF client->check_on_navigated( ).
+      client->view_display( `<mvc:View><Text text="back callee"/></mvc:View>` ).
+    ELSEIF client->check_on_event( `BACK` ).
+      client->nav_app_leave( ).
+    ELSEIF client->check_on_event( `BACK_KEEP` ).
+      client->message_toast_display( `Saved.` ).
+      client->nav_app_leave( keep_messages = abap_true ).
+    ELSEIF client->check_on_event( `REPLACE` ).
+      client->nav_app_leave( NEW ltcl_app_back_caller( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS ltcl_app_back_caller IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    mv_nav_back  = client->check_on_nav_back( ).
+    mv_navigated = client->check_on_navigated( ).
+    IF client->check_on_navigated( ).
+      client->view_display( `<mvc:View><Text text="back caller"/></mvc:View>` ).
+    ELSEIF client->check_on_event( `CALL_TAGGED` ).
+      client->nav_app_call( app = NEW ltcl_app_back_callee( )
+                            tag = `PICK_UNIT` ).
+    ELSEIF client->check_on_event( `CALL_PLAIN` ).
+      client->nav_app_call( NEW ltcl_app_back_callee( ) ).
+    ELSEIF client->check_on_event( `CALL_POPUP` ).
+      client->nav_app_call( NEW ltcl_app_hop_popup( ) ).
+    ELSEIF client->check_on_event( `CALL_SELF` ).
+      client->nav_app_call( me ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
@@ -2387,6 +2449,12 @@ CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
     " nav_app_call( tag ) comes back with the screen - on the way back only,
     " and an untagged call clears it
     METHODS nav_tag_comes_back FOR TESTING RAISING cx_static_check.
+    " check_on_nav_back( ) is true on the roundtrip a called app returns
+    " on - with or without a tag, from a popup app too - and on no other
+    METHODS nav_back_only_on_return FOR TESTING RAISING cx_static_check.
+    " ... and false where the screen moves forward: nav_app_call( me ) and
+    " a leave to a NEW instance
+    METHODS nav_back_not_forward FOR TESTING RAISING cx_static_check.
     METHODS transition_travels FOR TESTING RAISING cx_static_check.
     " nav_app_leave( ) back to the caller is a way back, the call is not;
     " the caller keeps its instance through the draft
@@ -2639,6 +2707,78 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     lo_caller ?= lo_back->mo_action->mo_app->mo_app.
     cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `TAG_CALLER` ) ).
     cl_abap_unit_assert=>assert_initial( lo_caller->mv_seen ).
+
+  ENDMETHOD.
+
+  METHOD nav_back_only_on_return.
+
+    DATA lo_caller TYPE REF TO ltcl_app_back_caller.
+    DATA lo_callee TYPE REF TO ltcl_app_back_callee.
+
+    " a first start is no return
+    DATA(lo_start) = started_with( NEW ltcl_app_back_caller( ) ).
+    lo_caller ?= lo_start->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_false( lo_caller->mv_nav_back ).
+
+    " the called app's first roundtrip is a navigation, but no return
+    DATA(lo_call) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                              iv_event = `CALL_TAGGED` ).
+    lo_callee ?= lo_call->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_false( lo_callee->mv_nav_back ).
+
+    " the callee leaves: the caller gets the screen back, with the tag
+    DATA(lo_back) = event_on( iv_id    = lo_call->ms_response-s_front-id
+                              iv_event = `BACK` ).
+    lo_caller ?= lo_back->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_true( lo_caller->mv_nav_back ).
+    cl_abap_unit_assert=>assert_true( lo_caller->mv_navigated ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `BACK_CALLER` ) ).
+
+    " a plain event after the return is none
+    DATA(lo_event) = event_on( iv_id    = lo_back->ms_response-s_front-id
+                               iv_event = `NOTHING` ).
+    lo_caller ?= lo_event->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_false( lo_caller->mv_nav_back ).
+
+    " without a tag, and with keep_messages, it is a return all the same
+    lo_call = event_on( iv_id    = lo_event->ms_response-s_front-id
+                        iv_event = `CALL_PLAIN` ).
+    lo_back = event_on( iv_id    = lo_call->ms_response-s_front-id
+                        iv_event = `BACK_KEEP` ).
+    lo_caller ?= lo_back->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_true( lo_caller->mv_nav_back ).
+
+    " a popup app that closes and leaves hands the screen back as well
+    DATA(lo_popup) = event_on( iv_id    = lo_back->ms_response-s_front-id
+                               iv_event = `CALL_POPUP` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_popup->ms_response-s_front-app CS `HOP_POPUP` ) ).
+    lo_back = event_on( iv_id    = lo_popup->ms_response-s_front-id
+                        iv_event = `CLOSE` ).
+    lo_caller ?= lo_back->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_true( lo_caller->mv_nav_back ).
+
+  ENDMETHOD.
+
+  METHOD nav_back_not_forward.
+
+    DATA lo_caller TYPE REF TO ltcl_app_back_caller.
+
+    " nav_app_call( me ) is a new screen of the same instance
+    DATA(lo_start) = started_with( NEW ltcl_app_back_caller( ) ).
+    DATA(lo_self) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                              iv_event = `CALL_SELF` ).
+    lo_caller ?= lo_self->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_true( lo_caller->mv_navigated ).
+    cl_abap_unit_assert=>assert_false( lo_caller->mv_nav_back ).
+
+    " a leave to a NEW instance replaces the callee - a forward move
+    DATA(lo_call) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                              iv_event = `CALL_PLAIN` ).
+    DATA(lo_replace) = event_on( iv_id    = lo_call->ms_response-s_front-id
+                                 iv_event = `REPLACE` ).
+    lo_caller ?= lo_replace->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_true( lo_caller->mv_navigated ).
+    cl_abap_unit_assert=>assert_false( lo_caller->mv_nav_back ).
 
   ENDMETHOD.
 

@@ -931,6 +931,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_false( lo_result->ms_next-s_nav-set_app_state_active ).
     cl_abap_unit_assert=>assert_false( lo_result->mo_app->mv_app_state_active ).
+    " a browser Back/Forward under KEEP routing restores like a start: the
+    " app is on screen again, but no called app returned to it
+    cl_abap_unit_assert=>assert_true( lo_result->ms_actual-check_on_navigated ).
+    cl_abap_unit_assert=>assert_false( lo_result->ms_actual-check_nav_back ).
 
     " an app-state bookmark (#/z2ui5-xapp-state=<id>) is that opt-in
     lo_saved = NEW #( ).
@@ -955,6 +959,8 @@ CLASS ltcl_test IMPLEMENTATION.
     " follow an expired draft into a 500)
     cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app_stack ).
     cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app ).
+    " ... and no return from a called app (check_on_nav_back( ))
+    cl_abap_unit_assert=>assert_false( lo_result->ms_actual-check_nav_back ).
 
   ENDMETHOD.
 

@@ -9,7 +9,7 @@ the per-parameter documentation, is `src/02/z2ui5_if_client.intf.abap` in
 [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_if_client.intf.abap) —
 read a method's block there when this page is not enough.
 
-## Methods (37)
+## Methods (38)
 
 ### `view_destroy`
 
@@ -384,6 +384,15 @@ get_nav_tag( )
 ```
 
 The tag this app gave its last nav_app_call( tag = ... ), on the roundtrip the called app comes BACK on - and only then:
+
+### `check_on_nav_back`
+
+```abap
+check_on_nav_back( )
+    -> abap_bool
+```
+
+TRUE on the one roundtrip on which this app gets the screen BACK from an app it called: the called app (or one it called on) left with nav_app_leave( ) - in a handler or through a press wired with _event_nav_app_leave( ) - and this instance is where the leave lands.
 
 ## Obsolete (1) — still compile, never write them in new code
 

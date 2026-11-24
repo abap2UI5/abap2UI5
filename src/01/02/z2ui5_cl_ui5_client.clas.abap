@@ -772,6 +772,17 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~check_on_nav_back.
+
+    " the flag factory_stack_leave sets on the hop that returns to an
+    " instance restored from its draft - the same question get_nav_tag( )
+    " asks before it answers. A leave to a fresh instance, a call and every
+    " start (route restore and app-state bookmark included) leave it unset
+    result = mo_action->ms_actual-check_nav_back.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~_event_nav_app_leave.
 
     result = z2ui5_if_client~_event( z2ui5_if_ui5_types=>cs_event_nav_app_leave ).

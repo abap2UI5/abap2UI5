@@ -1669,4 +1669,40 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+  "! TRUE on the one roundtrip on which this app gets the screen BACK from an
+  "! app it called: the called app (or one it called on) left with
+  "! nav_app_leave( ) - in a handler or through a press wired with
+  "! _event_nav_app_leave( ) - and this instance is where the leave lands.
+  "! That covers a popup app closing (an add-on's value help, a confirm or
+  "! an error popup app), a leave with or without a nav tag, with event,
+  "! r_data or keep_messages, and a leave several levels up to
+  "! nav_app_leave( client->get_app( id ) ). On that roundtrip
+  "! get_app_prev( ) is the instance that just left - cast it to read its
+  "! result:
+  "!
+  "!     IF client->check_on_nav_back( ).
+  "!       DATA(li_prev) = client->get_app_prev( ).
+  "!       IF li_prev IS INSTANCE OF zcl_popup_confirm.
+  "!         IF CAST zcl_popup_confirm( li_prev )->result( ) = abap_true. ...
+  "!       ENDIF.
+  "!     ENDIF.
+  "!
+  "! FALSE on every other roundtrip: the first start (get_app_prev( ) is
+  "! the app itself there), every roundtrip of a called app including its
+  "! first (get_app_prev( ) is the caller there), every event after the
+  "! return, a browser Back/Forward or reload under hash routing (KEEP or
+  "! FRESH restores the app from its route like a start), an app-state
+  "! bookmark, nav_app_call( me ) (a new screen of the same instance, not a
+  "! return), a leave to a NEW instance (it replaces the leaving app - a
+  "! forward move) and a leave with nothing to return to (dropped). A popup
+  "! the app displays itself with popup_display( ) is no navigation at all.
+  "! check_on_navigated( ) is true on both directions of a hop, on the first
+  "! start and on a restore; this method is true on the way back only, so
+  "! it implies check_on_navigated( ). It needs no tag - get_nav_tag( )
+  "! answers on the same roundtrip when the call carried one. Appended at
+  "! the END of the interface (rule 5).
+  METHODS check_on_nav_back
+    RETURNING
+      VALUE(result) TYPE abap_bool.
+
 ENDINTERFACE.
