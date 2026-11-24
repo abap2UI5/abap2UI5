@@ -4814,6 +4814,76 @@ CLASS ltcl_app_fast IMPLEMENTATION.
 ENDCLASS.
 
 
+" the edit popup of abap2UI5-addons/table-maintenance (z2ui5_cl_tm_pop), as
+" it binds a row of an arbitrary DDIC table: the row and the fixed values
+" per field are structures built at runtime behind REF TO data, one
+" component per field - named like the field, so a table with fields of an
+" industry solution or a customer namespace (MARA: /CWM/XCWMAT,
+" /VSO/R_TILT_IND, ...) carries components that start with a slash - and
+" every fixed-value component a table of flat rows, the fast path's form
+CLASS ltcl_app_tm_pop DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    TYPES:
+      BEGIN OF ty_s_fix_val,
+        low   TYPE string,
+        high  TYPE string,
+        descr TYPE string,
+      END OF ty_s_fix_val.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH EMPTY KEY.
+    DATA ms_data_row TYPE REF TO data.
+    DATA ms_fixval   TYPE REF TO data.
+    " the fields of the "DDIC table"
+    DATA mt_field    TYPE string_table.
+    METHODS build.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_tm_pop IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+
+  METHOD build.
+
+    DATA lt_comp_row TYPE cl_abap_structdescr=>component_table.
+    DATA lt_comp_fix TYPE cl_abap_structdescr=>component_table.
+    DATA lt_fixval   TYPE ty_t_fix_val.
+    DATA lv_text     TYPE string.
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <fixval> TYPE any.
+    FIELD-SYMBOLS <val>    TYPE any.
+    FIELD-SYMBOLS <tab>    TYPE ty_t_fix_val.
+
+    LOOP AT mt_field INTO DATA(lv_field).
+      APPEND VALUE #( name = lv_field
+                      type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) ) TO lt_comp_row.
+      APPEND VALUE #( name = lv_field
+                      type = CAST #( cl_abap_typedescr=>describe_by_data( lt_fixval ) ) ) TO lt_comp_fix.
+    ENDLOOP.
+    DATA(lo_row) = cl_abap_structdescr=>create( lt_comp_row ).
+    DATA(lo_fix) = cl_abap_structdescr=>create( lt_comp_fix ).
+    CREATE DATA ms_data_row TYPE HANDLE lo_row.
+    CREATE DATA ms_fixval TYPE HANDLE lo_fix.
+
+    ASSIGN ms_data_row->* TO <row>.
+    ASSIGN ms_fixval->* TO <fixval>.
+    LOOP AT mt_field INTO lv_field.
+      ASSIGN COMPONENT lv_field OF STRUCTURE <row> TO <val>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <val> = |v-{ lv_field }|.
+      ASSIGN COMPONENT lv_field OF STRUCTURE <fixval> TO <tab>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <tab> = VALUE #( ( low = `A` descr = |a of { lv_field }| )
+                       ( low = `B` descr = `b` ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_06_fast_json DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
@@ -4928,6 +4998,35 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
     METHODS splice_any_order         FOR TESTING RAISING cx_static_check.
     METHODS splice_no_token          FOR TESTING RAISING cx_static_check.
     METHODS splice_token_lost        FOR TESTING RAISING cx_static_check.
+    " the edit popup of table-maintenance over a table with namespaced
+    " fields - MODEL_FAST_PATH_TOKEN_LOST on initial rendering (1.150.0)
+    METHODS tm_pop_namespaced_fields FOR TESTING RAISING cx_static_check.
+    " a draft written before the fix keeps its client names with `//`
+    METHODS tm_pop_legacy_double_slash FOR TESTING RAISING cx_static_check.
+    " a token overwritten by a later attribute at the same path
+    METHODS tm_pop_token_overwritten FOR TESTING RAISING cx_static_check.
+    METHODS splice_lost_token_skipped FOR TESTING RAISING cx_static_check.
+
+    " the popup's render: every field bound as value and as fixed values,
+    " through the real bind service - the bind paths, field by field
+    METHODS tm_pop_bind
+      IMPORTING
+        io_app        TYPE REF TO ltcl_app_tm_pop
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+      RETURNING
+        VALUE(result) TYPE string_table
+      RAISING
+        cx_static_check.
+
+    " the document the general road writes: every bound attribute set into
+    " ajson at its client name, in the order of the attribute table
+    METHODS tm_pop_ajson_text
+      IMPORTING
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        cx_static_check.
 
 ENDCLASS.
 
@@ -5375,6 +5474,185 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_twice).
         cl_abap_unit_assert=>assert_true( xsdbool( lx_twice->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD splice_lost_token_skipped.
+
+    " a token the tree cannot write (main_json_stringify marked it lost)
+    " is not expected in the document - every other one still is
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    ls_fast-uuid = `U1`.
+    APPEND VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[1]`
+                    lost  = abap_true ) TO ls_fast-t_token.
+    APPEND VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[2]` ) TO ls_fast-t_token.
+    DATA(lv_json) = `{"A":"z2ui5-fast-U1-2"}`.
+
+    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                              CHANGING  cv_json = lv_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{"A":[2]}`
+                                        act = lv_json ).
+
+    " but a token marked lost that the document holds after all is the
+    " inconsistency the error is for
+    lv_json = `{"A":"z2ui5-fast-U1-1","B":"z2ui5-fast-U1-2"}`.
+    TRY.
+        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                                  CHANGING  cv_json = lv_json ).
+        cl_abap_unit_assert=>fail( `a lost token in the document must be refused` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD tm_pop_bind.
+
+    DATA lr_val TYPE REF TO data.
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <fixval> TYPE any.
+    FIELD-SYMBOLS <val>    TYPE any.
+    FIELD-SYMBOLS <struc>  TYPE any.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( io_cont ).
+    ASSIGN io_app->ms_data_row->* TO <row>.
+    ASSIGN io_app->ms_fixval->* TO <fixval>.
+    LOOP AT io_app->mt_field INTO DATA(lv_field).
+      ASSIGN COMPONENT lv_field OF STRUCTURE <row> TO <val>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      lr_val = REF #( <val> ).
+      APPEND lo_bind->main( val    = lr_val
+                            config = VALUE #( path_only = abap_true ) ) TO result.
+      ASSIGN COMPONENT lv_field OF STRUCTURE <fixval> TO <struc>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      lr_val = REF #( <struc> ).
+      APPEND lo_bind->main( val    = lr_val
+                            config = VALUE #( path_only = abap_true ) ) TO result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD tm_pop_ajson_text.
+
+    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = io_cont->mt_attri
+                                                 app   = io_cont->mo_app ).
+    LOOP AT io_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE bind = abap_true.
+      DATA(lr_ref) = lo_model->attri_get_val_ref( lr_attri->name ).
+      ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+      li_exp->set( iv_ignore_empty = abap_false
+                   iv_path         = lr_attri->name_client
+                   iv_val          = <val> ).
+    ENDLOOP.
+    result = li_exp->stringify( ).
+
+  ENDMETHOD.
+
+  METHOD tm_pop_namespaced_fields.
+
+    " a "large" DDIC table: its own fields, a long one, and the fields an
+    " industry solution or a customer namespace appended - the shape that
+    " raised MODEL_FAST_PATH_TOKEN_LOST on the first rendering of the popup
+    DATA(lo_app) = NEW ltcl_app_tm_pop( ).
+    lo_app->mt_field = VALUE #( ( `MANDT` ) ( `MATNR` ) ( `ERSDA` ) ( `ZZ_A_RATHER_LONG_FIELD_NAME_XX` )
+                                ( `/CWM/XCWMAT` ) ( `/CWM/VALUM` ) ( `/VSO/R_TILT_IND` ) ( `/SAPMP/KADU` ) ).
+    DO 30 TIMES.
+      APPEND |F{ sy-index }| TO lo_app->mt_field.
+    ENDDO.
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+
+    DATA(lt_path) = tm_pop_bind( io_app  = lo_app
+                                 io_cont = lo_cont ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+
+    " the document the general road writes, and no token left in it
+    cl_abap_unit_assert=>assert_equals( exp = tm_pop_ajson_text( lo_cont )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+
+    " every binding path is one UI5 resolves - no empty segment, at which
+    " sap.ui.model.json.JSONModel stops walking - and finds the field's
+    " value and its fixed values in the document
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lv_act ).
+    LOOP AT lo_app->mt_field INTO DATA(lv_field).
+      DATA(lv_val_path) = lt_path[ 2 * sy-tabix - 1 ].
+      DATA(lv_fix_path) = lt_path[ 2 * sy-tabix ].
+      cl_abap_unit_assert=>assert_false( act = xsdbool( lv_val_path CS `//` OR lv_fix_path CS `//` )
+                                         msg = |empty path segment for { lv_field }| ).
+      cl_abap_unit_assert=>assert_equals( exp = |v-{ lv_field }|
+                                          act = li_doc->get_string( lv_val_path )
+                                          msg = |value of { lv_field }| ).
+      cl_abap_unit_assert=>assert_equals( exp = |a of { lv_field }|
+                                          act = li_doc->get_string( |{ lv_fix_path }/1/DESCR| )
+                                          msg = |fixed values of { lv_field }| ).
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = `/MS_FIXVAL/CWM/XCWMAT`
+                                        act = lt_path[ 10 ] ).
+
+  ENDMETHOD.
+
+  METHOD tm_pop_legacy_double_slash.
+
+    " a session started before the fix: its draft keeps the client names
+    " the bind wrote then (main_attri_db_load takes name_client over), with
+    " the empty segment ajson files under a path no parent walks. Not a
+    " fast path case - the general road, which writes what it always wrote
+    DATA(lo_app) = NEW ltcl_app_tm_pop( ).
+    lo_app->mt_field = VALUE #( ( `MATNR` ) ( `/CWM/XCWMAT` ) ).
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    tm_pop_bind( io_app  = lo_app
+                 io_cont = lo_cont ).
+    LOOP AT lo_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE bind = abap_true.
+      lr_attri->name_client = replace( val  = lr_attri->name_client
+                                       sub  = `/CWM/`
+                                       with = `//CWM/` ).
+    ENDLOOP.
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = tm_pop_ajson_text( lo_cont )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"MATNR":[{"DESCR":"a of MATNR"` ) ).
+
+  ENDMETHOD.
+
+  METHOD tm_pop_token_overwritten.
+
+    " a field named like the namespace of another: /CWM/XCWMAT sorts before
+    " CWM and sits below it in the document, so the later set of CWM
+    " replaces the node holding the first token. The general road loses
+    " that value the same way - the document is the same, not an error
+    DATA(lo_app) = NEW ltcl_app_tm_pop( ).
+    lo_app->mt_field = VALUE #( ( `/CWM/XCWMAT` ) ( `CWM` ) ( `MATNR` ) ).
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    tm_pop_bind( io_app  = lo_app
+                 io_cont = lo_cont ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = tm_pop_ajson_text( lo_cont )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"CWM":[{"DESCR":"a of CWM"` ) ).
 
   ENDMETHOD.
 

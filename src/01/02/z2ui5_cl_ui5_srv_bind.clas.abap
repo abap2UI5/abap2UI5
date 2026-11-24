@@ -409,6 +409,27 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
                       occ  = 0 ).
     result = |/{ result }|.
 
+    " a component name with a namespace (`/ABC/FIELD` - the fields an
+    " industry solution or a customer appends to a DDIC table, MARA has a
+    " dozen of them) brings its leading slash along: `MS_ROW->/ABC/FIELD`
+    " was `/MS_ROW//ABC/FIELD`. Nothing could resolve that empty segment -
+    " UI5's JSONModel stops walking at it (the binding read MS_ROW itself),
+    " and ajson files the node under a path no parent walks, so the value
+    " never reached the document (and a bound table raised
+    " MODEL_FAST_PATH_TOKEN_LOST, z2ui5_cl_ui5_srv_model=>json_fast_set).
+    " The namespace becomes a segment of its own - `/MS_ROW/ABC/FIELD`,
+    " one path the frontend, ajson and the delta read all resolve alike
+    DO.
+      IF find( val = result
+               sub = `//` ) < 0.
+        EXIT.
+      ENDIF.
+      result = replace( val  = result
+                        sub  = `//`
+                        with = `/`
+                        occ  = 0 ).
+    ENDDO.
+
   ENDMETHOD.
 
   METHOD main.

@@ -119,12 +119,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
     " the fast path's state over one main_json_stringify: the tokens set
-    " into the tree with the JSON each stands for, and the uuid of the call
-    " every token carries (taken on the first one)
+    " into the tree with the JSON each stands for and the path it was set
+    " at, and the uuid of the call every token carries (taken on the first
+    " one). lost: the tree will not write the token (json_fast_check)
     TYPES:
       BEGIN OF ty_s_fast,
         token TYPE string,
         json  TYPE string,
+        path  TYPE string,
+        lost  TYPE abap_bool,
       END OF ty_s_fast.
     TYPES:
       BEGIN OF ty_s_fast_state,
@@ -164,6 +167,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         io_result TYPE REF TO z2ui5_if_ajson
       EXPORTING
         ev_taken  TYPE abap_bool
+      CHANGING
+        cs_fast   TYPE ty_s_fast_state
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! every token the tree will not write marked lost - see the body
+    METHODS json_fast_check
+      IMPORTING
+        io_result TYPE REF TO z2ui5_if_ajson
       CHANGING
         cs_fast   TYPE ty_s_fast_state
       RAISING
@@ -836,6 +848,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                              iv_val             = <val> ).
         ENDLOOP.
 
+        json_fast_check( EXPORTING io_result = li_ajson_result
+                         CHANGING  cs_fast   = ls_fast ).
+
         result = li_ajson_result->stringify( ).
         IF result IS INITIAL.
           result = `{}`.
@@ -888,6 +903,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD json_fast_set.
 
     ev_taken = abap_false.
+    " a path with an empty segment (`/MS_ROW//ABC/FIELD`, the client name
+    " a namespaced component had before z2ui5_cl_ui5_srv_bind=>get_client_name
+    " collapsed it - a draft of a session started then still carries it):
+    " ajson creates the parents segment by segment but files the node under
+    " the path as written, which no parent walks, so a token there never
+    " reaches the document. The general road writes what it always wrote
+    IF find( val = ir_attri->name_client
+             sub = `//` ) >= 0.
+      RETURN.
+    ENDIF.
     IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
         AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
         AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
@@ -908,11 +933,51 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       cs_fast-uuid = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     ENDIF.
     DATA(ls_token) = VALUE ty_s_fast( token = |z2ui5-fast-{ cs_fast-uuid }-{ lines( cs_fast-t_token ) + 1 }|
-                                      json  = lv_json ).
+                                      json  = lv_json
+                                      path  = ir_attri->name_client ).
     APPEND ls_token TO cs_fast-t_token.
     io_result->set( iv_path = ir_attri->name_client
                     iv_val  = ls_token-token ).
     ev_taken = abap_true.
+
+  ENDMETHOD.
+
+  METHOD json_fast_check.
+
+    " A token is in the document when its node is still there and every
+    " node above it is an object or an array the stringify walks into. It
+    " is not when a LATER attribute of the loop was set at the same path or
+    " above it - two attributes whose client names meet (a field `ABC` next
+    " to a namespaced `/ABC/FIELD` of the same row, both below
+    " `/MS_ROW/ABC`): the later set replaced the subtree, token and all.
+    " The general road loses that value exactly the same way, so the token
+    " is marked lost and the document is what the tree alone writes - not
+    " the internal error, which stays for a token the tree should have
+    " written and did not (json_fast_splice)
+    DATA lt_segment TYPE string_table.
+    DATA lv_path    TYPE string.
+
+    LOOP AT cs_fast-t_token REFERENCE INTO DATA(lr_fast).
+      IF io_result->get_string( lr_fast->path ) <> lr_fast->token.
+        lr_fast->lost = abap_true.
+        CONTINUE.
+      ENDIF.
+      SPLIT lr_fast->path AT `/` INTO TABLE lt_segment.
+      DELETE lt_segment WHERE table_line IS INITIAL.
+      " the parents only - the last segment is the token's own node
+      DATA(lv_last) = lines( lt_segment ).
+      DELETE lt_segment INDEX lv_last.
+      CLEAR lv_path.
+      LOOP AT lt_segment INTO DATA(lv_segment).
+        lv_path = |{ lv_path }/{ lv_segment }|.
+        DATA(lv_type) = io_result->get_node_type( lv_path ).
+        IF lv_type <> z2ui5_if_ajson_types=>node_type-object
+            AND lv_type <> z2ui5_if_ajson_types=>node_type-array.
+          lr_fast->lost = abap_true.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -970,6 +1035,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF sy-subrc <> 0.
         EXIT.
       ENDIF.
+      " a token json_fast_check found unreachable, in the document after
+      " all - the check and the tree disagree, counted as lost below
+      IF lr_fast->lost = abap_true.
+        lv_found = -1.
+        EXIT.
+      ENDIF.
       INSERT lv_index INTO TABLE lt_used.
       IF sy-subrc <> 0.
         " the same token a second time - counted as lost below
@@ -987,8 +1058,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDDO.
 
     " every token exactly once - a token the tree did not write, or wrote
-    " twice, is a document with a table missing, and that must be loud
-    IF lines( is_fast-t_token ) <> lv_found.
+    " twice, is a document with a table missing, and that must be loud.
+    " Not counted: the tokens json_fast_check marked lost - a later
+    " attribute replaced them, as it replaces the general road's value
+    DATA(lv_expected) = 0.
+    LOOP AT is_fast-t_token TRANSPORTING NO FIELDS WHERE lost = abap_false. "#EC CI_SORTSEQ
+      lv_expected = lv_expected + 1.
+    ENDLOOP.
+    IF lv_expected <> lv_found.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = `MODEL_FAST_PATH_TOKEN_LOST - internal error while serializing a bound table: a cell placeholder is ` &&

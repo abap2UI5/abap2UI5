@@ -1852,6 +1852,32 @@ only non-key components. Writing `<sum>-cnt` directly is fine.
   `abaplint.jsonc` since the 2.120.75 pin. A script could not decide it: it
   needs the table kind behind the field symbol, a type question.
 
+### A namespaced component name is a slash in a path
+
+abap2UI5-addons/table-maintenance failed on the first rendering of its edit
+popup on a user's S/4 system (2026-11-24, abap2UI5 1.150.0) with
+`MODEL_FAST_PATH_TOKEN_LOST` - for "large" tables only. Large meant MARA and
+its kind: a standard table that carries fields of an industry solution or a
+customer namespace (`/CWM/XCWMAT`, `/VSO/R_TILT_IND`). The popup builds a
+structure at run time with one component per field, so the component is
+called `/CWM/XCWMAT`, and the client path `/MS_FIXVAL//CWM/XCWMAT` got an
+empty segment. **ajson's `set( )` creates the parents segment by segment but
+files the node under the path as written** (`prove_path_exists` drops empty
+segments, `split_path` does not), so no parent walks to it and `stringify( )`
+leaves it out - silently for a scalar, loudly for a table on the fast path.
+UI5's `JSONModel` stops resolving at the empty segment too. Fixed at the
+name: `z2ui5_cl_ui5_srv_bind=>get_client_name` makes the namespace a segment
+of its own (`/MS_FIXVAL/CWM/XCWMAT`), and the fast path falls back to ajson
+for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
+`json_fast_check`).
+
+- **Why nothing caught it:** every fixture named its components like an
+  ABAP programmer does. Any code that builds a path, a key or a file name
+  from a DDIC field or a class name has to be tested with a `/NS/` name -
+  `ltcl_06_fast_json->tm_pop_namespaced_fields` is the shape.
+- **Gate: none.** Whether a name can carry a namespace is a question of
+  where it comes from at run time, not of the source.
+
 ## 6. Blind spots — green, or red, for the wrong reason
 
 **Gate: none, and that is the definition.** An entry lands in this section
