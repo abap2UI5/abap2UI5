@@ -109,7 +109,10 @@ numbered section above.
   on `REF TO object` (`mo_app->('MV_FLAG') = abap_true.`, "Not an object
   reference") and a dereferenced generic `REF TO data` as a table operand
   (`INSERT LINES OF lt INTO TABLE mr_tab->*.`); `unsecure_fae` reports every
-  FOR ALL ENTRIES, guarded or not; `suspicious_loop` calls a WHILE "unchanged"
+  FOR ALL ENTRIES, guarded or not (fixed upstream by abaplint/abaplint#4706,
+  merged 2026-11-24, not yet released - and the guard it accepts turns "every
+  row" into "no row" for an empty driver table, which is not always what was
+  meant); `suspicious_loop` calls a WHILE "unchanged"
   when its counter is advanced through an inline-declared variable; and a rule
   configured as an object (`"check_subrc": { "exclude": [...] }`) checks none
   of the options it does not name. The first three can only be suppressed per
