@@ -3,8 +3,10 @@ target: open-abap
 title: 'transpiler: `NEW ty( comp = VALUE #( ... ) )` for a data type - the inner `VALUE #` is typed as the outer type: a runtime TypeError, and with a table inside the build stops'
 summary: 'since abaplint/transpiler#2030 (2.14.12) `NEW ty_s( a = 1 b = 2 )` builds the structure right; a component given as `VALUE #( ... )` still is not: in `NEW ty_box( first = VALUE #( a = 1 ) )` the inner `VALUE #` is applied to `ty_box` itself (a runtime `setField is not a function`), and when that `VALUE #` holds a table `VALUE #( ( ... ) )` the build stops with "TypeNameOrInfer, type not found: #"'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/issues/2019
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui, `report2cloud:web --start`) - a converted report of the open-source web corpus builds `rs_tool-parameters-properties = NEW ty_args_descr( val1 = VALUE #( type = ... description = ... ) oper = VALUE #( ... enum = VALUE #( ( `+` ) ( `-` ) ) ) ... )` with method-local types; the build stops with "TypeNameOrInfer, type not found: #, ... locals_imp.abap line 46" and the report is left out of the measurement'

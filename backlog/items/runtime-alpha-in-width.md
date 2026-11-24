@@ -3,8 +3,10 @@ target: open-abap
 title: 'String templates: ALPHA = IN ignores WIDTH - `|{ `100` ALPHA = IN WIDTH = 4 }|` is `100 `, not `0100`'
 summary: '`alphaIn( )` of @abaplint/runtime takes the length to fill with leading zeros from the data object only (a Character, or alphaInContext); a string - or a value longer than its field - gets no zeros, and WIDTH afterwards pads to the right, so `|{ `100` ALPHA = IN WIDTH = 4 }|` answers `100 ` where ABAP answers `0100`'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/issues/2126
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the report runtime normalized a screen number with `|{ dynnr ALPHA = IN WIDTH = 4 }|` (CALL SCREEN 100 is screen 0100); its transpiled ABAP Unit run answered `100 ` and the test failed. The runtime now moves the number into an `n LENGTH 4` instead'

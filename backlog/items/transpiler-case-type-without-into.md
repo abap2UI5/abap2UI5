@@ -3,8 +3,10 @@ target: open-abap
 title: 'transpiler: `CASE TYPE OF` with a `WHEN TYPE` without `INTO` crashes the build - "Traverse, node undefined"'
 summary: '`CaseTypeTranspiler` transpiles the `INTO` target of every `WHEN TYPE` unconditionally, and `INTO` is optional - a `WHEN TYPE zcl_x.` that only tests the type stops the whole transpile with "Traverse, node undefined, <file>", without a line'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/issues/2156
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui, `report2cloud:web --start`) - a converted report of the open-source web corpus loops over detector objects with `CASE TYPE OF csr. WHEN TYPE zcl_csr_sbcs. DATA(csr_sbcs) = CAST zcl_csr_sbcs( csr ). ...`; the build stops with "Error: Traverse, node undefined, z2ui5_cl_cgui_w0701.clas.abap" and the report is left out'

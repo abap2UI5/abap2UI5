@@ -15,7 +15,13 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-_Empty. Nothing is waiting to be filed against this one._
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`abap2ui5-linter-nonserializable-attribute`](items/abap2ui5-linter-nonserializable-attribute.md) | 'an object reference an app keeps in an attribute is dropped without a word when the draft is written if its class is not serializable, and is initial on the next roundtrip - the view builder is the usual one' | medium | 2026-11-23 | abap2UI5/linter |
 
 ---
 

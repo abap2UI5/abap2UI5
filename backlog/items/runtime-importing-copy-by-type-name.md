@@ -5,6 +5,7 @@ summary: 'the transpiled method copies a non-generic IMPORTING parameter passed 
 priority: medium
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the runtime test of a converted dynpro: `screen->checkbox( val = gv_window )` with `DATA gv_window TYPE c LENGTH 1` and `checkbox( IMPORTING val TYPE abap_bool )`; the selection-screen builder binds `client->_bind( val )`, and the transpiled backend answered BINDING_ERROR "No class attribute for binding found". The converter now declares such fields `TYPE abap_bool`'

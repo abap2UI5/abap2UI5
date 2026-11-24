@@ -7,7 +7,7 @@
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -353,6 +353,23 @@ and points here, so a new trap is added here and nowhere else.
   abaplint 2.120.71 on (abaplint/abaplint#4386): the rule reports a CONV
   whose operand is a built-in function with a result of the target type,
   and a CONV inside a function argument.
+
+  **Two shapes the rule still misses, both from a user's pull
+  (2026-11-24).** `DATA(lv_name) = CONV string( lr_config->n ).` in
+  `z2ui5_cl_ui5_http_handler->_bootstrap_attributes` (`1f85280c`): an inline
+  declaration whose operand is a component reached through a reference or a
+  field symbol, already `string`. And `->a( n = `growing` v = CONV #( xsdbool(
+  … ) ) )` in layout-management's `xml_build_table` (`5b1c8b7`): a `CONV #( )`
+  around a built-in function as the actual of a `string` formal - the builder
+  has `b =` for exactly that. Measured on 2.120.113, isolated and
+  syntax-clean: the rule reports `DATA(x) = CONV string( lv_string )` and
+  `lv_tgt = CONV string( lr->n )` into a typed target, and neither of these
+  two. Fix: assign the component directly (`DATA(lv_name) = lr_config->n.`),
+  and pass a boolean with `b = xsdbool( … )`. A third shape from the same
+  pull: `rtti_get_t_ddic_fixed_values( CONV #( dfies->rollname ) )` with the
+  formal `TYPE clike` - *"Redundant conversion for type ROLLNAME"*
+  (table-maintenance `3751aca`). For a generic formal `CONV #` takes the
+  operand's own type and converts nothing; pass the operand as it is.
 - **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
   type-compatible with a formal parameter typed `string` — the view builder's
   `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,

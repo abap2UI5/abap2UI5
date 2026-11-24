@@ -5,6 +5,7 @@ summary: 'the type API of the syntax check renders a type as ABAP with toABAP( )
 priority: low
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui, report2cloud - hoisting an inline declaration of an event block into an attribute types it with `SyntaxLogic(...).run( )` and `getType( ).toABAP( )`; the 780-report web corpus crashed the converter on one report (kseretis/abap-metrics, a table of a type from a dependency): `Error: unknown, generic: RSEUI_SET not found, lookup` at `UnknownType.toABAP` from `TableType.toABAP`. Fixed in the converter with a try/catch'

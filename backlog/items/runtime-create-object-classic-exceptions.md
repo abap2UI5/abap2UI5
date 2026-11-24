@@ -5,6 +5,7 @@ summary: 'the transpiled CREATE OBJECT passes the EXPORTING parameters to constr
 priority: medium
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the stand-ins of the SAP GUI controls (z2ui5_cl_cgui_gui*) keep the classic constructors of cl_gui_custom_container and cl_gui_textedit, with EXCEPTIONS cntl_error / error_cntl_create; their unit test of the constructor outside of a report (CREATE OBJECT lo EXPORTING ... EXCEPTIONS error_cntl_create = 1) died with ClassicError instead of sy-subrc = 1, and was dropped'

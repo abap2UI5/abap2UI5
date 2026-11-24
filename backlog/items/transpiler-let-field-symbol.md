@@ -5,6 +5,7 @@ summary: 'a `LET` expression may declare a field symbol (`LET <fs> = itab[ ... ]
 priority: low
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui) - a converted report snippet with `LET <c> = it_carr[ carrid = p_carrid ] IN ...`; the transpile of 257 objects stopped with "Error: LetTranspiler, Expected Field" (@abaplint/transpiler-cli 2.14.5) and no file name, and the measurement now leaves such objects out before the build (`UNSUPPORTED` in `tools/report2cloud/lib/start.mjs`)'

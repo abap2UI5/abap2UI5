@@ -5,6 +5,7 @@ summary: 'lcl_heap->add_object( ) of kernel_call_transformation serializes the a
 priority: high
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: open-abap/open-abap-core
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the stand-ins of the SAP GUI controls kept the handlers of SET HANDLER in the control, the handler class (a local class with if_serializable_object) kept the controls: the first roundtrip of the converted report hung in kernel_call_transformation.clas.locals.mjs (run -> add_object -> run, paused in the inspector); with the handlers in the report the run ended, but one handler set for two events came back as two copies, and CLEAR mo_box in on_close was not seen by on_function. The report now keeps each handler object once in a table of its own'

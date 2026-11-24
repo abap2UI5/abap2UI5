@@ -614,6 +614,41 @@ named, and nothing after it (`bool( … row … OPTIONAL default … )` of
 `z2ui5_cl_agent_snapshot` stands after `OPTIONAL` and is accepted, by the
 system and by the rule).
 
+### Two activation errors from a user's pull (2026-11-24)
+
+Both from one pull of the addons into an S/4HANA system, both green in
+abaplint 2.120.113 with `check_syntax` on - measured in an isolated,
+otherwise syntax-clean class (a file with any other syntax error makes the
+typed rules skip it, which hid the second shape on the first try).
+
+- **A by-reference IMPORTING parameter takes only a compatible actual.**
+  `z2ui5_cl_popup_calculator=>factory( i_value TYPE decfloat34 OPTIONAL )`
+  called with a `TYPE p LENGTH 15 DECIMALS 2` from sample 22: *"The type
+  "P(15.2)" of "ME->AMOUNT" is not compatible with the type "DECFLOAT34" of
+  "I_VALUE""* (abap2UI5-addons/popups `b2c33c3`). There is no conversion as
+  for an assignment. Type the formal generically (`numeric`, `clike`) when
+  callers pass different types, or pass it `VALUE( )` - `slow_parameter_passing`
+  then asks for the generic type instead, which is the better fix anyway.
+  An expression or a literal as the actual is fine; the kernel creates a
+  temporary of the formal's type for those.
+  The same pull, a second shape: the view builder's `a( v TYPE string )`
+  given a NUMC field, `->a( n = `maxLength` v = dfies->leng )` in
+  table-maintenance's `z2ui5_cl_tm_pop` - *"The type "N(6)" of "DFIES->LENG"
+  is not compatible with the type "STRING" of "V""*, three times (`3751aca`).
+  Pass a string: `v = |{ CONV i( dfies->leng ) }|` (the `CONV i` also drops
+  the leading zeros of the NUMC).
+- **Literals joined with `&` are one literal, and a literal holds 255
+  characters.** A `CONSTANTS c_view TYPE string VALUE` of eleven short
+  backquoted parts joined with `&` in the test classes of
+  `z2ui5_cl_layo_xml_tree`: *"The text literal ... is longer than 255
+  characters"*, then *"The statement ENDCLASS is missing"* and *"Compilation
+  was canceled"* (abap2UI5-addons/layout-management `5b1c8b7`). Every part
+  is short and every line passes; the system checks the joined literal. `&&`
+  has no limit but is not allowed in a `CONSTANTS ... VALUE` - build the text
+  in a method with `&&`.
+
+**Backlog:** abaplint · abaplint-method-parameter-not-compatible, abaplint-literal-operator-length
+
 ### Do not depend on DDIC objects that are not everywhere
 
 A sample that selects from `VBAK` compiles here — abaplint resolves it from the
@@ -644,7 +679,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -990,6 +1025,23 @@ and points here, so a new trap is added here and nowhere else.
   abaplint 2.120.71 on (abaplint/abaplint#4386): the rule reports a CONV
   whose operand is a built-in function with a result of the target type,
   and a CONV inside a function argument.
+
+  **Two shapes the rule still misses, both from a user's pull
+  (2026-11-24).** `DATA(lv_name) = CONV string( lr_config->n ).` in
+  `z2ui5_cl_ui5_http_handler->_bootstrap_attributes` (`1f85280c`): an inline
+  declaration whose operand is a component reached through a reference or a
+  field symbol, already `string`. And `->a( n = `growing` v = CONV #( xsdbool(
+  … ) ) )` in layout-management's `xml_build_table` (`5b1c8b7`): a `CONV #( )`
+  around a built-in function as the actual of a `string` formal - the builder
+  has `b =` for exactly that. Measured on 2.120.113, isolated and
+  syntax-clean: the rule reports `DATA(x) = CONV string( lv_string )` and
+  `lv_tgt = CONV string( lr->n )` into a typed target, and neither of these
+  two. Fix: assign the component directly (`DATA(lv_name) = lr_config->n.`),
+  and pass a boolean with `b = xsdbool( … )`. A third shape from the same
+  pull: `rtti_get_t_ddic_fixed_values( CONV #( dfies->rollname ) )` with the
+  formal `TYPE clike` - *"Redundant conversion for type ROLLNAME"*
+  (table-maintenance `3751aca`). For a generic formal `CONV #` takes the
+  operand's own type and converts nothing; pass the operand as it is.
 - **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
   type-compatible with a formal parameter typed `string` — the view builder's
   `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
