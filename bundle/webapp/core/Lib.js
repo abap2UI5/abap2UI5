@@ -1323,8 +1323,9 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // The flags of an event wire: the object in slot [1] of the event array
   // View1.eB is called with - ['NAME', { queueLast: true, noBusy: true }] -
   // or an empty one for the bare ['NAME']. Never the caller's own object,
-  // and always one with the three keys, so the reader destructures without
-  // a guard. Until protocol 3 the flags were positions [3] to [5] of the
+  // and always one with every key, so the reader destructures without
+  // a guard. `timer` is set by no wire: it marks the tick of START_TIMER
+  // (actions/ViewOps), which dispatches through eB like a wire does. Until protocol 3 the flags were positions [3] to [5] of the
   // array; such a wire - a view written by hand against the old shape -
   // is reported once per call and read as flagless, which is what an old
   // frontend made of an unknown position too.
@@ -1332,6 +1333,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     useMainModel: false,
     queueLast: false,
     noBusy: false,
+    timer: false,
   });
   function eventOptions(aEvent) {
     const opt = aEvent?.[1];
@@ -1340,6 +1342,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
         useMainModel: Boolean(opt.useMainModel),
         queueLast: Boolean(opt.queueLast),
         noBusy: Boolean(opt.noBusy),
+        timer: Boolean(opt.timer),
       };
     }
     if (Array.isArray(aEvent) && aEvent.slice(3).some(Boolean)) {

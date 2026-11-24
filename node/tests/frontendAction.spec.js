@@ -3003,7 +3003,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[0].ms).toBe(1000);
     timers[0].fn();
     // alive: fired as a background event (ignore-busy flag set), slot freed
-    expect(ebCalls).toEqual([["POLL"]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
     expect(AppState.state.timers).toEqual({});
 
     // re-armed, then the app is torn down (FLP close / re-launch): the
@@ -3055,7 +3055,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[1].ms).toBe(0);
     expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL"]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
     expect(AppState.state.timers).toEqual({});
   });
 
@@ -3120,9 +3120,8 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[0].ms).toBe(1000);
     timers[0].fn();
 
-    // [5] set, with useMainModel [3] and queueLast [4] written as false in
-    // front of it rather than closing the gap; the reserved [2] as ever
-    expect(ebCalls).toEqual([["POLL", { noBusy: true }]]);
+    // the flag in the options object, next to the tick's own mark
+    expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
     expect(AppState.state.timers).toEqual({});
   });
 
@@ -3133,11 +3132,10 @@ test.describe("START_TIMER (backend timer liveness)", () => {
       const { FrontendAction, timers, ebCalls, oController } = loadTimer();
       FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", on]);
       timers[0].fn();
-      expect(ebCalls).toEqual([["POLL", { noBusy: true }]]);
+      expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
     }
     // ... and everything else - abap_false, which never reaches the wire as
-    // a trailing empty, among them - dispatches the array a two-argument
-    // START_TIMER always dispatched
+    // a trailing empty, among them - dispatches a tick without it
     for (const off of [[], [""], [" "], ["false"], ["-"]]) {
       const { FrontendAction, timers, ebCalls, oController } = loadTimer();
       FrontendAction.execute(oController, [
@@ -3147,7 +3145,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
         ...off,
       ]);
       timers[0].fn();
-      expect(ebCalls).toEqual([["POLL"]]);
+      expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
     }
   });
 
@@ -3164,7 +3162,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     AppState.state.isBusy = false;
     for (const fn of [...AppState.state.onRoundtripEnd]) fn();
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL", { noBusy: true }]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
   });
 
   test("a replacing START_TIMER decides the flag afresh", () => {
@@ -3175,7 +3173,35 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL"]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
+  });
+  test("a tick waits while a click the previous tick held back goes out", () => {
+    // View1.eB kept a click that met the last tick (oTickQueuedEvent); the
+    // tick's own follow-up actions armed the timer again before the click
+    // is dispatched. The tick must not go first - it waits, briefly, and
+    // then finds the click's roundtrip in flight and waits for that
+    const { FrontendAction, AppState, timers, ebCalls, oController } =
+      loadTimer();
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    AppState.state.oTickQueuedEvent = { controller: oController, args: [] };
+    timers[0].fn();
+    expect(ebCalls).toEqual([]);
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(50);
+    expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
+
+    // the click went out: the tick waits for its roundtrip like for any
+    AppState.state.oTickQueuedEvent = null;
+    AppState.state.isBusy = true;
+    timers[1].fn();
+    expect(ebCalls).toEqual([]);
+    expect(AppState.state.onRoundtripEnd).toHaveLength(1);
+
+    AppState.state.isBusy = false;
+    for (const fn of [...AppState.state.onRoundtripEnd]) fn();
+    timers[2].fn();
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
   });
 });
 

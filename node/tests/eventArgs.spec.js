@@ -387,11 +387,22 @@ test.describe("eventOptions - the flags of an event wire", () => {
       useMainModel: false,
       queueLast: true,
       noBusy: false,
+      timer: false,
     });
     expect(Lib.eventOptions(["E", { noBusy: true, useMainModel: true }])).toEqual({
       useMainModel: true,
       queueLast: false,
       noBusy: true,
+      timer: false,
+    });
+  });
+
+  test("the tick of START_TIMER marks itself", () => {
+    expect(Lib.eventOptions(["E", { noBusy: true, timer: true }])).toEqual({
+      useMainModel: false,
+      queueLast: false,
+      noBusy: true,
+      timer: true,
     });
   });
 
@@ -400,6 +411,7 @@ test.describe("eventOptions - the flags of an event wire", () => {
       useMainModel: false,
       queueLast: false,
       noBusy: false,
+      timer: false,
     });
   });
 
@@ -408,6 +420,7 @@ test.describe("eventOptions - the flags of an event wire", () => {
       useMainModel: false,
       queueLast: false,
       noBusy: false,
+      timer: false,
     });
   });
 });

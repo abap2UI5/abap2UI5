@@ -116,6 +116,7 @@ sap.ui.define(
           const previousApp = state.renderedApp;
           if (oResponse.APP && previousApp !== oResponse.APP) {
             state.oQueuedEvent = null;
+            state.oTickQueuedEvent = null;
             state.oQueuedWindow = null;
             // ... and what a control of the leaving app fired while its
             // view was built and that has not gone out yet
@@ -432,6 +433,24 @@ sap.ui.define(
           state.renderEventChain = chain;
           break;
         }
+        // The click a START_TIMER tick held back (eB) goes out now, under
+        // the draft id the tick's response named - unless a render event
+        // above made the app busy again: then it waits for that response,
+        // and is not dropped. Its view has to be in its slot still (a
+        // popup the tick's response closed takes the click with it); a
+        // view the response rebuilt in the same slot is the same screen
+        // of the same app - an app switch dropped the click already.
+        const tickQueued = state.oTickQueuedEvent;
+        if (tickQueued && !state.isBusy) {
+          state.oTickQueuedEvent = null;
+          const key = ViewSlots.keyOfController(tickQueued.controller);
+          if (
+            Lib.isControllerAlive(tickQueued.controller) &&
+            ViewSlots.getView(this.ctx, key)
+          ) {
+            tickQueued.controller.eB(...tickQueued.args);
+          }
+        }
         const queued = state.oQueuedEvent;
         state.oQueuedEvent = null;
         if (queued && Lib.isControllerAlive(queued.controller)) {
@@ -643,6 +662,9 @@ sap.ui.define(
       //                    skipped); for the same per-keystroke wires, and
       //                    for a START_TIMER tick armed with its no-busy
       //                    argument (actions/ViewOps)
+      //         timer      set by no wire - the tick of START_TIMER
+      //                    (actions/ViewOps): sent as S_FRONT.TIMER, and
+      //                    a click during it is held back, not dropped
       //         useMainModel  an event fired from a popup or popover
       //                    controller that carries the MAIN model's edits;
       //                    nothing the framework renders sets it
@@ -673,7 +695,9 @@ sap.ui.define(
           );
           return;
         }
-        const { useMainModel, queueLast, noBusy } = Lib.eventOptions(args[0]);
+        const { useMainModel, queueLast, noBusy, timer } = Lib.eventOptions(
+          args[0],
+        );
 
         // No navigator.onLine gate here: a browser reports "offline" for a
         // host without a default route (a VPN-only adapter, an intranet
@@ -739,6 +763,21 @@ sap.ui.define(
               args: Lib.normalizeEventArgs(args),
             });
             return;
+          } else if (this.ctx.state.tickInFlight && !timer) {
+            // The roundtrip in flight is a START_TIMER tick - nothing the
+            // user started or can see coming. Dropping the click there
+            // lost it at random on every polling screen; it is kept
+            // instead, the first one only (a second click meets the guard
+            // as a second click always does), and sent once the tick's
+            // response is applied (_dispatchQueuedEvent). The overlay
+            // goes up as for a dropped click: the user's action is
+            // pending now.
+            if (!this.ctx.state.oTickQueuedEvent) {
+              this.ctx.state.oTickQueuedEvent = {
+                controller: this,
+                args: Lib.normalizeEventArgs(args),
+              };
+            }
           }
           if (!noBusy) showBusy(this.ctx, 0);
           return;
@@ -760,6 +799,9 @@ sap.ui.define(
         // of being one roundtrip in flight. Only the overlay is skipped.
         this.ctx.state.isBusy = true;
         if (!noBusy) showBusy(this.ctx);
+        // what the busy guard above asks: whether a click that lands during
+        // this roundtrip is held back for it (a tick) or dropped
+        this.ctx.state.tickInFlight = timer;
 
         // The request body is built locally and handed explicitly through
         // Server.roundtrip/readHttp. It is mirrored to this.ctx.state.oBody right
@@ -801,6 +843,10 @@ sap.ui.define(
         this.ctx.state.oSentModel = oModel;
 
         oBody.ID = this.ctx.state.oResponse?.ID;
+        // a tick says so (S_FRONT.TIMER, Server.roundtrip): it is the one
+        // roundtrip the backend may answer with the draft it continued,
+        // when the app changed nothing (z2ui5_cl_ui5_handler=>main_end_reuse)
+        if (timer) oBody.TIMER = true;
         // Arguments travel as raw JSON values - the request body is
         // serialized exactly once in Server.readHttp. Object arguments are
         // turned into JSON strings by the backend when it fills

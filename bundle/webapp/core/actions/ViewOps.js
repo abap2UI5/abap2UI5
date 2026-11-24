@@ -22,6 +22,11 @@ sap.ui.define(
     // instant jump. Shared by every scroll path in evScrollTo.
     const SMOOTH_SCROLL_MS = 300;
 
+    // How long a START_TIMER tick waits while a click the previous tick
+    // held back is about to go out (evStartTimer) - a short, rare window
+    // between a response's follow-up actions and its queued events.
+    const TICK_WAIT_MS = 50;
+
     function evSetSizeLimit(oController, args) {
       // Two call shapes:
       //   ["SET_SIZE_LIMIT", "<limit>", "<viewKey>"]   -> set the limit
@@ -171,10 +176,11 @@ sap.ui.define(
       // screen nobody is waiting on. The flag goes where eB reads a
       // check_no_busy wire's: the options object behind the event name.
       // It suppresses the overlay and nothing else - the tick is still THE
-      // roundtrip in flight, so a click that lands meanwhile meets the busy
-      // guard exactly as under any silent roundtrip: dropped, with its own
-      // overlay (see View1.eB). Two arguments dispatch the event array they
-      // always did.
+      // roundtrip in flight. Every tick also carries `timer`: a click that
+      // lands while it runs is held back and sent once its response is
+      // applied, instead of dropped (View1.eB, state.oTickQueuedEvent), and
+      // the backend may answer an unchanged tick with the draft it
+      // continued (S_FRONT.TIMER).
       const noBusy = ControlCall.castArg("bool", args[3]);
       const timers = oController.ctx.state.timers;
       Lib.cancelTimer(timers[timerKey]);
@@ -206,13 +212,23 @@ sap.ui.define(
           if (!(timerKey in timers)) timers[timerKey] = cancel;
           return;
         }
+        // A click the last tick held back goes before the next tick: it is
+        // sent at the very end of that tick's response (View1.
+        // _dispatchQueuedEvent), behind the follow-up actions that may have
+        // armed this timer again. The tick waits the few moments in
+        // between - its dispatch would push the click behind one more
+        // poll - and then meets the click's roundtrip above. A click
+        // dropped there (its view gone) clears the slot, and the tick goes.
+        if (oController.ctx.state.oTickQueuedEvent) {
+          timers[timerKey] = setTimeout(fire, TICK_WAIT_MS);
+          return;
+        }
         // dispatch: between the check above and the dispatch nothing can
         // start a roundtrip, and a tick that lands during one waits on
         // afterRoundtrip instead of being dropped. The tick's no-busy
-        // argument rides as the wire's own flag (View1.eB, slot [1])
-        oController.eB(
-          noBusy ? [callbackEvent, { noBusy: true }] : [callbackEvent],
-        );
+        // argument rides as the wire's own flag (View1.eB, slot [1]), next
+        // to the tick's own mark
+        oController.eB([callbackEvent, { noBusy, timer: true }]);
       };
       timers[timerKey] = setTimeout(fire, delay);
     }

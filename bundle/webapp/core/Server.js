@@ -77,6 +77,9 @@ sap.ui.define(
     //                                      // restore, parsed (Router.startRoute);
     //                                      // or { "APP_STATE": "<id>" }. Only on
     //                                      // a request without ID
+    //         "TIMER": true,               // a START_TIMER tick - only then; an
+    //                                      // unchanged tick may be answered
+    //                                      // with the ID it continued
     //         "MS_CLIENT_PREV": 312,       // the previous roundtrip's duration
     //                                      // as the browser saw it, in ms -
     //                                      // for the backend's roundtrip
@@ -204,6 +207,7 @@ sap.ui.define(
         // down must never be dispatched into the next one - nor a window
         // request of its tables
         ctx.state.oQueuedEvent = null;
+        ctx.state.oTickQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
         ctx.state.aRenderEvents = [];
         // the error overlay's record is the same kind of survivor - the
@@ -223,6 +227,8 @@ sap.ui.define(
         // request that aborts the Back/Forward navigation without any
         // feedback. _processAfterRendering / responseError clear it again.
         ctx.state.isBusy = true;
+        // no tick: a click that meets the restore is dropped as before
+        ctx.state.tickInFlight = false;
         showBusy(ctx, 0);
         // A restore is a new roundtrip like any other, so the timers armed by
         // the screen being left go with it (View1.eB does the same before its
@@ -235,6 +241,7 @@ sap.ui.define(
         // old app's event under the restored draft id (reset( ) and
         // responseError drop it for the same reason)
         ctx.state.oQueuedEvent = null;
+        ctx.state.oTickQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
         ctx.state.aRenderEvents = [];
         this.roundtrip(ctx, {});
@@ -275,6 +282,10 @@ sap.ui.define(
           HASH: state.ownsPage ? window.location.hash : "",
         };
         const sFront = oBody.S_FRONT;
+        // a START_TIMER tick (View1.eB) - the backend may answer it with
+        // the draft it continued when the app changed nothing
+        if (oBody.TIMER) sFront.TIMER = true;
+        delete oBody.TIMER;
         // A request that names no draft starts an app, and what the hash
         // asks it to restore - a route's class and draft, the draft of an
         // app-state link - travels PARSED, as ROUTE: the router is the one
@@ -901,6 +912,7 @@ sap.ui.define(
         // it would re-send the failing value under the overlay and answer
         // with a second one.
         ctx.state.oQueuedEvent = null;
+        ctx.state.oTickQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
         ctx.state.aRenderEvents = [];
         ErrorView.show(ctx, response, title, oOptions);

@@ -3,6 +3,7 @@ CLASS zcl_tst_timer DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
     DATA ticks TYPE i.
+    DATA clicks TYPE i.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
@@ -40,6 +41,12 @@ CLASS zcl_tst_timer IMPLEMENTATION.
 
     ELSEIF client->check_on_event( `TICK` ).
       ticks = ticks + 1.
+
+    " a click while a tick is in flight is held back and sent after the
+    " tick's response (View1.eB, state.oTickQueuedEvent) - it used to be
+    " dropped
+    ELSEIF client->check_on_event( `CLICK` ).
+      clicks = clicks + 1.
     ENDIF.
 
   ENDMETHOD.
@@ -62,6 +69,13 @@ CLASS zcl_tst_timer IMPLEMENTATION.
     page->tag( `Text`
         )->a( n = `id`   v = `txtTicks`
         )->a( n = `text` v = client->_bind( ticks ) ).
+    page->tag( `Text`
+        )->a( n = `id`   v = `txtClicks`
+        )->a( n = `text` v = client->_bind( clicks ) ).
+    page->tag( `Button`
+        )->a( n = `id`    v = `btnClick`
+        )->a( n = `text`  v = `click`
+        )->a( n = `press` v = client->_event( `CLICK` ) ).
     page->tag( `Button`
         )->a( n = `id`    v = `btnArmSilent`
         )->a( n = `text`  v = `arm a no-busy tick`

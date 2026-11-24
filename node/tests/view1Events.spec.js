@@ -1430,6 +1430,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
               useMainModel: Boolean(set.useMainModel),
               queueLast: Boolean(set.queueLast),
               noBusy: Boolean(set.noBusy),
+              timer: Boolean(set.timer),
             };
           },
           buildDeltaFromPaths: (paths, data) => {
@@ -1834,11 +1835,12 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(busy).toEqual(["show(0)"]);
   });
 
-  // START_TIMER's tick is the other producer of [5]: armed with its optional
-  // third argument (abap_true), actions/ViewOps dispatches this array - the
-  // reserved slot [2] set as every tick sends it, the flag behind two
-  // falses. frontendAction.spec.js pins that the handler emits exactly this.
-  const SILENT_TICK = ["TICK", { noBusy: true }];
+  // START_TIMER's tick is the other producer of noBusy: armed with its
+  // optional third argument (abap_true), actions/ViewOps dispatches this
+  // array, the tick's own mark next to the flag. frontendAction.spec.js
+  // pins that the handler emits exactly this.
+  const SILENT_TICK = ["TICK", { noBusy: true, timer: true }];
+  const TICK = ["TICK", { noBusy: false, timer: true }];
 
   test("a no-busy START_TIMER tick round-trips without raising the indicator", () => {
     const { ctrl, state, roundtrips, busy } = loadForQueue();
@@ -1855,23 +1857,105 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   test("a plain START_TIMER tick raises the indicator as it always did", () => {
     const { ctrl, busy } = loadForQueue();
 
-    ctrl.eB(["TICK"]);
+    ctrl.eB(TICK);
 
     expect(busy).toEqual(["show"]);
   });
 
-  test("a click during a no-busy tick is still dropped, with its overlay", () => {
-    const { ctrl, state, roundtrips, busy } = loadForQueue();
+  test("a tick says so on the wire, an event does not", () => {
+    const { ctrl, state, roundtrips } = loadForQueue();
+
     ctrl.eB(SILENT_TICK);
+    expect(roundtrips[0].TIMER).toBe(true);
+    expect(state.tickInFlight).toBe(true);
 
+    state.isBusy = false;
     ctrl.eB(PLAIN);
+    expect(roundtrips[1].TIMER).toBeUndefined();
+    expect(state.tickInFlight).toBe(false);
+  });
 
-    // the tick opted out of the overlay, not out of being the one roundtrip
-    // in flight: the guard drops the click (nothing kept, nothing sent) and
-    // gives it the immediate feedback a dropped click always got
-    expect(roundtrips).toHaveLength(1);
-    expect(state.oQueuedEvent).toBeNull();
-    expect(busy).toEqual(["show(0)"]);
+  // A click that meets a tick in flight used to be dropped like a second
+  // click on a busy app - but the user started no roundtrip and cannot see
+  // the tick (a no-busy tick shows nothing at all): on a screen that polls
+  // every two seconds, a click got lost at random. It is held back instead
+  // and sent once the tick's response is applied, under the id that
+  // response named.
+  test.describe("a click during a tick", () => {
+    test("is kept, the first one only, with the overlay of a dropped click", () => {
+      const { ctrl, state, roundtrips, busy } = loadForQueue();
+      ctrl.eB(SILENT_TICK);
+
+      ctrl.eB(PLAIN, "first");
+      ctrl.eB(PLAIN, "second");
+
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent.controller).toBe(ctrl);
+      expect(state.oTickQueuedEvent.args).toEqual([PLAIN, "first"]);
+      expect(state.oQueuedEvent).toBeNull();
+      expect(busy).toEqual(["show(0)", "show(0)"]);
+    });
+
+    test("goes out once the tick's response is applied, under its id", async () => {
+      const { ctrl, state, roundtrips } = loadForQueue();
+      ctrl.eB(TICK);
+      ctrl.eB(PLAIN, "clicked");
+
+      state.oResponse = { ID: "D_TICK", MODELPRESENT: false };
+      await ctrl._processAfterRendering(1);
+
+      expect(roundtrips).toHaveLength(2);
+      expect(roundtrips[1].ARGUMENTS).toEqual([PLAIN, "clicked"]);
+      expect(roundtrips[1].ID).toBe("D_TICK");
+      expect(roundtrips[1].TIMER).toBeUndefined();
+      expect(state.oTickQueuedEvent).toBeNull();
+      // the click is the roundtrip in flight now - not a tick
+      expect(state.isBusy).toBe(true);
+      expect(state.tickInFlight).toBe(false);
+    });
+
+    test("waits for a roundtrip that went out ahead of it", () => {
+      const { ctrl, state, roundtrips } = loadForQueue();
+      ctrl.eB(TICK);
+      ctrl.eB(PLAIN, "clicked");
+
+      // something else started a roundtrip first (an event a control
+      // fired while the view was built): the click stays kept
+      state.isBusy = true;
+      state.tickInFlight = false;
+      ctrl._dispatchQueuedEvent();
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent).not.toBeNull();
+
+      state.isBusy = false;
+      ctrl._dispatchQueuedEvent();
+      expect(roundtrips).toHaveLength(2);
+      expect(state.oTickQueuedEvent).toBeNull();
+    });
+
+    test("is dropped with its view - a popup the response closed", () => {
+      const { ctrl, state, roundtrips, slot } = loadForQueue();
+      ctrl.eB(TICK);
+      ctrl.eB(PLAIN);
+
+      slot.view = null;
+      state.isBusy = false;
+      ctrl._dispatchQueuedEvent();
+
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent).toBeNull();
+    });
+
+    test("a click during any other roundtrip is dropped as before", () => {
+      const { ctrl, state, roundtrips, busy } = loadForQueue();
+      ctrl.eB(PLAIN, "first");
+
+      ctrl.eB(PLAIN, "second");
+
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent).toBeNull();
+      expect(busy).toEqual(["show", "show(0)"]);
+    });
   });
 });
 

@@ -153,6 +153,21 @@
 //                     one slot, last wins. Dispatched by
 //                     View1._dispatchQueuedEvent once the roundtrip has
 //                     landed, dropped by Server.reset / responseError
+//   tickInFlight      the roundtrip in flight is a START_TIMER tick
+//                     (actions/ViewOps) - set by View1.eB on every
+//                     dispatch, cleared by a route restore
+//   oTickQueuedEvent  { controller, view, args } of the FIRST event the
+//                     user fired while a tick was in flight - kept instead
+//                     of dropped (View1.eB): the user did not start the
+//                     tick and cannot know it runs, so a click on a polling
+//                     screen used to vanish whenever it met one. Dispatched
+//                     by View1._dispatchQueuedEvent once the tick's response
+//                     is applied, so it continues the draft that response
+//                     named; a later click meets the busy guard like a
+//                     second click always did. While it waits, the timer
+//                     does not tick again (ViewOps). Dropped with its view,
+//                     on an app switch, by Server.reset / restoreFromRoute /
+//                     responseError
 //   oQueuedWindow     the window requests of windowed tables that came
 //                     while a roundtrip ran (WindowModel), null or
 //                     { <model path of the table>: { model, slotKey, args,
@@ -263,6 +278,8 @@ sap.ui.define([], () => {
       contextId: null,
       isBusy: false,
       oQueuedEvent: null,
+      tickInFlight: false,
+      oTickQueuedEvent: null,
       oQueuedWindow: null,
       aRenderEvents: [],
       renderEventChain: 0,
