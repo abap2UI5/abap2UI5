@@ -30,6 +30,17 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     METHODS main_attri_db_save_srtti.
+
+    "! The rows the draft stores - a COPY of the attribute table without
+    "! what the table holds only as a cache of the binding search, and
+    "! without the type descriptors. Called after main_attri_db_save_srtti,
+    "! so the payloads travel with it; the live table is not touched, a
+    "! sticky session goes on with every row it had. See the method body
+    "! for which rows stay
+    METHODS main_attri_db_rows
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
+
     METHODS main_attri_db_load.
     METHODS main_attri_refresh.
 
@@ -353,6 +364,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " itself, or one of its dissolved descendants at ANY depth (the bound row
     " below a struct alias sits two levels down)? Decides how loud a failed
     " restore is (main_attri_db_load_resolve).
+    "! whether main_attri_db_rows stores the row - see there
+    METHODS check_attri_stored
+      IMPORTING
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        it_total      TYPE string_table
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS check_attri_bound
       IMPORTING
         iv_name       TYPE string
@@ -2063,6 +2082,91 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
       CLEAR <dref>.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD main_attri_db_rows.
+
+    " Most rows of the table are no state: dissolving an app writes one row
+    " per component of every public structure, of every object it holds -
+    " an app shaped like a large warehouse app had 436 rows, 21 of them
+    " bound, and they were a tenth of its draft. The bound rows are what
+    " the model reads and writes (main_json_stringify, main_json_to_attri,
+    " the snapshot - each loops `bind = abap_true`); the others are a cache
+    " of the binding search. A row the draft leaves out costs, when a later
+    " _bind( ) asks for it, one miss and one main_attri_refresh - which
+    " writes the whole table again (main_attri_search).
+    "
+    " So only LEAVES are left out: elementary rows (no child can hang below
+    " them) that are not bound, carry no alias, are not the total of a
+    " window and do not sit below a data reference. Every other row stays,
+    " and why it must:
+    " - tables, structures and references own or alias a data object: the
+    "   alias pass (attri_update_entry_refs) clears the name_ref of a row
+    "   whose owner row is missing, and the alias comes back from the next
+    "   draft as a COPY - the draft grows, the app writes into a twin
+    " - the chain of parents of a kept row: check_attri_bound walks it, and
+    "   main_attri_db_load_dref asks the parent of an alias - a chain is
+    "   kept whole, since every parent is a structure or a reference
+    " - every row below a data reference: the payload and its restore are
+    "   decided on that chain (main_attri_db_load_resolve, the alias guard)
+    " - the total of a window (window_total_name): window_adopt asks for it
+    "   with main_attri_find, which never rebuilds - a missing row would
+    "   turn a total the app keeps current into the value of one render
+    " An unbound row an INTERFACE declares (`LIF~ATTR`) is an ordinary leaf:
+    " a binding that misses it rebuilds the table like any other, and
+    " main_attri_refresh turns the interface rows on again for a table that
+    " carries a bound `~` row; with none, the fourth attempt of
+    " main_attri_search does.
+    "
+    " The type descriptor is never stored: an object reference that the
+    " load cannot use - dissolve_run resolves the descriptor of a row
+    " afresh from the live attribute when it needs one, and everything the
+    " search compares travels as text (type_name, type_kind, kind)
+    DATA lt_total TYPE string_table.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+         WHERE window_total_name IS NOT INITIAL.
+      INSERT lr_attri->window_total_name INTO TABLE lt_total.
+    ENDLOOP.
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri.
+      IF check_attri_stored( ir_attri = lr_attri
+                             it_total = lt_total ) = abap_false.
+        CONTINUE.
+      ENDIF.
+      DATA(ls_row) = lr_attri->*.
+      CLEAR ls_row-o_typedescr.
+      INSERT ls_row INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD check_attri_stored.
+
+    " a row without a kind (written by a draft older than the component)
+    " is kept: nothing says it is a leaf
+    IF ir_attri->bind = abap_true
+        OR ir_attri->kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem
+        OR ir_attri->name_ref IS NOT INITIAL
+        OR line_exists( it_total[ table_line = ir_attri->name ] ). "#EC CI_SORTSEQ
+      result = abap_true.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_parent) = ir_attri->name_parent.
+    WHILE lv_parent IS NOT INITIAL.
+      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_up)
+           WITH TABLE KEY name = lv_parent.
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+      IF lr_up->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+      lv_parent = lr_up->name_parent.
+    ENDWHILE.
 
   ENDMETHOD.
 

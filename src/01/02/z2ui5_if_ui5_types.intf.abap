@@ -99,6 +99,9 @@ INTERFACE z2ui5_if_ui5_types
       custom_mapper     TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
       check_json        TYPE abap_bool,
+      " live only: the draft stores the row without it
+      " (z2ui5_cl_ui5_srv_model=>main_attri_db_rows), dissolve_run resolves
+      " it again from the attribute when it needs one
       o_typedescr       TYPE REF TO cl_abap_typedescr,
       " the absolute type name as a STRING, next to the descriptor it is
       " taken from: the descriptor is an object reference and does not

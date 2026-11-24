@@ -113,13 +113,34 @@ app instance, `mt_attri`, the draft ids — turned into a string by
 `z2ui5_cl_ui5_app_cont=>get_serializer( )`.
 
 The shipped implementation, `z2ui5_cl_ui5_serializer`, is the mechanism
-that has always run here and is unchanged statement for statement:
-`main_attri_db_save_srtti( )` detaches the data references, `CALL TRANSFORMATION
-id` writes the asXML, `main_attri_reattach( )` gives the live instance its
+that has always run here: `main_attri_db_save_srtti( )` detaches the data
+references, `CALL TRANSFORMATION id` writes the asXML over the stored rows
+(below), `main_attri_reattach( )` gives the live instance its
 references back, and the one retry rebuilds the rows from the instance as it is
 now before giving up with `APP_SERIALIZATION_ERROR`. Without `set_serializer( )`
 `get_serializer( )` answers a fresh one per call, so a system behaves
 identically.
+
+**The draft stores a lean copy of `mt_attri`, the live container keeps all of
+it** (since 2026-11-24). Most rows of the attribute table are a cache of the
+binding search - one per component of every public structure the dissolve
+walked - and only the bound rows are read by the model. `stringify( )` writes
+the rows `z2ui5_cl_ui5_srv_model=>main_attri_db_rows( )` answers in place of
+the table and hands the container its own table back afterwards (also when the
+transformation fails), so a sticky session goes on with every row. Left out are
+leaves only: elementary rows that are not bound, carry no alias (`name_ref`),
+are not the total of a window and sit below no data reference. Tables,
+structures, references and their parent chains stay - the alias pass clears
+the `name_ref` of a row whose owner row is missing, and the alias would come
+back as a copy. A `_bind( )` of a left-out attribute after the load misses,
+and `main_attri_refresh( )` rebuilds the table once (as a binding of an
+attribute behind a new reference always did). The type descriptor
+(`o_typedescr`) is never stored: `dissolve_run( )` resolves it again from the
+attribute where it needs one, and the search compares the `type_name` text.
+For an app shaped like a large warehouse app (436 rows, 21 bound) the draft
+carries 38 rows: 2.40 MB became 2.18 MB in the transpiled runtime, the
+`mt_attri` part 279 KB became 58 KB. A host's own serializer keeps the shape
+it chooses; the contract is the bound rows, not the whole table.
 
 Why the seam is here rather than anywhere else: this is the **one** part of the
 framework that is ABAP's type system rather than ABAP code. `CALL TRANSFORMATION

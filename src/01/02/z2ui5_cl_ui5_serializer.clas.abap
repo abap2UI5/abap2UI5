@@ -31,6 +31,17 @@ CLASS z2ui5_cl_ui5_serializer DEFINITION PUBLIC CREATE PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
 
+    "! The container's asXML with the rows main_attri_db_rows answers in
+    "! place of its attribute table, which it gets back before this returns
+    "! - also when the transformation fails, since a sticky session serves
+    "! the next request on this very container
+    METHODS xml_of_stored
+      IMPORTING
+        container     TYPE REF TO z2ui5_cl_ui5_app_cont
+        model         TYPE REF TO z2ui5_cl_ui5_srv_model
+      RETURNING
+        VALUE(result) TYPE string.
+
     "! The interface hands the container as REF TO object (see there); this
     "! is the one place that knows what it really is.
     METHODS narrow
@@ -54,6 +65,25 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
   METHOD narrow.
 
     result ?= container.
+
+  ENDMETHOD.
+
+  METHOD xml_of_stored.
+
+    DATA lr_stored TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+
+    DATA(lr_live) = container->mt_attri.
+    CREATE DATA lr_stored.
+    lr_stored->* = model->main_attri_db_rows( ).
+    container->mt_attri = lr_stored.
+    " CLEANUP, not CATCH: the failure goes on to stringify( ) as it was
+    " raised - its first one is the cause the final error chains
+    TRY.
+        result = xml_of( container ).
+      CLEANUP.
+        container->mt_attri = lr_live.
+    ENDTRY.
+    container->mt_attri = lr_live.
 
   ENDMETHOD.
 
@@ -85,7 +115,8 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).
-        result = xml_of( lo_cont ).
+        result = xml_of_stored( container = lo_cont
+                                model     = lo_model ).
         " the live instance gets its references BACK, not a parsed copy: the
         " same objects the save detached, one assignment each instead of one
         " S-RTTI parse per reference (which is what a fresh container from
@@ -108,7 +139,8 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
     TRY.
         lo_model->main_attri_refresh( ).
         lo_model->main_attri_db_save_srtti( ).
-        result = xml_of( lo_cont ).
+        result = xml_of_stored( container = lo_cont
+                                model     = lo_model ).
         lo_model->main_attri_reattach( ).
         RETURN.
       CATCH cx_root.
