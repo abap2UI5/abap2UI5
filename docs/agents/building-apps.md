@@ -616,7 +616,9 @@ reasoning:
 - The title of a screen is one call in both environments:
   `` client->follow_up_action( val = z2ui5_if_client=>cs_event-set_title t_arg = VALUE #( ( `Stock` ) ) ) ``
   sets the browser title, and inside the Fiori launchpad the shell title as
-  well — no `check_launchpad_active` branch into `set_title_launchpad`. A
+  well — no `check_launchpad_active` branch into `set_title_launchpad`.
+  Both leave the titles to the host when the app is embedded in a page it
+  does not own (a section of a Fiori elements app). A
   `Page` that should not repeat the shell's title inside the launchpad hides
   its header with one attribute, not a second view:
   `` )->a( n = `showHeader` b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ) ``.

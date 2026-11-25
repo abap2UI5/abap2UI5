@@ -12,7 +12,8 @@ sap.ui.define(
     // context). The cross-app-nav
     // handlers no-op with a log line outside the FLP; the title and width
     // handlers are deliberately silent outside it, as there is no shell to
-    // change.
+    // change. The title is the page's as well: an embedded component
+    // that does not own it (state.ownsPage false) leaves it to its host.
     // ------------------------------------------------------------------
 
     const _URLHelper = mobileLibrary.URLHelper;
@@ -183,7 +184,9 @@ sap.ui.define(
     // The shell title - silently nothing outside the launchpad. SET_TITLE
     // sets it as well inside the launchpad (actions/Browser); both go
     // through Lib.setShellTitle, which keeps a title that arrives before
-    // the shell service for the component to set once it is there.
+    // the shell service for the component to set once it is there, and
+    // sets none for a component that does not own the page (embedded - the
+    // shell title is its host's), with a log line.
     function evSetTitleLaunchpad(oController, args) {
       Lib.setShellTitle(
         oController?.ctx,

@@ -909,6 +909,26 @@ test.describe("SET_TITLE inside the launchpad", () => {
     expect(shellTitles).toEqual([]);
   });
 
+  test("SET_TITLE_LAUNCHPAD's shell title follows the same rule (Lib.setShellTitle)", () => {
+    // the owner sets it, an embedded component sets none and says so in the
+    // log - SET_TITLE leaves both titles alone before it gets there
+    const shellTitles = [];
+    const { Lib, ctx, errors } = load({
+      oLaunchpad: {
+        ShellUIService: { setTitle: (t) => shellTitles.push(t) },
+      },
+    });
+
+    expect(Lib.setShellTitle(ctx, "Owner", "SET_TITLE_LAUNCHPAD")).toBe(true);
+    ctx.state.ownsPage = false;
+    expect(Lib.setShellTitle(ctx, "Guest", "SET_TITLE_LAUNCHPAD")).toBe(false);
+
+    expect(shellTitles).toEqual(["Owner"]);
+    expect(errors()).toContain(
+      "SET_TITLE_LAUNCHPAD: the shell title is the page's - 'Guest' is not set. The component does not own the page (embedded, ownsPage); its host titles the shell",
+    );
+  });
+
   test("outside the launchpad only the document title changes", () => {
     const { handlers, document, errors } = load();
 

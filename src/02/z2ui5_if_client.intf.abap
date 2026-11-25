@@ -1521,7 +1521,8 @@ INTERFACE z2ui5_if_client
   "! the launchpad the shell title as well, so one call titles the app in
   "! both environments (an embedded app whose host keeps the page changes
   "! neither); set_title_launchpad - the shell title only, inside the
-  "! launchpad (silently nothing outside it); set_app_full_width -
+  "! launchpad (silently nothing outside it; an embedded app whose host
+  "! keeps the page sets none either, with a log line); set_app_full_width -
   "! inside the launchpad the app's width: X (abap_true) for the full screen,
   "! like a Fiori elements app with fullWidth in its manifest, empty or none
   "! for the shell's letterbox again (silently nothing outside it);

@@ -17,8 +17,10 @@ const { loadLib, withSpecController } = require("./loadLibModule");
 //                              can legitimately still be unset inside the FLP:
 //                              the title is kept as pendingTitle and set by
 //                              Component._initLaunchpad once it is there),
-//                              and a throwing or rejecting setTitle caught
-//                              into the log
+//                              a throwing or rejecting setTitle caught
+//                              into the log, and none for a component that
+//                              does not own the page (embedded), with a log
+//                              line
 //   SET_APP_FULL_WIDTH         setApplicationFullWidth with the flag read from
 //                              the argument - on ShellUIService from UI5 1.133,
 //                              on the deprecated AppConfiguration before - the
@@ -396,6 +398,37 @@ test.describe("SET_TITLE_LAUNCHPAD", () => {
 
     expect(oLaunchpad.pendingTitle).toBe("My App");
     expect(errors()).toEqual([]);
+  });
+
+  test("an embedded component that does not own the page sets no shell title and logs", () => {
+    // the shell title is the page's, as SET_TITLE treats it: a component in
+    // a Fiori elements app (or one of several on a page) leaves it to its
+    // host - SET_TITLE_LAUNCHPAD overwrote the host's title until 2026-11
+    const titles = [];
+    const oLaunchpad = {
+      ShellUIService: { setTitle: (t) => titles.push(t) },
+    };
+    const { handlers, state, errors } = load({ oLaunchpad });
+    state.ownsPage = false;
+
+    handlers.SET_TITLE_LAUNCHPAD({}, ["SET_TITLE_LAUNCHPAD", "My App"]);
+
+    expect(titles).toEqual([]);
+    expect(errors()).toContain(
+      "SET_TITLE_LAUNCHPAD: the shell title is the page's - 'My App' is not set. The component does not own the page (embedded, ownsPage); its host titles the shell",
+    );
+  });
+
+  test("an embedded component keeps no title for the shell service either", () => {
+    // no pendingTitle for Component._initLaunchpad to set once the service
+    // resolves - the refusal does not wait for the service
+    const oLaunchpad = {};
+    const { handlers, state } = load({ oLaunchpad });
+    state.ownsPage = false;
+
+    handlers.SET_TITLE_LAUNCHPAD({}, ["SET_TITLE_LAUNCHPAD", "My App"]);
+
+    expect("pendingTitle" in oLaunchpad).toBe(false);
   });
 
   test("a throwing setTitle lands in the error log", () => {

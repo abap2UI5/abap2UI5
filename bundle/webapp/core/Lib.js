@@ -356,11 +356,25 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // title - can outrun it: the title is then kept on the launchpad record
   // (pendingTitle) and set by the component once the service is there,
   // instead of being dropped. Answers false outside the launchpad (no
-  // oLaunchpad), where there is no shell to title. `label` names the
-  // action in the log of a failing setTitle, a throw and a rejection alike.
+  // oLaunchpad), where there is no shell to title. The shell title is the
+  // PAGE's, like the document title: a component that does not own the
+  // page (state.ownsPage false - embedded in a Fiori elements app, one of
+  // several on a page, Component.init) leaves it to its host and sets
+  // nothing, said in the log as the router says a refused hash write
+  // (core/Router.js sync) - SET_TITLE_LAUNCHPAD titled the host's shell
+  // until 2026-11. SET_TITLE asks ownsPage before it comes here (it leaves
+  // the document title alone as well), so the line names the one action
+  // that asks for the shell alone. `label` names the action in the log of
+  // a refused or failing setTitle, a throw and a rejection alike.
   function setShellTitle(ctx, title, label) {
     const launchpad = ctx?.state?.oLaunchpad;
     if (!launchpad) return false;
+    if (ctx.state.ownsPage === false) {
+      logError(
+        `${label}: the shell title is the page's - '${title}' is not set. The component does not own the page (embedded, ownsPage); its host titles the shell`,
+      );
+      return false;
+    }
     const shell = launchpad.ShellUIService;
     if (!shell?.setTitle) {
       launchpad.pendingTitle = title;
