@@ -512,6 +512,10 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
           lo_handler->mv_request_json = iv_request.
         ELSE.
           lo_handler = NEW #( iv_request ).
+          " a stateless request starts in a new internal session: no
+          " container of an earlier roundtrip is buffered there, the app
+          " comes back from the draft store
+          z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
         ENDIF.
         lo_handler->mv_session_sticky = xsdbool( mo_handler IS BOUND ).
         lo_handler->mo_app_start = io_app.
