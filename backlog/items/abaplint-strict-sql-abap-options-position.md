@@ -3,7 +3,8 @@ target: abaplint
 title: 'strict_sql: BYPASSING BUFFER in front of a trailing INTO is not reported'
 summary: 'in the strict form (INTO last) the ABAP options follow INTO; SELECT * FROM (t) BYPASSING BUFFER ORDER BY PRIMARY KEY INTO ... does not activate on a system, strict_sql and check_syntax stay silent'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/oblomov-dev/fork-abaplint/pull/1
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 upstream: abaplint/abaplint

@@ -3,7 +3,8 @@ target: abaplint
 title: 'FOR ALL ENTRIES with ORDER BY <field list> is not reported - and select_add_order_by asks for it'
 summary: 'with FOR ALL ENTRIES only ORDER BY PRIMARY KEY is allowed; SELECT f FROM t FOR ALL ENTRIES IN @x ... ORDER BY f does not activate ("F is invalid here"), check_syntax stays silent, and select_add_order_by reports the same statement without ORDER BY unless skipForAllEntries is set'
 priority: high
-state: open
+state: filed
+filed: https://github.com/oblomov-dev/fork-abaplint/pull/3
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 upstream: abaplint/abaplint#3131
