@@ -9,7 +9,7 @@ checked_upstream: 2026-11-25
 evidence:
   - '@abap2ui5/linter 0.11.3 on oblomov-dev/S5S_DEV (DEV 2bcdc50): /kro/ui501_cl_app_view, methods xml_build_style and xml_build_column_sort_css - i_xml->tag( n = `HTML` ns = `core` )->a( n = `content` t = |<style type="text/css">{ i_css }</style>| ) reported twice as "2 unescaped brace(s) in a <style> block (…{ i_css }…)" (error)'
   - 'the braces are the ABAP interpolation of the variable, not part of the CSS; the CSS rules inside lv_css are written as \{ \} in the template; and a( t = ) passes the value through z2ui5_cl_ui5_view_builder=>escape_literal (z2ui5_cl_ui5_util_context=>ui5_escape_binding_literal), which escapes the binding braces anyway'
-  - 'baselined as a false positive in S5S_DEV abap2ui5lint-baseline.json; open issues/PRs of abap2UI5/linter could not be searched from that session (repository not attachable) - re-check before filing'
+  - 'baselined as a false positive in S5S_DEV abap2ui5lint-baseline.json; abap2UI5/linter open issues and PRs checked 2026-11-25 (#195, #196, #197): nothing on this'
 ---
 
 # unescaped-brace-in-style: ABAP string templates and a( t = )

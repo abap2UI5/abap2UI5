@@ -9,7 +9,7 @@ checked_upstream: 2026-11-25
 evidence:
   - '@abap2ui5/linter 0.11.3 on oblomov-dev/S5S_DEV (DEV 2bcdc50): /kro/ui501_cl_app_005 - main( ) calls on_after_layout( ), which starts with IF client->check_on_navigated( ) = abap_false. RETURN. ENDIF. and only then calls render_view( ) -> popup_display( ); reported as "popup_display( ) at the top level of main( ) runs on EVERY roundtrip". render_view( ) is otherwise called only inside IF mv_init = abap_false'
   - 'same run: /kro/ui503_cl_app_003 - main( ) calls on_event( ), which calls render_popup_setup( ) -> popup_display( ) only under CASE client->get_event( ). WHEN ''BUTTON_SETUP''; reported the same way'
-  - 'both are baselined as false positives in S5S_DEV abap2ui5lint-baseline.json (falsePositives block); open issues/PRs of abap2UI5/linter could not be searched from that session (repository not attachable) - checked_upstream records the attempt, re-check before filing'
+  - 'both are baselined as false positives in S5S_DEV abap2ui5lint-baseline.json (falsePositives block); abap2UI5/linter open issues and PRs checked 2026-11-25 (#195, #196, #197): nothing on this'
 ---
 
 # unconditional-popup-display: respect guards and branches in called methods
