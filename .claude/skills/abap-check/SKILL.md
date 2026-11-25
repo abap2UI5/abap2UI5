@@ -1640,6 +1640,23 @@ break one of those four.
   line of the log, the step itself does not fail on it). No gate: all four are valid ABAP; the downport's own
   lint names (2) and (4), the unit run (1) and (3).
 
+- **Two table expressions the 702 downport gets wrong** (found 2026-11-25,
+  when READ TABLE and APPEND were forbidden across the repositories).
+  (1) `REF #( itab[ ... ] OPTIONAL )` is lowered to `READ TABLE ...
+  ASSIGNING` + `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` (`ASSERT 1 =
+  0` after `syfixes`) - the OPTIONAL is dropped, so a row that is not found
+  aborts on 7.02 where the source returns an initial reference. Write
+  `ASSIGN itab[ ... ] TO <fs>` and test `IS ASSIGNED` (`UNASSIGN` first in a
+  loop), or `line_exists( )` before `REF #( itab[ ... ] )`. `VALUE #( itab[
+  ... ] OPTIONAL )` is lowered correctly. (2) `itab[ KEY primary_key
+  COMPONENTS ... ]` comes out as `READ TABLE ... WITH KEY KEY primary_key
+  ...`, which does not compile - name the components without the key name
+  (they cover the unique key, the read is the same) or keep `READ TABLE ...
+  WITH TABLE KEY`. Reproduced with abaplint 2.120.120. Gate: none yet -
+  backlog items `abaplint-downport-ref-optional` and
+  `abaplint-downport-key-primary-key`; the downport's own lint catches (2),
+  nothing catches (1).
+
 ## 5. Runtime — green here, wrong there
 
 **Gate: mostly open.** Three entries have moved: **linter —
