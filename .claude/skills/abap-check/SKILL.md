@@ -1987,7 +1987,9 @@ numbered section above.
   S5S against its own system).** `check_syntax` refuses a dynamic attribute
   on `REF TO object` (`mo_app->('MV_FLAG') = abap_true.`, "Not an object
   reference") and a dereferenced generic `REF TO data` as a table operand
-  (`INSERT LINES OF lt INTO TABLE mr_tab->*.`); `unsecure_fae` reports every
+  (`INSERT LINES OF lt INTO TABLE mr_tab->*.`) - both fixed upstream by
+  abaplint/abaplint#4704 and #4705 (merged 2026-11-25, not yet released);
+  `unsecure_fae` reports every
   FOR ALL ENTRIES, guarded or not (fixed upstream by abaplint/abaplint#4706,
   merged 2026-11-24, not yet released - and the guard it accepts turns "every
   row" into "no row" for an empty driver table, which is not always what was
@@ -1999,7 +2001,7 @@ numbered section above.
   exclusion list short and commented, and write rule objects with every
   option of `abaplint --default`.
 
-**Backlog:** abaplint · abaplint-dynamic-attribute-generic-object, abaplint-generic-data-ref-table-operand, abaplint-unsecure-fae-guarded, abaplint-suspicious-loop-inline-declaration, abaplint-rule-config-partial-options
+**Backlog:** abaplint · abaplint-unsecure-fae-guarded, abaplint-suspicious-loop-inline-declaration, abaplint-rule-config-partial-options
 
 ## 7. The rule stock — read for it by hand until abaplint decides it
 
