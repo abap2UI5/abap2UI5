@@ -2013,8 +2013,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       INTO DATE lv_date TIME lv_time.
 
     SPLIT |{ val }| AT `.` INTO lv_int lv_frac.
-    SHIFT lv_frac RIGHT DELETING TRAILING `0`.
-    SHIFT lv_frac LEFT DELETING LEADING space.
+    lv_frac = shift_right( val = lv_frac
+                           sub = `0` ).
+    lv_frac = shift_left( val = lv_frac
+                          sub = ` ` ).
     IF lv_frac IS INITIAL.
       lv_frac = `0`.
     ENDIF.
@@ -2584,14 +2586,28 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     IF result NA `\'` AND result NA cv_char_util_cr_lf.
       RETURN.
     ENDIF.
-    REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
-    REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
-    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf IN result WITH `\n`.
-    REPLACE ALL OCCURRENCES OF cv_char_util_newline IN result WITH `\n`.
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `\'`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = cv_char_util_cr_lf
+                      with = `\n`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = cv_char_util_newline
+                      with = `\n`
+                      occ  = 0 ).
     " a standalone CR (not part of CR+LF, already collapsed above) is a JS
     " line terminator too and would break the '...' literal
-    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf(1)
-            IN result WITH `\r`.
+    result = replace( val  = result
+                      sub  = cv_char_util_cr_lf(1)
+                      with = `\r`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -3247,11 +3263,26 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     IF result NA `&<>"'`.
       RETURN.
     ENDIF.
-    REPLACE ALL OCCURRENCES OF `&` IN result WITH `&amp;`.
-    REPLACE ALL OCCURRENCES OF `<` IN result WITH `&lt;`.
-    REPLACE ALL OCCURRENCES OF `>` IN result WITH `&gt;`.
-    REPLACE ALL OCCURRENCES OF `"` IN result WITH `&quot;`.
-    REPLACE ALL OCCURRENCES OF `'` IN result WITH `&#39;`.
+    result = replace( val  = result
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `>`
+                      with = `&gt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `&#39;`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -3557,7 +3588,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
                                len = strlen( lv_etag ) - 1 ) && `-gzip"`.
     SPLIT lv_header AT `,` INTO TABLE DATA(lt_candidate).
     LOOP AT lt_candidate INTO DATA(lv_candidate).
-      CONDENSE lv_candidate.
+      lv_candidate = condense( lv_candidate ).
       IF strlen( lv_candidate ) > 2 AND substring( val = lv_candidate
                                                    len = 2 ) = `W/`.
         lv_candidate = substring( val = lv_candidate
@@ -3625,19 +3656,35 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " the remainder once per tag - quadratic over a long body, in the path
     " that renders an HTML message for the box
     result = val.
-    REPLACE ALL OCCURRENCES OF REGEX `<[^>]*>` IN result WITH ` ` ##REGEX_POSIX.
-    FIND `<` IN result MATCH OFFSET DATA(lv_open).
-    IF sy-subrc = 0.
+    result = replace( val   = result
+                      regex = `<[^>]*>`
+                      with  = ` `
+                      occ   = 0 ) ##REGEX_POSIX.
+    DATA(lv_open) = find( val = result
+                          sub = `<` ).
+    IF lv_open >= 0.
       result = substring( val = result
                           len = lv_open ) && ` `.
     ENDIF.
 
     " the entities the stripped text would otherwise show as written
-    REPLACE ALL OCCURRENCES OF `&nbsp;` IN result WITH ` `.
-    REPLACE ALL OCCURRENCES OF `&lt;` IN result WITH `<`.
-    REPLACE ALL OCCURRENCES OF `&gt;` IN result WITH `>`.
-    REPLACE ALL OCCURRENCES OF `&amp;` IN result WITH `&`.
-    CONDENSE result.
+    result = replace( val  = result
+                      sub  = `&nbsp;`
+                      with = ` `
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `&lt;`
+                      with = `<`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `&gt;`
+                      with = `>`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `&amp;`
+                      with = `&`
+                      occ  = 0 ).
+    result = condense( result ).
 
     IF strlen( result ) > cv_data_max_text.
       result = substring( val = result
@@ -4574,11 +4621,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     LOOP AT lt_attri REFERENCE INTO ls_attri.
       " the component's descriptor is already in the attribute table - no
       " ASSIGN and no describe_by_data per component
-      CHECK ls_attri->type->kind = cl_abap_typedescr=>kind_table.
+      IF ls_attri->type->kind <> cl_abap_typedescr=>kind_table.
+        CONTINUE.
+      ENDIF.
 
       TRY.
           DATA(lo_line) = CAST cl_abap_tabledescr( ls_attri->type )->get_table_line_type( ).
-          CHECK lo_line->kind = cl_abap_typedescr=>kind_struct.
+          IF lo_line->kind <> cl_abap_typedescr=>kind_struct.
+            CONTINUE.
+          ENDIF.
           DATA(lt_comps) = CAST cl_abap_structdescr( lo_line )->get_components( ).
           LOOP AT lt_comps REFERENCE INTO DATA(ls_comp).
             IF ls_comp->name = `%MSG` OR ls_comp->name = `%FAIL`.
@@ -4611,8 +4662,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<tab>).
-      CHECK sy-subrc = 0.
-      CHECK rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      IF rtti_get_type_kind( <tab> ) <> cl_abap_datadescr=>typekind_table.
+        CONTINUE.
+      ENDIF.
 
       " guarded like data_render_tab, msg_get_internal and
       " data_get_headline - and here the symbol is LOOP-CARRIED, so an
@@ -4621,7 +4676,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
       UNASSIGN <ftab>.
       ASSIGN <tab> TO <ftab>.
-      CHECK <ftab> IS ASSIGNED.
+      IF <ftab> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
 
       " the row kind is a property of the table TYPE - decided once per
       " table, not asked of every row (same idea as msg_get_internal_tab)
@@ -4746,8 +4803,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " two RAP prefixes never matched, and no message ever carried its
     " element or action
     DATA(lv_prefix) = CONV string( prefix ).
-    FIND FIRST OCCURRENCE OF `-` IN lv_prefix MATCH OFFSET DATA(lv_off).
-    IF sy-subrc = 0.
+    DATA(lv_off) = find( val = lv_prefix
+                         sub = `-` ).
+    IF lv_off >= 0.
       ASSIGN COMPONENT lv_prefix(lv_off) OF STRUCTURE val TO FIELD-SYMBOL(<sub>).
       IF sy-subrc <> 0.
         RETURN.
@@ -4761,11 +4819,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lv_len) = strlen( lv_prefix ).
     DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-      CHECK strlen( ls_attri->name ) > lv_len.
-      CHECK lv_len = 0 OR ls_attri->name(lv_len) = lv_prefix.
+      IF strlen( ls_attri->name ) <= lv_len.
+        CONTINUE.
+      ENDIF.
+      IF NOT ( lv_len = 0 OR ls_attri->name(lv_len) = lv_prefix ).
+        CONTINUE.
+      ENDIF.
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
-      CHECK sy-subrc = 0.
-      CHECK <flag> IS NOT INITIAL.
+      IF sy-subrc <> 0 OR <flag> IS INITIAL.
+        CONTINUE.
+      ENDIF.
       APPEND ls_attri->name+lv_len TO result.
     ENDLOOP.
 
@@ -4823,7 +4886,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
-      CHECK sy-subrc = 0.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
 
       DATA(lv_sub_kind) = rtti_get_type_kind( <comp> ).
       IF lv_sub_kind = cl_abap_datadescr=>typekind_struct1

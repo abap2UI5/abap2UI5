@@ -808,9 +808,18 @@ CLASS ltcl_00_base IMPLEMENTATION.
     result->bind = abap_true.
     " a path the ajson writer accepts: no `-` and no `->` inside a segment
     DATA(lv_path) = result->name.
-    REPLACE ALL OCCURRENCES OF `->*` IN lv_path WITH `_D`.
-    REPLACE ALL OCCURRENCES OF `->` IN lv_path WITH `_`.
-    REPLACE ALL OCCURRENCES OF `-` IN lv_path WITH `_`.
+    lv_path = replace( val  = lv_path
+                       sub  = `->*`
+                       with = `_D`
+                       occ  = 0 ).
+    lv_path = replace( val  = lv_path
+                       sub  = `->`
+                       with = `_`
+                       occ  = 0 ).
+    lv_path = replace( val  = lv_path
+                       sub  = `-`
+                       with = `_`
+                       occ  = 0 ).
     result->name_client = |/{ lv_path }|.
     IF NOT line_exists( mt_bound[ table_line = result->name ] ).
       APPEND result->name TO mt_bound.
@@ -905,18 +914,23 @@ CLASS ltcl_00_base IMPLEMENTATION.
     DATA(lv_open)  = |<{ iv_tag }>|.
     DATA(lv_close) = |</{ iv_tag }>|.
     DO.
-      FIND FIRST OCCURRENCE OF lv_open IN result MATCH OFFSET DATA(lv_from).
-      IF sy-subrc <> 0.
+      DATA(lv_from) = find( val = result
+                            sub = lv_open ).
+      IF lv_from < 0.
         EXIT.
       ENDIF.
-      FIND FIRST OCCURRENCE OF lv_close IN result MATCH OFFSET DATA(lv_to).
-      IF sy-subrc <> 0 OR lv_to < lv_from.
+      DATA(lv_to) = find( val = result
+                          sub = lv_close ).
+      IF lv_to < 0 OR lv_to < lv_from.
         EXIT.
       ENDIF.
       DATA(lv_end) = lv_to + strlen( lv_close ).
       result = result(lv_from) && result+lv_end.
     ENDDO.
-    REPLACE ALL OCCURRENCES OF |<{ iv_tag }/>| IN result WITH ``.
+    result = replace( val  = result
+                      sub  = |<{ iv_tag }/>|
+                      with = ``
+                      occ  = 0 ).
 
   ENDMETHOD.
 

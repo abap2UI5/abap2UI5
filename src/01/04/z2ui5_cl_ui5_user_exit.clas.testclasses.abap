@@ -430,8 +430,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " the keyword this test is about (see test_csp_wasm_unsafe_eval)
     cl_abap_unit_assert=>assert_false( xsdbool( ls_config-content_security_policy CS `'unsafe-eval'` ) ).
 
-    REPLACE `script-src 'self'` IN ls_config-content_security_policy
-            WITH `script-src 'self' 'unsafe-eval'`.
+    ls_config-content_security_policy = replace( val  = ls_config-content_security_policy
+                                                 sub  = `script-src 'self'`
+                                                 with = `script-src 'self' 'unsafe-eval'` ).
 
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' ui5.sap.com` ) ).

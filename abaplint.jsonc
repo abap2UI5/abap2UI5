@@ -35,9 +35,11 @@
   },
   "rules": {
     // statements with a successor that this repository no longer uses -
-    // listed so they do not come back (abaplint 2.120.116+). The
-    // widely used READ TABLE / APPEND / CREATE OBJECT / ... follow
-    // once the code no longer has them
+    // listed so they do not come back (abaplint 2.120.116+). The successors
+    // are the "Style Rules" of AGENTS.md: CHECK -> IF ... RETURN/CONTINUE,
+    // the string statements -> their functions (condense( ), find( ),
+    // replace( ), shift_left( ), to_upper( ), &&, ...), GET REFERENCE ->
+    // REF #( )
     "forbidden_statement": {
       "statements": [
         "Describe",
@@ -50,7 +52,15 @@
         "TypePools",
         "Perform",
         "Form",
-        "Write"
+        "Write",
+        "Check",
+        "GetReference",
+        "Concatenate",
+        "Condense",
+        "Translate",
+        "Replace",
+        "Find",
+        "Shift"
       ]
     },
     "7bit_ascii": true,

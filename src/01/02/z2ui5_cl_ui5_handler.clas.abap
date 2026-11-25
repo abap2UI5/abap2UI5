@@ -683,8 +683,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
     IF result(1) = `-`.
-      REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
-      REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+      result = replace( val  = result
+                        sub  = `-`
+                        with = `/` ).
+      result = replace( val  = result
+                        sub  = `-`
+                        with = `/` ).
     ENDIF.
 
   ENDMETHOD.

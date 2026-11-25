@@ -193,8 +193,14 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " get_t_arg then quotes. The slot is the follow_up_action view
         " parameter.
         DATA(lv_bind_path) = VALUE string( t_arg[ 2 ] OPTIONAL ).
-        REPLACE ALL OCCURRENCES OF `{` IN lv_bind_path WITH ``.
-        REPLACE ALL OCCURRENCES OF `}` IN lv_bind_path WITH ``.
+        lv_bind_path = replace( val  = lv_bind_path
+                                sub  = `{`
+                                with = ``
+                                occ  = 0 ).
+        lv_bind_path = replace( val  = lv_bind_path
+                                sub  = `}`
+                                with = ``
+                                occ  = 0 ).
         lt_arg = VALUE #( ( CONV string( view ) )
                           ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
                           ( lv_bind_path ) ).
