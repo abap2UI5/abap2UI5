@@ -44,7 +44,6 @@ _an issue or PR exists; the item goes when it merges_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`abap2ui5-linter-release-lags-dev-manifest`](items/abap2ui5-linter-release-lags-dev-manifest.md) | 'every @abap2ui5/linter 0.11.x predates abap2UI5 40e8a073 and 4a418249, so z2ui5_cl_ui5_view_builder=>component_path( ) is an unknown-builder-method and a wired STOP_TIMER an unknown-frontend-action, although DEV documents both and its linter-manifest.json lists STOP_TIMER - a release that picks up the DEV manifest, and builder statics derived from it'<br><sub>https://github.com/abap2UI5/linter/pull/200</sub> | high | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-popup-display-guarded-callee`](items/abap2ui5-linter-popup-display-guarded-callee.md) | 'unconditional-popup-display follows main( ) into a called method and reports a popup_display( ) there as top level, although the call sits behind an early RETURN guard or inside a WHEN/IF branch of the callee'<br><sub>https://github.com/abap2UI5/linter/pull/201</sub> | medium | 2026-11-25 | abap2UI5/linter |
 
 ---
 
