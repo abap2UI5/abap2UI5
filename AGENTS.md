@@ -293,8 +293,14 @@ needs it, inline declarations used selectively (`prefer_inline: false`), no abap
 
 - Max 50 statements per method, cyclomatic complexity 10, nesting depth 5
 - No aliases, `STATICS`, `BREAK-POINT`, `DEFINE` macros, test seams, `EXPORT TO MEMORY`/`DATABASE`
-- `NEW #()` not `CREATE OBJECT`; `xsdbool()` — **never `boolc()`** (the downport converts); `line_exists()` not
-  `READ TABLE`; `lines()` not `DESCRIBE LINES`
+- `NEW #()` not `CREATE OBJECT` (only a dynamic `CREATE OBJECT x TYPE (name)` remains); `xsdbool()` — **never
+  `boolc()`** (the downport converts); `lines()` not `DESCRIBE LINES`
+- `forbidden_statement` (abaplint.jsonc) refuses `READ TABLE` (→ `line_exists()`, `ASSIGN itab[ … ] TO <fs>` +
+  `IS ASSIGNED`; never `REF #( itab[ … ] OPTIONAL )`, the 7.02 downport drops the OPTIONAL), `APPEND` (→ `INSERT …
+  INTO TABLE`), `CHECK` (→ `IF … RETURN`/`CONTINUE`), `CONCATENATE`/`CONDENSE`/`FIND`/`REPLACE`/`SHIFT`/`TRANSLATE`
+  (→ `&&`, `condense()`, `find()`, `replace()`, `shift_left()`, `to_upper()`), `GET REFERENCE` (→ `REF #()`) and the
+  obsolete ones listed there. The keyed hot-path `READ TABLE … WITH TABLE KEY` of four core classes is excluded
+  (reason at the exclude); `MOVE-CORRESPONDING` stays allowed for generically typed operands only
 - Backtick string literals; `IS NOT` over `NOT … IS`; `RETURNING` over `EXPORTING` for one output; no Yoda conditions
 - An `abap_bool` is compared to `abap_true` / `abap_false`, never asked with `IS INITIAL` (the `check_on_*( )`
   predicative form is the `build-an-app` skill's rule)
