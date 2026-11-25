@@ -3,7 +3,8 @@ target: abaplint
 title: 'SELECT FROM @itab: an unknown column in ORDER BY is not reported'
 summary: 'SELECT * FROM @lt_ordim_o AS t ORDER BY lgnum, tanum, tapos - /SCWM/ORDIM_O has no TAPOS; the system refuses "Unknown column name TAPOS", check_syntax accepts it'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/oblomov-dev/fork-abaplint/pull/5
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 upstream: abaplint/abaplint

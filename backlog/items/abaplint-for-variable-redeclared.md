@@ -3,7 +3,8 @@ target: abaplint
 title: 'A FOR variable and a later DATA( ) of the same name in one method are not reported'
 summary: 'VALUE #( FOR total IN t ( ... ) ) followed by DATA(total) = ... in the same method - the system refuses "TOTAL was already declared"; abaplint 2.120.116 accepts it'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/oblomov-dev/fork-abaplint/pull/4
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 upstream: abaplint/abaplint#4561
