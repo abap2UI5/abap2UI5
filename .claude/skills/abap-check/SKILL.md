@@ -1922,6 +1922,29 @@ for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
   `cl_abap_structdescr=>create( )`: no typed declaration can carry such a
   name.
 
+### Two a clean-up pass broke in a downstream app (S5S, 2026-11-25)
+
+- **A guard before FOR ALL ENTRIES changes what the statement returns.**
+  `SELECT … FOR ALL ENTRIES IN itab` over an EMPTY `itab` ignores the whole
+  WHERE and reads every row. ATC and the `unsecure_fae` rule ask for
+  `IF itab IS NOT INITIAL` around it - which turns "every row" into "none".
+  Usually that is the fix, but code can live on the old behaviour: an input
+  handler read its check customizing FAE over the app's scan fields, and the
+  apps WITHOUT customized fields (they add theirs at run time) got every
+  check class from the empty FAE. After the guard, scanning in them reported
+  "No Syntax check Class customized". **When guarding an FAE, decide what an
+  empty driver means there**: a lookup for the driver's own rows (guard),
+  or "all" (an explicit `SELECT` without FAE in the `ELSE`). Gate: none.
+- **An RTTI reference in the app state does not survive the draft.**
+  `abap_component_tab` (and any attribute holding `cl_abap_*descr`) is
+  serialized without its object references: after the next roundtrip
+  `type` is initial and `cl_abap_structdescr=>create( )` raises
+  `CX_SY_STRUCT_COMP_TYPE`. A rebuild "from the components" that worked in
+  the first roundtrip fails in the second. Take the type from a data
+  reference the draft keeps (`CREATE DATA lr LIKE <tab>` over the bound
+  `REF TO data`), or rebuild the component table first. Gate: none - the
+  transpiled suite keeps objects in memory between "roundtrips".
+
 ## 6. Blind spots — green, or red, for the wrong reason
 
 **Gate: none, and that is the definition.** An entry lands in this section
