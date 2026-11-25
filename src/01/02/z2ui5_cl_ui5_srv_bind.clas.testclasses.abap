@@ -677,7 +677,7 @@ CLASS ltcl_02_cell IMPLEMENTATION.
     DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( mo_app->mt_tab ) ).
     CREATE DATA mo_app->mr_tab TYPE HANDLE lo_tab.
     ASSIGN mo_app->mr_tab->* TO <tab>.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
     cl_abap_unit_assert=>assert_subrc( ).
     <name> = `re-created`.

@@ -47,14 +47,14 @@ CLASS ltcl_ser_app IMPLEMENTATION.
 
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_row ) ).
     DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `RUNTIME_ONLY`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `RUNTIME_ONLY`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) INTO TABLE lt_comp.
     DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA mr_tab TYPE HANDLE lo_tab.
     ASSIGN mr_tab->* TO <tab>.
     ls_row-col1 = `handle`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_row TO <row>.
 
   ENDMETHOD.
@@ -478,7 +478,7 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_bound( lo_app->mr_alias_tab ).
     ASSIGN lo_app->mr_alias_tab->* TO <alias>.
     cl_abap_unit_assert=>assert_subrc( ).
-    APPEND VALUE #( id = `H3` ) TO <alias>.
+    INSERT VALUE #( id = `H3` ) INTO TABLE <alias>.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lo_app->mt_head ) ).
 
@@ -859,7 +859,7 @@ CLASS ltcl_stored_rows IMPLEMENTATION.
     " the reference points at the restored table, not at a copy of it
     ASSIGN lo_app->mr_alias->* TO <alias>.
     cl_abap_unit_assert=>assert_subrc( ).
-    APPEND VALUE #( id = 3 ) TO <alias>.
+    INSERT VALUE #( id = 3 ) INTO TABLE <alias>.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lo_app->mt_items ) ).
     cl_abap_unit_assert=>assert_equals( exp = `MT_ITEMS`

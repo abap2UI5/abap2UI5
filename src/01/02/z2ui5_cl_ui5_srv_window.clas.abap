@@ -111,8 +111,8 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
           IF lv_name IS INITIAL.
             CONTINUE.
           ENDIF.
-          APPEND VALUE #( path       = lv_name
-                          descending = li_json->get_boolean( |{ lv_sorter }/DESCENDING| ) ) TO result.
+          INSERT VALUE #( path       = lv_name
+                          descending = li_json->get_boolean( |{ lv_sorter }/DESCENDING| ) ) INTO TABLE result.
         ENDLOOP.
       CATCH cx_root.
         " a sort that cannot be read is no sort - the app's own order
@@ -136,11 +136,11 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
           lv_group = lv_group + 1.
           LOOP AT li_json->members( |/{ lv_g }| ) INTO DATA(lv_c).
             DATA(lv_cond) = |/{ lv_g }/{ lv_c }|.
-            APPEND VALUE #( group    = lv_group
+            INSERT VALUE #( group    = lv_group
                             path     = to_upper( li_json->get_string( |{ lv_cond }/1| ) )
                             operator = li_json->get_string( |{ lv_cond }/2| )
                             value1   = li_json->get( |{ lv_cond }/3| )
-                            value2   = li_json->get( |{ lv_cond }/4| ) ) TO result.
+                            value2   = li_json->get( |{ lv_cond }/4| ) ) INTO TABLE result.
           ENDLOOP.
         ENDLOOP.
       CATCH cx_root.

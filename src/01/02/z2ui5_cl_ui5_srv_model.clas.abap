@@ -1184,7 +1184,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     DATA(ls_token) = VALUE ty_s_fast( token = |z2ui5-fast-{ cs_fast-uuid }-{ lines( cs_fast-t_token ) + 1 }|
                                       json  = iv_json
                                       path  = iv_path ).
-    APPEND ls_token TO cs_fast-t_token.
+    INSERT ls_token INTO TABLE cs_fast-t_token.
     io_result->set( iv_path = iv_path
                     iv_val  = ls_token-token ).
 
@@ -1249,32 +1249,32 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " it (json_row - the same bytes as ajson's escape_string)
     CASE is_node-type.
       WHEN z2ui5_if_ajson_types=>node_type-array.
-        APPEND `[` TO ct_buffer.
+        INSERT `[` INTO TABLE ct_buffer.
         DATA(lv_path) = is_node-path && is_node-name && `/`.
         DATA(lv_first) = abap_true.
         LOOP AT it_tree INTO DATA(ls_item) USING KEY array_index WHERE path = lv_path.
           IF lv_first = abap_false.
-            APPEND `,` TO ct_buffer.
+            INSERT `,` INTO TABLE ct_buffer.
           ENDIF.
           lv_first = abap_false.
           json_ns_node( EXPORTING it_tree   = it_tree
                                   is_node   = ls_item
                         CHANGING  ct_buffer = ct_buffer ).
         ENDLOOP.
-        APPEND `]` TO ct_buffer.
+        INSERT `]` INTO TABLE ct_buffer.
       WHEN z2ui5_if_ajson_types=>node_type-object.
-        APPEND `{` TO ct_buffer.
+        INSERT `{` INTO TABLE ct_buffer.
         json_ns_object( EXPORTING it_tree   = it_tree
                                   iv_path   = is_node-path && is_node-name && `/`
                         CHANGING  ct_buffer = ct_buffer ).
-        APPEND `}` TO ct_buffer.
+        INSERT `}` INTO TABLE ct_buffer.
       WHEN z2ui5_if_ajson_types=>node_type-string.
-        APPEND |"{ z2ui5_cl_ui5_util_context=>c_escape_json( is_node-value ) }"| TO ct_buffer.
+        INSERT |"{ z2ui5_cl_ui5_util_context=>c_escape_json( is_node-value ) }"| INTO TABLE ct_buffer.
       WHEN z2ui5_if_ajson_types=>node_type-null.
-        APPEND `null` TO ct_buffer.
+        INSERT `null` INTO TABLE ct_buffer.
       WHEN OTHERS.
         " number and boolean: the text as ajson holds it
-        APPEND is_node-value TO ct_buffer.
+        INSERT is_node-value INTO TABLE ct_buffer.
     ENDCASE.
 
   ENDMETHOD.
@@ -1290,27 +1290,27 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " the members are sorted by key and sub, so a namespace's members
       " follow each other and its object closes at the first other key
       IF lv_group IS NOT INITIAL AND lr_member->key <> lv_group.
-        APPEND `}` TO ct_buffer.
+        INSERT `}` INTO TABLE ct_buffer.
         CLEAR lv_group.
       ENDIF.
       IF lv_first = abap_false.
-        APPEND `,` TO ct_buffer.
+        INSERT `,` INTO TABLE ct_buffer.
       ENDIF.
       lv_first = abap_false.
       IF lr_member->sub IS INITIAL.
-        APPEND |"{ lr_member->key }":| TO ct_buffer.
+        INSERT |"{ lr_member->key }":| INTO TABLE ct_buffer.
       ELSEIF lr_member->key = lv_group.
-        APPEND |"{ lr_member->sub }":| TO ct_buffer.
+        INSERT |"{ lr_member->sub }":| INTO TABLE ct_buffer.
       ELSE.
         lv_group = lr_member->key.
-        APPEND |"{ lr_member->key }":\{"{ lr_member->sub }":| TO ct_buffer.
+        INSERT |"{ lr_member->key }":\{"{ lr_member->sub }":| INTO TABLE ct_buffer.
       ENDIF.
       json_ns_node( EXPORTING it_tree   = it_tree
                               is_node   = lr_member->node
                     CHANGING  ct_buffer = ct_buffer ).
     ENDLOOP.
     IF lv_group IS NOT INITIAL.
-      APPEND `}` TO ct_buffer.
+      INSERT `}` INTO TABLE ct_buffer.
     ENDIF.
 
   ENDMETHOD.
@@ -1326,13 +1326,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                 IMPORTING ev_ns    = DATA(lv_ns)
                           ev_field = DATA(lv_field) ).
       IF lv_ns IS INITIAL.
-        APPEND VALUE #( key  = ls_node-name
-                        node = ls_node ) TO result.
+        INSERT VALUE #( key  = ls_node-name
+                        node = ls_node ) INTO TABLE result.
       ELSE.
-        APPEND VALUE #( key  = lv_ns
+        INSERT VALUE #( key  = lv_ns
                         sub  = lv_field
-                        node = ls_node ) TO result.
-        APPEND lv_ns TO lt_ns.
+                        node = ls_node ) INTO TABLE result.
+        INSERT lv_ns INTO TABLE lt_ns.
       ENDIF.
     ENDLOOP.
     IF lt_ns IS INITIAL.
@@ -1478,10 +1478,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
       " never empty: a token is a member's value, so the document has at
       " least `{"NAME":` before the first one and `,"NAME":` between two
-      APPEND substring( val = cv_json
+      INSERT substring( val = cv_json
                         off = lv_pos
-                        len = lv_off - lv_pos ) TO lt_piece.
-      APPEND <fast>-json TO lt_piece.
+                        len = lv_off - lv_pos ) INTO TABLE lt_piece.
+      INSERT <fast>-json INTO TABLE lt_piece.
       lv_pos = lv_end + 1.
       lv_found = lv_found + 1.
     ENDDO.
@@ -1502,8 +1502,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     " what follows the last token - at least the closing brace
-    APPEND substring( val = cv_json
-                      off = lv_pos ) TO lt_piece.
+    INSERT substring( val = cv_json
+                      off = lv_pos ) INTO TABLE lt_piece.
     cv_json = concat_lines_of( lt_piece ).
 
   ENDMETHOD.
@@ -1546,13 +1546,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     DATA lt_row TYPE string_table.
     IF lt_member IS NOT INITIAL.
       LOOP AT <tab> ASSIGNING <row>.
-        APPEND json_row_ns( is_row    = <row>
-                            it_member = lt_member ) TO lt_row.
+        INSERT json_row_ns( is_row    = <row>
+                            it_member = lt_member ) INTO TABLE lt_row.
       ENDLOOP.
     ELSE.
       LOOP AT <tab> ASSIGNING <row>.
-        APPEND json_row( is_row  = <row>
-                         it_comp = lt_comp ) TO lt_row.
+        INSERT json_row( is_row  = <row>
+                         it_comp = lt_comp ) INTO TABLE lt_row.
       ENDLOOP.
     ENDIF.
     result = `[` && concat_lines_of( table = lt_row
@@ -1575,8 +1575,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             val = |MODEL_FAST_PATH_COMPONENT_LOST - internal error while serializing a bound table: column | &&
                   |'{ lr_comp->name }' is missing from its own row. This is a framework defect, not an app error - please report it|.
       ENDIF.
-      APPEND |"{ lr_comp->name }":{ json_cell( iv_cell  = <cell>
-                                                iv_kind = lr_comp->json_kind ) }| TO lt_member.
+      INSERT |"{ lr_comp->name }":{ json_cell( iv_cell  = <cell>
+                                                iv_kind = lr_comp->json_kind ) }| INTO TABLE lt_member.
     ENDLOOP.
     result = `{` && concat_lines_of( table = lt_member
                                      sep   = `,` ) && `}`.
@@ -1623,15 +1623,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                 IMPORTING ev_ns    = DATA(lv_ns)
                           ev_field = DATA(lv_field) ).
       IF lv_ns IS INITIAL.
-        APPEND VALUE #( key       = lr_comp->name
+        INSERT VALUE #( key       = lr_comp->name
                         name      = lr_comp->name
-                        json_kind = lr_comp->json_kind ) TO result.
+                        json_kind = lr_comp->json_kind ) INTO TABLE result.
       ELSE.
-        APPEND VALUE #( key       = lv_ns
+        INSERT VALUE #( key       = lv_ns
                         sub       = lv_field
                         name      = lr_comp->name
-                        json_kind = lr_comp->json_kind ) TO result.
-        APPEND lv_ns TO lt_ns.
+                        json_kind = lr_comp->json_kind ) INTO TABLE result.
+        INSERT lv_ns INTO TABLE lt_ns.
       ENDIF.
     ENDLOOP.
     IF lt_ns IS INITIAL.
@@ -1667,20 +1667,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " the members are sorted by key and sub, so a namespace's columns
       " follow each other and its object closes at the first other key
       IF lv_group IS NOT INITIAL AND lr_member->key <> lv_group.
-        APPEND |"{ lv_group }":\{{ concat_lines_of( table = lt_inner
-                                                      sep = `,` ) }\}| TO lt_member.
+        INSERT |"{ lv_group }":\{{ concat_lines_of( table = lt_inner
+                                                      sep = `,` ) }\}| INTO TABLE lt_member.
         CLEAR: lv_group, lt_inner.
       ENDIF.
       IF lr_member->sub IS INITIAL.
-        APPEND |"{ lr_member->key }":{ lv_text }| TO lt_member.
+        INSERT |"{ lr_member->key }":{ lv_text }| INTO TABLE lt_member.
       ELSE.
         lv_group = lr_member->key.
-        APPEND |"{ lr_member->sub }":{ lv_text }| TO lt_inner.
+        INSERT |"{ lr_member->sub }":{ lv_text }| INTO TABLE lt_inner.
       ENDIF.
     ENDLOOP.
     IF lv_group IS NOT INITIAL.
-      APPEND |"{ lv_group }":\{{ concat_lines_of( table = lt_inner
-                                                    sep = `,` ) }\}| TO lt_member.
+      INSERT |"{ lv_group }":\{{ concat_lines_of( table = lt_inner
+                                                    sep = `,` ) }\}| INTO TABLE lt_member.
     ENDIF.
     result = `{` && concat_lines_of( table = lt_member
                                      sep   = `,` ) && `}`.
@@ -3493,7 +3493,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         ls_skip-value = io_delta->get_string( iv_path ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
-    APPEND ls_skip TO mt_skipped.
+    INSERT ls_skip INTO TABLE mt_skipped.
 
   ENDMETHOD.
 
@@ -3705,7 +3705,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         ls_skip-value = io_model->get_string( iv_path ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
-    APPEND ls_skip TO mt_skipped.
+    INSERT ls_skip INTO TABLE mt_skipped.
 
   ENDMETHOD.
 

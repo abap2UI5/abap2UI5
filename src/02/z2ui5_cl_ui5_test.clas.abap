@@ -632,11 +632,11 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
                                            json = ii_json->slice( lv_entry )->stringify( ) ).
       DATA(lv_arg) = 2.
       WHILE ii_json->exists( |{ lv_entry }/{ lv_arg }| ) = abap_true.
-        APPEND node_text( ii_json = ii_json
-                          iv_path = |{ lv_entry }/{ lv_arg }| ) TO ls_action-t_arg.
+        INSERT node_text( ii_json = ii_json
+                          iv_path = |{ lv_entry }/{ lv_arg }| ) INTO TABLE ls_action-t_arg.
         lv_arg = lv_arg + 1.
       ENDWHILE.
-      APPEND ls_action TO mt_action.
+      INSERT ls_action INTO TABLE mt_action.
     ENDLOOP.
 
   ENDMETHOD.
@@ -796,7 +796,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
       ENDIF.
-      APPEND ls_message TO result.
+      INSERT ls_message INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.

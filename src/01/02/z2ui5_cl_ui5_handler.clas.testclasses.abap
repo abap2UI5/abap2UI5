@@ -224,7 +224,7 @@ CLASS ltcl_app_dref_popup IMPLEMENTATION.
       " the popup app writes INTO the caller's table and goes back to the
       " caller it holds - the shape of a popup that edits its caller's data
       ASSIGN mo_caller->mr_tab->* TO <tab>.
-      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
       ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
       IF sy-subrc = 0.
         <name> = `three`.
@@ -253,10 +253,10 @@ CLASS ltcl_app_dref_caller IMPLEMENTATION.
       CREATE DATA mr_tab TYPE HANDLE lo_tab.
       ASSIGN mr_tab->* TO <tab>.
       ls_row-name = `one`.
-      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
       MOVE-CORRESPONDING ls_row TO <row>.
       ls_row-name = `two`.
-      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
       MOVE-CORRESPONDING ls_row TO <row>.
       client->view_display( |<mvc:View><Table items="{ client->_bind( <tab> ) }"/></mvc:View>| ).
     ELSEIF client->check_on_navigated( ).
@@ -2902,7 +2902,7 @@ ENDCLASS.
 CLASS ltcl_monitor IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_monitor~on_roundtrip.
-    APPEND is_roundtrip TO mt_calls.
+    INSERT is_roundtrip INTO TABLE mt_calls.
     IF check_raise = abap_true.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `MONITOR_BROKEN`.

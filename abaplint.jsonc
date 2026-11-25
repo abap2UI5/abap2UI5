@@ -38,7 +38,7 @@
     // listed so they do not come back (abaplint 2.120.116+). The successors
     // are the "Style Rules" of AGENTS.md: READ TABLE -> line_exists( ),
     // ASSIGN itab[ ... ] / VALUE #( itab[ ... ] OPTIONAL ),
-    // CHECK -> IF ... RETURN/CONTINUE,
+    // APPEND -> INSERT ... INTO TABLE, CHECK -> IF ... RETURN/CONTINUE,
     // the string statements -> their functions (condense( ), find( ),
     // replace( ), shift_left( ), to_upper( ), &&, ...), GET REFERENCE ->
     // REF #( )
@@ -78,7 +78,8 @@
         "Replace",
         "Find",
         "Shift",
-        "ReadTable"
+        "ReadTable",
+        "Append"
       ]
     },
     "7bit_ascii": true,

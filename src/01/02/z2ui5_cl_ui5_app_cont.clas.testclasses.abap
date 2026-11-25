@@ -117,14 +117,14 @@ CLASS ltcl_cont_app IMPLEMENTATION.
 
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_row ) ).
     DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `RUNTIME_ONLY`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `RUNTIME_ONLY`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) INTO TABLE lt_comp.
     DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA result TYPE HANDLE lo_tab.
     ASSIGN result->* TO <tab>.
     ls_row-col1 = iv_col1.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_row TO <row>.
 
   ENDMETHOD.
@@ -587,7 +587,7 @@ CLASS ltcl_02_db IMPLEMENTATION.
     " reference; the change has to reach the model of the next roundtrip
     ASSIGN lo_app->mo_inner->mr_shared->* TO <tab>.
     ls_row-col1 = `appended after the restore`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_row TO <row>.
     DATA(lv_changed) = lo_loaded->model_json_stringify( ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_changed CS `"appended after the restore"` ) ).
@@ -797,7 +797,7 @@ CLASS ltcl_02_db IMPLEMENTATION.
     DATA(lr_live) = mo_user->mr_handle_tab.
     ASSIGN mo_user->mo_inner->mr_shared->* TO <tab>.
     ls_row-col1 = `appended by the callee`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_row TO <row>.
 
     " the way back restores the draft against the live instance: the
@@ -853,7 +853,7 @@ CLASS ltcl_03_errors IMPLEMENTATION.
       " plain text, not malformed markup: a system answers either with a
       " catchable exception, the NodeJS parser ASSERTs on broken markup
       lr_attri->srtti_data = `this is not the serialized type`.
-      APPEND lr_attri->name TO result.
+      INSERT lr_attri->name INTO TABLE result.
     ENDLOOP.
     cl_abap_unit_assert=>assert_not_initial( result ).
     DATA(lv_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( mo_cont ).

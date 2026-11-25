@@ -181,7 +181,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " and the view went missing from the wire; a wire without an id
         " keeps the empty id slot in front of the view instead
         IF lt_arg IS INITIAL.
-          APPEND `` TO lt_arg.
+          INSERT `` INTO TABLE lt_arg.
         ENDIF.
         INSERT lv_view_slot INTO lt_arg INDEX 2.
 

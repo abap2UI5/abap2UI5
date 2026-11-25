@@ -232,7 +232,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     result->parent = me.
     result->name = n.
     result->prefix = ns.
-    APPEND result TO t_child.
+    INSERT result INTO TABLE t_child.
 
   ENDMETHOD.
 
@@ -284,8 +284,8 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     IF line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
       raise( |duplicate attribute '{ n }' on element '{ target->name }'| ).
     ENDIF.
-    APPEND VALUE #( n = n
-                    v = val ) TO target->t_pair.
+    INSERT VALUE #( n = n
+                    v = val ) INTO TABLE target->t_pair.
     result = me.
 
   ENDMETHOD.
@@ -358,15 +358,15 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     DATA(attrs) = concat_lines_of( lt_attr ).
 
     IF t_child IS INITIAL.
-      APPEND |<{ qname }{ attrs }/>| TO ct_out.
+      INSERT |<{ qname }{ attrs }/>| INTO TABLE ct_out.
       RETURN.
     ENDIF.
 
-    APPEND |<{ qname }{ attrs }>| TO ct_out.
+    INSERT |<{ qname }{ attrs }>| INTO TABLE ct_out.
     LOOP AT t_child INTO child.
       child->render_into( CHANGING ct_out = ct_out ).
     ENDLOOP.
-    APPEND |</{ qname }>| TO ct_out.
+    INSERT |</{ qname }>| INTO TABLE ct_out.
 
   ENDMETHOD.
 

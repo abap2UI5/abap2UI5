@@ -212,7 +212,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       CLEAR mt_cell_names.
       DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
       LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
-        APPEND <comp>-name TO mt_cell_names.
+        INSERT <comp>-name INTO TABLE mt_cell_names.
       ENDLOOP.
       mr_cell_tab = ms_config-tab.
     ENDIF.

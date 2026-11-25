@@ -224,7 +224,7 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
     DATA ls_odd TYPE ty_s_odd.
 
     ls_odd-type = `E`.
-    APPEND `line one` TO ls_odd-text.
+    INSERT `line one` INTO TABLE ls_odd-text.
 
     mo_cut->msg_box( ls_odd ).
 

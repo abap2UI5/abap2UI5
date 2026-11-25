@@ -1390,11 +1390,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " between rows, so an inline `( )` row would arrive as a copy of its
     " predecessor instead of an all-initial line
     DATA lt_tab TYPE ty_t_row.
-    APPEND VALUE #( title = `first`
-                    count = 1 ) TO lt_tab.
-    APPEND INITIAL LINE TO lt_tab.
-    APPEND VALUE #( title = `third`
-                    count = 3 ) TO lt_tab.
+    INSERT VALUE #( title = `first`
+                    count = 1 ) INTO TABLE lt_tab.
+    INSERT INITIAL LINE INTO TABLE lt_tab.
+    INSERT VALUE #( title = `third`
+                    count = 3 ) INTO TABLE lt_tab.
 
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
     lo_ajson->set( iv_ignore_empty = abap_false
@@ -2011,13 +2011,13 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
 
     ls_product-name  = `Notebook`.
     ls_product-price = '1249.00'.
-    APPEND VALUE #( qty = 1 ) TO ls_product-t_pos.
-    APPEND ls_product TO mo_app->mt_product.
+    INSERT VALUE #( qty = 1 ) INTO TABLE ls_product-t_pos.
+    INSERT ls_product INTO TABLE mo_app->mt_product.
 
     CLEAR ls_product.
     ls_product-name  = `Monitor`.
     ls_product-price = '299.00'.
-    APPEND ls_product TO mo_app->mt_product.
+    INSERT ls_product INTO TABLE mo_app->mt_product.
 
     mo_action->mo_app->mo_app = mo_app.
 

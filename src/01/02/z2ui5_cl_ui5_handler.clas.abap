@@ -634,12 +634,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
           IF lo_front IS NOT BOUND.
             lo_front = io_json->slice( iv_front ).
           ENDIF.
-          APPEND lo_front->slice( |/T_EVENT_ARG/{ lv_arg_index }| )->stringify( ) TO result.
+          INSERT lo_front->slice( |/T_EVENT_ARG/{ lv_arg_index }| )->stringify( ) INTO TABLE result.
         WHEN z2ui5_if_ajson_types=>node_type-boolean.
           " the string a boolean node became on the to_abap path: X or empty
-          APPEND CONV string( io_json->get_boolean( lv_arg_path ) ) TO result.
+          INSERT CONV string( io_json->get_boolean( lv_arg_path ) ) INTO TABLE result.
         WHEN OTHERS.
-          APPEND io_json->get_string( lv_arg_path ) TO result.
+          INSERT io_json->get_string( lv_arg_path ) INTO TABLE result.
       ENDCASE.
       lv_arg_index = lv_arg_index + 1.
     ENDDO.

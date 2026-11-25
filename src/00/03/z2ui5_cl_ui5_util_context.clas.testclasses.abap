@@ -839,7 +839,7 @@ CLASS ltcl_rtti_cx IMPLEMENTATION.
     super->constructor( ).
     mv_detail = detail.
     mv_secret = `secret`.
-    APPEND `row` TO mt_rows.
+    INSERT `row` INTO TABLE mt_rows.
   ENDMETHOD.
 ENDCLASS.
 
@@ -942,7 +942,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
     DATA lr_tab TYPE REF TO data.
     CREATE DATA lr_tab TYPE HANDLE lo_tab.
     ASSIGN lr_tab->* TO <tab>.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO <col>.
     cl_abap_unit_assert=>assert_subrc( ).
     <col> = `payload-value`.
@@ -1370,7 +1370,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     DATA(lt_row) = get_rows( ).
 
-    APPEND `NAME` TO lt_fields.
+    INSERT `NAME` INTO TABLE lt_fields.
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
                                                           fields = lt_fields
@@ -1413,7 +1413,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     " the ordinary rows, case-insensitive and through a field list naming a
     " component the rows do not have: still no filter
     DATA(lt_row) = get_rows( ).
-    APPEND `NO_SUCH_FIELD` TO lt_fields.
+    INSERT `NO_SUCH_FIELD` INTO TABLE lt_fields.
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val      = ``
                                                           fields      = lt_fields
                                                           ignore_case = abap_true
@@ -1536,10 +1536,10 @@ CLASS ltcl_msg IMPLEMENTATION.
     DATA ls_env TYPE ty_s_envelope.
     " the envelope's own type says Success and must NOT reach the messages
     ls_env-type = `S`.
-    APPEND VALUE #( type    = `E`
-                    message = `first` ) TO ls_env-item.
-    APPEND VALUE #( type    = `W`
-                    message = `second` ) TO ls_env-item.
+    INSERT VALUE #( type    = `E`
+                    message = `first` ) INTO TABLE ls_env-item.
+    INSERT VALUE #( type    = `W`
+                    message = `second` ) INTO TABLE ls_env-item.
 
     DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_t( ls_env ).
 
@@ -1990,7 +1990,7 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     ASSIGN COMPONENT `BOOKINGS` OF STRUCTURE <failed> TO <tab>.
     cl_abap_unit_assert=>assert_subrc( ).
     ASSIGN <tab> TO <ftab>.
-    APPEND INITIAL LINE TO <ftab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <ftab> ASSIGNING <row>.
 
     ASSIGN COMPONENT `%FAIL-CAUSE` OF STRUCTURE <row> TO <comp>.
     cl_abap_unit_assert=>assert_subrc( ).
@@ -2088,7 +2088,7 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     ASSIGN COMPONENT `BOOKINGS` OF STRUCTURE <reported> TO <tab>.
     cl_abap_unit_assert=>assert_subrc( ).
     ASSIGN <tab> TO <ftab>.
-    APPEND INITIAL LINE TO <ftab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <ftab> ASSIGNING <row>.
 
     TRY.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -2846,7 +2846,7 @@ CLASS ltcl_edge IMPLEMENTATION.
     ls_range-option = lv_option.
     ls_range-low    = `1`.
     ls_range-high   = `5`.
-    APPEND ls_range TO lt_range.
+    INSERT ls_range INTO TABLE lt_range.
 
     DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
 

@@ -410,7 +410,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       ENDTRY.
       IF lv_name = z2ui5_if_ui5_types=>cs_global_target-message_toast
           OR lv_name = z2ui5_if_ui5_types=>cs_global_target-message_box.
-        APPEND lr_action->* TO result.
+        INSERT lr_action->* INTO TABLE result.
       ENDIF.
     ENDLOOP.
 

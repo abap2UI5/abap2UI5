@@ -2311,7 +2311,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     FIELD-SYMBOLS <row_out> TYPE any.
 
     LOOP AT val ASSIGNING <row_in>.
-      APPEND INITIAL LINE TO tab ASSIGNING <row_out>.
+      INSERT INITIAL LINE INTO TABLE tab ASSIGNING <row_out>.
       MOVE-CORRESPONDING <row_in> TO <row_out>.
     ENDLOOP.
 
@@ -2801,7 +2801,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             CLEAR result.
             RETURN.
           ENDIF.
-          APPEND ls_flat TO result.
+          INSERT ls_flat INTO TABLE result.
         ENDLOOP.
       CATCH cx_root.
         CLEAR result.
@@ -4830,7 +4830,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       IF sy-subrc <> 0 OR <flag> IS INITIAL.
         CONTINUE.
       ENDIF.
-      APPEND ls_attri->name+lv_len TO result.
+      INSERT ls_attri->name+lv_len INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.
@@ -4896,7 +4896,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           OR lv_sub_kind = cl_abap_datadescr=>typekind_struct2.
         DATA(lv_sub) = msg_get_rap_flatten( <comp> ).
         IF lv_sub IS NOT INITIAL.
-          APPEND lv_sub TO lt_part.
+          INSERT lv_sub INTO TABLE lt_part.
         ENDIF.
       ELSEIF <comp> IS NOT INITIAL AND rtti_check_printable( <comp> ) = abap_true.
         " the printable test does what the TRY around this could not: a
@@ -4907,7 +4907,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         TRY.
             DATA lv_str TYPE string.
             lv_str = <comp>.
-            APPEND |{ ls_attri->name }={ lv_str }| TO lt_part.
+            INSERT |{ ls_attri->name }={ lv_str }| INTO TABLE lt_part.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
       ENDIF.

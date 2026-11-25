@@ -391,8 +391,8 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     " fine on a system, unknown to the NodeJS runtime, which only answers
     " for the built-in types by their anonymous names
     DATA lv_flag TYPE c LENGTH 1.
-    APPEND VALUE #( name = `SELKZ`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) INTO TABLE lt_comp.
     DATA(lo_struc) = cl_abap_structdescr=>create( lt_comp ).
     DATA(lo_tab)   = cl_abap_tabledescr=>create( p_line_type  = lo_struc
                                                  p_table_kind = cl_abap_tabledescr=>tablekind_std ).
@@ -400,10 +400,10 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     CREATE DATA mr_handle_tab TYPE HANDLE lo_tab.
     ASSIGN mr_handle_tab->* TO <tab>.
     ls_sel = VALUE #( col1 = `handle-row-1` selkz = abap_true ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     ls_sel = VALUE #( col1 = `handle-row-2` ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
 
     CREATE DATA mr_handle_struc TYPE HANDLE lo_struc.
@@ -422,7 +422,7 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     CREATE DATA mr_shared_a TYPE HANDLE lo_tab.
     ASSIGN mr_shared_a->* TO <tab>.
     ls_sel = VALUE #( col1 = `shared` ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     mr_shared_b = mr_shared_a.
 
@@ -444,10 +444,10 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
 
     " a structure that exists at runtime only, with a table inside
     DATA lt_nested_comp TYPE abap_component_tab.
-    APPEND VALUE #( name = `ID`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( mv_string ) ) ) TO lt_nested_comp.
-    APPEND VALUE #( name = `T_ITEMS`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( mt_std ) ) ) TO lt_nested_comp.
+    INSERT VALUE #( name = `ID`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( mv_string ) ) ) INTO TABLE lt_nested_comp.
+    INSERT VALUE #( name = `T_ITEMS`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( mt_std ) ) ) INTO TABLE lt_nested_comp.
     " a variable as the handle: a method call in this position is a syntax
     " error on a system ("No method can be specified in the current
     " position"), which neither abaplint nor the transpiler model
@@ -467,10 +467,10 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     CREATE DATA ms_with_dref-r_tab TYPE HANDLE lo_tab.
     ASSIGN ms_with_dref-r_tab->* TO <tab>.
     ls_sel = VALUE #( col1 = `in-struc-tab` ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
 
-    APPEND INITIAL LINE TO mt_rows_ref ASSIGNING FIELD-SYMBOL(<row_ref>).
+    INSERT INITIAL LINE INTO TABLE mt_rows_ref ASSIGNING FIELD-SYMBOL(<row_ref>).
     <row_ref>-id = `r1`.
     CREATE DATA <row_ref>-r_elem.
     <row_ref>-r_elem->* = `cell-ref`.
@@ -480,7 +480,7 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     mv_protected = `protected`.
     mo_hidden = NEW #( ).
 
-    APPEND NEW ltcl_shp_inner( ) TO mt_apps.
+    INSERT NEW ltcl_shp_inner( ) INTO TABLE mt_apps.
     mt_apps[ 1 ]->mv_inner = `in-table`.
 
     mv_markup = |<b>tag</b> & "quoted" 'single' \\ backslash{ z2ui5_cl_ui5_util_context=>cv_char_util_newline }second line|.
@@ -520,14 +520,14 @@ CLASS ltcl_shp_sub_a IMPLEMENTATION.
     " a field no dictionary has
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_line ) ).
     DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `SELKZ`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) INTO TABLE lt_comp.
     DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA mt_table TYPE HANDLE lo_tab.
     ASSIGN mt_table->* TO <tab>.
     ls_line-col1 = `a`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_line TO <row>.
     mo_layout->mr_shared = mt_table.
   ENDMETHOD.
@@ -559,14 +559,14 @@ CLASS ltcl_shp_sub_b IMPLEMENTATION.
     " a field no dictionary has
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_line ) ).
     DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `SELKZ`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) INTO TABLE lt_comp.
     DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA mt_data TYPE HANDLE lo_tab.
     ASSIGN mt_data->* TO <tab>.
     ls_line-col1 = `b`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_line TO <row>.
     mo_lay->mr_shared = mt_data.
   ENDMETHOD.
@@ -822,7 +822,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
                        occ  = 0 ).
     result->name_client = |/{ lv_path }|.
     IF NOT line_exists( mt_bound[ table_line = result->name ] ).
-      APPEND result->name TO mt_bound.
+      INSERT result->name INTO TABLE mt_bound.
     ENDIF.
 
   ENDMETHOD.
@@ -2260,8 +2260,8 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
     bind( mo_app->mr_typed_tab ).
     " the backend appends two rows and ships the table...
-    APPEND VALUE #( col1 = `second` ) TO mo_app->mr_typed_tab->*.
-    APPEND VALUE #( col1 = `third` ) TO mo_app->mr_typed_tab->*.
+    INSERT VALUE #( col1 = `second` ) INTO TABLE mo_app->mr_typed_tab->*.
+    INSERT VALUE #( col1 = `third` ) INTO TABLE mo_app->mr_typed_tab->*.
     DATA(lv_json) = mo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"third"` ) ).
 
@@ -2755,10 +2755,10 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_app_typed( ).
     DO 6 TIMES.
-      APPEND VALUE #( name     = |row-{ sy-index }|
+      INSERT VALUE #( name     = |row-{ sy-index }|
                       price    = sy-index * 100
                       t_pos    = VALUE #( ( qty = sy-index ) )
-                      t_sorted = VALUE #( ( qty = 1 ) ) ) TO lo_app->mt_tab.
+                      t_sorted = VALUE #( ( qty = 1 ) ) ) INTO TABLE lo_app->mt_tab.
     ENDDO.
     DATA(lo_model) = typed_model( lo_app ).
 
@@ -3326,7 +3326,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     DATA ls_sel TYPE ltcl_app_shapes=>ty_s_row_sel.
     ASSIGN mo_app->mo_inner->mr_shared->* TO <tab>.
     ls_sel-col1 = `appended after the restore`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     DATA(lv_changed) = mo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_differs( exp = lv_second
@@ -3738,7 +3738,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     " table (S-RTTI inside asXML) - both serializations escape and unescape
     ASSIGN mo_app->mr_handle_tab->* TO <tab>.
     ls_sel-col1 = mo_app->mv_markup.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     bind( REF #( mo_app->mv_markup ) ).
     bind( mo_app->mr_handle_tab ).
@@ -3892,7 +3892,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     CREATE DATA lr_own TYPE HANDLE lo_tab.
     ASSIGN lr_own->* TO <tab>.
     ls_sel-col1 = `own`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     mo_app->mr_shared_a = lr_own.
 
@@ -3993,7 +3993,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     CREATE DATA lr_new TYPE HANDLE lo_tab.
     ASSIGN lr_new->* TO <tab>.
     ls_sel-col1 = `re-created`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     mo_app->mr_shared_a = lr_new.
     mo_app->mr_shared_b = lr_new.
@@ -4874,10 +4874,10 @@ CLASS ltcl_app_tm_pop IMPLEMENTATION.
     FIELD-SYMBOLS <tab>    TYPE ty_t_fix_val.
 
     LOOP AT mt_field INTO DATA(lv_field).
-      APPEND VALUE #( name = lv_field
-                      type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) ) TO lt_comp_row.
-      APPEND VALUE #( name = lv_field
-                      type = CAST #( cl_abap_typedescr=>describe_by_data( lt_fixval ) ) ) TO lt_comp_fix.
+      INSERT VALUE #( name = lv_field
+                      type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) ) INTO TABLE lt_comp_row.
+      INSERT VALUE #( name = lv_field
+                      type = CAST #( cl_abap_typedescr=>describe_by_data( lt_fixval ) ) ) INTO TABLE lt_comp_fix.
     ENDLOOP.
     DATA(lo_row) = cl_abap_structdescr=>create( lt_comp_row ).
     DATA(lo_fix) = cl_abap_structdescr=>create( lt_comp_fix ).
@@ -4951,7 +4951,7 @@ CLASS ltcl_app_ns IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab>.
     DO 2 TIMES.
-      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
       ASSIGN COMPONENT `MATNR` OF STRUCTURE <row> TO <cell>.
       cl_abap_unit_assert=>assert_subrc( ).
       <cell> = |M{ sy-index }|.
@@ -4981,7 +4981,7 @@ CLASS ltcl_app_ns IMPLEMENTATION.
     CREATE DATA mr_deep TYPE HANDLE lo_deep.
     FIELD-SYMBOLS <deep> TYPE STANDARD TABLE.
     ASSIGN mr_deep->* TO <deep>.
-    APPEND INITIAL LINE TO <deep> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <deep> ASSIGNING <row>.
     ASSIGN COMPONENT `ID` OF STRUCTURE <row> TO <cell>.
     cl_abap_unit_assert=>assert_subrc( ).
     <cell> = 1.
@@ -5210,7 +5210,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     ls_row-v_xsd    = abap_true.
     ls_row-za_last  = `z`.
     ls_row-a_first  = `a`.
-    APPEND ls_row TO result.
+    INSERT ls_row INTO TABLE result.
     " row 2: negatives and decimals
     CLEAR ls_row.
     ls_row-v_i     = -7.
@@ -5221,10 +5221,10 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     ls_row-v_c     = `"`.
     ls_row-v_n     = '00007'.
     ls_row-v_string = `\`.
-    APPEND ls_row TO result.
+    INSERT ls_row INTO TABLE result.
     " row 3: everything initial
     CLEAR ls_row.
-    APPEND ls_row TO result.
+    INSERT ls_row INTO TABLE result.
 
   ENDMETHOD.
 
@@ -5327,9 +5327,9 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     DATA lt_sorted TYPE ty_t_kinds_sorted.
     DATA lt_scalar TYPE string_table.
     DATA lv_scalar TYPE string.
-    APPEND VALUE #( id = 1 ) TO lt_nested.
+    INSERT VALUE #( id = 1 ) INTO TABLE lt_nested.
     INSERT VALUE #( v_i = 1 ) INTO TABLE lt_sorted.
-    APPEND `x` TO lt_scalar.
+    INSERT `x` INTO TABLE lt_scalar.
 
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_nested ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_sorted ) ) ).
@@ -5343,8 +5343,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " the fields of an include are members of the row like its own - in
     " ajson's order (by name), whatever the order of the components
     DATA lt_rows TYPE ty_t_inc_plain.
-    APPEND VALUE #( z_own = `z` b_id = 1 b_text = `in "clu" de` b_day = '20240229' b_ok = abap_true a_own = 7 ) TO lt_rows.
-    APPEND INITIAL LINE TO lt_rows.
+    INSERT VALUE #( z_own = `z` b_id = 1 b_text = `in "clu" de` b_day = '20240229' b_ok = abap_true a_own = 7 ) INTO TABLE lt_rows.
+    INSERT INITIAL LINE INTO TABLE lt_rows.
 
     DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
 
@@ -5363,8 +5363,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
     " an include whose structure has an include of its own
     DATA lt_rows TYPE ty_t_inc_nested.
-    APPEND VALUE #( z_own = `z` b_id = 1 b_text = `deep` b_ok = abap_true a_own = 7 m_own = '120000' ) TO lt_rows.
-    APPEND INITIAL LINE TO lt_rows.
+    INSERT VALUE #( z_own = `z` b_id = 1 b_text = `deep` b_ok = abap_true a_own = 7 m_own = '120000' ) INTO TABLE lt_rows.
+    INSERT INITIAL LINE INTO TABLE lt_rows.
 
     DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
 
@@ -5381,9 +5381,9 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " members carry the suffixed names, and the name of the include itself
     " (AS s_old) is no member
     DATA lt_rows TYPE ty_t_inc_suffix.
-    APPEND VALUE #( key = 1 b_id_old = 10 b_text_old = `before` b_id_new = 11 b_text_new = `after` b_ok_new = abap_true )
-           TO lt_rows.
-    APPEND INITIAL LINE TO lt_rows.
+    INSERT VALUE #( key = 1 b_id_old = 10 b_text_old = `before` b_id_new = 11 b_text_new = `after` b_ok_new = abap_true )
+           INTO TABLE lt_rows.
+    INSERT INITIAL LINE INTO TABLE lt_rows.
 
     DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
 
@@ -5401,7 +5401,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " an include that brings a nested structure along: not flat, so the
     " general road - which writes the same document as before
     DATA lt_rows TYPE ty_t_inc_deep.
-    APPEND VALUE #( key = 1 id_d = 2 ) TO lt_rows.
+    INSERT VALUE #( key = 1 id_d = 2 ) INTO TABLE lt_rows.
 
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_rows ) ) ).
 
@@ -5418,10 +5418,10 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " nanoseconds - a system holds them all. Row 4 carries such a
     " fraction and is only compared, not pinned
     DATA lt_rows TYPE ty_t_stamp.
-    APPEND VALUE #( id = 1 ) TO lt_rows.
-    APPEND VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000' ) TO lt_rows.
-    APPEND VALUE #( id = 3 ts = '19991231120000' tsl = '20240229230000.5' ) TO lt_rows.
-    APPEND VALUE #( id = 4 ts = '20240229235959' tsl = '20240229235959.1234567' ) TO lt_rows.
+    INSERT VALUE #( id = 1 ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000' ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 3 ts = '19991231120000' tsl = '20240229230000.5' ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 4 ts = '20240229235959' tsl = '20240229235959.1234567' ) INTO TABLE lt_rows.
 
     DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
 
@@ -5441,8 +5441,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
     " a flat structure with time stamps, row by row
     DATA lt_rows TYPE ty_t_stamp.
-    APPEND VALUE #( id = 1 ) TO lt_rows.
-    APPEND VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000.5' ) TO lt_rows.
+    INSERT VALUE #( id = 1 ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000.5' ) INTO TABLE lt_rows.
 
     LOOP AT lt_rows REFERENCE INTO DATA(lr_row).
       cl_abap_unit_assert=>assert_not_initial( mo_model->attri_json_fast( lr_row ) ).
@@ -5558,12 +5558,12 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " token that follows it - spliced text is not searched again
     DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
     ls_fast-uuid = `U1`.
-    APPEND VALUE #( token = `z2ui5-fast-U1-1`
-                    json  = `[{"A":"$& $1 \"z2ui5-fast-U1-2\""}]` ) TO ls_fast-t_token.
-    APPEND VALUE #( token = `z2ui5-fast-U1-2`
-                    json  = `[]` ) TO ls_fast-t_token.
-    APPEND VALUE #( token = `z2ui5-fast-U1-3`
-                    json  = `{"B":1}` ) TO ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[{"A":"$& $1 \"z2ui5-fast-U1-2\""}]` ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[]` ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-3`
+                    json  = `{"B":1}` ) INTO TABLE ls_fast-t_token.
     DATA(lv_json) = `{"C":"z2ui5-fast-U1-3","D":"z2ui5-fast-U1-1","E":"x","F":"z2ui5-fast-U1-2"}`.
 
     z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
@@ -5595,10 +5595,10 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " a table missing from the model, and both are refused
     DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
     ls_fast-uuid = `U1`.
-    APPEND VALUE #( token = `z2ui5-fast-U1-1`
-                    json  = `[]` ) TO ls_fast-t_token.
-    APPEND VALUE #( token = `z2ui5-fast-U1-2`
-                    json  = `[]` ) TO ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[]` ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[]` ) INTO TABLE ls_fast-t_token.
 
     DATA(lv_json) = `{"A":"z2ui5-fast-U1-2"}`.
     TRY.
@@ -5626,11 +5626,11 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " is not expected in the document - every other one still is
     DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
     ls_fast-uuid = `U1`.
-    APPEND VALUE #( token = `z2ui5-fast-U1-1`
+    INSERT VALUE #( token = `z2ui5-fast-U1-1`
                     json  = `[1]`
-                    lost  = abap_true ) TO ls_fast-t_token.
-    APPEND VALUE #( token = `z2ui5-fast-U1-2`
-                    json  = `[2]` ) TO ls_fast-t_token.
+                    lost  = abap_true ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[2]` ) INTO TABLE ls_fast-t_token.
     DATA(lv_json) = `{"A":"z2ui5-fast-U1-2"}`.
 
     z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
@@ -5667,13 +5667,13 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
       ASSIGN COMPONENT lv_field OF STRUCTURE <row> TO <val>.
       cl_abap_unit_assert=>assert_subrc( ).
       lr_val = REF #( <val> ).
-      APPEND lo_bind->main( val    = lr_val
-                            config = VALUE #( path_only = abap_true ) ) TO result.
+      INSERT lo_bind->main( val    = lr_val
+                            config = VALUE #( path_only = abap_true ) ) INTO TABLE result.
       ASSIGN COMPONENT lv_field OF STRUCTURE <fixval> TO <struc>.
       cl_abap_unit_assert=>assert_subrc( ).
       lr_val = REF #( <struc> ).
-      APPEND lo_bind->main( val    = lr_val
-                            config = VALUE #( path_only = abap_true ) ) TO result.
+      INSERT lo_bind->main( val    = lr_val
+                            config = VALUE #( path_only = abap_true ) ) INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.
@@ -5704,7 +5704,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     lo_app->mt_field = VALUE #( ( `MANDT` ) ( `MATNR` ) ( `ERSDA` ) ( `ZZ_A_RATHER_LONG_FIELD_NAME_XX` )
                                 ( `/CWM/XCWMAT` ) ( `/CWM/VALUM` ) ( `/VSO/R_TILT_IND` ) ( `/SAPMP/KADU` ) ).
     DO 30 TIMES.
-      APPEND |F{ sy-index }| TO lo_app->mt_field.
+      INSERT |F{ sy-index }| INTO TABLE lo_app->mt_field.
     ENDDO.
     lo_app->build( ).
     DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
@@ -5806,10 +5806,10 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     eo_cont = NEW #( ).
     eo_cont->mo_app = eo_app.
     DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( eo_cont ).
-    APPEND lo_bind->main( val    = eo_app->mr_tab
-                          config = VALUE #( path_only = abap_true ) ) TO et_path.
-    APPEND lo_bind->main( val    = eo_app->mr_deep
-                          config = VALUE #( path_only = abap_true ) ) TO et_path.
+    INSERT lo_bind->main( val    = eo_app->mr_tab
+                          config = VALUE #( path_only = abap_true ) ) INTO TABLE et_path.
+    INSERT lo_bind->main( val    = eo_app->mr_deep
+                          config = VALUE #( path_only = abap_true ) ) INTO TABLE et_path.
 
   ENDMETHOD.
 

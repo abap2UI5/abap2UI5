@@ -622,7 +622,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " slot, and dropping it would shift every following position.
     DATA(lt_arg) = t_arg.
     IF arg IS SUPPLIED.
-      APPEND CONV string( arg ) TO lt_arg.
+      INSERT CONV string( arg ) INTO TABLE lt_arg.
     ENDIF.
 
     result = mo_srv_event->get_event( val   = val
