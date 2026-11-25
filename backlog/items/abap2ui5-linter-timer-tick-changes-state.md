@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Hint at a timer handler that changes an attribute on every tick'
 summary: 'an unchanged timer tick writes no draft (abap2UI5 cdd2fb25), but only when main( ) leaves the app byte for byte as it was - a handler that stamps a time or bumps a counter on every tick writes a draft per tick for as long as the page is open'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:

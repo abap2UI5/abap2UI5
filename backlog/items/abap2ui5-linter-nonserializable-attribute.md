@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report an app attribute that references a class without if_serializable_object'
 summary: 'an object reference an app keeps in an attribute is dropped without a word when the draft is written if its class is not serializable, and is initial on the next roundtrip - the view builder is the usual one'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-23
 evidence:
   - 'src/01/02/z2ui5_cl_ui5_srv_model.clas.testclasses.abap, ltcl_05_draft->dead_objects_stay_quiet (shape S15, ltcl_shp_dead) - the framework pins the behaviour: "not serializable, so gone; and nothing raised on the way"'

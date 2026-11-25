@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report an enum property bound to a table cell without a fallback for the empty value'
 summary: 'type, design or valueColor bound straight to a STRING column of a bound table - an initial value is no member of the enum, UI5 throws in validateProperty and the view does not render'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 evidence:

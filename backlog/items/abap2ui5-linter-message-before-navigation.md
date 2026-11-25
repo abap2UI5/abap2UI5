@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a message queued right before a navigation without keep_messages'
 summary: 'a message_toast_display( ) or message_box_display( ) followed in the same flow by nav_app_leave( ) or nav_app_call( ) is dropped with the screen it was queued on - the "Saved." of a detail page that returns to its list never shows; keep_messages = abap_true carries it'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:

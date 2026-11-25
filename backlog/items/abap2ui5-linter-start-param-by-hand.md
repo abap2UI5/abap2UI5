@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a start parameter read by hand instead of client->get_start_param( )'
 summary: 'an app that reads its start parameter from url_param_get( ) or t_comp_params itself covers one way of being started and misses the others (URL, launchpad tile, launchpad intent); client->get_start_param( ) reads all three'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:

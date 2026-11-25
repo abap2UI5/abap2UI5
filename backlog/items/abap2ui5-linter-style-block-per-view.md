@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a large <style> block rendered into every view'
 summary: 'an app that puts its stylesheet into a core:HTML <style> of the view sends it with every view_display( ) - kilobytes per roundtrip for CSS that never changes; the installation''s styles_css writes it into the page once'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:

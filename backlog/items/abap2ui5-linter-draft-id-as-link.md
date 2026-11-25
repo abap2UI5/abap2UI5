@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a link or bookmark built from the draft id instead of app_state_get_href( )'
 summary: 'an app that builds its own share link or bookmark from get( )-s_draft-id points at a draft the default pruning deletes after two roundtrips, or one an unchanged timer tick never wrote - app_state_get_href( ) is the link the framework keeps alive'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:

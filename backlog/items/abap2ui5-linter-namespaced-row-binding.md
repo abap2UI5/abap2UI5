@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a row binding that writes a namespaced column as an absolute path'
 summary: 'a row template that binds a column like /CWM/XCWMAT as {/CWM/XCWMAT}, or builds the braces around a column name only known at run time without component_path( ), binds an absolute path - the cell is empty and an edit is lost, with no error anywhere'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:

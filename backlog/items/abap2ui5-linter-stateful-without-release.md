@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report set_session_stateful( abap_true ) without a release on the exit paths of the app'
 summary: 'an app that turns the session stateful (usually for an ENQUEUE lock) and has a navigation or leave path that neither calls set_session_stateful( abap_false ) nor dequeues keeps a work process and the lock until the ICF timeout'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 evidence:

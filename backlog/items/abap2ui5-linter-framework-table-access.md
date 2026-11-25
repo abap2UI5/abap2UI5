@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report SQL on the framework''s and the addons'' own tables in app code'
 summary: 'an app that reads or deletes z2ui5_t_01 (drafts) or z2ui5_t_11 (layouts) directly bypasses the owner check, the draft store and the authority checks the APIs apply, and breaks when the internal table changes'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/204
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:
