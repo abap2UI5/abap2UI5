@@ -43,7 +43,6 @@ _an issue or PR exists; the item goes when it merges_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`abap2ui5-linter-release-lags-dev-manifest`](items/abap2ui5-linter-release-lags-dev-manifest.md) | 'every @abap2ui5/linter 0.11.x predates abap2UI5 40e8a073 and 4a418249, so z2ui5_cl_ui5_view_builder=>component_path( ) is an unknown-builder-method and a wired STOP_TIMER an unknown-frontend-action, although DEV documents both and its linter-manifest.json lists STOP_TIMER - a release that picks up the DEV manifest, and builder statics derived from it'<br><sub>https://github.com/abap2UI5/linter/pull/200</sub> | high | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-brace-in-style-template`](items/abap2ui5-linter-brace-in-style-template.md) | 'unescaped-brace-in-style reads the { x } of an ABAP string template as literal CSS braces, and ignores that a( t = ) already escapes binding braces - an error-level false positive on correct code'<br><sub>https://github.com/abap2UI5/linter/pull/202</sub> | medium | 2026-11-25 | abap2UI5/linter |
 
 ---
 
