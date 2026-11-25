@@ -415,7 +415,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " the one place the Layer 0 request type meets the public one - both are
         " structurally identical, and the public signature stays free of
         " z2ui5_cl_ui5_util_http (see ty_s_http_req above)
-        MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
+        ms_req = CORRESPONDING #( BASE ( ms_req ) mo_server->get_req_info( ) ).
 
         " open the request - the exit context, and with it the per-request
         " memo of the exit's POST config - and reset the per-request
@@ -1513,7 +1513,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     lo_post->mv_session_sticky = xsdbool( so_sticky_handler IS BOUND ).
 
     " the only place the core's own response type meets the public one. Both
-    " are structurally identical, so MOVE-CORRESPONDING carries every field
+    " are structurally identical, so CORRESPONDING carries every field
     " including s_stateful - and the public signature stays free of a Layer 1
     " type (see ty_s_http_res above).
     "
@@ -1532,7 +1532,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " handler in _dispatch( ) and lets the original exception pass untouched
     DATA(lo_action_before) = lo_post->mo_action.
     TRY.
-        MOVE-CORRESPONDING lo_post->main( ) TO result.
+        result = CORRESPONDING #( BASE ( result ) lo_post->main( ) ).
       CLEANUP.
         IF so_sticky_handler IS BOUND.
           lo_post->mo_action = lo_action_before.
@@ -1690,7 +1690,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Reading only body and method left path and t_params blank, and t_params
     " is where app_start and every other URL parameter lives: the two fields
     " app code reading the raw request is most likely after
-    MOVE-CORRESPONDING lo_handler->mo_server->get_req_info( ) TO result.
+    result = CORRESPONDING #( BASE ( result ) lo_handler->mo_server->get_req_info( ) ).
 
   ENDMETHOD.
 
