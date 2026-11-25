@@ -41,8 +41,6 @@ _an issue or PR exists; the item goes when it merges_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`abap2ui5-linter-release-lags-dev-manifest`](items/abap2ui5-linter-release-lags-dev-manifest.md) | 'every @abap2ui5/linter 0.11.x predates abap2UI5 40e8a073 and 4a418249, so z2ui5_cl_ui5_view_builder=>component_path( ) is an unknown-builder-method and a wired STOP_TIMER an unknown-frontend-action, although DEV documents both and its linter-manifest.json lists STOP_TIMER - a release that picks up the DEV manifest, and builder statics derived from it'<br><sub>https://github.com/abap2UI5/linter/pull/200</sub> | high | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-navigated-popup-only-target`](items/abap2ui5-linter-navigated-popup-only-target.md) | 'after nav_app_call( ) to an app that only shows a popup (z2ui5_cl_popup_value_help and the other popups addon classes), the caller''s own view is still in the main slot - the rule still demands a view_display( ) in the navigated branch'<br><sub>https://github.com/abap2UI5/linter/pull/203</sub> | medium | 2026-11-25 | abap2UI5/linter |
-| [`abap2ui5-linter-builder-helpers-with-parameters`](items/abap2ui5-linter-builder-helpers-with-parameters.md) | 'the linter follows a static factory helper with a literal-only chain and a stringify helper of another class, one level deep; a helper that takes the client, a title or a data reference into its chain (xml_build_page, a layout table builder) leaves its part of the view unseen and the render skipped'<br><sub>https://github.com/abap2UI5/linter/pull/203</sub> | low | 2026-11-25 | abap2UI5/linter |
 
 ---
 
