@@ -34,6 +34,25 @@
     "errorNamespace": "."
   },
   "rules": {
+    // statements with a successor that this repository no longer uses -
+    // listed so they do not come back (abaplint 2.120.116+). The
+    // widely used READ TABLE / APPEND / CREATE OBJECT / ... follow
+    // once the code no longer has them
+    "forbidden_statement": {
+      "statements": [
+        "Describe",
+        "Refresh",
+        "Ranges",
+        "SelectLoop",
+        "Collect",
+        "Overlay",
+        "Leave",
+        "TypePools",
+        "Perform",
+        "Form",
+        "Write"
+      ]
+    },
     "7bit_ascii": true,
     "abapdoc": false,
     // ABAP Doc is parsed as HTML: <wa> is "HTML tag not supported" on a system
