@@ -143,10 +143,10 @@ There is no `src/99` any more: the frozen legacy package left the core on 2026-1
   was renamed once, with the move: `z2ui5_cl_lp_handler` became `z2ui5_cl_ui5_icf_handler`.) The handler has lint configs of its own (`npm run check:service`).
 - **`src/99`, the frozen legacy package, is gone** (2026-11-17). The legacy XML view builder
   (`z2ui5_cl_xml_view`, `_cc`), `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
-  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from the **extension repository** —
-  [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped being a delivery repository and also
-  holds what [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet) held: the retired `z2ui5_cl_util*` classes,
-  `z2ui5_cx_util_error` and `z2ui5_t_91`. A system whose code still uses one of them installs that repository
+  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from
+  [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet), together with the retired `z2ui5_cl_util*` classes,
+  `z2ui5_cx_util_error` and `z2ui5_t_91` (2026-11-17 to 2026-11-25 they lived in abap2UI5/frontend, which is
+  retired). A system whose code still uses one of them installs that repository
   next to abap2UI5. **Two names were deleted and ship nowhere:** `z2ui5_cl_http_handler` (what named it names
   `z2ui5_cl_ui5_http_handler`) and `z2ui5_if_exit` (an exit class implements `z2ui5_if_ui5_exit`).
 
@@ -181,7 +181,7 @@ So:
   (framework-specific logic belongs in the core `z2ui5_cl_ui5_*` classes).
 - `z2ui5_cl_ui5_util_http` and `z2ui5_cx_ui5_util_error` are vendored too — change them only when a fix or a
   caller genuinely needs it. `z2ui5_cl_ui5_util_json_fl` is framework-owned.
-- **Symbols marked `FROZEN-ONLY`** exist only for the legacy classes of the extension repository, which are
+- **Symbols marked `FROZEN-ONLY`** exist only for the legacy classes of abap2UI5-obsolet, which are
   compiled against this class; `npm run check:frozen-only` keeps them caller-free here — do not add callers, and
   do not remove one without that repository.
 - **`z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` are no longer part of the core** — they ship from the
@@ -307,7 +307,7 @@ needs it, inline declarations used selectively (`prefer_inline: false`), no abap
   plus the `SICF` nodes and the `WAPA` (BSP) of `src/03`, which are that package's whole point and stay there.
 - **No new dictionary objects** — no `TABL`, `DTEL`, `DOMA`, `DDLS` or `BDEF`. A type an app needs is a `TYPES` in
   an interface, a constant a `CONSTANTS`, a lookup table an internal table. The one remaining table is
-  `z2ui5_t_01` (the drafts); `z2ui5_t_91` ships from the extension repository. A new one needs a maintainer decision first.
+  `z2ui5_t_01` (the drafts); `z2ui5_t_91` ships from abap2UI5-obsolet. A new one needs a maintainer decision first.
   The numbers `z2ui5_t_05` - `_06` and `_11` - `_33` belong to the abap2UI5-addons (one numbering all addons
   share, decided 2026-11; the next free one is `_34`) - never reuse one of them here. `_02` was released once and
   removed again (2026-09-22); `_03`/`_04` and `_07` - `_10` are left free.

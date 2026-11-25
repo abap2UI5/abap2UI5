@@ -196,11 +196,11 @@ popup pathspec above while it was open; it widened nothing else.
 
 **The package left the core** (maintainer decision
 2026-11-17). `z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`, `z2ui5_if_types`
-and the seventeen `z2ui5_cl_pop_*` popups moved, unchanged, to the extension
-repository -
-[abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped
-being a delivery repository in the same step (next entry) and holds what
-abap2UI5-obsolet held as well. The reasoning is the one behind `src/99/01` two
+and the seventeen `z2ui5_cl_pop_*` popups moved, unchanged, out of the core -
+first to abap2UI5/frontend, which stopped being a delivery repository in the
+same step (next entry), and on 2026-11-25 with everything else of the former
+`src/99` to [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet);
+abap2UI5/frontend is retired. The reasoning is the one behind `src/99/01` two
 weeks earlier: an installation that still names one of them installs that
 repository next to abap2UI5 and keeps compiling, and a core that does not
 ship thirty thousand lines of frozen code stops paying for them in every
@@ -303,4 +303,4 @@ What each class under `src/00/03` is, and the one addition the vendored HTTP cla
 | `src/00/03/z2ui5_cl_ui5_util_http` | Vendored from `zabaputil_cl_util_http` — leave it alone unless a fix or a caller genuinely needs it. The one addition so far is the raw query (`get_query`, the `query` of `get_req_info` and `client_call`) for the two connector addons, which read and forward their requests through this class (maintainer decision 2026-09-30); the second is `client_request` - header fields, a timeout and the ABAP Cloud client (`CL_WEB_HTTP_CLIENT_MANAGER`, by name) - for the language model providers in `src/01/05`, which `client_call` now wraps (2026-10-15). The sync carries both back to abap-util |
 | `src/00/03/z2ui5_cx_ui5_util_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
 | `src/00/03/z2ui5_cl_ui5_util_json_fl` | Framework-owned, no abap-util master |
-| `z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Moved out** (formerly `src/99/01`; to abap2UI5-obsolet on 2026-11-02) - they ship from the extension repository [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which holds what abap2UI5-obsolet held and which a system still using them installs next to abap2UI5. Superseded by the classes above |
+| `z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Moved out** (formerly `src/99/01`; to abap2UI5-obsolet on 2026-11-02) - they ship from [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet) (2026-11-17 to 2026-11-25 from abap2UI5/frontend, now retired), which a system still using them installs next to abap2UI5. Superseded by the classes above |

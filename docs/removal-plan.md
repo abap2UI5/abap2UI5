@@ -348,8 +348,8 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 > **2026-11-17: the package left the core.**
 > Everything below with a box is not deleted but **moved**, unchanged, to the
-> extension repository ([abap2UI5/frontend](https://github.com/abap2UI5/frontend),
-> which holds what abap2UI5-obsolet held as well) - the decision and what did not
+> repository [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet)
+> (2026-11-17 to 2026-11-25: abap2UI5/frontend, now retired) - the decision and what did not
 > move are in `docs/agents/decisions.md`, "The `src/99` exemptions". For this
 > repository the items are done: the core no longer ships them. For an
 > installation nothing is removed yet - it pulls the extension and keeps
@@ -362,7 +362,7 @@ breaking change for any downstream app that still references it.
 
 - [x] **`z2ui5_cl_xml_view` (15,884 lines) + `z2ui5_cl_xml_view_cc` (742)**
       → `z2ui5_cl_ui5_view_builder` (`src/02/`) — out of the core since
-      2026-11-17, ships from the extension repository
+      2026-11-17, ships from abap2UI5-obsolet
       - **Blocker A: cleared 2026-08-15.** Zero callers across `samples` (150
         classes on the successor), `samples-controls` (431), `samples-stack`
         (32) and `app-template` (1). The last fourteen were
@@ -414,14 +414,14 @@ breaking change for any downstream app that still references it.
         [abap-util](https://github.com/abap-util/abap-util): every addon but
         layout-management carries its own renamed copy; layout-management
         declares abap2UI5-obsolet as a dependency.
-      - Since 2026-11-17 they ship from the extension repository
-        [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which
-        holds what abap2UI5-obsolet held and the rest of `src/99`.
+      - Since 2026-11-25 they ship, with the rest of `src/99`, from
+        [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet)
+        (2026-11-17 to 2026-11-25 from abap2UI5/frontend, now retired).
       - abap2UI5-obsolet reads nothing `FROZEN-ONLY` from the core, so the
         FROZEN-ONLY symbols can still leave with the rest of `src/99`.
 - [x] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
       → [popups addon](https://github.com/abap2UI5-addons/popups) — out of
-      the core since 2026-11-17, ship from the extension repository
+      the core since 2026-11-17, ship from abap2UI5-obsolet
       - **Blocker:** verify the addon actually covers all 17. `z2ui5_cl_pop_bal`
         was already dropped in 1.142.0 without a replacement — do not repeat
         that silently. (The eighteenth, `z2ui5_cl_pop_js_loader`, went on

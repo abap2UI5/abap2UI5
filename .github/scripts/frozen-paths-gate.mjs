@@ -77,10 +77,10 @@ const UTILITIES = [
 // The rest of the package but one object - the XML view builder,
 // z2ui5_if_types and the seventeen popups - moved to the
 // extension repository (maintainer decision 2026-11-17, docs/agents/
-// decisions.md): abap2UI5/frontend, which stopped being a delivery
-// repository when the ICF node and the BSP came here (src/03) and holds what
-// abap2UI5-obsolet held plus these classes, unchanged.
-const EXTENSION = "abap2UI5/frontend (the extension repository)";
+// decisions.md): first abap2UI5/frontend, which stopped being a delivery
+// repository when the ICF node and the BSP came here (src/03); since
+// 2026-11-25 abap2UI5-obsolet, which holds all of the former src/99.
+const EXTENSION = "abap2UI5/abap2UI5-obsolet (the legacy objects)";
 // z2ui5_cl_http_handler is the one object that moved nowhere: the empty
 // subclass that kept the former handler name alive was deleted in the same
 // decision. It is listed because it is released and gone - an ICF node or a

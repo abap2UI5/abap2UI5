@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! the legacy objects of the former src/99 (z2ui5_cl_util*, z2ui5_cx_util_error, z2ui5_t_91, z2ui5_cl_xml_view(_cc), z2ui5_if_types, z2ui5_cl_pop_*) ship from abap2UI5/abap2UI5-obsolet again - all of them, same names and packages; abap2UI5/frontend, which held them since 1.150.0, is retired: an installation changes the URL of its abapGit repository to abap2UI5-obsolet and pulls
 * z2ui5_cl_ui5_test: a stateless roundtrip restores the app from the draft store again - the container buffer of the earlier roundtrip survived, so a timer tick answered with the same draft id went on with the live instance instead of the stored one
 * nav_app_leave( keep_messages ): documents that a carried message box keeps its onclose event, which the target app then receives
 * cs_event-set_title_launchpad no longer overwrites the shell title of a host app: an app embedded in a page it does not own (a z2ui5.embed.Container in a Fiori elements app, several components on one page) sets none and writes a line to the log, as set_title has done since the shell title became its as well - both go through the same check. An app that owns the page (the launchpad's own BSP) titles the shell as before
