@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'The released linter lags the DEV manifest and builder API: component_path( ) and STOP_TIMER are reported as errors'
 summary: 'every @abap2ui5/linter 0.11.x predates abap2UI5 40e8a073 and 4a418249, so z2ui5_cl_ui5_view_builder=>component_path( ) is an unknown-builder-method and a wired STOP_TIMER an unknown-frontend-action, although DEV documents both and its linter-manifest.json lists STOP_TIMER - a release that picks up the DEV manifest, and builder statics derived from it'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/200
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 evidence:
