@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Namespace rename: the addons that do not have it yet, and why'
-summary: 'thirteen addons got abap2UI5''s namespace rename on 2026-11-03 (.github/scripts/rename.mjs, build-rename, check-rename - references to abap2UI5 and to the addons they build on renamed along); eight did not - BSP applications, function groups, authorization objects, Gateway projects and CDS views abaplint cannot rename, a dependency on an addon without a rename - and abap2UI5-obsolet, which layout-management and the four addons on it need renamed, has no rename of its own'
+summary: 'thirteen addons got abap2UI5''s namespace rename on 2026-11-03 (.github/scripts/rename.mjs, build-rename, check-rename - references to abap2UI5 and to the addons they build on renamed along); eight did not - BSP applications, function groups, authorization objects, Gateway projects and CDS views abaplint cannot rename, a dependency on an addon without a rename - and abap2UI5-ext, which layout-management and the four addons on it need renamed, has no rename of its own'
 priority: medium
 state: open
 first_seen: 2026-11-03
@@ -34,12 +34,12 @@ work beyond a mechanical rollout:
 | rap-ext | two CDS views (DDLS) - not renameable |
 | sql-console | builds on custom-controls (`z2ui5_cl_cci_spreadsheet`, `z2ui5_cl_cci_json_filter`), which has no rename; four class names over 25 characters (`z2ui5_cl_sql_native_console_st` 30) |
 
-**abap2UI5-obsolet.** layout-management references the classes that moved from
-abap2UI5 to abap2UI5-obsolet (`z2ui5_cl_util`, ...), and popups, range-filter,
+**abap2UI5-ext.** layout-management references the classes that moved from
+abap2UI5 to abap2UI5-ext (`z2ui5_cl_util`, ...), and popups, range-filter,
 se16n and table-maintenance build on layout-management. The addons' rename
 renames those references - so on an abap2UI5 release that no longer ships the
-classes, a renamed installation needs a renamed abap2UI5-obsolet as well, and
-abap2UI5-obsolet has no `build-rename`. The same `rename.mjs` and the two
+classes, a renamed installation needs a renamed abap2UI5-ext as well, and
+abap2UI5-ext has no `build-rename`. The same `rename.mjs` and the two
 workflows fit it unchanged (all its objects are classes).
 
 **What a rollout to one of them needs.**

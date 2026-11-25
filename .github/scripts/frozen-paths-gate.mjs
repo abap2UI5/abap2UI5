@@ -52,10 +52,10 @@ const EXEMPT = [
   // its closing are recorded in AGENTS.md, "Layered Design".
   //
   // The two src/99/01 exemptions of 2026-10-12 (the dynamic WHERE builders)
-  // went with the package: src/99/01 moved to abap2UI5/abap2UI5-obsolet.
+  // went with the package: src/99/01 moved to abap2UI5/abap2UI5-ext.
 ];
 
-// src/99/01 - the legacy utilities - moved to abap2UI5/abap2UI5-obsolet
+// src/99/01 - the legacy utilities - moved to abap2UI5/abap2UI5-ext
 // (maintainer decision 2026-11-02; layout-management, the one addon still
 // calling them, declares that repository). The production files and the
 // package descriptor - the package itself leaves; test classes and sidecars
@@ -72,15 +72,15 @@ const UTILITIES = [
   "z2ui5_cx_util_error.clas.abap",
   "z2ui5_t_91.tabl.xml",
   "package.devc.xml",
-].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-obsolet"]);
+].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-ext"]);
 
 // The rest of the package but one object - the XML view builder,
 // z2ui5_if_types and the seventeen popups - moved to the
 // extension repository (maintainer decision 2026-11-17, docs/agents/
 // decisions.md): first abap2UI5/frontend, which stopped being a delivery
 // repository when the ICF node and the BSP came here (src/03); since
-// 2026-11-25 abap2UI5-obsolet, which holds all of the former src/99.
-const EXTENSION = "abap2UI5/abap2UI5-obsolet (the legacy objects)";
+// 2026-11-25 abap2UI5-ext, which holds all of the former src/99.
+const EXTENSION = "abap2UI5/abap2UI5-ext (the legacy objects)";
 // z2ui5_cl_http_handler is the one object that moved nowhere: the empty
 // subclass that kept the former handler name alive was deleted in the same
 // decision. It is listed because it is released and gone - an ICF node or a
