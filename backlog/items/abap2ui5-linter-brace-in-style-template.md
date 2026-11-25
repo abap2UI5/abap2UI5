@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'unescaped-brace-in-style: ABAP string-template interpolation and a( t = ) are not unescaped braces'
 summary: 'unescaped-brace-in-style reads the { x } of an ABAP string template as literal CSS braces, and ignores that a( t = ) already escapes binding braces - an error-level false positive on correct code'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/202
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 evidence:
