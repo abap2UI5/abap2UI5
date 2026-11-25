@@ -335,9 +335,17 @@ function transformSmim(content, N) {
 }
 
 // BSP application descriptor (z2ui5.wapa.xml): APPLNAME/APPLEXT carry the
-// full (possibly namespaced) application name.
-function transformWapa(content, N) {
-  return replaceTokens(content, tokenPairs(N, N.up, N.lo));
+// full (possibly namespaced) application name. PAGEKEY/PAGENAME do not: they
+// are paths inside the BSP (thirdparty/z2ui5/embed/Container.js), which the
+// page files, manifest.json and UI5RepositoryPathMapping.xml keep. Renamed,
+// the page became thirdparty//abapgit/ui5/embed/Container.js; abapGit found
+// no file for it and created none of the pages after it, so view/Main.view.xml
+// was missing on the system and the app stopped with a 404.
+export function transformWapa(content, N) {
+  return content
+    .split(/(<(PAGEKEY|PAGENAME)>[^<]*<\/\2>)/)
+    .map((part, i) => (i % 3 === 0 ? replaceTokens(part, tokenPairs(N, N.up, N.lo)) : i % 3 === 1 ? part : ""))
+    .join("");
 }
 
 // ABAP class source / metadata: rename ONLY our own handler class and KEEP

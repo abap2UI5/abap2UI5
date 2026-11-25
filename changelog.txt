@@ -81,6 +81,7 @@ unreleased
 + app_source/: that app as a UI5 project of its own, with a standard index.html and the control as the npm dependency @abap2ui5/embed-control - the page of the HTTP service and the BSP are written from it
 ! developer tools: an embedded component that owns the page (componentData.ownsPage) captures the page's console again - the page is the app's
 - BREAKING: z2ui5_cl_http_handler, the former name of the HTTP entry point, is deleted - an ICF node or a handler class that still names it names z2ui5_cl_ui5_http_handler (the same methods, it was an empty subclass)
+* tools/bsp_rename: the page names of the BSP stay paths inside it - renamed with the BSP (thirdparty//abapgit/ui5/embed/Container.js), abapGit found no file for that page and created none of the pages after it, so a renamed frontend stopped with a 404 on view/Main.view.xml
 * @abap2ui5/node-runtime: open-abap-core moves to 1e83502 - cl_abap_typedescr=>describe_by_data_ref raises REFERENCE_IS_INITIAL instead of a JavaScript TypeError, so the RTTI helpers of z2ui5_cl_ui5_util_context call it with EXCEPTIONS on every target
 
 
