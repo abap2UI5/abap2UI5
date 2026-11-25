@@ -348,7 +348,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 > **2026-11-17: the package left the core.**
 > Everything below with a box is not deleted but **moved**, unchanged, to the
-> repository [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet)
+> repository [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext)
 > (2026-11-17 to 2026-11-25: abap2UI5/frontend, now retired) - the decision and what did not
 > move are in `docs/agents/decisions.md`, "The `src/99` exemptions". For this
 > repository the items are done: the core no longer ships them. For an
@@ -362,7 +362,7 @@ breaking change for any downstream app that still references it.
 
 - [x] **`z2ui5_cl_xml_view` (15,884 lines) + `z2ui5_cl_xml_view_cc` (742)**
       → `z2ui5_cl_ui5_view_builder` (`src/02/`) — out of the core since
-      2026-11-17, ships from abap2UI5-obsolet
+      2026-11-17, ships from abap2UI5-ext
       - **Blocker A: cleared 2026-08-15.** Zero callers across `samples` (150
         classes on the successor), `samples-controls` (431), `samples-stack`
         (32) and `app-template` (1). The last fourteen were
@@ -406,22 +406,22 @@ breaking change for any downstream app that still references it.
         edit would fail that gate for no gain — the whole class is the entry.
 - [x] **`src/99/01/` — 9 utility classes (11,925 lines) + `z2ui5_cx_util_error`
       + table `Z2UI5_T_91`** — moved out of the core (2026-11) into
-      [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet), unchanged but
+      [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext), unchanged but
       for one line. A system whose code still uses them installs that
       repository next to abap2UI5 and keeps working; the table and its data
       stay in the system, they only change repository.
       - The successor question was answered with
         [abap-util](https://github.com/abap-util/abap-util): every addon but
         layout-management carries its own renamed copy; layout-management
-        declares abap2UI5-obsolet as a dependency.
+        declares abap2UI5-ext as a dependency.
       - Since 2026-11-25 they ship, with the rest of `src/99`, from
-        [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet)
+        [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext)
         (2026-11-17 to 2026-11-25 from abap2UI5/frontend, now retired).
-      - abap2UI5-obsolet reads nothing `FROZEN-ONLY` from the core, so the
+      - abap2UI5-ext reads nothing `FROZEN-ONLY` from the core, so the
         FROZEN-ONLY symbols can still leave with the rest of `src/99`.
 - [x] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
       → [popups addon](https://github.com/abap2UI5-addons/popups) — out of
-      the core since 2026-11-17, ship from abap2UI5-obsolet
+      the core since 2026-11-17, ship from abap2UI5-ext
       - **Blocker:** verify the addon actually covers all 17. `z2ui5_cl_pop_bal`
         was already dropped in 1.142.0 without a replacement — do not repeat
         that silently. (The eighteenth, `z2ui5_cl_pop_js_loader`, went on
@@ -623,7 +623,7 @@ rather than by guessing; each entry names the callers that exist today.
         `AGENTS.md` (*No new dictionary objects*) that keeps the next one from
         being added. The three tables that remain all carry their own reason:
         `z2ui5_t_01` persists drafts (`z2ui5_t_91`, which backed the
-        frozen `z2ui5_cl_util_db`, moved to abap2UI5-obsolet), and it is no
+        frozen `z2ui5_cl_util_db`, moved to abap2UI5-ext), and it is no
         anchor for anybody's type.
 
 ## 6. Documentation debt to clear alongside

@@ -59,6 +59,8 @@ const NOT_A_RULE = new Map([
   ['non-binary', 'prose — a non-binary MIME type'],
   ['steampunk-2305-api', 'an ABAP Cloud release name'],
   ['sy-subrc', 'an ABAP system field'],
+  ['abaplint-downport-ref-optional', 'a backlog item (backlog/items/), not a linter rule'],
+  ['abaplint-downport-key-primary-key', 'a backlog item (backlog/items/), not a linter rule'],
   ['library-preload', 'an e2e spec (node/tests/e2e/library-preload.spec.js) and the UI5 bundle file name'],
   ['sy-tabix', 'an ABAP system field'],
   ['sy-index', 'an ABAP system field'],
