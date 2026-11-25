@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Follow builder helpers of other classes that take parameters (views classes, layout builders)'
 summary: 'the linter follows a static factory helper with a literal-only chain and a stringify helper of another class, one level deep; a helper that takes the client, a title or a data reference into its chain (xml_build_page, a layout table builder) leaves its part of the view unseen and the render skipped'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/203
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 evidence:

@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'missing-view-display-on-navigated: no re-display is needed after a popup-only app'
 summary: 'after nav_app_call( ) to an app that only shows a popup (z2ui5_cl_popup_value_help and the other popups addon classes), the caller''s own view is still in the main slot - the rule still demands a view_display( ) in the navigated branch'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/203
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 evidence:
