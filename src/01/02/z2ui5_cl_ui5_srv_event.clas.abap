@@ -51,6 +51,21 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    " The arguments as they travel, in BOTH forms of an action - the handler
+    " expression of a view (get_t_arg) and the JSON array of a response
+    " (get_event_client_ajson): an empty argument between filled ones keeps
+    " its position, the empty ones behind the last filled one are dropped.
+    " Dropping one in the middle would shift every argument behind it into
+    " the wrong slot (a CONTROL_BY_ID action without a view lost its method
+    " name this way); keeping one at the end would turn open( ) into
+    " open( '' ), because the frontend casts exactly the arguments it was
+    " sent. One method, so the two forms cannot come to disagree
+    CLASS-METHODS args_trim_trailing
+      IMPORTING
+        val           TYPE string_table
+      RETURNING
+        VALUE(result) TYPE string_table.
+
     " abap_true when an argument goes into the handler expression RAW - a
     " binding, an expression, an event expression - and abap_false when it
     " is quoted as a string. See the method body
@@ -92,24 +107,24 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
     result = |{ lv_func }({ lv_event_arg }['{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( CONV string( val ) ) }'|.
 
-    " The event array is read by POSITION in View1.eB: [0] the name, [1] a
-    " reserved placeholder (always false), [2] reserved (always false), [3]
-    " useMainModel (custom JS only, never emitted here), [4] queueLast
-    " (check_queue_last), [5] noBusy (check_no_busy). Slot [2] keeps its
-    " place rather than closing up: the positions are a protocol custom JS
-    " builds these arrays against too, so renumbering would silently move
-    " every flag behind it. A wire without any flag stays the bare ['NAME']
-    " every existing app was rendered with.
-    "
-    " A flag is emitted with every slot IN FRONT of it, at its own value -
-    " a wire that carries only check_no_busy still writes queueLast as
-    " false rather than closing the gap, because a position is only a
-    " position if nothing ever moves into it.
+    " The event array is ['NAME'] or ['NAME', { options }] - the name, and
+    " behind it the flags of the wire as ONE object View1.eB reads by key:
+    " queueLast (check_queue_last) and noBusy (check_no_busy). Until protocol
+    " 3 they were positions [4] and [5] of the array, behind three slots that
+    " were always false - a wire with one flag read
+    " ['NAME',false,false,false,false,true]. Only a flag that is set travels,
+    " and a wire without one stays the bare ['NAME']. UI5 parses the object
+    " with its own expression parser, as it does an object an app passes as
+    " an argument (a map literal, in 1.71 as well).
     IF s_cnt-check_queue_last = abap_true OR s_cnt-check_no_busy = abap_true.
-      result = |{ result },false,false,false,{ COND string( WHEN s_cnt-check_queue_last = abap_true THEN `true` ELSE `false` ) }|.
+      DATA(lv_opt) = COND string( WHEN s_cnt-check_queue_last = abap_true THEN `queueLast:true` ).
       IF s_cnt-check_no_busy = abap_true.
-        result = |{ result },true|.
+        IF lv_opt IS NOT INITIAL.
+          lv_opt = lv_opt && `,`.
+        ENDIF.
+        lv_opt = lv_opt && `noBusy:true`.
       ENDIF.
+      result = |{ result },\{{ lv_opt }\}|.
     ENDIF.
 
     result = |{ result }]{ get_t_arg( val       = t_arg
@@ -166,7 +181,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " and the view went missing from the wire; a wire without an id
         " keeps the empty id slot in front of the view instead
         IF lt_arg IS INITIAL.
-          APPEND `` TO lt_arg.
+          INSERT `` INTO TABLE lt_arg.
         ENDIF.
         INSERT lv_view_slot INTO lt_arg INDEX 2.
 
@@ -178,8 +193,14 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " get_t_arg then quotes. The slot is the follow_up_action view
         " parameter.
         DATA(lv_bind_path) = VALUE string( t_arg[ 2 ] OPTIONAL ).
-        REPLACE ALL OCCURRENCES OF `{` IN lv_bind_path WITH ``.
-        REPLACE ALL OCCURRENCES OF `}` IN lv_bind_path WITH ``.
+        lv_bind_path = replace( val  = lv_bind_path
+                                sub  = `{`
+                                with = ``
+                                occ  = 0 ).
+        lv_bind_path = replace( val  = lv_bind_path
+                                sub  = `}`
+                                with = ``
+                                occ  = 0 ).
         lt_arg = VALUE #( ( CONV string( view ) )
                           ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
                           ( lv_bind_path ) ).
@@ -199,25 +220,17 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " Serialize a framework follow-up action as DATA - a JSON array
     " ["EVENT", arg1, ...] - instead of an executable eF( ) JS snippet. The
     " backend owns the whole serialization including the escaping (via AJSON);
-    " the frontend only dispatches the array (FrontendAction.runCustom /
-    " runSystem), so no code is built here or parsed there on this path. The
+    " the frontend only dispatches the array (FrontendAction.runCustom),
+    " so no code is built here or parsed there on this path. The
     " XML-bound handler strings (get_event_client) keep the JS form - they
     " live inside view XML, where UI5 itself parses the handler expression.
     DATA(ls_event) = map_client_event( val   = val
                                        view  = view
                                        t_arg = t_arg ).
 
-    " same contract as get_t_arg: an empty argument between filled ones keeps
-    " its position, trailing empties are dropped - the frontend only casts the
-    " args that were sent, so a trailing `` would turn open() into open('')
-    DATA(lv_index) = lines( ls_event-t_arg ).
-    WHILE lv_index > 0.
-      IF ls_event-t_arg[ lv_index ] IS NOT INITIAL.
-        EXIT.
-      ENDIF.
-      DELETE ls_event-t_arg INDEX lv_index.
-      lv_index = lv_index - 1.
-    ENDWHILE.
+    " the same arguments as the handler expression carries - see
+    " args_trim_trailing
+    ls_event-t_arg = args_trim_trailing( ls_event-t_arg ).
 
     TRY.
         DATA(li_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
@@ -257,19 +270,29 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD args_trim_trailing.
+
+    result = val.
+    DATA(lv_index) = lines( result ).
+    WHILE lv_index > 0.
+      IF result[ lv_index ] IS NOT INITIAL.
+        EXIT.
+      ENDIF.
+      DELETE result INDEX lv_index.
+      lv_index = lv_index - 1.
+    ENDWHILE.
+
+  ENDMETHOD.
+
   METHOD get_t_arg.
 
     DATA lv_new TYPE string.
-    DATA lv_pending TYPE string.
-    LOOP AT val INTO lv_new.
+    " which empty arguments travel is args_trim_trailing's decision - what
+    " is left here is an empty one BETWEEN filled ones, an empty literal
+    LOOP AT args_trim_trailing( val ) INTO lv_new.
 
       IF lv_new IS INITIAL.
-        " an empty argument between filled ones must keep its position -
-        " dropping it would shift every following argument into the wrong
-        " slot (a CONTROL_BY_ID action without a view lost its method name
-        " this way). Buffer it and only flush when a later non-empty
-        " argument follows, so trailing empties still disappear.
-        lv_pending = |{ lv_pending }, ''|.
+        result = |{ result }, ''|.
         CONTINUE.
       ENDIF.
       " iv_literal: the wire carries DATA, and every argument is quoted -
@@ -283,8 +306,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " since those are real bindings/expressions, not string data.
         lv_new = |'{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( lv_new ) }'|.
       ENDIF.
-      result = |{ result }{ lv_pending }, { lv_new }|.
-      lv_pending = ``.
+      result = |{ result }, { lv_new }|.
     ENDLOOP.
 
     result = |{ result })|.

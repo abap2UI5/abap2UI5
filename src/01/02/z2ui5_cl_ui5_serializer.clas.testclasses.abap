@@ -3,7 +3,8 @@
 " generic references, the one retry after main_attri_refresh, the reattach
 " on every path out, and the chain of the FIRST failure. Plus the seam it
 " implements: set_serializer( ) on the container is honoured by both
-" directions.
+" directions. And the rows the draft stores of the attribute table
+" (ltcl_stored_rows).
 " ---------------------------------------------------------------------------
 
 " an app with the two shapes the serializer treats differently: a typed
@@ -46,14 +47,14 @@ CLASS ltcl_ser_app IMPLEMENTATION.
 
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_row ) ).
     DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `RUNTIME_ONLY`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `RUNTIME_ONLY`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) INTO TABLE lt_comp.
     DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA mr_tab TYPE HANDLE lo_tab.
     ASSIGN mr_tab->* TO <tab>.
     ls_row-col1 = `handle`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_row TO <row>.
 
   ENDMETHOD.
@@ -420,8 +421,8 @@ CLASS ltcl_test IMPLEMENTATION.
     ASSIGN lo_app->mr_tab->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( <tab> ) ).
-    READ TABLE <tab> INDEX 1 ASSIGNING <row>.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 1 ] TO <row>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO <col>.
     cl_abap_unit_assert=>assert_subrc( ).
     cl_abap_unit_assert=>assert_equals( exp = `handle`
@@ -477,7 +478,7 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_bound( lo_app->mr_alias_tab ).
     ASSIGN lo_app->mr_alias_tab->* TO <alias>.
     cl_abap_unit_assert=>assert_subrc( ).
-    APPEND VALUE #( id = `H3` ) TO <alias>.
+    INSERT VALUE #( id = `H3` ) INTO TABLE <alias>.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lo_app->mt_head ) ).
 
@@ -523,9 +524,10 @@ CLASS ltcl_test IMPLEMENTATION.
     " window_bind_tab( ) leaves on the row
     NEW z2ui5_cl_ui5_srv_model( attri = result->mt_attri
                                 app   = result->mo_app )->main_attri_refresh( ).
-    READ TABLE result->mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WITH TABLE KEY name = `MT_ROWS`.
-    cl_abap_unit_assert=>assert_subrc( msg = `no row for MT_ROWS` ).
+    ASSIGN result->mt_attri->*[ name = `MT_ROWS` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <attri> IS ASSIGNED )
+                                      msg = `no row for MT_ROWS` ).
+    DATA(lr_attri) = REF #( <attri> ).
     lr_attri->bind         = abap_true.
     lr_attri->window_size  = 2.
     lr_attri->window_total = 5000.
@@ -551,14 +553,15 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_back->mt_rows ).
     cl_abap_unit_assert=>assert_equals( exp = `text`
                                         act = lo_back->mv_text ).
-    READ TABLE lo_parsed->mt_attri->* INTO DATA(ls_attri) WITH TABLE KEY name = `MT_ROWS`.
-    cl_abap_unit_assert=>assert_subrc( msg = `no row for MT_ROWS after the parse` ).
+    ASSIGN lo_parsed->mt_attri->*[ name = `MT_ROWS` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <attri> IS ASSIGNED )
+                                      msg = `no row for MT_ROWS after the parse` ).
     cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = ls_attri-window_size ).
+                                        act = <attri>-window_size ).
     cl_abap_unit_assert=>assert_equals( exp = 5000
-                                        act = ls_attri-window_total ).
+                                        act = <attri>-window_total ).
     cl_abap_unit_assert=>assert_equals( exp = `ROWS`
-                                        act = ls_attri-window_event ).
+                                        act = <attri>-window_event ).
 
   ENDMETHOD.
 
@@ -581,6 +584,430 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = `Z2UI5_CL_UI5_SERIALIZER`
         act = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( z2ui5_cl_ui5_app_cont=>get_serializer( ) ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( mo_cont->all_xml_stringify( ) CS `<asx:abap` ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" what the stored rows have to carry for the N4 lazy interface rows: an
+" attribute an interface declares, bound, and one that is not
+INTERFACE lif_ser_state.
+  DATA mv_state TYPE string.
+  DATA mv_other TYPE string.
+ENDINTERFACE.
+
+
+" an app shaped like the ones whose drafts the attribute table used to
+" swell: a big public structure nothing binds, a few bound values, a
+" windowed table whose total is an attribute, an alias onto that table,
+" a generic reference with a payload and an interface attribute
+CLASS ltcl_ser_app_rows DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    INTERFACES lif_ser_state.
+
+    TYPES:
+      BEGIN OF ty_s_big,
+        f01 TYPE string,
+        f02 TYPE i,
+        f03 TYPE c LENGTH 10,
+        f04 TYPE string,
+        f05 TYPE i,
+        f06 TYPE c LENGTH 10,
+        f07 TYPE string,
+        f08 TYPE i,
+        f09 TYPE c LENGTH 10,
+        f10 TYPE string,
+        f11 TYPE i,
+        f12 TYPE c LENGTH 10,
+        f13 TYPE string,
+        f14 TYPE i,
+        f15 TYPE c LENGTH 10,
+        f16 TYPE string,
+        f17 TYPE i,
+        f18 TYPE c LENGTH 10,
+        f19 TYPE string,
+        f20 TYPE i,
+      END OF ty_s_big.
+    TYPES:
+      BEGIN OF ty_s_item,
+        id  TYPE i,
+        txt TYPE string,
+      END OF ty_s_item.
+    TYPES ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY.
+
+    DATA mv_name  TYPE string.
+    DATA mv_note  TYPE string.
+    DATA mv_total TYPE i.
+    DATA ms_big   TYPE ty_s_big.
+    DATA ms_big2  TYPE ty_s_big.
+    DATA mt_items TYPE ty_t_item.
+    DATA mr_alias TYPE REF TO data.
+    DATA mr_elem  TYPE REF TO data.
+
+    METHODS fill.
+ENDCLASS.
+
+
+CLASS ltcl_ser_app_rows IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD fill.
+
+    FIELD-SYMBOLS <elem> TYPE any.
+
+    mv_name  = `name`.
+    mv_note  = `note`.
+    mv_total = 500.
+    ms_big-f01 = `big`.
+    ms_big-f05 = 5.
+    ms_big2-f03 = `big2`.
+    mt_items = VALUE #( ( id = 1 txt = `one` )
+                        ( id = 2 txt = `two` ) ).
+    mr_alias = REF #( mt_items ).
+    CREATE DATA mr_elem TYPE string.
+    ASSIGN mr_elem->* TO <elem>.
+    <elem> = `payload`.
+    lif_ser_state~mv_state = `state`.
+    lif_ser_state~mv_other = `other`.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" The draft stores the bound rows and what the alias pass and the restore
+" need, not every row the dissolve wrote (z2ui5_cl_ui5_srv_model=>
+" main_attri_db_rows) - and never a type descriptor. What a left-out row
+" costs is one rebuild when a later _bind( ) asks for it; what the draft
+" carries has to come back exactly as before
+CLASS ltcl_stored_rows DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA mo_app  TYPE REF TO ltcl_ser_app_rows.
+    DATA mo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+
+    METHODS setup.
+
+    "! the bindings of the app's view, as _bind( ) makes them - on the
+    "! container handed in, against the app it holds
+    METHODS bind_view
+      IMPORTING
+        io_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+
+    METHODS bind
+      IMPORTING
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+        ir_val        TYPE REF TO data
+        is_config     TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! stringify, parse, restore - what db_save and db_load do with it
+    METHODS roundtrip
+      IMPORTING
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
+
+    METHODS stored_names
+      IMPORTING
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    " the size assertion: the rows of the big structures stay out
+    METHODS stored_rows_lean           FOR TESTING RAISING cx_static_check.
+    METHODS no_type_descriptor_stored  FOR TESTING RAISING cx_static_check.
+    METHODS model_json_identical       FOR TESTING RAISING cx_static_check.
+    METHODS alias_identity_kept        FOR TESTING RAISING cx_static_check.
+    METHODS draft_stable               FOR TESTING RAISING cx_static_check.
+    METHODS rebind_without_rebuild     FOR TESTING RAISING cx_static_check.
+    METHODS bind_new_rebuilds          FOR TESTING RAISING cx_static_check.
+    METHODS window_total_kept          FOR TESTING RAISING cx_static_check.
+    METHODS intf_binding_roundtrips    FOR TESTING RAISING cx_static_check.
+    METHODS dref_payload_unchanged     FOR TESTING RAISING cx_static_check.
+    METHODS sticky_live_table_kept     FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_stored_rows IMPLEMENTATION.
+
+  METHOD setup.
+
+    mo_app = NEW #( ).
+    mo_app->fill( ).
+    mo_cont = NEW #( ).
+    mo_cont->mo_app      = mo_app.
+    mo_cont->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    bind_view( mo_cont ).
+
+  ENDMETHOD.
+
+  METHOD bind.
+
+    DATA(ls_config) = is_config.
+    ls_config-path_only = abap_true.
+    result = NEW z2ui5_cl_ui5_srv_bind( io_cont )->main( val    = ir_val
+                                                         config = ls_config ).
+
+  ENDMETHOD.
+
+  METHOD bind_view.
+
+    FIELD-SYMBOLS <elem> TYPE any.
+
+    DATA(lo_app) = CAST ltcl_ser_app_rows( io_cont->mo_app ).
+    bind( io_cont = io_cont
+          ir_val  = REF #( lo_app->mv_name ) ).
+    bind( io_cont   = io_cont
+          ir_val    = REF #( lo_app->mt_items )
+          is_config = VALUE #( window           = 10
+                               window_total     = lo_app->mv_total
+                               window_total_ref = REF #( lo_app->mv_total )
+                               window_event     = `ROWS` ) ).
+    bind( io_cont = io_cont
+          ir_val  = REF #( lo_app->lif_ser_state~mv_state ) ).
+    ASSIGN lo_app->mr_elem->* TO <elem>.
+    bind( io_cont = io_cont
+          ir_val  = REF #( <elem> ) ).
+
+  ENDMETHOD.
+
+  METHOD roundtrip.
+
+    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+    DATA(lv_xml) = lo_serializer->z2ui5_if_ui5_serializer~stringify( io_cont ).
+    result ?= lo_serializer->z2ui5_if_ui5_serializer~parse( lv_xml ).
+    NEW z2ui5_cl_ui5_srv_model( attri = result->mt_attri
+                                app   = result->mo_app )->main_attri_db_load( ).
+
+  ENDMETHOD.
+
+  METHOD stored_names.
+
+    LOOP AT io_cont->mt_attri->* REFERENCE INTO DATA(lr_attri).
+      INSERT lr_attri->name INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD stored_rows_lean.
+
+    DATA(lv_live) = lines( mo_cont->mt_attri->* ).
+    DATA(lo_loaded) = roundtrip( mo_cont ).
+
+    " forty rows of components and the interface rows nobody binds stay
+    " out; what stays is bound, owns or aliases data, sits below a data
+    " reference or is the total of a window
+    cl_abap_unit_assert=>assert_equals(
+        exp = VALUE string_table( ( `LIF_SER_STATE~MV_STATE` )
+                                  ( `MR_ALIAS` )
+                                  ( `MR_ALIAS->*` )
+                                  ( `MR_ELEM` )
+                                  ( `MR_ELEM->*` )
+                                  ( `MS_BIG` )
+                                  ( `MS_BIG2` )
+                                  ( `MT_ITEMS` )
+                                  ( `MV_NAME` )
+                                  ( `MV_TOTAL` ) )
+        act = stored_names( lo_loaded ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_live > 50 ) ).
+
+  ENDMETHOD.
+
+  METHOD no_type_descriptor_stored.
+
+    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+    DATA(lv_xml) = lo_serializer->z2ui5_if_ui5_serializer~stringify( mo_cont ).
+
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_xml NS `CL_ABAP_` )
+                                      msg = `a type descriptor went into the draft` ).
+    DATA(lo_parsed) = CAST z2ui5_cl_ui5_app_cont( lo_serializer->z2ui5_if_ui5_serializer~parse( lv_xml ) ).
+    LOOP AT lo_parsed->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE o_typedescr IS BOUND.
+      cl_abap_unit_assert=>fail( |the row { lr_attri->name } came back with a descriptor| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD model_json_identical.
+
+    DATA(lv_before) = mo_cont->model_json_stringify( ).
+    DATA(lo_loaded) = roundtrip( mo_cont ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = lo_loaded->model_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_before CS `payload` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_before CS `state` ) ).
+
+  ENDMETHOD.
+
+  METHOD alias_identity_kept.
+
+    FIELD-SYMBOLS <alias> TYPE ltcl_ser_app_rows=>ty_t_item.
+
+    DATA(lo_loaded) = roundtrip( roundtrip( mo_cont ) ).
+    DATA(lo_app) = CAST ltcl_ser_app_rows( lo_loaded->mo_app ).
+
+    " the reference points at the restored table, not at a copy of it
+    ASSIGN lo_app->mr_alias->* TO <alias>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    INSERT VALUE #( id = 3 ) INTO TABLE <alias>.
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lo_app->mt_items ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_ITEMS`
+                                        act = lo_loaded->mt_attri->*[ name = `MR_ALIAS->*` ]-name_ref ).
+
+  ENDMETHOD.
+
+  METHOD draft_stable.
+
+    " a draft restored and written again does not grow - nothing the
+    " left-out rows held comes back as a copy of an alias. The length, not
+    " the text: the payload names the anonymous type of the restored data
+    " object, which the runtime numbers anew
+    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+    DATA(lo_loaded) = roundtrip( mo_cont ).
+    DATA(lv_first) = lo_serializer->z2ui5_if_ui5_serializer~stringify( lo_loaded ).
+    DATA(lo_again) = roundtrip( lo_loaded ).
+
+    cl_abap_unit_assert=>assert_equals( exp = strlen( lv_first )
+                                        act = strlen( lo_serializer->z2ui5_if_ui5_serializer~stringify( lo_again ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = stored_names( lo_loaded )
+                                        act = stored_names( lo_again ) ).
+
+  ENDMETHOD.
+
+  METHOD rebind_without_rebuild.
+
+    DATA(lo_loaded) = roundtrip( mo_cont ).
+    DATA(lv_rows) = lines( lo_loaded->mt_attri->* ).
+
+    " the next render binds the same view: every row is in the draft, the
+    " search answers without rebuilding the table
+    bind_view( lo_loaded ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_rows
+                                        act = lines( lo_loaded->mt_attri->* ) ).
+
+  ENDMETHOD.
+
+  METHOD bind_new_rebuilds.
+
+    DATA(lo_loaded) = roundtrip( mo_cont ).
+    DATA(lo_app) = CAST ltcl_ser_app_rows( lo_loaded->mo_app ).
+    DATA(lv_rows) = lines( lo_loaded->mt_attri->* ).
+
+    " left out of the draft - found by the rebuild
+    cl_abap_unit_assert=>assert_equals( exp = `/MV_NOTE`
+                                        act = bind( io_cont = lo_loaded
+                                                    ir_val  = REF #( lo_app->mv_note ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lines( lo_loaded->mt_attri->* ) > lv_rows ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MS_BIG/F05`
+                                        act = bind( io_cont = lo_loaded
+                                                    ir_val  = REF #( lo_app->ms_big-f05 ) ) ).
+    " the rebuild kept what was bound
+    cl_abap_unit_assert=>assert_true( lo_loaded->mt_attri->*[ name = `MV_NAME` ]-bind ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_TOTAL`
+                                        act = lo_loaded->mt_attri->*[ name = `MT_ITEMS` ]-window_total_name ).
+
+    DATA(lv_json) = roundtrip( lo_loaded )->model_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `note` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"F05":5` ) ).
+
+  ENDMETHOD.
+
+  METHOD window_total_kept.
+
+    DATA(lo_loaded) = roundtrip( mo_cont ).
+    DATA(lo_app) = CAST ltcl_ser_app_rows( lo_loaded->mo_app ).
+    DATA(lv_rows) = lines( lo_loaded->mt_attri->* ).
+
+    " window_adopt asks for the total without a rebuild (main_attri_find):
+    " its row has to be in the draft, or the total froze at this render
+    bind( io_cont   = lo_loaded
+          ir_val    = REF #( lo_app->mt_items )
+          is_config = VALUE #( window           = 10
+                               window_total     = lo_app->mv_total
+                               window_total_ref = REF #( lo_app->mv_total )
+                               window_event     = `ROWS` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `MV_TOTAL`
+                                        act = lo_loaded->mt_attri->*[ name = `MT_ITEMS` ]-window_total_name ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_rows
+                                        act = lines( lo_loaded->mt_attri->* ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_binding_roundtrips.
+
+    DATA(lo_loaded) = roundtrip( roundtrip( mo_cont ) ).
+    DATA(lo_app) = CAST ltcl_ser_app_rows( lo_loaded->mo_app ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_SER_STATE~MV_STATE`
+                                        act = bind( io_cont = lo_loaded
+                                                    ir_val  = REF #( lo_app->lif_ser_state~mv_state ) ) ).
+    " an interface attribute the draft left out: the rebuild turns the
+    " interface rows on again for the bound `~` row
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_SER_STATE~MV_OTHER`
+                                        act = bind( io_cont = lo_loaded
+                                                    ir_val  = REF #( lo_app->lif_ser_state~mv_other ) ) ).
+
+    DATA(lv_json) = roundtrip( lo_loaded )->model_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `state` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `other` ) ).
+
+  ENDMETHOD.
+
+  METHOD dref_payload_unchanged.
+
+    FIELD-SYMBOLS <elem> TYPE any.
+
+    DATA(lo_loaded) = roundtrip( roundtrip( mo_cont ) ).
+    DATA(lo_app) = CAST ltcl_ser_app_rows( lo_loaded->mo_app ).
+
+    cl_abap_unit_assert=>assert_bound( lo_app->mr_elem ).
+    ASSIGN lo_app->mr_elem->* TO <elem>.
+    cl_abap_unit_assert=>assert_equals( exp = `payload`
+                                        act = <elem> ).
+    cl_abap_unit_assert=>assert_equals( exp = mo_app->mt_items
+                                        act = lo_app->mt_items ).
+    cl_abap_unit_assert=>assert_equals( exp = mo_app->ms_big
+                                        act = lo_app->ms_big ).
+
+  ENDMETHOD.
+
+  METHOD sticky_live_table_kept.
+
+    DATA(lr_live) = mo_cont->mt_attri.
+    DATA(lv_rows) = lines( mo_cont->mt_attri->* ).
+
+    NEW z2ui5_cl_ui5_serializer( )->z2ui5_if_ui5_serializer~stringify( mo_cont ).
+
+    " the live container goes on with its own table, every row in it and
+    " the descriptors with them - only the draft is lean
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_cont->mt_attri = lr_live ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_rows
+                                        act = lines( mo_cont->mt_attri->* ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( mo_cont->mt_attri->*[ name = `MS_BIG-F01` ] ) ) ).
+    cl_abap_unit_assert=>assert_bound( mo_cont->mt_attri->*[ name = `MV_NOTE` ]-o_typedescr ).
+    cl_abap_unit_assert=>assert_bound( mo_app->mr_elem ).
+
+    " ...and a failing transformation hands it back as well
+    DATA(lo_failing) = NEW ltcl_ser_failing( ).
+    lo_failing->mv_fail_count = 2.
+    TRY.
+        lo_failing->z2ui5_if_ui5_serializer~stringify( mo_cont ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+    ENDTRY.
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_cont->mt_attri = lr_live ) ).
 
   ENDMETHOD.
 

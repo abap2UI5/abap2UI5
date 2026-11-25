@@ -15,9 +15,11 @@
 "!
 "! The contract an implementation has to keep is a round trip, not a format:
 "! parse( stringify( container ) ) must answer a container the framework can go
-"! on with - same app instance state, same mt_attri, same ms_draft. The string
-"! in between is the implementation's business and nothing reads it but the
-"! same implementation.
+"! on with - same app instance state, the bound rows of mt_attri, same ms_draft.
+"! The shipped one stores fewer rows than the live table has
+"! (z2ui5_cl_ui5_srv_model=>main_attri_db_rows): a row it leaves out is found
+"! again by the binding search when asked for. The string in between is the
+"! implementation's business and nothing reads it but the same implementation.
 INTERFACE z2ui5_if_ui5_serializer
   PUBLIC.
 

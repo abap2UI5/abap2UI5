@@ -54,7 +54,8 @@
     "SET_NAV_ROUTING",
     "SET_APP_STATE_ACTIVE",
     "CROSS_APP_NAV_GET_LINKS",
-    "SET_APP_FULL_WIDTH"
+    "SET_APP_FULL_WIDTH",
+    "STOP_TIMER"
   ],
   "companionControls": {
     "CameraPicture": {
@@ -294,34 +295,12 @@
       "obsolete": null
     }
   },
-  "frozenBuilderHelpers": {
-    "bwip_js": "bwipjs",
-    "camera_picture": "CameraPicture",
-    "camera_selector": "CameraSelector",
-    "chartjs": "chartjs",
-    "favicon": "Favicon",
-    "file_uploader": "FileUploader",
-    "focus": "Focus",
-    "geolocation": "Geolocation",
-    "storage": "Storage",
-    "history": "History",
-    "info_frontend": "Info",
-    "message_manager": "MessageManager",
-    "messaging": "Messaging",
-    "multiinput_ext": "MultiInputExt",
-    "uploadset_ext": "UploadSetExt",
-    "tree": "Tree",
-    "scrolling": "Scrolling",
-    "spreadsheet_export": "ExportSpreadsheet",
-    "timer": "Timer",
-    "binding_update": "BindingUpdate",
-    "websocket": "Websocket",
-    "lp_title": "LPTitle",
-    "title": "Title",
-    "dirty": "Dirty",
-    "uitableext": "UITableExt",
-    "smartmultiinput_ext": "SmartMultiInputExt"
-  },
+  "frozenBuilderHelpers": null,
+  "builderStatics": [
+    "factory",
+    "escape_literal",
+    "component_path"
+  ],
   "objects": {
     "src/00/01": [
       "z2ui5_cl_ajson",
@@ -379,74 +358,11 @@
       "z2ui5_if_ui5_types"
     ],
     "src/01/03": [
-      "z2ui5_cl_ui5f_abapsrc_js",
-      "z2ui5_cl_ui5f_app_js",
-      "z2ui5_cl_ui5f_app_xml",
-      "z2ui5_cl_ui5f_appstate_js",
-      "z2ui5_cl_ui5f_bindcall_js",
-      "z2ui5_cl_ui5f_bindings_js",
-      "z2ui5_cl_ui5f_browser_js",
-      "z2ui5_cl_ui5f_campic_js",
-      "z2ui5_cl_ui5f_camsel_js",
-      "z2ui5_cl_ui5f_clipbrd_js",
-      "z2ui5_cl_ui5f_comp_js",
-      "z2ui5_cl_ui5f_console_js",
-      "z2ui5_cl_ui5f_context_js",
-      "z2ui5_cl_ui5f_ctrlcall_js",
-      "z2ui5_cl_ui5f_devtools_js",
-      "z2ui5_cl_ui5f_diff_js",
-      "z2ui5_cl_ui5f_dirty_js",
-      "z2ui5_cl_ui5f_dtformat_js",
-      "z2ui5_cl_ui5f_dtools_js",
-      "z2ui5_cl_ui5f_dtools_xml",
-      "z2ui5_cl_ui5f_env_js",
-      "z2ui5_cl_ui5f_errview_js",
-      "z2ui5_cl_ui5f_excel_js",
-      "z2ui5_cl_ui5f_format_js",
-      "z2ui5_cl_ui5f_frontact_js",
-      "z2ui5_cl_ui5f_geoloc_js",
-      "z2ui5_cl_ui5f_help_js",
-      "z2ui5_cl_ui5f_htmlfrm_js",
-      "z2ui5_cl_ui5f_index_html",
-      "z2ui5_cl_ui5f_inputext_js",
-      "z2ui5_cl_ui5f_inspect_js",
-      "z2ui5_cl_ui5f_journey_js",
-      "z2ui5_cl_ui5f_launchpd_js",
-      "z2ui5_cl_ui5f_lib_js",
-      "z2ui5_cl_ui5f_liveedit_js",
-      "z2ui5_cl_ui5f_log_js",
-      "z2ui5_cl_ui5f_manifest",
-      "z2ui5_cl_ui5f_models_js",
-      "z2ui5_cl_ui5f_msgmgr_js",
-      "z2ui5_cl_ui5f_multiinp_js",
-      "z2ui5_cl_ui5f_natscan_js",
-      "z2ui5_cl_ui5f_persist_js",
-      "z2ui5_cl_ui5f_picker_js",
-      "z2ui5_cl_ui5f_preload",
-      "z2ui5_cl_ui5f_recorder_js",
-      "z2ui5_cl_ui5f_report_js",
-      "z2ui5_cl_ui5f_rootslot_js",
-      "z2ui5_cl_ui5f_router_js",
-      "z2ui5_cl_ui5f_scrfocus_js",
-      "z2ui5_cl_ui5f_server_js",
-      "z2ui5_cl_ui5f_session_js",
-      "z2ui5_cl_ui5f_shortcut_js",
-      "z2ui5_cl_ui5f_slots_js",
-      "z2ui5_cl_ui5f_slotxml_js",
-      "z2ui5_cl_ui5f_smartinp_js",
-      "z2ui5_cl_ui5f_storage_js",
-      "z2ui5_cl_ui5f_style_css",
-      "z2ui5_cl_ui5f_tabs_js",
-      "z2ui5_cl_ui5f_tree_js",
-      "z2ui5_cl_ui5f_uitable_js",
-      "z2ui5_cl_ui5f_upldset_js",
-      "z2ui5_cl_ui5f_uploader_js",
-      "z2ui5_cl_ui5f_variants_js",
-      "z2ui5_cl_ui5f_view1_js",
-      "z2ui5_cl_ui5f_viewops_js",
-      "z2ui5_cl_ui5f_viewslot_js",
-      "z2ui5_cl_ui5f_websock_js",
-      "z2ui5_cl_ui5f_window_js"
+      "z2ui5_cl_ui5f_bundle",
+      "z2ui5_cl_ui5f_cc",
+      "z2ui5_cl_ui5f_devtools",
+      "z2ui5_cl_ui5f_page",
+      "z2ui5_cl_ui5f_preload"
     ],
     "src/01/04": [
       "z2ui5_cl_ui5_app_hi_world",
@@ -464,6 +380,7 @@
     "src/02": [
       "z2ui5_cl_ui5_http_handler",
       "z2ui5_cl_ui5_llm",
+      "z2ui5_cl_ui5_test",
       "z2ui5_cl_ui5_view_builder",
       "z2ui5_cx_ui5_llm",
       "z2ui5_if_app",
@@ -472,29 +389,8 @@
       "z2ui5_if_ui5_llm",
       "z2ui5_if_ui5_monitor"
     ],
-    "src/99/02": [
-      "z2ui5_cl_pop_data",
-      "z2ui5_cl_pop_demo_output",
-      "z2ui5_cl_pop_error",
-      "z2ui5_cl_pop_file_dl",
-      "z2ui5_cl_pop_file_ul",
-      "z2ui5_cl_pop_get_range",
-      "z2ui5_cl_pop_get_range_m",
-      "z2ui5_cl_pop_html",
-      "z2ui5_cl_pop_image_editor",
-      "z2ui5_cl_pop_input_val",
-      "z2ui5_cl_pop_messages",
-      "z2ui5_cl_pop_pdf",
-      "z2ui5_cl_pop_table",
-      "z2ui5_cl_pop_textedit",
-      "z2ui5_cl_pop_to_confirm",
-      "z2ui5_cl_pop_to_inform",
-      "z2ui5_cl_pop_to_select"
-    ],
-    "src/99": [
-      "z2ui5_cl_xml_view",
-      "z2ui5_cl_xml_view_cc",
-      "z2ui5_if_types"
+    "src/03/01": [
+      "z2ui5_cl_ui5_icf_handler"
     ]
   },
   "globalTargets": {
@@ -511,12 +407,7 @@
       "success"
     ],
     "VIEW_SLOTS": [
-      "destroy",
-      "display",
-      "updateModel"
-    ],
-    "ROUTER": [
-      "sync"
+      "destroy"
     ],
     "BUSY_INDICATOR": [
       "show",
@@ -613,6 +504,7 @@
     "SET_ODATA_MODEL",
     "BIND_ELEMENT",
     "START_TIMER",
+    "STOP_TIMER",
     "SET_FOCUS",
     "SCROLL_TO",
     "SCROLL_INTO_VIEW"

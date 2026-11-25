@@ -9,7 +9,7 @@
 "! framework, and a CAP or Node host has its own persistence (a CDS entity, a
 "! document store) that it would rather use than a table it has to recreate.
 "! Without a seam such a host has to fork the class; with one it implements
-"! seven methods and calls set_instance( ) at startup.
+"! nine methods and calls set_instance( ) at startup.
 "!
 "! The contract the shipped implementation defines and a host must keep:
 "! a draft belongs to the user that created it, and read_draft( ), read_info( )
@@ -84,5 +84,38 @@ INTERFACE z2ui5_if_ui5_draft_store
   "! answers that with the error page - a store must not swallow such a
   "! failure to keep this call quiet.
   METHODS cleanup.
+
+  "! Delete the one draft that just fell out of the window of the chain
+  "! being saved - 2 by default, 0 switches it off (z2ui5_if_ui5_exit=>
+  "! ty_s_http_config_post-draft_keep_per_chain). The chain is the id_prev links of the CALLING
+  "! user's drafts: the draft just saved is depth 1, keep of them survive,
+  "! and the one at depth keep + 1 is deleted - one draft per save, so the
+  "! cost is keep - 1 keyed reads, whatever the length of the chain. Never
+  "! deleted, and never walked past: an id of t_protect, the draft's own
+  "! id_prev_app and id_prev_app_stack (the apps to go back to), and a draft
+  "! any draft of the user names as its id_prev_app or id_prev_app_stack.
+  "! A keep below z2ui5_cl_ui5_srv_draft=>c_min_keep_per_chain is raised to
+  "! it, 0 or less does nothing. Called after create( ), never raises
+  "! anything a caller has to handle: a draft that is not deleted only lives
+  "! until cleanup( ) takes it by age.
+  "! @parameter draft | the id chain of the draft just saved
+  "! @parameter keep | how many drafts of the chain survive, this one included
+  "! @parameter t_protect | ids that survive whatever their depth - the draft
+  "! an app state link or a route restore started from (z2ui5_cl_ui5_app_cont=>mt_draft_keep)
+  METHODS prune_chain
+    IMPORTING
+      draft     TYPE ty_s_draft
+      keep      TYPE i
+      t_protect TYPE string_table OPTIONAL.
+
+  "! Give a draft of the calling user the current time, so cleanup( ) counts
+  "! its age from now. Called instead of create( ) when a roundtrip answers
+  "! with the draft it continued (an unchanged timer tick, see
+  "! z2ui5_cl_ui5_handler=>main_end_reuse) - a poll that changes nothing for
+  "! longer than the expiry would otherwise lose its draft under its feet.
+  "! An unknown or foreign id is left alone. Never raises.
+  METHODS touch
+    IMPORTING
+      id TYPE clike.
 
 ENDINTERFACE.

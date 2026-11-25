@@ -1,15 +1,9 @@
 {
   "global": {
-    // src/99 is deliberately NOT listed in THIS strict ruleset: its frozen
-    // production code may not be changed to satisfy new rules (see AGENTS.md).
-    // The CI target configs (.github/abaplint/*) do syntax-lint it, and its
-    // test classes run in the transpiled unit suite.
-    // It had to be parsed here for as long as src/01 and src/02 named
-    // z2ui5_if_types - every consumer of that interface resolved through the
-    // frozen package. The types now sit on the objects that use them
-    // (z2ui5_if_client, z2ui5_if_ui5_exit, z2ui5_cl_ui5_srv_draft) and the
-    // interface itself is retired INTO src/99, where only src/99 resolves into
-    // it.
+    // src/03 - the ICF node, its handler and the BSP - is NOT listed: the
+    // handler implements if_http_extension, which the dependency below (the
+    // released APIs) does not hold. .github/abaplint/abap_service.jsonc lints
+    // it against a dependency that does.
     "files": [
       "/src/00/**/*.*",
       "/src/01/**/*.*",
@@ -40,6 +34,54 @@
     "errorNamespace": "."
   },
   "rules": {
+    // statements with a successor that this repository no longer uses -
+    // listed so they do not come back (abaplint 2.120.116+). The successors
+    // are the "Style Rules" of AGENTS.md: READ TABLE -> line_exists( ),
+    // ASSIGN itab[ ... ] / VALUE #( itab[ ... ] OPTIONAL ),
+    // APPEND -> INSERT ... INTO TABLE, CHECK -> IF ... RETURN/CONTINUE,
+    // the string statements -> their functions (condense( ), find( ),
+    // replace( ), shift_left( ), to_upper( ), &&, ...), GET REFERENCE ->
+    // REF #( )
+    "forbidden_statement": {
+      // the keyed lookups of the hot path stay READ TABLE ... WITH TABLE KEY
+      // (maintainer's decision, 2026-11): not-found is the normal case there,
+      // so a raising itab[ ... ] is out, and the non-raising forms are no
+      // keyed read either - a free-key ASSIGN itab[ ... ] is a sequential
+      // read for the extended check (check:atc, sortseq), and
+      // itab[ KEY primary_key COMPONENTS ... ] is downported to an invalid
+      // "WITH KEY KEY primary_key". The main sources only - their test
+      // classes are linted like everything else. A file listed here is
+      // exempt from every statement below, so the list stays these four
+      "exclude": [
+        "/src/00/03/z2ui5_cl_ui5_util_context\\.clas\\.abap$",
+        "/src/01/02/z2ui5_cl_ui5_srv_model\\.clas\\.abap$",
+        "/src/01/02/z2ui5_cl_ui5_app_cont\\.clas\\.abap$",
+        "/src/01/02/z2ui5_cl_ui5_srv_bind\\.clas\\.abap$"
+      ],
+      "statements": [
+        "Describe",
+        "Refresh",
+        "Ranges",
+        "SelectLoop",
+        "Collect",
+        "Overlay",
+        "Leave",
+        "TypePools",
+        "Perform",
+        "Form",
+        "Write",
+        "Check",
+        "GetReference",
+        "Concatenate",
+        "Condense",
+        "Translate",
+        "Replace",
+        "Find",
+        "Shift",
+        "ReadTable",
+        "Append"
+      ]
+    },
     "7bit_ascii": true,
     "abapdoc": false,
     // ABAP Doc is parsed as HTML: <wa> is "HTML tag not supported" on a system
@@ -387,7 +429,12 @@
       "depth": 5
     },
     "newline_between_methods": true,
-    "no_aliases": true,
+    // one exception: the test that proves an alias and the interface
+    // attribute it names are bound as one row (ltcl_07_intf_attr) needs an
+    // ALIASES to exist
+    "no_aliases": {
+      "exclude": ["src/01/02/z2ui5_cl_ui5_srv_model.clas.testclasses.abap"]
+    },
     "no_chained_assignment": true,
     "no_comments_between_methods": true,
     "no_external_form_calls": true,

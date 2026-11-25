@@ -6,7 +6,7 @@ name: npm-audit
 # silent about what was there before - so an advisory published for a package
 # the lockfile has carried for a year fails nothing. Until this workflow the
 # repository ran `npm audit` nowhere: the root tree carried four high
-# advisories and app/ six, all in the UI5 build tooling, and nothing said so.
+# advisories and bundle/ six, all in the UI5 build tooling, and nothing said so.
 #
 # What runs is .github/scripts/npm-audit-gate.mjs, not a bare `npm audit`: a
 # bare one is red until @ui5/project moves and trains everyone to click past
@@ -30,7 +30,7 @@ on:
   pull_request:
     paths:
       - 'package-lock.json'
-      - 'app/package-lock.json'
+      - 'bundle/package-lock.json'
       - '.github/scripts/npm-audit-gate.mjs'
       - '.github/workflows/npm-audit.yaml'
 

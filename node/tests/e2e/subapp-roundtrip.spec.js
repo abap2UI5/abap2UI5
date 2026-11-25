@@ -26,19 +26,25 @@ function frontBody(sFront, model) {
   };
 }
 
+// What a response says about a slot, as the action it used to travel as -
+// ["VIEW_SLOTS", method, slot, xml?, options?] - read from its entry in
+// S_FRONT.VIEWS ({ XML, OPT } for a display, { DESTROY: true } for a
+// teardown). Undefined when the response says nothing of that kind.
 function slotAction(body, method, slot) {
-  for (const item of body.S_FRONT?.S_ACTION?.T_SYSTEM ?? []) {
-    const args = Array.isArray(item) ? item : [];
-    if (args[0] === "VIEW_SLOTS" && args[1] === method && args[2] === slot) {
-      return args;
-    }
+  const entry = body.S_FRONT?.VIEWS?.[slot];
+  if (!entry) return undefined;
+  if (method === "destroy") {
+    return entry.DESTROY ? ["VIEW_SLOTS", "destroy", slot] : undefined;
   }
-  return undefined;
+  if (entry.DESTROY) return undefined;
+  const args = ["VIEW_SLOTS", "display", slot, entry.XML];
+  if (entry.OPT) args.push(entry.OPT);
+  return args;
 }
 
 function toasts(body) {
   const out = [];
-  for (const item of body.S_FRONT?.S_ACTION?.T_CUSTOM ?? []) {
+  for (const item of body.S_FRONT?.ACTIONS ?? []) {
     const args = Array.isArray(item) ? item : [];
     if (args[0] === "MESSAGE_TOAST") out.push(args[1]);
   }

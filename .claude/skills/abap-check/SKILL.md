@@ -614,6 +614,41 @@ named, and nothing after it (`bool( … row … OPTIONAL default … )` of
 `z2ui5_cl_agent_snapshot` stands after `OPTIONAL` and is accepted, by the
 system and by the rule).
 
+### Two activation errors from a user's pull (2026-11-24)
+
+Both from one pull of the addons into an S/4HANA system, both green in
+abaplint 2.120.113 with `check_syntax` on - measured in an isolated,
+otherwise syntax-clean class (a file with any other syntax error makes the
+typed rules skip it, which hid the second shape on the first try).
+
+- **A by-reference IMPORTING parameter takes only a compatible actual.**
+  `z2ui5_cl_popup_calculator=>factory( i_value TYPE decfloat34 OPTIONAL )`
+  called with a `TYPE p LENGTH 15 DECIMALS 2` from sample 22: *"The type
+  "P(15.2)" of "ME->AMOUNT" is not compatible with the type "DECFLOAT34" of
+  "I_VALUE""* (abap2UI5-addons/popups `b2c33c3`). There is no conversion as
+  for an assignment. Type the formal generically (`numeric`, `clike`) when
+  callers pass different types, or pass it `VALUE( )` - `slow_parameter_passing`
+  then asks for the generic type instead, which is the better fix anyway.
+  An expression or a literal as the actual is fine; the kernel creates a
+  temporary of the formal's type for those.
+  The same pull, a second shape: the view builder's `a( v TYPE string )`
+  given a NUMC field, `->a( n = `maxLength` v = dfies->leng )` in
+  table-maintenance's `z2ui5_cl_tm_pop` - *"The type "N(6)" of "DFIES->LENG"
+  is not compatible with the type "STRING" of "V""*, three times (`3751aca`).
+  Pass a string: `v = |{ CONV i( dfies->leng ) }|` (the `CONV i` also drops
+  the leading zeros of the NUMC).
+- **Literals joined with `&` are one literal, and a literal holds 255
+  characters.** A `CONSTANTS c_view TYPE string VALUE` of eleven short
+  backquoted parts joined with `&` in the test classes of
+  `z2ui5_cl_layo_xml_tree`: *"The text literal ... is longer than 255
+  characters"*, then *"The statement ENDCLASS is missing"* and *"Compilation
+  was canceled"* (abap2UI5-addons/layout-management `5b1c8b7`). Every part
+  is short and every line passes; the system checks the joined literal. `&&`
+  has no limit but is not allowed in a `CONSTANTS ... VALUE` - build the text
+  in a method with `&&`.
+
+**Backlog:** abaplint · abaplint-method-parameter-not-compatible, abaplint-literal-operator-length
+
 ### Do not depend on DDIC objects that are not everywhere
 
 A sample that selects from `VBAK` compiles here — abaplint resolves it from the
@@ -644,7 +679,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps, abaplint-timestampl-to-timestamp, abaplint-abapdoc-empty-documentation, abaplint-abapdoc-html-tag-namespaced, abaplint-inline-packed-computation-gaps, abaplint-modify-key-only-table, abaplint-implement-methods-alias-name, abaplint-conv-generic-formal-fixed-type, abaplint-replacement-object-tables, abaplint-select-from-itab-key
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -990,6 +1025,23 @@ and points here, so a new trap is added here and nowhere else.
   abaplint 2.120.71 on (abaplint/abaplint#4386): the rule reports a CONV
   whose operand is a built-in function with a result of the target type,
   and a CONV inside a function argument.
+
+  **Two shapes the rule still misses, both from a user's pull
+  (2026-11-24).** `DATA(lv_name) = CONV string( lr_config->n ).` in
+  `z2ui5_cl_ui5_http_handler->_bootstrap_attributes` (`1f85280c`): an inline
+  declaration whose operand is a component reached through a reference or a
+  field symbol, already `string`. And `->a( n = `growing` v = CONV #( xsdbool(
+  … ) ) )` in layout-management's `xml_build_table` (`5b1c8b7`): a `CONV #( )`
+  around a built-in function as the actual of a `string` formal - the builder
+  has `b =` for exactly that. Measured on 2.120.113, isolated and
+  syntax-clean: the rule reports `DATA(x) = CONV string( lv_string )` and
+  `lv_tgt = CONV string( lr->n )` into a typed target, and neither of these
+  two. Fix: assign the component directly (`DATA(lv_name) = lr_config->n.`),
+  and pass a boolean with `b = xsdbool( … )`. A third shape from the same
+  pull: `rtti_get_t_ddic_fixed_values( CONV #( dfies->rollname ) )` with the
+  formal `TYPE clike` - *"Redundant conversion for type ROLLNAME"*
+  (table-maintenance `3751aca`). For a generic formal `CONV #` takes the
+  operand's own type and converts nothing; pass the operand as it is.
 - **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
   type-compatible with a formal parameter typed `string` — the view builder's
   `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
@@ -1087,6 +1139,56 @@ and points here, so a new trap is added here and nowhere else.
   six statements are how every binding finds its value, they behave
   differently per release (#1937, comments at the sites), and a rewrite to
   `mo_app->(name)` needs a 7.02 and a cloud system to be tested on first.
+
+- **One activation of a consumer system (S5S on S/4HANA EWM, 2026-11-24)**
+  brought a batch of SLIN warnings abaplint 2.120.116 does not report -
+  measured in an isolated, syntax-clean probe with every rule on, a control
+  finding firing (fixes in `oblomov-dev/s5s_dev` `3173ec5`). Each is a stock
+  item:
+  - *"Empty documentation is not allowed"* - `"! @parameter client |` with no
+    text, a lone `"!` in front of `CLASS` or ending a block (~20 times in
+    `/KRO/UI501_CL_APP_VIEW`). Fix: write the text or drop the line; an empty
+    `"!` between two text lines is fine.
+  - *"HTML tag <html:style> is not supported in ABAP Doc"* / *"... is not
+    closed"* - `abapdoc_html_tag` reports `<layoutData>` but not a namespaced
+    tag. Fix: `&lt;html:style&gt;`.
+  - *"... the type P(8,0) is used here implicitly"* on `DATA(x) = ( a + b ).`
+    and `DATA(t) = a + VALUE #( lt[ 1 ]-quan OPTIONAL ).` -
+    `inline_packed_computation` reports the bare chain only. The decimals go:
+    a weight difference below 0.5 counted as none. Fix: declare the target
+    with the operands' type, or `CONV ty_quan( ... )`.
+  - *"Table ... contains only key fields. Entries can be inserted, but not
+    modified"* - `MODIFY` of a table without non-key fields only ever inserts.
+    Fix: `DELETE` + `INSERT`, or give the table a data field.
+  - *"The component addressed here under the name COUNT is accessed in the
+    current context under a different name"* - a `REDEFINITION` of
+    `zif~count` implemented as `METHOD count.` via the superclass alias;
+    abaplint reports a missing implementation instead. Fix:
+    `METHOD zif~count.`
+    The same warning for an attribute: one method that reads
+    `mo_app->mv_shared` (an alias) and `mo_app->lif~mv_shared` (2026-11-25,
+    a unit test of z2ui5_cl_ui5_srv_model); abaplint reports nothing. Fix:
+    one spelling per method.
+  - *"The fixed type STRING is used for the generic type CLIKE"* -
+    `CONV #( lv_quan )` (packed) into `v1 TYPE clike`. Fix: `CONV string( )`.
+  - *"The table MARD has a replacement object and hence should no longer be
+    used"* - MARD, MCHB, MBEW, EBEW, MARC, MKPF, MSEG, MSKA, MSLB, MSKU, MKOL,
+    /SAPAPO/MATMAP, 20+ sites. Fix: the NSDM_* / I_* replacements.
+  - `SELECT ... FROM @itab`: *"The primary key of LT_X is ignored because it is
+    generic or is the standard key"* and, for an aggregate or a join,
+    *"The SELECT command is executed on the database"*. Fix: an explicit key;
+    aggregate in ABAP (`REDUCE`) where the round trip is not wanted.
+  - More shapes of three existing items: `'*'` into N(10) and `'98'` into
+    C(1), `''` against a DATS (`WHERE dalen <> ''` - write `'00000000'` or
+    `IS INITIAL`); `CONV #( 'LIT' )` into a `clike` formal and
+    `CONV string( lr->n )` as an actual; `ts = get_timestampl( )` and the
+    DDIC aliases TZNTSTMPS, TSEGEVTFRS, TSEGEVTTOS.
+
+  The same run also had warnings abaplint DOES report once the rule is on -
+  `strict_sql` (INTO not last), `wrong_abapdoc_position`, `try_without_catch`,
+  `implement_methods` (a truly missing implementation) and most
+  `redundant_conversion` shapes (57 sites, the rule was off there): for those
+  the fix is to switch the rule on, not a stock item.
 
 **Not gated: the BUNDLE.**
 `check:atc` walks this repository's `src/` — that is its stated scope, and
@@ -1513,6 +1615,51 @@ break one of those four.
   `syfixes` only runs when the `--fix` call before it may fail:
   `(abaplint --fix ... || true) && npm run syfixes`.
 
+- **`ASSIGN COMPONENT name OF STRUCTURE <tab>[ n ] TO <fs>` assigns the ROW
+  under the transpiler** (found 2026-11-24, `ltcl_06_fast_json->ns_*`): the
+  table expression is read into `<fs>` and the component is never taken, so a
+  `CLEAR <fs>` that follows clears the whole row - green on a system, a wrong
+  test on Node. Read the row first (`READ TABLE <tab> INDEX n ASSIGNING
+  <row>`), then `ASSIGN COMPONENT ... OF STRUCTURE <row>`. No gate: the
+  statement is valid ABAP and right on every release.
+
+- **An interface attribute and the transpiler: four differences in one
+  test class** (found 2026-11-24, `z2ui5_cl_ui5_srv_model`
+  `ltcl_07_intf_attr`, when interface attributes became bindable).
+  (1) The transpiled RTTI lists **no `ALIASES`** among a class's attributes
+  (`cl_abap_classdescr->attributes` holds `LIF~ATTR` only), where a system
+  lists the alias as an attribute of its own - so a test that expects the
+  alias row is red on Node and one that expects the interface row is red on
+  a system; assert what both share (one row, one path for both spellings).
+  (2) `NEW lif_x=>ty_t( ... )` of a type of a LOCAL interface is downported
+  to `CREATE OBJECT ... TYPE lif_x` (a check_syntax error of the downported
+  tree). (3) The runtime refuses `CREATE DATA ... TYPE lif_x=>ty_t`
+  (`CX_SY_CREATE_DATA_ERROR`) - write `CREATE DATA ... LIKE` a typed
+  attribute. (4) `xsdbool( ... ) + xsdbool( ... )` is left unparsed by the
+  downport (a parser_error its lint reports in `node/downport` - read that
+  line of the log, the step itself does not fail on it). No gate: all four are valid ABAP; the downport's own
+  lint names (2) and (4), the unit run (1) and (3).
+
+- **Two table expressions the 702 downport gets wrong** (found 2026-11-25,
+  when READ TABLE and APPEND were forbidden across the repositories).
+  (1) `REF #( itab[ ... ] OPTIONAL )` is lowered to `READ TABLE ...
+  ASSIGNING` + `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` (`ASSERT 1 =
+  0` after `syfixes`) - the OPTIONAL is dropped, so a row that is not found
+  aborts on 7.02 where the source returns an initial reference. Write
+  `ASSIGN itab[ ... ] TO <fs>` and test `IS ASSIGNED` (`UNASSIGN` first in a
+  loop), or `line_exists( )` before `REF #( itab[ ... ] )`. `VALUE #( itab[
+  ... ] OPTIONAL )` is lowered correctly. The same gap hits a bare
+  `x = line_index( itab[ ... ] )`: it becomes `READ TABLE ...` + `x = sy-tabix`
+  without a `sy-subrc` check, so a missing row gives a stale index instead
+  of 0 - call it only after `line_exists( )`. (2) `itab[ KEY primary_key
+  COMPONENTS ... ]` comes out as `READ TABLE ... WITH KEY KEY primary_key
+  ...`, which does not compile - name the components without the key name
+  (they cover the unique key, the read is the same) or keep `READ TABLE ...
+  WITH TABLE KEY`. Reproduced with abaplint 2.120.120. Gate: none yet -
+  backlog items `abaplint-downport-ref-optional` and
+  `abaplint-downport-key-primary-key`; the downport's own lint catches (2),
+  nothing catches (1).
+
 ## 5. Runtime — green here, wrong there
 
 **Gate: mostly open.** Three entries have moved: **linter —
@@ -1699,7 +1846,7 @@ precisely because no gate will catch it.
   and ABAP Cloud (`check:standard`, `check:cloud`, `downport`). A statement
   that only exists in a newer release passes the default target and fails the
   others.
-- **`app/webapp/` source must be 7-bit ASCII** — every frontend file is
+- **`bundle/webapp/` source must be 7-bit ASCII** — every frontend file is
   embedded verbatim into an ABAP class under `src/01/03/`, where abaplint's
   `7bit_ascii` rule applies. Build non-ASCII runtime strings at run time, never
   as a literal.
@@ -1754,6 +1901,70 @@ only non-key components. Writing `<sum>-cnt` directly is fine.
   `abaplint.jsonc` since the 2.120.75 pin. A script could not decide it: it
   needs the table kind behind the field symbol, a type question.
 
+### A namespaced component name is a slash in a path
+
+abap2UI5-addons/table-maintenance failed on the first rendering of its edit
+popup on a user's S/4 system (2026-11-24, abap2UI5 1.150.0) with
+`MODEL_FAST_PATH_TOKEN_LOST` - for "large" tables only. Large meant MARA and
+its kind: a standard table that carries fields of an industry solution or a
+customer namespace (`/CWM/XCWMAT`, `/VSO/R_TILT_IND`). The popup builds a
+structure at run time with one component per field, so the component is
+called `/CWM/XCWMAT`, and the client path `/MS_FIXVAL//CWM/XCWMAT` got an
+empty segment. **ajson's `set( )` creates the parents segment by segment but
+files the node under the path as written** (`prove_path_exists` drops empty
+segments, `split_path` does not), so no parent walks to it and `stringify( )`
+leaves it out - silently for a scalar, loudly for a table on the fast path.
+UI5's `JSONModel` stops resolving at the empty segment too. Fixed at the
+name: `z2ui5_cl_ui5_srv_bind=>get_client_name` makes the namespace a segment
+of its own (`/MS_FIXVAL/CWM/XCWMAT`), and the fast path falls back to ajson
+for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
+`json_fast_check`).
+
+- **Why nothing caught it:** every fixture named its components like an
+  ABAP programmer does. Any code that builds a path, a key or a file name
+  from a DDIC field or a class name has to be tested with a `/NS/` name -
+  `ltcl_06_fast_json->tm_pop_namespaced_fields` is the shape.
+- **Gate: none.** Whether a name can carry a namespace is a question of
+  where it comes from at run time, not of the source.
+- **The second half (same day): a namespaced COLUMN of a bound table.** A
+  table row carried the key `"/CWM/XCWMAT"`, and the row template's
+  `{/CWM/XCWMAT}` is an ABSOLUTE path in UI5 - an empty cell, and the edit
+  went nowhere, without an error anywhere (S5S, /KRO/ EWM apps over
+  /SCWM/ tables). The model now writes a namespace as a level of its row,
+  `"CWM":{"XCWMAT":...}` - on the fast path (`json_row_ns`) and on the
+  general road, where ajson cannot address a node named `/CWM/XCWMAT`
+  (`split_path` again), so the tree is rendered by `json_ns_text` instead of
+  moved. Back in, `CWM` is no component: the row delta asks
+  `delta_apply_ns`, a whole value `json_ns_to_abap` after `to_abap( )`.
+  A template binds `{CWM/XCWMAT}` -
+  `z2ui5_cl_ui5_view_builder=>component_path( )` writes it. The tests
+  (`ltcl_06_fast_json->ns_*`) build the row types with
+  `cl_abap_structdescr=>create( )`: no typed declaration can carry such a
+  name.
+
+### Two a clean-up pass broke in a downstream app (S5S, 2026-11-25)
+
+- **A guard before FOR ALL ENTRIES changes what the statement returns.**
+  `SELECT … FOR ALL ENTRIES IN itab` over an EMPTY `itab` ignores the whole
+  WHERE and reads every row. ATC and the `unsecure_fae` rule ask for
+  `IF itab IS NOT INITIAL` around it - which turns "every row" into "none".
+  Usually that is the fix, but code can live on the old behaviour: an input
+  handler read its check customizing FAE over the app's scan fields, and the
+  apps WITHOUT customized fields (they add theirs at run time) got every
+  check class from the empty FAE. After the guard, scanning in them reported
+  "No Syntax check Class customized". **When guarding an FAE, decide what an
+  empty driver means there**: a lookup for the driver's own rows (guard),
+  or "all" (an explicit `SELECT` without FAE in the `ELSE`). Gate: none.
+- **An RTTI reference in the app state does not survive the draft.**
+  `abap_component_tab` (and any attribute holding `cl_abap_*descr`) is
+  serialized without its object references: after the next roundtrip
+  `type` is initial and `cl_abap_structdescr=>create( )` raises
+  `CX_SY_STRUCT_COMP_TYPE`. A rebuild "from the components" that worked in
+  the first roundtrip fails in the second. Take the type from a data
+  reference the draft keeps (`CREATE DATA lr LIKE <tab>` over the bound
+  `REF TO data`), or rebuild the component table first. Gate: none - the
+  transpiled suite keeps objects in memory between "roundtrips".
+
 ## 6. Blind spots — green, or red, for the wrong reason
 
 **Gate: none, and that is the definition.** An entry lands in this section
@@ -1792,6 +2003,25 @@ numbered section above.
   from the parser itself and no rule-level `exclude` can reach it. Scope it to
   the `.abap` files so the `.clas.xml` keeps its `object_naming` and
   `xml_consistency` coverage.
+- **A red abaplint finding on valid ABAP, measured on 2.120.116 (2026-11-24,
+  S5S against its own system).** `check_syntax` refuses a dynamic attribute
+  on `REF TO object` (`mo_app->('MV_FLAG') = abap_true.`, "Not an object
+  reference") and a dereferenced generic `REF TO data` as a table operand
+  (`INSERT LINES OF lt INTO TABLE mr_tab->*.`) - both fixed upstream by
+  abaplint/abaplint#4704 and #4705 (merged 2026-11-25, not yet released);
+  `unsecure_fae` reports every
+  FOR ALL ENTRIES, guarded or not (fixed upstream by abaplint/abaplint#4706,
+  merged 2026-11-24, not yet released - and the guard it accepts turns "every
+  row" into "no row" for an empty driver table, which is not always what was
+  meant); `suspicious_loop` calls a WHILE "unchanged"
+  when its counter is advanced through an inline-declared variable; and a rule
+  configured as an object (`"check_subrc": { "exclude": [...] }`) checks none
+  of the options it does not name. The first three can only be suppressed per
+  file, which switches the whole rule off for that file - keep such an
+  exclusion list short and commented, and write rule objects with every
+  option of `abaplint --default`.
+
+**Backlog:** abaplint · abaplint-unsecure-fae-guarded, abaplint-suspicious-loop-inline-declaration, abaplint-rule-config-partial-options
 
 ## 7. The rule stock — read for it by hand until abaplint decides it
 
@@ -1825,8 +2055,10 @@ fix.
   gated by abaplint's `loop_target_misuse` from 2.120.112.
 - **Implicit conversions.** A character field compared with a number, a d/t
   field with a formatted literal (`'2024-01-01'`); a literal or constant longer
-  than its target; TIMESTAMPL assigned to TIMESTAMP (the fraction is cut); a
-  constant offset/length on a string without a length check.
+  than its target; a character variable assigned to a shorter one (cut
+  without a message - the code inspector's "Truncate in Conversion"); TIMESTAMPL
+  assigned to TIMESTAMP (the fraction is cut); a constant offset/length on a
+  string without a length check.
 - **References.** A data reference dereferenced on a path where it can be
   initial.
 - **VALUE for a unique-key table** with two literal rows of the same key — a
@@ -1866,7 +2098,7 @@ fix.
   ASSERT in a test class are gated by abaplint's `unit_test_assertions` from
   2.120.109 (abaplint/abaplint#4583).
 
-**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-loop-target-misuse, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
+**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-loop-target-misuse, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production, abaplint-truncating-char-assignment
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 
@@ -1919,13 +2151,15 @@ These are Clean ABAP clean-ups, not defects. AGENTS.md
 | SORT … BY with ASCENDING/DESCENDING stated | optional |
 | CLEAR right after DATA, a needless `me->` | yes |
 | Classes of only static methods, interfaces of only constants, public methods outside an interface | judge per case |
+| A public method only its own class calls (abapOpenChecks 058) | make it private, unless the class is API |
+| CONTINUE as the last statement of a loop body (abapOpenChecks 062) | remove |
 | Class size (methods, attributes per class), statements per WHEN | the method limits in AGENTS.md apply; the rest is a smell |
 | Magic numbers, sy-uname/sy-sysid compared with a literal, `'@00@'` icon literals | name them as constants |
 | MESSAGE TYPE E/A/X or WRITE in a global class; MESSAGE ID sy-msgid … TYPE sy-msgty | no dialog in classes — raise an exception |
 | COLLECT; a table with the implicit default key | avoid (AGENTS.md: no default key) |
 | `"#EC CI_SUBRC` where sy-subrc is checked; an OPTIONAL parameter no caller supplies; a message nothing uses | remove |
 
-**Backlog:** abaplint · abaplint-comment-style, abaplint-guard-clauses, abaplint-method-signature-style, abaplint-class-design, abaplint-size-metrics, abaplint-modern-statements, abaplint-needless-code, abaplint-prefer-final, abaplint-read-table-to-expression, abaplint-sort-explicit-order, abaplint-magic-number, abaplint-hardcoded-values, abaplint-message-usage, abaplint-avoid-use-extensions, abaplint-unnecessary-ec-ci-subrc, abaplint-unused-method-parameter-global, abaplint-unused-message
+**Backlog:** abaplint · abaplint-comment-style, abaplint-guard-clauses, abaplint-method-signature-style, abaplint-class-design, abaplint-size-metrics, abaplint-modern-statements, abaplint-needless-code, abaplint-prefer-final, abaplint-read-table-to-expression, abaplint-sort-explicit-order, abaplint-magic-number, abaplint-hardcoded-values, abaplint-message-usage, abaplint-avoid-use-extensions, abaplint-unnecessary-ec-ci-subrc, abaplint-unused-method-parameter-global, abaplint-unused-message, abaplint-public-method-only-local, abaplint-continue-last-in-loop
 
 ### Objects and files
 

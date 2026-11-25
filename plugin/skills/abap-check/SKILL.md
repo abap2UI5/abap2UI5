@@ -104,6 +104,25 @@ numbered section above.
   from the parser itself and no rule-level `exclude` can reach it. Scope it to
   the `.abap` files so the `.clas.xml` keeps its `object_naming` and
   `xml_consistency` coverage.
+- **A red abaplint finding on valid ABAP, measured on 2.120.116 (2026-11-24,
+  S5S against its own system).** `check_syntax` refuses a dynamic attribute
+  on `REF TO object` (`mo_app->('MV_FLAG') = abap_true.`, "Not an object
+  reference") and a dereferenced generic `REF TO data` as a table operand
+  (`INSERT LINES OF lt INTO TABLE mr_tab->*.`) - both fixed upstream by
+  abaplint/abaplint#4704 and #4705 (merged 2026-11-25, not yet released);
+  `unsecure_fae` reports every
+  FOR ALL ENTRIES, guarded or not (fixed upstream by abaplint/abaplint#4706,
+  merged 2026-11-24, not yet released - and the guard it accepts turns "every
+  row" into "no row" for an empty driver table, which is not always what was
+  meant); `suspicious_loop` calls a WHILE "unchanged"
+  when its counter is advanced through an inline-declared variable; and a rule
+  configured as an object (`"check_subrc": { "exclude": [...] }`) checks none
+  of the options it does not name. The first three can only be suppressed per
+  file, which switches the whole rule off for that file - keep such an
+  exclusion list short and commented, and write rule objects with every
+  option of `abaplint --default`.
+
+**Backlog:** abaplint · abaplint-unsecure-fae-guarded, abaplint-suspicious-loop-inline-declaration, abaplint-rule-config-partial-options
 
 ## When a pull does show diffs
 

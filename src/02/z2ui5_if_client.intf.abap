@@ -75,6 +75,9 @@ INTERFACE z2ui5_if_client
       cross_app_nav_get_links   TYPE string VALUE `CROSS_APP_NAV_GET_LINKS`,
       set_app_full_width        TYPE string VALUE `SET_APP_FULL_WIDTH`,
 
+      " appended at the end (rule 5): the counterpart of start_timer
+      stop_timer                TYPE string VALUE `STOP_TIMER`,
+
     END OF cs_event.
 
   CONSTANTS:
@@ -384,15 +387,6 @@ INTERFACE z2ui5_if_client
       transition                    TYPE clike     OPTIONAL
       transition_back               TYPE abap_bool DEFAULT abap_false.
 
-  "! obsolete - does NOTHING. An event round-trip that changes bound data
-  "! pushes the model AUTOMATICALLY: the framework compares the model state
-  "! before and after main( ) and, when it differs, sends it to every open
-  "! view slot (see z2ui5_cl_ui5_handler=>main_end). A handler can therefore
-  "! no longer render stale by forgetting a call, and there is nothing left
-  "! for this method to do. It stays in the interface so existing apps keep
-  "! compiling - remove the calls at your leisure.
-  METHODS view_model_update.
-
   "! Switch the ABAP session of this app to STATEFUL from this roundtrip on -
   "! the work process and the session context (enqueue locks, open RFC
   "! connections, everything the app does not serialise) survive between
@@ -443,14 +437,17 @@ INTERFACE z2ui5_if_client
 
   "! HashChanger#setHash: write VAL as the app's URL hash - a PUSHED history
   "! entry, so the browser Back button has a step to take. The 1:1
-  "! counterpart of a UI5 router's navTo. With cs_event-hash_attach_changed
-  "! registered the value is the WHOLE app hash (`/Page2`); without a
-  "! listener VAL is APPENDED to the hash the page already has - a suffix
-  "! such as `&amp;my-app-state=detail`, written with history.pushState.
+  "! counterpart of a UI5 router's navTo. The value is the WHOLE app hash
+  "! (`/Page2`).
   "!
-  "! @parameter val | the hash to write - the whole app hash (`/Page2`) with a
-  "!                  hash_attach_changed listener registered, otherwise the
-  "!                  suffix appended to the hash the page already has.
+  "! The app has to OWN the hash: register a listener with
+  "! cs_event-hash_attach_changed first (the same roundtrip is fine), so the
+  "! Back onto what was written reaches the app. Without one, and under
+  "! hash_routing - where the hash is the router's - nothing is written and
+  "! the frontend says so in its log. (Until 2026-11 the value was then
+  "! appended to the hash the page had, as a suffix.)
+  "!
+  "! @parameter val | the whole app hash to write (`/Page2`).
   METHODS hash_set
     IMPORTING
       val TYPE string OPTIONAL.
@@ -459,11 +456,9 @@ INTERFACE z2ui5_if_client
   "! history entry - the UI5 router's navTo( ..., true ). What
   "! FlexibleColumnLayout apps do when a NAVIGATION ARROW changes the
   "! layout: the URL follows, but Back does not step through arrow drags.
-  "! As for hash_set( ), only with cs_event-hash_attach_changed registered is
-  "! the value the WHOLE app hash; without a listener VAL is APPENDED to the
-  "! hash the page already has, so writing a whole route (`/repo/1`) on every
-  "! roundtrip grows the URL (`#/repo/1/repo/1`). An app that owns its routes
-  "! registers the listener (in view_display( ), see hash_attach_changed).
+  "! As for hash_set( ), the value is the WHOLE app hash and the app has to
+  "! own the hash: it registers the listener (in view_display( ), see
+  "! cs_event-hash_attach_changed). Without one nothing is written.
   "!
   "! @parameter val | the hash to write, spelled as for hash_set( ).
   METHODS hash_replace
@@ -501,9 +496,6 @@ INTERFACE z2ui5_if_client
   "! Remove the nested view (the NEST slot) from its anchor control on this
   "! response.
   METHODS nest_view_destroy.
-  "! obsolete - does NOTHING, see view_model_update. A nested view inherits
-  "! the MAIN view's model anyway, and that model is pushed automatically
-  METHODS nest_view_model_update.
 
   "! A second nested slot with exactly the contract of nest_view_display( ) -
   "! for a fragment inside the nested fragment, or two independent fragments
@@ -524,9 +516,6 @@ INTERFACE z2ui5_if_client
   "! Remove the second nested view (the NEST2 slot) from its anchor control on
   "! this response.
   METHODS nest2_view_destroy.
-  "! obsolete - does NOTHING, see view_model_update. A nested view inherits
-  "! the MAIN view's model anyway, and that model is pushed automatically
-  METHODS nest2_view_model_update.
 
   "! Open the XML in val as the POPUP slot - a sap.m.Dialog that lies over the
   "! main view, which stays as it is. One popup at a time: a second
@@ -543,18 +532,10 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
-  "! obsolete - does NOTHING, see view_model_update. The automatic push
-  "! reaches the POPUP slot too, so an open popup refreshes on its own
-  METHODS popup_model_update.
-
   "! Close the popup: the POPUP slot is emptied on this response and the main
   "! view underneath is untouched. Call it in the handler of the event that
   "! ends the dialog - Save, Cancel, the close button.
   METHODS popup_destroy.
-
-  "! obsolete - does NOTHING, see view_model_update. The automatic push
-  "! reaches the POPOVER slot too, so an open popover refreshes on its own
-  METHODS popover_model_update.
 
   "! Open the XML as a POPOVER anchored to the control whose id is by_id
   "! (sap.m.Popover openBy) - the usual shape for a menu, a quick view or a
@@ -584,6 +565,34 @@ INTERFACE z2ui5_if_client
   METHODS get
     RETURNING
       VALUE(result) TYPE ty_s_get.
+
+  "! One start parameter of the page, by name - whichever way the app was
+  "! started: standalone with `?lgn=0001&app=MENU`, from a launchpad tile
+  "! whose target mapping hands `lgn` and `app` over as startupParameters,
+  "! or from a launchpad intent `#Object-action?lgn=0001`. The sources are
+  "! asked in this order and the first that has the parameter with a value
+  "! answers:
+  "!
+  "! 1. the URL query (get( )-s_config-search), including what the
+  "!    launchpad packs into `sap-startup-params`;
+  "! 2. the launchpad startupParameters (get( )-t_comp_params - the first
+  "!    value of a parameter with several);
+  "! 3. the query of the launchpad intent in the URL hash - the part in
+  "!    front of `&amp;/` (the app's own route behind it is not read).
+  "!
+  "! The name is matched without regard to case (`LGN`, `lgn` and `Lgn` are
+  "! one parameter); the value comes back exactly as the source carries it -
+  "! not upper-cased, and in the URL not percent-decoded. Empty when no
+  "! source has the parameter. Meant for main( ) of the first app; it stays
+  "! readable on every later roundtrip and in every app the user navigates
+  "! to, since the parameters belong to the page.
+  "!
+  "! @parameter name | the parameter's name, in any case.
+  METHODS get_start_param
+    IMPORTING
+      name          TYPE clike
+    RETURNING
+      VALUE(result) TYPE string.
 
   "! The name of the event that triggered this roundtrip - empty when no
   "! event is being handled (e.g. on the initial call). Shortcut for
@@ -655,11 +664,23 @@ INTERFACE z2ui5_if_client
   "! @parameter r_data | data handed to the target, read there as
   "!                  get( )-r_event_data (a reference to a copy of it). An
   "!                  intentionally empty value still arrives.
+  "! @parameter keep_messages | abap_true: the message toasts and boxes this
+  "!                  app queued in this roundtrip (message_toast_display( ),
+  "!                  message_box_display( ), a follow_up_action( ) of
+  "!                  cs_event-control_global on MESSAGE_TOAST/MESSAGE_BOX)
+  "!                  are shown after the target has rendered, ahead of the
+  "!                  target's own - `Saved.` survives the return to the
+  "!                  list. Not supplied, everything this app queued is
+  "!                  dropped with its screen, as always. A box carried
+  "!                  over keeps its onclose: that event is raised in the
+  "!                  target app, which has to know it. Appended at the END
+  "!                  of the list (rule 5).
   METHODS nav_app_leave
     IMPORTING
       VALUE(app)    TYPE REF TO z2ui5_if_app OPTIONAL
       event         TYPE clike                OPTIONAL
       r_data        TYPE data                 OPTIONAL
+      keep_messages TYPE abap_bool            DEFAULT abap_false
         PREFERRED PARAMETER app
     RETURNING
       VALUE(result) TYPE string.
@@ -676,9 +697,23 @@ INTERFACE z2ui5_if_client
   "! @parameter app | a bound instance of the app to call - NEW zcl_other_app( )
   "!                  with whatever it needs set on it before the call; an
   "!                  unbound reference raises NAV_APP_TARGET_NOT_BOUND.
+  "! @parameter tag | a name of the caller's own for WHY it calls - `CONFIRM_DELETE`,
+  "!                  `PICK_UNIT`. It comes back with the screen: when the
+  "!                  called app has left and this main( ) runs again,
+  "!                  get_nav_tag( ) answers it, so an app that opens the
+  "!                  same popup class for several purposes tells the returns
+  "!                  apart without a flag attribute per purpose. Not
+  "!                  supplied, the app has no tag. Appended at the END of
+  "!                  the list (rule 5).
+  "! @parameter keep_messages | abap_true: the message toasts and boxes this
+  "!                  app queued in this roundtrip are shown after the called
+  "!                  app has rendered, ahead of its own (see nav_app_leave( )).
+  "!                  Not supplied, they are dropped with this app's screen.
   METHODS nav_app_call
     IMPORTING
       app           TYPE REF TO z2ui5_if_app
+      tag           TYPE clike     OPTIONAL
+      keep_messages TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result) TYPE string.
 
@@ -710,9 +745,10 @@ INTERFACE z2ui5_if_client
   "! ``client->follow_up_action( val = client->cs_event-control_global t_arg = VALUE #( ( `MESSAGE_BOX` ) ( `error` ) ( `Not saved.` ) ( `\{"contentWidth":"30rem","icon":"WARNING"\}` ) ) )``
   "!
   "! The method IS the box type there, and the option object lands in the
-  "! same frontend code this method reaches. `textDirection`, `icon`,
+  "! same frontend code this method reaches. `textDirection`,
   "! `closeOnNavigation`, `dependentOn` (UI5 1.124 on) and `contentWidth`
-  "! were parameters here until 2026-09 and travel that way now.
+  "! were parameters here until 2026-09 and travel that way now; `icon`
+  "! left with them by mistake and is a parameter again (2026-11).
   "!
   "! @parameter text | what to show - a text, or any of the shapes above.
   "! @parameter type | the kind of box, which decides icon and default title:
@@ -741,6 +777,9 @@ INTERFACE z2ui5_if_client
   "! @parameter details | a further text (or JSON) shown below the message,
   "!                  already unfolded (the box's "Show details" link is
   "!                  hidden).
+  "! @parameter icon | the icon of the box instead of the type's own: a
+  "!                  sap.m.MessageBox.Icon name (`WARNING`) or a
+  "!                  `sap-icon://` URI.
   METHODS message_box_display
     IMPORTING
       text             TYPE any
@@ -751,7 +790,8 @@ INTERFACE z2ui5_if_client
       actions          TYPE string_table OPTIONAL
       emphasizedaction TYPE clike        OPTIONAL
       initialfocus     TYPE clike        OPTIONAL
-      details          TYPE clike        OPTIONAL.
+      details          TYPE clike        OPTIONAL
+      icon             TYPE clike        OPTIONAL.
 
   "! Show a sap.m.MessageToast with text - the fire-and-forget notification
   "! for a saved record or a copied link, gone again after a few seconds.
@@ -1045,8 +1085,7 @@ INTERFACE z2ui5_if_client
       "                           (z2ui5_cl_smp_app_509)
       "  anything else         -> shape the value in ABAP before binding it
       "The one thing _bind( ) deliberately cannot do is a mapping that
-      "differs per direction - see the _back pair on _bind_edit( ), which is
-      "dead there. Measured 2026-09-13 across samples, samples-controls and
+      "differs per direction. Measured 2026-09-13 across samples, samples-controls and
       "samples-stack: not one app class passes either parameter or
       "implements either interface, and none ever did in their git history -
       "so nothing has to be migrated, only nothing new written. AJSON itself
@@ -1065,40 +1104,6 @@ INTERFACE z2ui5_if_client
       omit_initial         TYPE abap_bool                     DEFAULT abap_false
       omit_initial_paths   TYPE string_table                  OPTIONAL
       json                 TYPE abap_bool                     DEFAULT abap_false
-    RETURNING
-      VALUE(result)        TYPE string.
-
-  "! obsolete - alias of _bind with identical behaviour, please use _bind.
-  "! custom_mapper_back / custom_filter_back are still accepted for source
-  "! compatibility but are no longer evaluated.
-  "!
-  "! All four AJSON parameters here are dead ends: this is the only place
-  "! that ever offered a per-direction mapping, and the two _back halves
-  "! that made it one are inert. Do not reach for any of them in new code -
-  "! bind with _bind( ) and say what you mean with omit_initial /
-  "! omit_initial_paths or json = abap_true, whose notes on _bind( ) carry
-  "! the full reasoning and a sample each.
-  "!
-  "! @parameter val | as _bind( ).
-  "! @parameter path | as _bind( ).
-  "! @parameter custom_mapper | as _bind( ) - obsolete there too.
-  "! @parameter custom_mapper_back | accepted, no longer evaluated.
-  "! @parameter custom_filter | as _bind( ) - obsolete there too.
-  "! @parameter custom_filter_back | accepted, no longer evaluated.
-  "! @parameter tab | as _bind( ).
-  "! @parameter tab_index | as _bind( ).
-  "! @parameter switch_default_model | as _bind( ).
-  METHODS _bind_edit
-    IMPORTING
-      val                  TYPE data
-      path                 TYPE abap_bool                     DEFAULT abap_false
-      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      tab                  TYPE data                          OPTIONAL
-      tab_index            TYPE i                             OPTIONAL
-      switch_default_model TYPE abap_bool                     DEFAULT abap_false
     RETURNING
       VALUE(result)        TYPE string.
 
@@ -1372,9 +1377,10 @@ INTERFACE z2ui5_if_client
   "! t_arg = event name, delay in milliseconds:
   "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ) )``.
   "! There is one timer per app: arming it again replaces the pending one,
-  "! and every roundtrip cancels it, so a repeating timer - a poll, a
-  "! carousel - is re-armed by every response that keeps it going. A tick
-  "! that meets a roundtrip in flight waits for it instead of being dropped.
+  "! and every roundtrip cancels it, so a one-shot timer that should go on -
+  "! a poll, a carousel - is re-armed by every response that keeps it going
+  "! (or repeats by itself, see the FOURTH t_arg below). A tick that meets a
+  "! roundtrip in flight waits for it instead of being dropped.
   "! The tick is a roundtrip like any other and raises the global busy
   "! indicator after the usual one-second delay; an optional THIRD t_arg
   "! `X` (abap_bool as `X`/``, like every flag in t_arg) keeps it down - the
@@ -1382,8 +1388,33 @@ INTERFACE z2ui5_if_client
   "! takes longer than that no longer flashes the full-screen overlay:
   "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) )``.
   "! As with check_no_busy only the overlay goes: the tick is still the one
-  "! roundtrip in flight, and a click that lands meanwhile is dropped by the
-  "! busy guard and raises the overlay at once, like every dropped click.
+  "! roundtrip in flight. A click that lands meanwhile is held back and sent
+  "! once the tick's response is applied.
+  "! An optional FOURTH t_arg `X` REPEATS the timer: once a response has been
+  "! applied the browser arms the same tick again - same event, delay and
+  "! no-busy flag - so the app arms it once and does not re-arm it per tick:
+  "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `` ) ( `X` ) ) )``.
+  "! A user event in between does not end it: the pending tick is cancelled
+  "! while the event's roundtrip runs, and armed again, with the full delay,
+  "! after its response. It keeps running under a popup or popover of the same
+  "! app. It ends with cs_event-stop_timer, with a new start_timer (which
+  "! replaces it - one without the fourth t_arg is a one-shot timer again),
+  "! with every navigation to another app (nav_app_call / nav_app_leave, a
+  "! popup app included - an app that wants its poll back after a called app
+  "! returned starts it again in its check_on_navigated( ) branch), with a
+  "! browser Back/Forward restore, with the error overlay and with the end of
+  "! the component. A tick that changed nothing answers with the draft it
+  "! continued and writes none - the repeat needs no state in the app.
+  "! A poll that should come back by itself after a navigation is declared
+  "! with timer_set( ) instead: the framework arms it whenever the app gets
+  "! the screen and stops it when the app is left.
+  "!
+  "! **cs_event-stop_timer** - end the timer: the pending tick is cancelled
+  "! and a repeating one is not armed again; no t_arg. Stopping when no timer
+  "! runs does nothing:
+  "! ``client->follow_up_action( client->cs_event-stop_timer )``.
+  "! In the wired form (``v = client->follow_up_action( ... )`` on a press)
+  "! it stops the timer in the browser without a roundtrip.
   "!
   "! **cs_event-hash_attach_changed** - APP-OWNED hash routing
   "! (HashChanger#attachHashChanged), the 1:1 counterpart of a UI5 router's
@@ -1488,8 +1519,12 @@ INTERFACE z2ui5_if_client
   "!
   "! **The browser actions**, t_arg in order:
   "! clipboard_copy - the text (a JSON object or array is copied as its JSON
-  "! text); set_title - the page title; set_title_launchpad - the shell title
-  "! inside the launchpad (silently nothing outside it); set_app_full_width -
+  "! text); set_title - the title of the screen: the page title, and inside
+  "! the launchpad the shell title as well, so one call titles the app in
+  "! both environments (an embedded app whose host keeps the page changes
+  "! neither); set_title_launchpad - the shell title only, inside the
+  "! launchpad (silently nothing outside it; an embedded app whose host
+  "! keeps the page sets none either, with a log line); set_app_full_width -
   "! inside the launchpad the app's width: X (abap_true) for the full screen,
   "! like a Fiori elements app with fullWidth in its manifest, empty or none
   "! for the shell's letterbox again (silently nothing outside it);
@@ -1598,5 +1633,133 @@ INTERFACE z2ui5_if_client
   METHODS get_app_prev
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
+
+  "! Whether THIS roundtrip already ends in a navigation: true from the moment
+  "! main( ) has called nav_app_call( ) or nav_app_leave( ), false before. For
+  "! a base class or a helper that runs after the app's own handlers and must
+  "! not prepare a screen this app is about to give away - arm a refresh
+  "! timer, convert the bound data for output, clear messages the next app
+  "! still has to pick up:
+  "!
+  "!     IF client->check_nav_pending( ) = abap_false.
+  "!       client->follow_up_action( val = client->cs_event-start_timer ... ).
+  "!     ENDIF.
+  "!
+  "! It answers for the navigation REQUESTED in this main( ), not for the one
+  "! that brought the app here - that is check_on_navigated( ). A leave with
+  "! nothing to go back to counts as pending as well: the request was made,
+  "! the framework drops it when the roundtrip ends. It is the public form of
+  "! get( )-_s_nav, which is internal and stays only for the code that reads it.
+  "! Appended at the END of the interface (rule 5).
+  METHODS check_nav_pending
+    RETURNING
+      VALUE(result) TYPE abap_bool.
+
+  "! The tag this app gave its last nav_app_call( tag = ... ), on the
+  "! roundtrip the called app comes BACK on - and only then:
+  "!
+  "!     IF client->check_on_navigated( ).
+  "!       CASE client->get_nav_tag( ).
+  "!         WHEN `CONFIRM_DELETE`.
+  "!           IF CAST zcl_popup_confirm( client->get_app_prev( ) )->result( ) = abap_true. ...
+  "!         WHEN `PICK_UNIT`. ...
+  "!       ENDCASE.
+  "!       view_display( ).
+  "!     ENDIF.
+  "!
+  "! Empty on every other roundtrip: on the first start, on an event, when
+  "! this app was itself called, and when the call carried no tag. The tag
+  "! is the caller's and travels in its own draft, so the called app needs no
+  "! change and never sees it - a popup of an add-on works as it is. A call
+  "! chain keeps one tag per level: A calls B with `X`, B calls C with `Y`,
+  "! C leaves and B reads `Y`, B leaves and A reads `X`. Appended at the END
+  "! of the interface (rule 5).
+  METHODS get_nav_tag
+    RETURNING
+      VALUE(result) TYPE string.
+
+  "! TRUE on the one roundtrip on which this app gets the screen BACK from an
+  "! app it called: the called app (or one it called on) left with
+  "! nav_app_leave( ) - in a handler or through a press wired with
+  "! _event_nav_app_leave( ) - and this instance is where the leave lands.
+  "! That covers a popup app closing (an add-on's value help, a confirm or
+  "! an error popup app), a leave with or without a nav tag, with event,
+  "! r_data or keep_messages, and a leave several levels up to
+  "! nav_app_leave( client->get_app( id ) ). On that roundtrip
+  "! get_app_prev( ) is the instance that just left - cast it to read its
+  "! result:
+  "!
+  "!     IF client->check_on_nav_back( ).
+  "!       DATA(li_prev) = client->get_app_prev( ).
+  "!       IF li_prev IS INSTANCE OF zcl_popup_confirm.
+  "!         IF CAST zcl_popup_confirm( li_prev )->result( ) = abap_true. ...
+  "!       ENDIF.
+  "!     ENDIF.
+  "!
+  "! FALSE on every other roundtrip: the first start (get_app_prev( ) is
+  "! the app itself there), every roundtrip of a called app including its
+  "! first (get_app_prev( ) is the caller there), every event after the
+  "! return, a browser Back/Forward or reload under hash routing (KEEP or
+  "! FRESH restores the app from its route like a start), an app-state
+  "! bookmark, nav_app_call( me ) (a new screen of the same instance, not a
+  "! return), a leave to a NEW instance (it replaces the leaving app - a
+  "! forward move) and a leave with nothing to return to (dropped). A popup
+  "! the app displays itself with popup_display( ) is no navigation at all.
+  "! check_on_navigated( ) is true on both directions of a hop, on the first
+  "! start and on a restore; this method is true on the way back only, so
+  "! it implies check_on_navigated( ). It needs no tag - get_nav_tag( )
+  "! answers on the same roundtrip when the call carried one. Appended at
+  "! the END of the interface (rule 5).
+  METHODS check_on_nav_back
+    RETURNING
+      VALUE(result) TYPE abap_bool.
+
+  "! DECLARE the repeating timer of this app: the backend event EVENT is
+  "! raised every DELAY_MS milliseconds for as long as this app has the
+  "! screen, and the framework - not the app - keeps it running:
+  "!
+  "!     IF client->check_on_init( ).
+  "!       client->timer_set( event = `REFRESH` delay_ms = 5000 no_busy = abap_true ).
+  "!     ENDIF.
+  "!
+  "! The declaration is stored with the app (in its draft, not in an
+  "! attribute of the app) and the framework arms it as a repeating
+  "! cs_event-start_timer whenever this app gets the screen: on its first
+  "! display, when an app it called - a popup app included - leaves again,
+  "! and on a browser Back/Forward restore or an app-state link of its
+  "! draft. It is stopped when the app is left (nav_app_call, nav_app_leave)
+  "! and armed again when it comes back - the app does not re-arm it in a
+  "! check_on_navigated( ) branch. Calling it again with the same values is
+  "! harmless: an unchanged timer that runs is not sent again, so an app may
+  "! state it in every roundtrip (from its render method, say), and the
+  "! unchanged tick keeps answering with the draft it continued. Calling it
+  "! with other values replaces the timer from this response on. A user
+  "! event in between pauses the timer like the repeating START_TIMER: the
+  "! next tick comes the full delay after the event's response.
+  "!
+  "! The imperative actions keep working next to it, and the last statement
+  "! wins: a follow_up_action( ) with cs_event-start_timer or stop_timer
+  "! takes the timer over for this app and drops the declaration (call
+  "! timer_set( ) again to hand it back). timer_stop( ) ends the declared
+  "! timer only. One timer per app, as for START_TIMER. Appended at the END
+  "! of the interface (rule 5).
+  "!
+  "! @parameter event    | the backend event of every tick (check_on_event( )).
+  "!                       Empty: the same as timer_stop( ).
+  "! @parameter delay_ms | milliseconds between two ticks. 0 or less: the
+  "!                       same as timer_stop( ).
+  "! @parameter no_busy  | abap_true keeps the global busy indicator down
+  "!                       during a tick - the check_no_busy of _event( ).
+  METHODS timer_set
+    IMPORTING
+      event    TYPE clike
+      delay_ms TYPE i
+      no_busy  TYPE abap_bool DEFAULT abap_false.
+
+  "! End the timer declared with timer_set( ): the browser stops it with this
+  "! response, and it is not armed again when the app gets the screen back.
+  "! Nothing is sent when it did not run. Appended at the END of the
+  "! interface (rule 5).
+  METHODS timer_stop.
 
 ENDINTERFACE.

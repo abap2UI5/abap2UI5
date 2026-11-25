@@ -74,7 +74,7 @@ Five separate holes, worth knowing precisely:
 - **abaplint parses ABAP.** A view built by string concatenation or by a
   builder chain is, to abaplint, a set of valid string literals. There is no
   UI5 in its model at all.
-- **ui5lint only reads `app/webapp/`, and `manifest.json` is excluded** — which
+- **ui5lint only reads `bundle/webapp/`, and `manifest.json` is excluded** — which
   is where `minUI5Version: 1.71` lives. It never sees a view the backend
   builds, which is where nearly every abap2UI5 view comes from.
 - **The abap2UI5 linter only reads what it recognizes.** It now has an icon gate
@@ -125,7 +125,7 @@ Where it bit us: the developer tools' help button and the legacy popups in
 **Linter:** **moved — `unknown-icon`, `icon-too-new`, `icon-removed`** (2026-08).
 Still *also* gated in this repository by `npm run check:icons`
 (`.github/scripts/ui5-icon-gate.mjs`), which stays because it covers the
-framework's own `src/00`–`src/02` and `app/webapp/` — files the linter does
+framework's own `src/00`–`src/02` and `bundle/webapp/` — files the linter does
 not read (`src/99` is exempt as the frozen package; its two known bad icons
 are only printed). It no longer keeps a list
 of its own: the 655 names are **derived** from the linter's `data/icons.json`
@@ -193,7 +193,7 @@ being an *aggregation*, it does not merely get dropped, so it is
 **Linter:** **the module half is gated — in this repository, not in the
 linter.** `npm run check:modules` (`.github/scripts/frontend-module-gate.mjs`,
 gated in check_gates.yaml) holds every module named in a `sap.ui.define`
-dependency array under `app/webapp/` to a reviewed present-on-1.71 list, and
+dependency array under `bundle/webapp/` to a reviewed present-on-1.71 list, and
 both `sap.ui.require` forms (the probing string and the array-plus-callback)
 to a reviewed-id list of their own — that form returns `undefined` for a
 module the release lacks and for a misspelled id, identically and silently.
@@ -208,7 +208,7 @@ records that lesson, and the numbers are deliberately not repeated here —
 they rot, and that measurement already misled once.
 
 What the gate does NOT cover is the **consumer side**: it reads this
-repository's `app/webapp/` only, and the linter reads app classes and view
+repository's `bundle/webapp/` only, and the linter reads app classes and view
 XML — it has no JavaScript input at all — so a consumer repository's own
 frontend modules (custom controls) are checked by nothing. A linter-side rule
 would need that input plus a per-release module inventory; nothing else is
@@ -644,6 +644,49 @@ should start if it ever ships, because a value the client can write IS
 external input by definition. No rule id is minted here on purpose: the id
 comes with the rule, and a backticked id that resolves to nothing is exactly
 what check:skills exists to refuse.
+
+- **An `OverflowToolbar` resets its layout on every property change of its
+  content - including one set with `setProperty( name, value, true )` - and
+  that closes its open overflow menu.** The suppressed invalidation does not
+  help: `ManagedObject.setProperty` fires the internal `_change` event for
+  every real change whatever `bSuppressInvalidate` says, and
+  `OverflowToolbar._onContentPropertyChangedOverflowToolbar` answers it with
+  `_resetAndInvalidateToolbar( )` - unless the control's config names the
+  property as unrelated to size. A custom control gets that config only by
+  implementing `sap.m.IOverflowToolbarContent`:
+  `OverflowToolbarAssociativePopoverControls.getControlConfig` checks the
+  interface, calls `getOverflowToolbarConfig( )` and maps its
+  `propsUnrelatedToSize` to the list the handler skips. Read in the OpenUI5
+  1.120 sources (`sap/m/OverflowToolbar.js`,
+  `sap/m/OverflowToolbarAssociativePopoverControls.js`,
+  `sap/ui/base/ManagedObject.js`) and in 1.71.80, where the same handler and
+  the same mapping exist - so the fix works on the floor.
+
+  The case: `abap2UI5-addons/custom-controls`' NetworkStatus pings every five
+  seconds and writes `status`, `latency` and `quality` with suppressed
+  invalidation. In S5S's footer (an `OverflowToolbar` with a clock and
+  buttons) the overflow menu closed a few seconds after it was opened - at the
+  next ping. Fixed in custom-controls `700301c` (2026-11-24): the control
+  implements `sap.m.IOverflowToolbarContent`, `getOverflowToolbarConfig( )`
+  returns `canOverflow: false` and `propsUnrelatedToSize: [ "status",
+  "latency", "quality" ]`. Any custom control that updates itself on a timer
+  or on an external event and can sit in a toolbar needs the same.
+
+  Why nothing saw it: it is runtime behaviour of a JS custom control, which no
+  linter here reads, and no e2e spec opens an overflow menu and waits.
+
+**Linter:** **cannot be decided by the abap2UI5 linter** - the view only says
+that a custom control sits in an `OverflowToolbar`; whether that control
+writes its own properties after rendering is in its JS module, which the
+linter does not read. What a rule would need to decide it: the custom
+control's source (a ui5lint-style rule over the `cc/*.js` modules) - a
+`Control.extend` whose methods call `setProperty`/`set<Property>` from a
+`setInterval`/`setTimeout`/event callback, and whose metadata lacks
+`interfaces: [ "sap.m.IOverflowToolbarContent" ]` or whose
+`getOverflowToolbarConfig( )` does not name those properties in
+`propsUnrelatedToSize`. Report it as a warning on the control, since only a
+toolbar placement makes it a defect. It stays prose until a custom-control
+linter exists.
 
 ---
 

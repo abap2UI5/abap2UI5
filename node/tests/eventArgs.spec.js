@@ -100,7 +100,7 @@ test("numbers, booleans and null pass through", () => {
 });
 
 test("the backend event array in args[0] is untouched", () => {
-  const eventArray = ["MY_EVENT", false, false, false];
+  const eventArray = ["MY_EVENT", { queueLast: true }];
   const [head] = Lib.normalizeEventArgs([eventArray, "X"]);
   expect(head).toEqual(eventArray);
 });
@@ -378,5 +378,49 @@ test.describe("the UI5 event itself ($event)", () => {
   test("an event without a source reports no SOURCE", () => {
     const [out] = Lib.normalizeEventArgs([uiEvent("tick", null, { n: 1 })]);
     expect(out).toEqual({ ID: "tick", PARAMETERS: { n: 1 } });
+  });
+});
+
+test.describe("eventOptions - the flags of an event wire", () => {
+  test("the object in slot [1] is read by key", () => {
+    expect(Lib.eventOptions(["E", { queueLast: true }])).toEqual({
+      useMainModel: false,
+      queueLast: true,
+      noBusy: false,
+      timer: false,
+    });
+    expect(Lib.eventOptions(["E", { noBusy: true, useMainModel: true }])).toEqual({
+      useMainModel: true,
+      queueLast: false,
+      noBusy: true,
+      timer: false,
+    });
+  });
+
+  test("the tick of START_TIMER marks itself", () => {
+    expect(Lib.eventOptions(["E", { noBusy: true, timer: true }])).toEqual({
+      useMainModel: false,
+      queueLast: false,
+      noBusy: true,
+      timer: true,
+    });
+  });
+
+  test("a bare event array carries no flag", () => {
+    expect(Lib.eventOptions(["E"])).toEqual({
+      useMainModel: false,
+      queueLast: false,
+      noBusy: false,
+      timer: false,
+    });
+  });
+
+  test("the positions of protocol 2 are not read", () => {
+    expect(Lib.eventOptions(["E", false, false, false, true, true])).toEqual({
+      useMainModel: false,
+      queueLast: false,
+      noBusy: false,
+      timer: false,
+    });
   });
 });

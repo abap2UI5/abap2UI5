@@ -1,11 +1,13 @@
-" Everything the backend asks the FRONTEND to do, in one place: it builds
-" the action payloads, queues them, and serializes the collected queues
-" into the response's action lists. z2ui5_cl_ui5_client keeps only the
-" public API surface and hands straight through to here.
+" Everything the backend asks the FRONTEND to do, in one place: it collects
+" the view-lifecycle calls and the URL intent of a roundtrip and hands them
+" over as the response's sections VIEWS and NAV, and it builds and queues
+" the actions an app asked for, the response's ACTIONS list.
+" z2ui5_cl_ui5_client keeps only the public API surface and hands straight
+" through to here.
 "
-" The two queues differ in phase, not in format. SYSTEM carries the view
-" lifecycle and runs first, before the view is rendered; APP carries what an
-" app asked for and runs last, once the DOM exists.
+" The sections say what the screen IS after this roundtrip - which slot
+" shows what, where the URL stands. The actions say what to DO, and run
+" last, once the DOM exists.
 "
 " Plain comments, not ABAP Doc: SE24 regenerates the CLASS statement from
 " the class metadata, which detaches a leading "! block from it and turns
@@ -53,21 +55,24 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
         nav_back                      TYPE abap_bool DEFAULT abap_false
         app_instance                  TYPE clike     OPTIONAL.
 
-    "! Turn the collected view-lifecycle calls into SYSTEM actions - in slot
-    "! order, so the frontend only has to run what it receives: a nested view
-    "! is inserted into the MAIN control tree, so MAIN has to be built before
-    "! NEST and NEST2 whichever way round the app called them.
-    METHODS slots_serialize.
+    "! The collected view-lifecycle calls as the response's VIEWS section:
+    "! one entry per slot, a display with its XML and options or a teardown.
+    "! Nothing is sorted - the frontend applies the slots in its own order
+    "! (MAIN first: a nested view is inserted into the main control tree).
+    "! Empty when the roundtrip touches no slot.
+    METHODS slots_serialize
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ajson.
 
-    "! Turn the roundtrip's browser-history intent into the ROUTER/sync
-    "! SYSTEM action. Router computes ONE outcome from the whole options
-    "! object - adopt the hash, push a route entry, replace it, or write the
-    "! app-state hash - so it travels as one call with one options object.
-    "! Queue it LAST, after the slots and the model push, so the route
-    "! reflects what was actually rendered. The COMMON roundtrip carries no
-    "! nav intent at all - then nothing is queued: the frontend syncs the
-    "! URL once per response anyway (View1), with the response's own id.
-    METHODS nav_serialize.
+    "! The roundtrip's browser-history intent as the response's NAV section -
+    "! the options Router.sync takes, which computes ONE outcome from the
+    "! whole object: adopt the hash, push a route entry, replace it, or write
+    "! the app-state hash. Unbound when the roundtrip carries no intent, the
+    "! COMMON case: the frontend syncs the URL once per response anyway, with
+    "! the response's own id.
+    METHODS nav_serialize
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ajson.
 
     "! Queue a message toast for the APP phase. The call carries
     "! `MESSAGE_TOAST`, `show`, the text, and the options object. Only the
@@ -93,7 +98,8 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
         actions          TYPE string_table OPTIONAL
         emphasizedaction TYPE clike        OPTIONAL
         initialfocus     TYPE clike        OPTIONAL
-        details          TYPE clike        OPTIONAL.
+        details          TYPE clike        OPTIONAL
+        icon             TYPE clike        OPTIONAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -117,12 +123,6 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
     "! Queue one APP-phase framework action.
     METHODS queue_app
-      IMPORTING
-        t_arg TYPE string_table
-        opt   TYPE REF TO z2ui5_if_ajson OPTIONAL.
-
-    "! Queue one SYSTEM-phase framework action.
-    METHODS queue_system
       IMPORTING
         t_arg TYPE string_table
         opt   TYPE REF TO z2ui5_if_ajson OPTIONAL.
@@ -232,15 +232,6 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD queue_system.
-
-    INSERT VALUE #( o_json = build_global_call( t_arg = t_arg
-                                                opt   = opt ) )
-           INTO TABLE mo_action->ms_next-s_action-t_system.
-
-  ENDMETHOD.
-
-
   METHOD queue_app_event.
 
     INSERT VALUE #( o_json = mo_srv_event->get_event_client_ajson(
@@ -325,45 +316,35 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD slots_serialize.
 
-    " A new MAIN view is a new screen, and the frontend takes the two
-    " STANDALONE slots down with it (actions/Slots displayMain) - they live
-    " outside the MAIN control tree and would otherwise float on top of a
-    " page they no longer belong to. So a destroy for them next to a MAIN
-    " display describes something that has already happened by the time it
-    " would run: it is dropped here instead of travelling with every
-    " roundtrip that rebuilds the view. Their DISPLAYS are untouched - the
-    " slot order below puts them behind MAIN, and each action is awaited
-    " before the next runs, so a popup this roundtrip opens still opens.
-    IF line_exists( mo_action->ms_next-t_action_front[ slot   = z2ui5_if_client=>cs_view-main
-                                                       method = z2ui5_if_ui5_types=>cs_slot_action-display ] ). "#EC CI_SORTSEQ
-      DELETE mo_action->ms_next-t_action_front
-             WHERE method = z2ui5_if_ui5_types=>cs_slot_action-destroy
-               AND ( slot = z2ui5_if_client=>cs_view-popup
-                  OR slot = z2ui5_if_client=>cs_view-popover ).
-    ENDIF.
-
-    " The view-lifecycle calls leave in SLOT order, never in the order the
-    " app happened to make them - see the ABAP Doc.
-    LOOP AT VALUE string_table( ( z2ui5_if_client=>cs_view-main )
-                                ( z2ui5_if_client=>cs_view-nested )
-                                ( z2ui5_if_client=>cs_view-nested2 )
-                                ( z2ui5_if_client=>cs_view-popup )
-                                ( z2ui5_if_client=>cs_view-popover ) )
-         INTO DATA(lv_slot).
-      " REFERENCE INTO - a row carries the whole view XML, which a copying
-      " LOOP would duplicate once per slot action
-      LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action) "#EC CI_SORTSEQ
-           WHERE slot = lv_slot.
-        DATA(lt_arg) = VALUE string_table( ( z2ui5_if_ui5_types=>cs_slot_action-target )
-                                           ( lr_action->method )
-                                           ( lr_action->slot ) ).
-        IF lr_action->method = z2ui5_if_ui5_types=>cs_slot_action-display.
-          INSERT lr_action->xml INTO TABLE lt_arg.
-        ENDIF.
-        queue_system( t_arg = lt_arg
-                      opt   = lr_action->options ).
-      ENDLOOP.
-    ENDLOOP.
+    " One entry per slot: slot_reset( ) keeps at most one call per slot, so
+    " the collected list IS the state of the slots after this roundtrip.
+    " The order they are built in is the frontend's knowledge (View1), and
+    " so is what a new MAIN view takes down with it - nothing is sorted or
+    " dropped here.
+    TRY.
+        result = z2ui5_cl_ajson=>create_empty( ).
+        " REFERENCE INTO - a row carries the whole view XML
+        LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action).
+          IF lr_action->method = z2ui5_if_ui5_types=>cs_slot_action-destroy.
+            result->set_boolean( iv_path = |/{ lr_action->slot }/DESTROY|
+                                 iv_val  = abap_true ).
+            CONTINUE.
+          ENDIF.
+          " an empty view is still a display - the key says so
+          result->set( iv_ignore_empty = abap_false
+                       iv_path         = |/{ lr_action->slot }/XML|
+                       iv_val          = lr_action->xml ).
+          IF lr_action->options IS BOUND AND lr_action->options->is_empty( ) = abap_false.
+            result->set( iv_path = |/{ lr_action->slot }/OPT|
+                         iv_val  = lr_action->options ).
+          ENDIF.
+        ENDLOOP.
+      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = `VIEWS_SECTION_INVALID`
+            previous = lx_json.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -391,15 +372,11 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                             ( name = `navAppCallPrevApp` val = ls_nav-nav_app_call_prev_app )
                             ( name = `navAppCallPrevId`  val = ls_nav-nav_app_call_prev_id ) ) ).
 
-        " no nav intent this roundtrip - queue nothing, the frontend's own
+        " no nav intent this roundtrip - no section, the frontend's own
         " per-response sync covers the plain case (it injects the id itself)
-        IF li_opt->is_empty( ) = abap_true.
-          RETURN.
+        IF li_opt->is_empty( ) = abap_false.
+          result = li_opt.
         ENDIF.
-
-        queue_system( t_arg = VALUE #( ( z2ui5_if_ui5_types=>cs_global_target-router )
-                                       ( `sync` ) )
-                      opt   = li_opt ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -467,10 +444,11 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " the emphasized action derived from them ), so sending a value for an
         " option the app left alone would override those. What is left here is
         " what an ABAP app decides; a pure pass-through option ( textDirection,
-        " icon, closeOnNavigation, dependentOn, contentWidth ) is no parameter
-        " of this method anymore ( 2026-09 ) and is set on the control, as the
+        " closeOnNavigation, dependentOn, contentWidth ) is no parameter of
+        " this method anymore ( 2026-09 ) and is set on the control, as the
         " option object of a CONTROL_GLOBAL MESSAGE_BOX call - which is the
-        " very object built here, so both ways meet in showBox( ).
+        " very object built here, so both ways meet in showBox( ). The icon
+        " left with them by mistake and is a parameter again ( 2026-11 )
         set_opt_strings(
             json = li_opt
             opt  = VALUE #( ( name = `title`            val = ls_msg-title )
@@ -478,7 +456,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                             ( name = `onClose`          val = onclose )
                             ( name = `emphasizedAction` val = emphasizedaction )
                             ( name = `initialFocus`     val = initialfocus )
-                            ( name = `details`          val = ls_msg-details ) ) ).
+                            ( name = `details`          val = ls_msg-details )
+                            ( name = `icon`             val = icon ) ) ).
 
         IF actions IS NOT INITIAL.
           li_opt->set( iv_path = `/actions`

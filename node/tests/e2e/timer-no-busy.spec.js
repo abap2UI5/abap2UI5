@@ -6,7 +6,7 @@
 // roundtrip, after UI5's one-second default delay, so a poll whose backend
 // call took longer flashed the full-screen overlay (samples-controls
 // demo_004's carousel, ticks of 1.1-1.4 s). evStartTimer in
-// app/webapp/core/actions/ViewOps.js has the reasoning.
+// bundle/webapp/core/actions/ViewOps.js has the reasoning.
 //
 // The transpiled backend answers in milliseconds, so the spec makes the
 // tick slow: the TICK request is held back past the default delay before it
@@ -84,4 +84,31 @@ test("reference: a plain START_TIMER tick raises it after the default delay", as
     timeout: 15000,
   });
   expect(await busyOpened(page)).toBeGreaterThan(0);
+});
+
+test("a click during a no-busy tick is sent once the tick has landed, not dropped", async ({
+  page,
+}) => {
+  await openApp(page);
+  await expect(page.locator('[id$="txtClicks"]')).toHaveText("0");
+
+  // the tick goes out and is held back; the click meets it in flight
+  const tickSent = page.waitForRequest(
+    (request) =>
+      request.method() === "POST" &&
+      (request.postData() || "").includes('"EVENT":"TICK"'),
+  );
+  await page.locator('[id$="btnArmSilent"]').click();
+  const tick = await tickSent;
+  // the tick says so on the wire (S_FRONT.TIMER)
+  expect(tick.postData()).toContain('"TIMER":true');
+  await page.locator('[id$="btnClick"]').click();
+
+  // both reach the backend, the click after the tick
+  await expect(page.locator('[id$="txtTicks"]')).toHaveText("1", {
+    timeout: 15000,
+  });
+  await expect(page.locator('[id$="txtClicks"]')).toHaveText("1", {
+    timeout: 15000,
+  });
 });

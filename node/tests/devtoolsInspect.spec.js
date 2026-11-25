@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/Inspect.js. Every inspector is a pure renderer
+// bundle/webapp/devtools/Inspect.js. Every inspector is a pure renderer
 // over the state of one component context (core/Context.js, taken
 // first), so the harness seeds that context's state and asserts on the
 // rendered report.
@@ -462,23 +462,30 @@ test.describe("Registry", () => {
 });
 
 test.describe("Actions", () => {
-  test("renders both action lists with their arguments", () => {
+  test("renders the views, the URL intent and the actions with their arguments", () => {
     const { Inspect, ctx } = loadInspect({
       state: {
         responseData: {
           S_FRONT: {
-            S_ACTION: {
-              T_SYSTEM: [["VIEW_SLOTS", "destroy", "POPUP"]],
-              T_CUSTOM: [["SET_FOCUS", "id1"]],
+            VIEWS: {
+              POPUP: { DESTROY: true },
+              MAIN: { XML: "<View/>", OPT: { transition: "slide" } },
             },
+            NAV: { setNavRouting: "KEEP" },
+            ACTIONS: [["SET_FOCUS", "id1"]],
           },
         },
       },
     });
     const out = Inspect.formatActions(ctx);
-    expect(out).toContain("VIEW_SLOTS");
-    expect(out).toContain("destroy");
-    expect(out).toContain("POPUP");
+    // the slots in the order the frontend applies them
+    expect(out.indexOf("MAIN  display")).toBeGreaterThan(-1);
+    expect(out.indexOf("POPUP  destroy")).toBeGreaterThan(
+      out.indexOf("MAIN  display"),
+    );
+    expect(out).toContain("<View/>");
+    expect(out).toContain("transition");
+    expect(out).toContain("setNavRouting");
     expect(out).toContain("SET_FOCUS");
     expect(out).toContain("id1");
   });
@@ -487,11 +494,7 @@ test.describe("Actions", () => {
     const { Inspect, ctx } = loadInspect({
       state: {
         responseData: {
-          S_FRONT: {
-            S_ACTION: {
-              T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "x".repeat(5000)]],
-            },
-          },
+          S_FRONT: { VIEWS: { MAIN: { XML: "x".repeat(5000) } } },
         },
       },
     });
@@ -504,7 +507,7 @@ test.describe("Actions", () => {
     const { Inspect, ctx } = loadInspect({
       state: {
         responseData: {
-          S_FRONT: { S_ACTION: { T_CUSTOM: ["alert('hi')"] } },
+          S_FRONT: { ACTIONS: ["alert('hi')"] },
         },
       },
     });

@@ -17,7 +17,7 @@ INTERFACE z2ui5_if_ui5_types
   " handler turns it into the APP's event - the one window_bind_tab( ) named -
   " with the request as get( )-r_event_data (z2ui5_cl_ui5_srv_window=>request)
   " and calls main( ), which loads, sorts and filters. Spelled as the
-  " frontend sends it - app/webapp/core/WindowModel.js, EVENT - so never a
+  " frontend sends it - bundle/webapp/core/WindowModel.js, EVENT - so never a
   " literal. Arguments: the model path of the table, the app's event, the
   " reason (MORE / SORT / FILTER), skip, top - and for SORT the sorters,
   " for FILTER the filter groups, as JSON (z2ui5_cl_ui5_srv_window=>parse_sort
@@ -42,11 +42,10 @@ INTERFACE z2ui5_if_ui5_types
 
   " The other whitelisted global-call targets the backend queues actions
   " against, spelled as the keys of GLOBAL_TARGETS in the frontend's
-  " app/webapp/core/actions/ControlCall.js dispatch - the same cross-repo
+  " bundle/webapp/core/actions/ControlCall.js dispatch - the same cross-repo
   " wire contract as cs_slot_action-target above, so never a literal.
   CONSTANTS:
     BEGIN OF cs_global_target,
-      router        TYPE string VALUE `ROUTER`,
       message_toast TYPE string VALUE `MESSAGE_TOAST`,
       message_box   TYPE string VALUE `MESSAGE_BOX`,
     END OF cs_global_target.
@@ -100,6 +99,9 @@ INTERFACE z2ui5_if_ui5_types
       custom_mapper     TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
       check_json        TYPE abap_bool,
+      " live only: the draft stores the row without it
+      " (z2ui5_cl_ui5_srv_model=>main_attri_db_rows), dissolve_run resolves
+      " it again from the attribute when it needs one
       o_typedescr       TYPE REF TO cl_abap_typedescr,
       " the absolute type name as a STRING, next to the descriptor it is
       " taken from: the descriptor is an object reference and does not
@@ -146,10 +148,10 @@ INTERFACE z2ui5_if_ui5_types
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name
     WITH NON-UNIQUE SORTED KEY parent COMPONENTS name_parent.
 
-  " One view-lifecycle call, as the backend collects it. It is kept typed
-  " until main_end( ) rather than serialized on the spot: the calls have to
-  " leave in slot order (never in call order), and main_end( ) derives the
-  " model decision from the collected list.
+  " One view-lifecycle call, as the backend collects it: what the app's last
+  " call for a slot decided (z2ui5_cl_ui5_frontend=>slot_reset keeps at most
+  " one row per slot). main_end( ) derives the model decision from the list
+  " and ships it as the response's VIEWS section.
   TYPES:
     BEGIN OF ty_s_system_action,
       slot    TYPE string,
@@ -170,16 +172,18 @@ INTERFACE z2ui5_if_ui5_types
     END OF ty_s_queued_action.
   TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
 
-  " SYSTEM actions run FIRST, in the display phase, before the view is
-  " rendered - they are the framework's own view-lifecycle calls (destroy a
-  " slot, display one, push the model into it), which every later action
-  " depends on having happened. APP actions run last, once the view is in
-  " the DOM, so a render-dependent one like SET_FOCUS finds its target
-  " control. Same payload format and same dispatcher for both, only the
-  " phase differs.
+  " What an app asked the frontend to DO - a focus, a toast, a control
+  " method. The frontend runs the list last, once the views of the response
+  " are in the DOM, so a render-dependent action like SET_FOCUS finds its
+  " control. It leaves as the response's ACTIONS list.
+  "
+  " Until protocol 3 a second list rode next to it, t_system: the view
+  " lifecycle and the URL intent spelled as actions (VIEW_SLOTS/display,
+  " ROUTER/sync). Both are state, not commands - at most one entry per slot
+  " and one navigation intent per response - and travel as the sections
+  " VIEWS and NAV now (ty_s_response).
   TYPES:
     BEGIN OF ty_s_action,
-      t_system TYPE ty_t_queued_action,
       t_custom TYPE ty_t_queued_action,
     END OF ty_s_action.
 
@@ -193,15 +197,15 @@ INTERFACE z2ui5_if_ui5_types
       set_push_state        TYPE string,
       " HashChanger#replaceHash (client->hash_replace): the same write as
       " set_push_state minus the history entry - the router's replace-navTo.
-      " Like set_push_state, the WHOLE app hash only with a hash_attach_changed
-      " listener; without one the value is a suffix to the current hash.
+      " Like set_push_state the WHOLE app hash, and written only for an app
+      " that owns the hash - a hash_attach_changed listener, routing off.
       " When both are set in one roundtrip the push wins (the frontend
       " processes setPushState first)
       hash_replace          TYPE string,
       " Hash-based app routing (UI5 Router style): when active, the frontend
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
-      " (see app/webapp/core/Router.js). Opt-in per APP via
+      " (see bundle/webapp/core/Router.js). Opt-in per APP via
       " follow_up_action( cs_event-hash_routing ) - the mode is remembered on the app,
       " travels in its draft and is re-sent whenever the frontend may not
       " still hold it (see z2ui5_cl_ui5_app_cont->mv_nav_mode and the
@@ -217,7 +221,7 @@ INTERFACE z2ui5_if_ui5_types
       " under the app (browser Back/Forward, a manual edit). While registered,
       " set_push_state pushes its value as the whole app hash through the
       " HashChanger and the router's per-response hash cleanup stands down
-      " (see app/webapp/core/Router.js applyHashEvent). Empty = no change; a
+      " (see bundle/webapp/core/Router.js applyHashEvent). Empty = no change; a
       " single space = unregister - the set_app_state_active encoding
       set_hash_listener     TYPE string,
       " Forward app navigation via a backend nav_app_call: tells the frontend to
@@ -240,27 +244,51 @@ INTERFACE z2ui5_if_ui5_types
     END OF ty_s_nav.
 
 
+  " The declarative timer of ONE app (z2ui5_if_client~timer_set): the
+  " repeating START_TIMER the framework arms whenever the app gets the
+  " screen. Kept on the app container - and therefore in its draft - twice:
+  " what the app declared (ms_timer) and what was last SENT to the browser
+  " for it (ms_timer_sent), so an unchanged timer that runs is not sent
+  " again (z2ui5_cl_ui5_handler=>main_end_timer). Initial = no timer.
+  TYPES:
+    BEGIN OF ty_s_timer,
+      event    TYPE string,
+      delay_ms TYPE i,
+      no_busy  TYPE abap_bool,
+    END OF ty_s_timer.
+
   TYPES:
     BEGIN OF ty_s_next,
-      o_app_call     TYPE REF TO z2ui5_if_app,
-      o_app_leave    TYPE REF TO z2ui5_if_app,
-      next_event     TYPE string,
+      o_app_call      TYPE REF TO z2ui5_if_app,
+      o_app_leave     TYPE REF TO z2ui5_if_app,
+      next_event      TYPE string,
       " the two action queues of this roundtrip, as the response ships them
-      s_action       TYPE ty_s_action,
-      r_data         TYPE REF TO data,
+      s_action        TYPE ty_s_action,
+      r_data          TYPE REF TO data,
       " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
-      " roundtrip, collected while the app runs and turned into the SYSTEM
-      " action list by main_end( ).
-      t_action_front TYPE ty_t_system_action,
+      " roundtrip, collected while the app runs and turned into the VIEWS
+      " section by main_end( ).
+      t_action_front  TYPE ty_t_system_action,
       " BACKEND-ONLY: what the browser history / URL has to reflect after this
-      " roundtrip. main_end( ) turns it into the ROUTER/sync action - the
-      " frontend router reads its inputs from that call's options, not from
-      " one response field per component of ty_s_nav.
-      s_nav          TYPE ty_s_nav,
+      " roundtrip. main_end( ) turns it into the NAV section - the frontend
+      " router reads its inputs from that one object, not from one response
+      " field per component of ty_s_nav.
+      s_nav           TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
       " concern - z2ui5_cl_ui5_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
-      s_stateful     TYPE ty_s_http_res-s_stateful,
+      s_stateful      TYPE ty_s_http_res-s_stateful,
+      " BACKEND-ONLY: nav_app_call( keep_messages ) / nav_app_leave(
+      " keep_messages ) - the hop carries the message toasts and boxes this
+      " app queued over to the app navigated to (z2ui5_cl_ui5_action
+      " =>prepare_app_stack); every other queued action is dropped as before
+      keep_messages   TYPE abap_bool,
+      " BACKEND-ONLY: a hop of this request left an app whose declarative
+      " timer runs in the browser (z2ui5_cl_ui5_action=>prepare_app_stack).
+      " The response stops it unless the app answering declares one of its
+      " own - another instance of the SAME class looks like the same app
+      " to the browser, which ends a repeating timer only on a class change
+      check_timer_end TYPE abap_bool,
     END OF ty_s_next.
 
   "! The WIRE protocol version, carried in every response as
@@ -271,7 +299,17 @@ INTERFACE z2ui5_if_ui5_types
   "! with a release: it moves only when a response can no longer be read by a
   "! frontend written for the previous number - the S_ACTION envelope
   "! replacing S_FRONT.PARAMS was such a change, and the flattening of the
-  "! two-way bindings out of MODEL.XX was another.
+  "! two-way bindings out of MODEL.XX was another (both protocol 2).
+  "!
+  "! Protocol 3: the flags of an event wire travel as one object in slot [1]
+  "! of the event array, .eB(['NAME',{queueLast:true}]), no longer as
+  "! positions [3] to [5] (z2ui5_cl_ui5_srv_event=&gt;get_event) - a frontend
+  "! of protocol 2 reads such a wire as one without a flag. And the response
+  "! carries the view lifecycle and the URL intent as the sections VIEWS and
+  "! NAV and the app's follow-up actions as ACTIONS, where S_ACTION carried
+  "! the lists T_SYSTEM and T_CUSTOM (ty_s_response, ty_s_action). And a
+  "! request that starts an app names what the hash asks it to restore as
+  "! S_FRONT.ROUTE - the backend no longer parses the hash for it.
   "!
   "! Why it exists: backend and frontend ship together here, but they do not
   "! ship together everywhere. A port of this framework, a pinned webapp, a
@@ -282,8 +320,8 @@ INTERFACE z2ui5_if_ui5_types
   "! A number on the wire turns that into a message somebody can read.
   "!
   "! Raise it in the same change that breaks the wire, and raise the
-  "! frontend's expectation with it (app/webapp/core/Server.js).
-  CONSTANTS c_protocol TYPE i VALUE 2.
+  "! frontend's expectation with it (bundle/webapp/core/Server.js).
+  CONSTANTS c_protocol TYPE i VALUE 3.
 
   TYPES:
     BEGIN OF ty_s_response,
@@ -291,8 +329,21 @@ INTERFACE z2ui5_if_ui5_types
         s_action TYPE ty_s_action,
         id       TYPE string,
         app      TYPE string,
-        " see c_protocol - stamped by z2ui5_cl_ui5_handler on every response
-        protocol TYPE i,
+        " PROTOCOL has no field here: z2ui5_cl_ui5_handler
+        " =>response_abap_to_json stamps c_protocol on every response
+        " itself, so no caller can set - or forget - it
+        " VIEWS: one entry per slot this roundtrip changes -
+        "   "MAIN": { "XML": "<mvc:View ...>", "OPT": { ... } }   a display
+        "   "POPUP": { "DESTROY": true }                          a teardown
+        " The frontend applies them in ITS order (MAIN, NEST, NEST2, POPUP,
+        " POPOVER - a nested view is inserted into the main control tree),
+        " so nothing here is sorted. Unbound or empty: no slot changes
+        " (z2ui5_cl_ui5_frontend=>slots_serialize)
+        o_views  TYPE REF TO z2ui5_if_ajson,
+        " NAV: the URL intent of this roundtrip, the options the frontend's
+        " Router.sync takes. Unbound: none - the frontend still syncs the
+        " URL once per response (z2ui5_cl_ui5_frontend=>nav_serialize)
+        o_nav    TYPE REF TO z2ui5_if_ajson,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.
@@ -332,11 +383,26 @@ INTERFACE z2ui5_if_ui5_types
         pathname       TYPE string,
         search         TYPE string,
         hash           TYPE string,
+        " what the hash asks an app START to restore, as the frontend parsed
+        " it (core/Router.js startRoute): the class and draft of a route
+        " '#/app/<CLASS>/<DRAFT>', or the draft of an app-state link
+        " '#/z2ui5-xapp-state=<DRAFT>'. Filled on a request without a draft
+        " id only, and not at all when the hash names neither
+        BEGIN OF s_route,
+          app       TYPE string,
+          draft     TYPE string,
+          app_state TYPE string,
+        END OF s_route,
         " the previous roundtrip's duration as the browser measured it, in
         " ms (core/Server.js, MS_CLIENT_PREV) - for the roundtrip monitor
         " only (z2ui5_if_ui5_monitor=>ty_s_roundtrip-ms_client_prev); 0
         " when the request carries none or an unreadable one
         ms_client_prev TYPE i,
+        " the request is a START_TIMER tick (core/actions/ViewOps.js, wire
+        " S_FRONT.TIMER) - the one kind of roundtrip that may answer with
+        " the draft it continued when main( ) changed nothing
+        " (z2ui5_cl_ui5_handler=>main_end_reuse)
+        check_timer    TYPE abap_bool,
         BEGIN OF s_device,
           system      TYPE string,
           orientation TYPE string,

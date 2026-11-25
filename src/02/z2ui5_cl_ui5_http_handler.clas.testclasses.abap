@@ -30,6 +30,10 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     " page's own ?z2ui5-devtools (the auto open) stays the page
     METHODS test_main_get_devtools  FOR TESTING RAISING cx_static_check.
     METHODS test_devtools_not_in_shell FOR TESTING RAISING cx_static_check.
+    " GET ?z2ui5-bundle=cc is the custom controls as a script, and the
+    " frontend bundle carries none of them
+    METHODS test_main_get_cc        FOR TESTING RAISING cx_static_check.
+    METHODS test_cc_not_in_bundle   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -353,16 +357,16 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   " The next test exercises z2ui5_cl_ui5f_preload rather than this class.
   " That class is generated (see tools/app2abap/trans2abap.js) and its
   " package is wiped on every regeneration, so it cannot carry a test include
-  " of its own - and _http_get( ) above is the consumer that breaks: it drops
-  " the preload into the one <script> block that defines onInitComponent.
+  " of its own - and _http_get_bundle( ) above is the consumer that breaks: it
+  " answers with the preload as one script, which the GET page's control loads.
 
   METHOD test_preload_literals.
 
     " Every non-.js resource is embedded as a JS single-quoted string literal.
     " On such a line, once the escaped apostrophes are taken out, the only ones
     " left must be the two delimiters - one extra ends its literal early, and
-    " that is a syntax error for the whole <script> block, so onInitComponent
-    " is never defined and the page stays blank. A UI5 expression binding is
+    " that is a syntax error for the whole bundle script, so no module of
+    " the frontend is registered and the page stays blank. A UI5 expression binding is
     " the everyday source of such an apostrophe:
     "   title="{= ${/appName} ? 'a' : 'b' }"
     " The .js entries are skipped on purpose: their content is the function
@@ -372,7 +376,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_rest   TYPE string.
     DATA lv_checked TYPE i.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( ).
+    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get_bundle( ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
@@ -416,35 +420,41 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " the page's preload registration and nothing of the page around it
     cl_abap_unit_assert=>assert_true(
         xsdbool( find( val = ls_result-body
-                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+                       sub = `(function () {` ) = 0 ) ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/Component.js": function()` ) ).
+    " (the modules, the tail among them, are delivered minified - the texts
+    " below are terser's print of bundle/tail/embed.js, not its source lines)
     " ...the component a second time, under the name the control creates it
-    " by when the page's own component is z2ui5 (abap2UI5/frontend, the
-    " branches standard_new and cloud_new)
+    " by when the page's own component is z2ui5 (the BSP of src/03/02 and
+    " the app of the branch cloud)
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"]` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `componentName: "z2ui5.embed.frontend",` ) ).
+        xsdbool( ls_result-body CS `componentName:"z2ui5.embed.frontend",` ) ).
+    " ...and the one call the embedding control makes: the app is made by
+    " the bundle's own module, with the installation's settings
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `create:function(settings){` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `resolve(Embed.create(settings,installation))` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"z2ui5/core/Embed.js": function()` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `onInitComponent` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `ComponentSupport` ) ).
     " ...and the module the embedding page recognises it by, with the
     " sibling BSPs the page itself hands the component as well
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed", function () {` ) ).
+        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed",function(){` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` ) ).
+        xsdbool( ls_result-body CS `ccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_cci",` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ) ).
-    " ...and that the page is the embedding page's, not the component's: the
-    " router leaves its hash alone (a Fiori elements host routes by it)
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `embedded: true,` ) ).
+        xsdbool( ls_result-body CS `cccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ) ).
     " ...and the path the node has on the system, for a page that reaches
     " it through a proxy's prefix (Component.init rebases the roots by it)
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2ui5",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"/sap/bc/z2ui5",` ) ).
 
   ENDMETHOD.
 
@@ -458,7 +468,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         path     = `/sap/bc/z2ui5_other/`
         t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2ui5_other/",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"/sap/bc/z2ui5_other/",` ) ).
 
     " a stack that reports no path - a direct call, a shim without the
     " header - leaves the field empty rather than out; Component.init reads
@@ -467,7 +477,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         method   = `GET`
         t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"",` ) ).
 
     " the path is what the stack reports of the request URL, and an ICF node
     " matches on its prefix - what could end the string literal of a script
@@ -477,7 +487,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         path     = `/sap/bc/z2ui5/a"b\c</script>`
         t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2ui5/a\"b\\c<\/script>",` ) ).
+        xsdbool( ls_result-body CS `nodePath:"/sap/bc/z2ui5/a\"b\\c<\/script>",` ) ).
     cl_abap_unit_assert=>assert_false(
         xsdbool( ls_result-body CS `a"b\c</script>` ) ).
 
@@ -521,27 +531,116 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         path     = `/sap/bc/z2ui5`
         t_params = VALUE #( ( n = `z2ui5-bundle` v = `x` ) ) ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed", function () {` ) ).
+        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed",function(){` ) ).
 
   ENDMETHOD.
 
   METHOD test_devtools_not_in_shell.
 
-    " the shell's inline script and the frontend bundle carry the eager
-    " half of the developer tools and none of the bundled files - and the
-    " devtools bundle carries exactly the rest, under its own digest
+    " the frontend bundle carries the eager half of the developer tools and
+    " none of the bundled files - and the devtools bundle carries exactly
+    " the rest, under its own digest. The page's inline script carries
+    " nothing of the frontend at all: the app of app_source/webapp - a
+    " component with one view - and the control that view holds
     DATA(lv_shell)  = z2ui5_cl_ui5f_preload=>get( ).
     DATA(lv_bundle) = z2ui5_cl_ui5f_preload=>get_bundle( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/devtools/DevTools.js"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/devtools/Console.js"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/devtools/Recorder.js"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/devtools/DeveloperTools.js"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/devtools/Picker.js"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/devtools/DeveloperTools.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/Component.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"abap2ui5/page/view/Main.view.xml": '` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `\x3cz2ui5:Container` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/embed/Container.js": function()` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/core/` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/devtools/` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/DevTools.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/Console.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/Recorder.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/devtools/DeveloperTools.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/devtools/Picker.js"` ) ).
     cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_ui5f_preload=>devtools_hash ).
     cl_abap_unit_assert=>assert_differs( exp = z2ui5_cl_ui5f_preload=>build_hash
                                          act = z2ui5_cl_ui5f_preload=>devtools_hash ).
+
+  ENDMETHOD.
+
+  METHOD test_main_get_cc.
+
+    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle` v = `cc` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+    " the custom controls bundle, as generated, and nothing of the page, of
+    " the frontend or of the embed module around it
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_cc( )
+                                        act = ls_result-body ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = ls_result-body
+                       sub = `sap.ui.require.preload({` ) = 0 ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"z2ui5/cc/Dirty.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"z2ui5/cc/Websocket.js": function()` ) ).
+    " ...and the module the frontend tells this bundle from any other 200
+    " answer by (z2ui5/core/CustomControls)
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/cc/bundle", function () {` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `z2ui5/embed` ) ).
+    " (a control names modules of the frontend bundle as its dependencies -
+    " what the bundle does not do is carry one)
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/Component.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/core/Lib.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/devtools/` ) ).
+
+    " the version the frontend asks with changes nothing about the answer:
+    " a page loaded before a redeployment still gets the controls of today
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle`  v = `cc` )
+                            ( n = `z2ui5-version` v = `0000000000000000` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_cc( )
+                                        act = ls_result-body ).
+
+    " the version parameter alone asks for no bundle: the page, as always
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-version` v = z2ui5_cl_ui5f_preload=>cc_hash ) ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_cc_not_in_bundle.
+
+    " the frontend bundle carries no custom control - they are the third
+    " bundle - but it names that bundle by its digest, in the module a
+    " page finds the frontend by: z2ui5/core/CustomControls asks for the
+    " controls under it, and its presence is how the frontend knows there
+    " is a bundle to ask for
+    DATA(lv_bundle) = z2ui5_cl_ui5f_preload=>get_bundle( ).
+    DATA(lv_cc)     = z2ui5_cl_ui5f_preload=>get_cc( ).
+    " (the shell names two of them - the probe of cc/Dirty, the module the
+    " controls bundle ends in - and registers none)
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/cc/Dirty.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/cc/InputExt.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/cc/UITableExt.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/cc/Websocket.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/core/CustomControls.js": function()` ) ).
+    cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_ui5f_preload=>cc_hash ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_bundle CS |ccBundle:"{ z2ui5_cl_ui5f_preload=>cc_hash }",| ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `@z2ui5-cc-version@` ) ).
+    " ...and the controls are all there, in the bundle of their own
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_cc CS `"z2ui5/cc/CameraPicture.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_cc CS `"z2ui5/cc/InputExt.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_cc CS `"z2ui5/cc/MultiInputExt.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_cc CS `"z2ui5/cc/UITableExt.js": function()` ) ).
+    cl_abap_unit_assert=>assert_differs( exp = z2ui5_cl_ui5f_preload=>build_hash
+                                         act = z2ui5_cl_ui5f_preload=>cc_hash ).
+    cl_abap_unit_assert=>assert_differs( exp = z2ui5_cl_ui5f_preload=>devtools_hash
+                                         act = z2ui5_cl_ui5f_preload=>cc_hash ).
 
   ENDMETHOD.
 
@@ -557,7 +656,18 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `z2ui5/embed` ) ).
+    " ...which is the app with the one view and the embed control in it,
+    " told that it runs on the node itself, and carries nothing of the
+    " frontend: neither its modules nor the module the bundle is recognised
+    " by. Which class starts is not the page's business - no name in it
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"z2ui5/embed/Container.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"abap2ui5/page/view/Main.view.xml": '` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `data-settings='{"id" : "z2ui5", "componentData" : {"checkLocal" : true, "bundle" : "` &&
+                                    z2ui5_cl_ui5f_preload=>build_hash && `"}}'` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/core/` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( to_upper( ls_result-body ) CS `Z2UI5_CL_UI5_APP_HI_WORLD` ) ).
 
   ENDMETHOD.
 
@@ -608,9 +718,9 @@ CLASS ltcl_http_mock IMPLEMENTATION.
 
   METHOD get_header_field.
     DATA(lv_name) = to_lower( val ).
-    READ TABLE mt_req_header INTO DATA(ls_header) WITH KEY n = lv_name.
-    IF sy-subrc = 0.
-      result = ls_header-v.
+    ASSIGN mt_req_header[ n = lv_name ] TO FIELD-SYMBOL(<header>).
+    IF <header> IS ASSIGNED.
+      result = <header>-v.
     ENDIF.
   ENDMETHOD.
 
@@ -663,6 +773,10 @@ CLASS ltcl_exit_stub DEFINITION FINAL FOR TESTING.
     " a customer exit whose GET config raises - the shape set_response has
     " to survive (test_exit_get_raises_answers)
     DATA mv_raise_get       TYPE abap_bool.
+    " how often the handler asked - once per request each
+    " (test_post_asks_exit_once)
+    DATA mv_calls_get       TYPE i.
+    DATA mv_calls_post      TYPE i.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -672,6 +786,7 @@ ENDCLASS.
 CLASS ltcl_exit_stub IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_get.
+    mv_calls_get = mv_calls_get + 1.
     IF mv_raise_get = abap_true.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
@@ -681,6 +796,7 @@ CLASS ltcl_exit_stub IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_post.
+    mv_calls_post = mv_calls_post + 1.
     cs_config-draft_exp_time_in_hours    = 4.
     cs_config-check_csrf_active          = abap_true.
     cs_config-check_trust_forwarded_host = mv_trust_forwarded.
@@ -767,6 +883,23 @@ CLASS ltcl_test_http_response DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE string.
 
+    "! The same for a request that has a path: _http_get_page( ), which
+    "! _main( ) asks for the page of the request it routes.
+    METHODS page_for_path
+      IMPORTING
+        is_config     TYPE z2ui5_if_ui5_exit=>ty_s_http_config
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! how often sub stands in val
+    METHODS occurrences
+      IMPORTING
+        val           TYPE string
+        sub           TYPE string
+      RETURNING
+        VALUE(result) TYPE i.
+
     METHODS test_cache_key_covers_inputs FOR TESTING RAISING cx_static_check.
     METHODS test_cache_hit_same_config   FOR TESTING RAISING cx_static_check.
     METHODS test_get_304_on_if_none_match FOR TESTING RAISING cx_static_check.
@@ -786,6 +919,9 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_ctxid_echoed            FOR TESTING RAISING cx_static_check.
     METHODS test_ctxid_absent_no_header  FOR TESTING RAISING cx_static_check.
     METHODS test_fwd_host_opt_out        FOR TESTING RAISING cx_static_check.
+    " a roundtrip asks the exit once per config, and nothing of the answer
+    " outlives the request
+    METHODS test_post_asks_exit_once     FOR TESTING RAISING cx_static_check.
     METHODS test_etag_equal_length       FOR TESTING RAISING cx_static_check.
     METHODS test_etag_position_mix       FOR TESTING RAISING cx_static_check.
     METHODS test_etag_follows_cache_key  FOR TESTING RAISING cx_static_check.
@@ -809,6 +945,15 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     " the hashed script
     METHODS test_preconnect_cdn          FOR TESTING RAISING cx_static_check.
     METHODS test_preconnect_relative     FOR TESTING RAISING cx_static_check.
+    " the two hints that start the frontend while UI5 boots: the bundle
+    " preload, only for a path it is certain to match on, and sap.m on the
+    " bootstrap tag, unless the exit names the libraries itself
+    METHODS test_bundle_preload_hint     FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_preload_paths    FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_preload_routed   FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_preload_in_key   FOR TESTING RAISING cx_static_check.
+    METHODS test_bootstrap_libs_default  FOR TESTING RAISING cx_static_check.
+    METHODS test_bootstrap_libs_exit     FOR TESTING RAISING cx_static_check.
     " the bundle: sent as JavaScript under a tag of its own, revalidated to a
     " bodyless 304, and without touching the page's tag
     METHODS test_bundle_response         FOR TESTING RAISING cx_static_check.
@@ -816,7 +961,14 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     " the devtools bundle: the same headers, a tag of its own that is not
     " the frontend bundle's
     METHODS test_devtools_response       FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_versioned        FOR TESTING RAISING cx_static_check.
     METHODS test_devtools_304            FOR TESTING RAISING cx_static_check.
+    " the custom controls bundle: the same headers under a tag of its own,
+    " kept for good when asked for by its version, revalidated to a 304
+    " otherwise
+    METHODS test_cc_response             FOR TESTING RAISING cx_static_check.
+    METHODS test_cc_versioned            FOR TESTING RAISING cx_static_check.
+    METHODS test_cc_304                  FOR TESTING RAISING cx_static_check.
     METHODS test_factory_onprem      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_cloud       FOR TESTING RAISING cx_static_check.
     METHODS test_factory_nothing     FOR TESTING RAISING cx_static_check.
@@ -853,9 +1005,9 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD header_value.
-    READ TABLE mo_mock->mt_res_header INTO DATA(ls_header) WITH KEY n = name.
-    IF sy-subrc = 0.
-      result = ls_header-v.
+    ASSIGN mo_mock->mt_res_header[ n = name ] TO FIELD-SYMBOL(<header>).
+    IF <header> IS ASSIGNED.
+      result = <header>-v.
     ENDIF.
   ENDMETHOD.
 
@@ -864,6 +1016,18 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
     DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
     result = ls_res-body.
+  ENDMETHOD.
+
+  METHOD page_for_path.
+    z2ui5_cl_ui5_http_handler=>ss_config_http_get     = is_config.
+    z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
+    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get_page( iv_path ).
+    result = ls_res-body.
+  ENDMETHOD.
+
+  METHOD occurrences.
+    result = count( val = val
+                    sub = sub ).
   ENDMETHOD.
 
   METHOD test_cache_key_covers_inputs.
@@ -1251,6 +1415,72 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = mo_mock->mv_status ).
+
+  ENDMETHOD.
+
+  METHOD test_post_asks_exit_once.
+
+    " One POST, one call into each of the exit's two methods. The POST
+    " config is read by the CSRF gate, the monitor switch, the draft cleanup
+    " of a first start and the error response - customer code that used to
+    " run for each of them; the GET config is asked for its headers. And
+    " per request: the next roundtrip asks again, so a switch the exit
+    " flips takes effect there, in a stateful session too.
+    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    lo_exit->mv_trust_forwarded = abap_true.
+    ltcl_exit_injector=>inject( lo_exit ).
+
+    " a monitor a host or an earlier test installed is parked: an installed
+    " monitor is not switched by the exit, and the switch is one of the
+    " readers counted here
+    DATA(li_monitor) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `POST`
+                                    body   = `{"value":{}}` ).
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    " the CSRF gate asked; the monitor switch read its answer
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_exit->mv_calls_post ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_exit->mv_calls_get ).
+
+    " the request is closed with its response: a reader behind it - a
+    " caller that is not the HTTP handler - asks the exit itself
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_exit->mv_calls_post ).
+
+    " the next request: asked again, once
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `POST`
+                                    body   = `{"value":{}}` ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lo_exit->mv_calls_post ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_exit->mv_calls_get ).
+
+    " a request routed without a server object opens and closes itself -
+    " no CSRF gate there, the monitor switch is the one that asks
+    z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `POST`
+                                               body   = `{"value":{}}` ) ).
+    DATA(lv_calls_main) = lo_exit->mv_calls_post.
+    CLEAR ls_config.
+    z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
+    DATA(lv_calls_after) = lo_exit->mv_calls_post.
+
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( li_monitor ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lv_calls_main ).
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = lv_calls_after ).
 
   ENDMETHOD.
 
@@ -1760,6 +1990,223 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_bundle_preload_hint.
+
+    " the page of a request under a plain path announces the bundle: one
+    " <link>, in the head behind the preconnects and in front of the
+    " scripts, with the relative URL the control builds - the parameter and
+    " the build hash the page hands its component - and without a
+    " crossorigin attribute, because the control's script element has none
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme                   = `sap_horizon`
+        src                     = `https://sdk.example/resources/sap-ui-core.js`
+        content_security_policy = `<meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>` ).
+    DATA(lv_body) = page_for_path( is_config = ls_config
+                                   iv_path   = `/sap/bc/z2ui5` ).
+
+    DATA(lv_hint) = |<link rel="preload" as="script" href="?z2ui5-bundle={ z2ui5_cl_ui5f_preload=>build_hash }">\n|.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = lv_hint ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `rel="preload"` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |<link rel="preconnect" href="https://sdk.example" crossorigin>\n{ lv_hint }<title>| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = lv_hint ) < find( val = lv_body
+                                                                             sub = `<script>` ) ) ).
+
+    " the hash in the hint is the version the component asks the bundle by
+    " (componentData.bundle), and the URL it names is the one the node
+    " answers as immutable
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |"bundle" : "{ z2ui5_cl_ui5f_preload=>build_hash }"| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_is_bundle_versioned(
+        VALUE #( ( n = `z2ui5-bundle`
+                   v = z2ui5_cl_ui5f_preload=>build_hash ) ) ) ).
+    " lower-case hex: nothing encodeURIComponent( ) or an attribute escape
+    " would change, so the two URLs cannot differ by an encoding
+    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5f_preload=>build_hash CO `0123456789abcdef` ) ).
+
+    " the hint is a <link>: the inline script is still the generated text
+    " its hash was taken over, and still the only inline script
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'"| ) >= 0 ) ).
+    DATA(lv_rest) = replace( val  = lv_body
+                             sub  = z2ui5_cl_ui5f_preload=>get( )
+                             with = `` ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = occurrences( val = lv_rest
+                                                           sub = `<script` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_preload_paths.
+
+    " The hint is the URL the control builds, or it is not there. The
+    " control asks under the page's path WITHOUT its trailing slashes, a
+    " relative reference keeps them - so a path that ends in one gets no
+    " hint, nor does one the control refuses (//host) or one nobody knows
+    DATA(lv_hint) = |<link rel="preload" as="script" href="?z2ui5-bundle={ z2ui5_cl_ui5f_preload=>build_hash }">\n|.
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_hint
+                                        act = z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_hint
+                                        act = z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5/sub` ) ).
+    " the root: the one trailing slash the control keeps
+    cl_abap_unit_assert=>assert_equals( exp = lv_hint
+                                        act = z2ui5_cl_ui5_http_handler=>_bundle_preload( `/` ) ).
+
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5/` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5//` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `//sap/bc/z2ui5` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `//` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_preload_routed.
+
+    " _main( ) hands the path of the request it routes to the page: the
+    " hint is there for /sap/bc/z2ui5 and not for /sap/bc/z2ui5/ ...
+    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `GET`
+                                                              path   = `/sap/bc/z2ui5` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = ls_res-body
+                                                           sub = `rel="preload"` ) ).
+
+    caches_clear( ).
+    ls_res = z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `GET`
+                                                        path   = `/sap/bc/z2ui5/` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = ls_res-body
+                                                           sub = `rel="preload"` ) ).
+
+    " ... and a page built without a request - a direct _http_get( ) - has
+    " no path to decide by, so it goes out without the hint
+    caches_clear( ).
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = ls_res-body
+                                                           sub = `rel="preload"` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_preload_in_key.
+
+    " the page with the hint and the page without it are two bodies: the
+    " cache key tells them apart, and so does the ETag taken over it - a
+    " page cached for /node/ must not be handed to /node, nor a browser be
+    " 304'd into keeping the other one
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/resources/sap-ui-core.js` ).
+
+    DATA(lv_body_hint) = page_for_path( is_config = ls_config
+                                        iv_path   = `/sap/bc/z2ui5` ).
+    DATA(lv_key_hint)  = z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
+    DATA(lv_etag_hint) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    DATA(lv_body_none) = page_for_path( is_config = ls_config
+                                        iv_path   = `/sap/bc/z2ui5/` ).
+
+    cl_abap_unit_assert=>assert_differs( exp = lv_body_hint
+                                         act = lv_body_none ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_key_hint
+                                         act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
+    cl_abap_unit_assert=>assert_not_initial( lv_etag_hint ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_etag_hint
+                                         act = z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+
+  ENDMETHOD.
+
+  METHOD test_bootstrap_libs_default.
+
+    " sap.m is named on the bootstrap tag - once, between the tag's own
+    " attributes and its src, whatever the path
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/resources/sap-ui-core.js` ).
+    DATA(lv_body) = shell_for_config( ls_config ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |data-sap-ui-bindingSyntax="complex" data-sap-ui-libs="sap.m"\ndata-sap-ui-theme="sap_horizon"| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = `data-sap-ui-libs="sap.m"` ) > find( val = lv_body
+                                                                                               sub  = `<script id="sap-ui-bootstrap"` ) ) ).
+
+    " other attributes of the exit do not take it away
+    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-language`
+                                        v = `EN` )
+                                      ( n = `data-sap-ui-config`
+                                        v = `noConflict:true` ) ).
+    lv_body = shell_for_config( ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs="sap.m"` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bootstrap_libs_exit.
+
+    " an exit that names the libraries itself keeps the last word: HTML
+    " takes the first of two attributes with one name, and the exit's rows
+    " stand behind the tag's own - so the tag's own is not written, and the
+    " exit's value goes out exactly as the exit wrote it
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme        = `sap_horizon`
+        src          = `https://sdk.example/resources/sap-ui-core.js`
+        t_add_config = VALUE #( ( n = `data-sap-ui-libs`
+                                  v = `sap.ui.table,sap.ui.layout` ) ) ).
+    DATA(lv_body) = shell_for_config( ls_config ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = ` data-sap-ui-libs='sap.ui.table,sap.ui.layout'` ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs="sap.m"` ) ).
+
+    " attribute names are case-insensitive
+    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-Libs`
+                                        v = `sap.f` ) ).
+    lv_body = shell_for_config( ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs="sap.m"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = ` data-sap-ui-Libs='sap.f'` ) >= 0 ) ).
+
+    " ... and so does one that names them in data-sap-ui-config, whose libs
+    " entry a data-sap-ui-libs attribute would override
+    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-config`
+                                        v = `libs:'sap.ui.table'` ) ).
+    lv_body = shell_for_config( ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs` ) ).
+
+  ENDMETHOD.
+
   METHOD test_bundle_response.
 
     handler_create( ).
@@ -1773,11 +2220,11 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                         act = mo_mock->mv_status ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( find( val = mo_mock->mv_cdata
-                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+                       sub = `(function () {` ) = 0 ) ).
     " the path the stack reported (get_req_info, ~path) is the one the
     " module tells the embedding page
     cl_abap_unit_assert=>assert_true(
-        xsdbool( mo_mock->mv_cdata CS `nodePath: "/sap/bc/z2ui5",` ) ).
+        xsdbool( mo_mock->mv_cdata CS `nodePath:"/sap/bc/z2ui5",` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `application/javascript; charset=UTF-8`
                                         act = header_value( `content-type` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `nosniff`
@@ -1789,6 +2236,33 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the page's tag and cache are not the bundle's business
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_etag ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_versioned.
+
+    " asked for by its version, the bundle may be kept without asking again
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle` v = z2ui5_cl_ui5f_preload=>build_hash ) ) ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_mock->mv_cdata CS `sap.ui.define("z2ui5/embed"` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, max-age=31536000, immutable`
+                                        act = header_value( `cache-control` ) ).
+
+    " any other value is the bundle too, revalidated as without one
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    path     = `/sap/bc/z2ui5`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` v = `0000000000000000` ) ) ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_mock->mv_cdata CS `sap.ui.define("z2ui5/embed"` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
+                                        act = header_value( `cache-control` ) ).
 
   ENDMETHOD.
 
@@ -1853,6 +2327,128 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                     t_params = VALUE #( ( n = `z2ui5-bundle` v = `devtools` ) ) ).
     INSERT VALUE #( n = `if-none-match`
                     v = z2ui5_cl_ui5_http_handler=>_bundle_etag( abap_false ) ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+
+  ENDMETHOD.
+
+  METHOD test_cc_response.
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    path     = `/sap/bc/z2ui5`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` v = `cc` ) ) ).
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_cc( )
+                                        act = mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = `application/javascript; charset=UTF-8`
+                                        act = header_value( `content-type` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `nosniff`
+                                        act = header_value( `x-content-type-options` ) ).
+    " without its version it is revalidated, under a tag that is neither
+    " the frontend bundle's nor the devtools bundle's
+    cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
+                                        act = header_value( `cache-control` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_cl_ui5_http_handler=>_bundle_etag( iv_devtools = abap_false
+                                                       iv_cc       = abap_true )
+        act = header_value( `etag` ) ).
+    cl_abap_unit_assert=>assert_differs( exp = z2ui5_cl_ui5_http_handler=>_bundle_etag( abap_false )
+                                         act = header_value( `etag` ) ).
+    cl_abap_unit_assert=>assert_differs( exp = z2ui5_cl_ui5_http_handler=>_bundle_etag( abap_true )
+                                         act = header_value( `etag` ) ).
+    " the page's tag and cache are not the bundle's business
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
+
+  ENDMETHOD.
+
+  METHOD test_cc_versioned.
+
+    " asked for by its version - what the frontend bundle does - the
+    " controls may be kept without asking again
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle`  v = `cc` )
+                            ( n = `z2ui5-version` v = z2ui5_cl_ui5f_preload=>cc_hash ) ) ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_cc( )
+                                        act = mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, max-age=31536000, immutable`
+                                        act = header_value( `cache-control` ) ).
+    cl_abap_unit_assert=>assert_not_initial( header_value( `etag` ) ).
+
+    " another version is a page from before a redeployment: the controls of
+    " today, and not to be kept under a URL that does not name them
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle`  v = `cc` )
+                            ( n = `z2ui5-version` v = `0000000000000000` ) ) ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_cc( )
+                                        act = mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
+                                        act = header_value( `cache-control` ) ).
+
+    " the frontend bundle's own version in that parameter keeps nothing
+    " either, and the build hash as the bundle's value still does
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle`  v = `cc` )
+                            ( n = `z2ui5-version` v = z2ui5_cl_ui5f_preload=>build_hash ) ) ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
+                                        act = header_value( `cache-control` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_cc_304.
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` v = `cc` ) ) ).
+    mo_handler->main( ).
+    DATA(lv_tag) = header_value( `etag` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_tag ).
+
+    " the reload, in a new work process: the tag comes back, the script not
+    caches_clear( ).
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` v = `cc` ) ) ).
+    INSERT VALUE #( n = `if-none-match`
+                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 304
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_tag
+                                        act = header_value( `etag` ) ).
+
+    " the devtools bundle's tag is another one - it does not 304 the controls
+    caches_clear( ).
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` v = `cc` ) ) ).
+    INSERT VALUE #( n = `if-none-match`
+                    v = z2ui5_cl_ui5_http_handler=>_bundle_etag( abap_true ) ) INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->main( ).
 

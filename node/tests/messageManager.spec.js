@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext, contextStub, classEnv } = require("./loadLibModule");
 
-// Tests the real app/webapp/cc/MessageManager.js. The companion control keeps
+// Tests the real bundle/webapp/cc/MessageManager.js. The companion control keeps
 // the UI5 message manager in sync with its bound `items` table (the
 // app's OWN messages): a reconcile adds the rows that are new, removes the
 // control's own rows that are gone, and never touches messages it did not add

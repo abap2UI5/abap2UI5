@@ -141,12 +141,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
       }
     },
   };
-  // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
-  // stub records the routed calls and lets a test swap the behavior
-  const slotCalls = [];
-  const Slots = {
-    action: (_ctx, ...a) => slotCalls.push(a),
-  };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
   }
@@ -196,7 +190,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
       "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
-      "z2ui5/core/actions/Slots": Slots,
       ...extraDeps,
     },
   });
@@ -204,10 +197,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
   const FrontendAction = {
     ...module,
     execute: (oController, args) => module.execute(carrying(oController), args),
-    executeSystem: (oController, args, actionCtx) =>
-      module.executeSystem(carrying(oController), args, actionCtx),
-    runSystem: (item, oController, actionCtx) =>
-      module.runSystem(item, carrying(oController), actionCtx),
     runCustom: (item, oController) =>
       module.runCustom(item, carrying(oController)),
   };
@@ -222,8 +211,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     AppState,
     Popup,
     ctx,
-    slotCalls,
-    Slots,
   };
 }
 
@@ -389,21 +376,23 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
 
-  test("ROUTER/sync hands the whole options object to the router", () => {
-    // Router derives ONE outcome from all of it, so it gets the object as it
-    // came - the id rides along because the route carries the draft
-    const { FrontendAction, calls } = load();
+  test("ROUTER is no action: a response says its URL intent in NAV", () => {
+    // until protocol 3 the router call travelled as ["ROUTER","sync",{...}]
+    // in the action list. View1 syncs the URL once per response from the
+    // NAV section now, and the target is gone with its last writer - a view
+    // wire or a follow-up action naming it reaches nothing
+    const { FrontendAction, calls, errors } = load();
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "ROUTER",
       "sync",
       { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
     ]);
-    expect(calls).toEqual([
-      [
-        "router.sync",
-        { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
-      ],
+    FrontendAction.execute(null, ["ROUTER", "sync", { id: "DRAFT1" }]);
+    expect(calls).toEqual([]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'ROUTER.sync' not allowed",
+      "FrontendAction: unknown action 'ROUTER'",
     ]);
   });
 
@@ -578,11 +567,20 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
-  test("VIEW_SLOTS routes destroy/display/updateModel to actions/Slots", () => {
+  test("VIEW_SLOTS destroy closes the slot of the calling component", () => {
     // the view slots are the framework's own registry, not a UI5 global -
-    // destroy is ViewSlots' own method, display and updateModel live in
-    // actions/Slots, and the hook sends all three to Slots.action
-    const { FrontendAction, slotCalls } = load();
+    // the wired popup close (cs_event-popup_close) is the one call a view
+    // makes on it, with or without the CONTROL_GLOBAL prefix
+    // - and ViewSlots.destroy takes the component's context first, which
+    // the target's hook reads off the calling controller
+    const seen = [];
+    const { FrontendAction, specCtx } = load({
+      deps: {
+        "z2ui5/core/ViewSlots": {
+          destroy: (ctx, key) => seen.push([ctx, key]),
+        },
+      },
+    });
     const oController = {};
     FrontendAction.execute(oController, [
       "CONTROL_GLOBAL",
@@ -590,7 +588,21 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "destroy",
       "POPUP",
     ]);
-    FrontendAction.execute(oController, [
+    FrontendAction.execute(oController, ["VIEW_SLOTS", "destroy", "POPOVER"]);
+    expect(seen).toEqual([
+      [specCtx, "POPUP"],
+      [specCtx, "POPOVER"],
+    ]);
+  });
+
+  test("VIEW_SLOTS display and updateModel are no actions any more", () => {
+    // a response displays through its VIEWS section and pushes its model
+    // by carrying one (View1) - both were action targets until protocol 3
+    // and stayed whitelisted without a writer. A view wire must not be
+    // able to build a slot from a string it names, or to fan the last
+    // response's model out again
+    const { FrontendAction, calls, errors } = load();
+    FrontendAction.execute({}, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
       "display",
@@ -598,31 +610,12 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "<Popover/>",
       { openById: "btn1" },
     ]);
-    FrontendAction.execute(oController, [
-      "CONTROL_GLOBAL",
-      "VIEW_SLOTS",
-      "updateModel",
+    FrontendAction.execute({}, ["CONTROL_GLOBAL", "VIEW_SLOTS", "updateModel"]);
+    expect(calls).toEqual([]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'VIEW_SLOTS.display' not allowed",
+      "CONTROL_GLOBAL: 'VIEW_SLOTS.updateModel' not allowed",
     ]);
-    expect(slotCalls).toEqual([
-      ["destroy", "POPUP", undefined, {}, undefined],
-      // the XML is a positional argument of its own - it must NOT be read as
-      // a template value for the slot name
-      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }, undefined],
-      // no slot: the frontend picks the open ones itself
-      ["updateModel", undefined, undefined, {}, undefined],
-    ]);
-  });
-
-  test("the system phase threads the request stamp into the display", () => {
-    // the seq travels as the action CONTEXT (never shared state), so the
-    // slot display can discard a build a newer parallel request superseded
-    const { FrontendAction, slotCalls } = load();
-    FrontendAction.executeSystem(
-      null,
-      ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
-      { seq: 7 },
-    );
-    expect(slotCalls).toEqual([["display", "POPUP", "<Dialog/>", {}, 7]]);
   });
 
   test("an unlisted VIEW_SLOTS method is rejected", () => {
@@ -695,45 +688,8 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 });
 
-test.describe("executeSystem (the SYSTEM phase entry point)", () => {
-  test("returns the handler result so an async display can be awaited", async () => {
-    const { FrontendAction, Slots } = load();
-    Slots.action = (_ctx, _m, _slot, xml) => Promise.resolve(`built:${xml}`);
-    const result = FrontendAction.executeSystem(null, [
-      "CONTROL_GLOBAL",
-      "VIEW_SLOTS",
-      "display",
-      "POPUP",
-      "<Dialog/>",
-    ]);
-    expect(await result).toBe("built:<Dialog/>");
-  });
-
-  test("does NOT swallow a failing display", () => {
-    // execute( ) logs and moves on; a broken view build has to reach
-    // _processAfterRendering and surface the fatal overlay instead
-    const { FrontendAction, Slots } = load();
-    Slots.action = () => {
-      throw new Error("malformed XML");
-    };
-    expect(() =>
-      FrontendAction.executeSystem(null, [
-        "CONTROL_GLOBAL",
-        "VIEW_SLOTS",
-        "display",
-        "POPUP",
-        "<broken",
-      ]),
-    ).toThrow("malformed XML");
-  });
-
-  test("an unknown system action is reported, not thrown", () => {
-    const { FrontendAction, errors } = load();
-    FrontendAction.executeSystem(null, ["NO_SUCH_ACTION"]);
-    expect(errors[0]).toContain("unknown system action");
-  });
-
-  test("an unknown APP action is reported too, not dropped silently", () => {
+test.describe("an action the dispatch does not know", () => {
+  test("an unknown action is reported, not dropped silently", () => {
     const { FrontendAction, errors } = load();
     FrontendAction.execute(null, ["NO_SUCH_ACTION"]);
     expect(errors).toHaveLength(1);
@@ -3047,7 +3003,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[0].ms).toBe(1000);
     timers[0].fn();
     // alive: fired as a background event (ignore-busy flag set), slot freed
-    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
     expect(AppState.state.timers).toEqual({});
 
     // re-armed, then the app is torn down (FLP close / re-launch): the
@@ -3099,7 +3055,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[1].ms).toBe(0);
     expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
     expect(AppState.state.timers).toEqual({});
   });
 
@@ -3136,7 +3092,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
   // 1 s default delay, and a poll whose backend call took longer flashed the
   // full-screen overlay (samples-controls demo_004's carousel, ticks of
   // 1.1-1.4 s against the transpiled backend). The flag travels where
-  // View1.eB reads a check_no_busy wire's - position [5] - and eB's side of
+  // View1.eB reads a check_no_busy wire's - the options object - and eB's side of
   // it is pinned in view1Events.spec.js.
   function loadTimer() {
     const timers = [];
@@ -3164,9 +3120,8 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[0].ms).toBe(1000);
     timers[0].fn();
 
-    // [5] set, with useMainModel [3] and queueLast [4] written as false in
-    // front of it rather than closing the gap; the reserved [2] as ever
-    expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+    // the flag in the options object, next to the tick's own mark
+    expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
     expect(AppState.state.timers).toEqual({});
   });
 
@@ -3177,11 +3132,10 @@ test.describe("START_TIMER (backend timer liveness)", () => {
       const { FrontendAction, timers, ebCalls, oController } = loadTimer();
       FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", on]);
       timers[0].fn();
-      expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+      expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
     }
     // ... and everything else - abap_false, which never reaches the wire as
-    // a trailing empty, among them - dispatches the array a two-argument
-    // START_TIMER always dispatched
+    // a trailing empty, among them - dispatches a tick without it
     for (const off of [[], [""], [" "], ["false"], ["-"]]) {
       const { FrontendAction, timers, ebCalls, oController } = loadTimer();
       FrontendAction.execute(oController, [
@@ -3191,7 +3145,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
         ...off,
       ]);
       timers[0].fn();
-      expect(ebCalls).toEqual([["POLL", false, true]]);
+      expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
     }
   });
 
@@ -3208,7 +3162,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     AppState.state.isBusy = false;
     for (const fn of [...AppState.state.onRoundtripEnd]) fn();
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
   });
 
   test("a replacing START_TIMER decides the flag afresh", () => {
@@ -3219,7 +3173,229 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
+  });
+  test("a tick waits while a click the previous tick held back goes out", () => {
+    // View1.eB kept a click that met the last tick (oTickQueuedEvent); the
+    // tick's own follow-up actions armed the timer again before the click
+    // is dispatched. The tick must not go first - it waits, briefly, and
+    // then finds the click's roundtrip in flight and waits for that
+    const { FrontendAction, AppState, timers, ebCalls, oController } =
+      loadTimer();
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    AppState.state.oTickQueuedEvent = { controller: oController, args: [] };
+    timers[0].fn();
+    expect(ebCalls).toEqual([]);
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(50);
+    expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
+
+    // the click went out: the tick waits for its roundtrip like for any
+    AppState.state.oTickQueuedEvent = null;
+    AppState.state.isBusy = true;
+    timers[1].fn();
+    expect(ebCalls).toEqual([]);
+    expect(AppState.state.onRoundtripEnd).toHaveLength(1);
+
+    AppState.state.isBusy = false;
+    for (const fn of [...AppState.state.onRoundtripEnd]) fn();
+    timers[2].fn();
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
+  });
+});
+
+// START_TIMER's optional FIFTH argument repeats the timer: it is armed
+// again with the same event, delay and no-busy flag after every applied
+// response (ViewOps.resumeRepeatTimer, which View1._processAfterRendering
+// calls last - its side is pinned in view1Events.spec.js), so neither the
+// app nor a user event in between has to re-arm it. STOP_TIMER ends it.
+test.describe("START_TIMER repeat and STOP_TIMER", () => {
+  function loadRepeat(deps) {
+    const timers = [];
+    const loaded = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+      deps,
+    });
+    const state = loaded.AppState.state;
+    state.timers = {};
+    state.onRoundtripEnd = [];
+    state.timerRepeat = null;
+    const ebCalls = [];
+    let destroyed = false;
+    const oController = loaded.carrying({
+      isDestroyed: () => destroyed,
+      eB: (a) => ebCalls.push(a),
+    });
+    const resume = () =>
+      loaded.FrontendAction.resumeRepeatTimer(oController.ctx);
+    return {
+      ...loaded,
+      state,
+      timers,
+      ebCalls,
+      oController,
+      resume,
+      destroy: () => (destroyed = true),
+    };
+  }
+
+  test("a repeating timer is armed again after each applied response", () => {
+    const { FrontendAction, state, timers, ebCalls, oController, resume } =
+      loadRepeat();
+
+    FrontendAction.execute(oController, [
+      "START_TIMER",
+      "POLL",
+      "2000",
+      "X",
+      "X",
+    ]);
+    expect(state.timerRepeat).toMatchObject({
+      event: "POLL",
+      delay: 2000,
+      noBusy: true,
+      timerKey: "START_TIMER",
+    });
+    timers[0].fn();
+    expect(ebCalls).toEqual([["POLL", { noBusy: true, timer: true }]]);
+    expect(state.timers).toEqual({});
+
+    // the tick's response is applied: the same tick is armed again
+    resume();
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(2000);
+    timers[1].fn();
+    expect(ebCalls).toHaveLength(2);
+    expect(ebCalls[1]).toEqual(["POLL", { noBusy: true, timer: true }]);
+
+    // ... as often as responses come
+    resume();
+    expect(timers).toHaveLength(3);
+  });
+
+  test("the repeat flag is the fifth argument - a middle empty no-busy flag stays plain", () => {
+    const { FrontendAction, state, timers, ebCalls, oController } =
+      loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    expect(state.timerRepeat).toMatchObject({ noBusy: false });
+    timers[0].fn();
+    expect(ebCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
+  });
+
+  test("without the flag nothing is armed again (the one-shot timer as before)", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
+    expect(state.timerRepeat).toBe(null);
+    timers[0].fn();
+    resume();
+    expect(timers).toHaveLength(1);
+  });
+
+  test("a START_TIMER without the flag replaces a repeating one", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "A", "10", "", "X"]);
+    FrontendAction.execute(oController, ["START_TIMER", "B", "20"]);
+    expect(state.timerRepeat).toBe(null);
+    timers[1].fn();
+    resume();
+    expect(timers).toHaveLength(2);
+  });
+
+  test("nothing is armed while a roundtrip is in flight, or when the slot holds a tick", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    timers[0].fn();
+
+    // a user event (or the click the tick held back) went out right after
+    // the response: its own response arms the timer
+    state.isBusy = true;
+    resume();
+    expect(timers).toHaveLength(1);
+    state.isBusy = false;
+
+    // the response armed a tick itself (a START_TIMER among its actions)
+    state.timers.START_TIMER = 99;
+    resume();
+    expect(timers).toHaveLength(1);
+    delete state.timers.START_TIMER;
+
+    resume();
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(10);
+  });
+
+  test("STOP_TIMER cancels the pending tick and ends the repeat", () => {
+    const { FrontendAction, state, timers, oController, resume } = loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    expect(state.timers).toEqual({ START_TIMER: 1 });
+
+    FrontendAction.execute(oController, ["STOP_TIMER"]);
+    expect(state.timers).toEqual({});
+    expect(state.timerRepeat).toBe(null);
+    resume();
+    expect(timers).toHaveLength(1);
+
+    // nothing to stop is no error
+    FrontendAction.execute(oController, ["STOP_TIMER"]);
+    expect(state.timers).toEqual({});
+  });
+
+  test("STOP_TIMER also cancels a one-shot timer, and a tick waiting for a roundtrip", () => {
+    const { FrontendAction, state, timers, ebCalls, oController } =
+      loadRepeat();
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10"]);
+    state.isBusy = true;
+    timers[0].fn();
+    expect(state.onRoundtripEnd).toHaveLength(1);
+    FrontendAction.execute(oController, ["STOP_TIMER"]);
+    expect(state.onRoundtripEnd).toEqual([]);
+    expect(state.timers).toEqual({});
+    expect(ebCalls).toEqual([]);
+  });
+
+  test("a gone controller hands the tick to the MAIN view's, and none ends it", () => {
+    const mainCalls = [];
+    let mainAlive = true;
+    const main = {
+      isDestroyed: () => !mainAlive,
+      eB: (a) => mainCalls.push(a),
+    };
+    const {
+      FrontendAction,
+      state,
+      timers,
+      oController,
+      resume,
+      destroy,
+      carrying,
+    } = loadRepeat({
+      "z2ui5/core/ViewSlots": {
+        getController: (_ctx, key) => (key === "MAIN" ? main : undefined),
+      },
+    });
+    carrying(main);
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", "", "X"]);
+    timers[0].fn();
+
+    // the popup that armed it closed: the MAIN controller ticks on
+    destroy();
+    resume();
+    timers[1].fn();
+    expect(mainCalls).toEqual([["POLL", { noBusy: false, timer: true }]]);
+    expect(state.timerRepeat.controller).toBe(main);
+
+    // no live controller at all: the timer ends
+    mainAlive = false;
+    resume();
+    expect(timers).toHaveLength(2);
+    expect(state.timerRepeat).toBe(null);
   });
 });
 
@@ -4080,7 +4256,7 @@ test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", 
 
 // ---------------------------------------------------------------------
 // The same call from a HANDLER. A follow-up action queued in a handler is
-// data (T_CUSTOM) and runs through FrontendAction.runCustom; the `${/X}`
+// data (ACTIONS) and runs through FrontendAction.runCustom; the `${/X}`
 // a view wire has evaluated by UI5 arrives there as text. Each test below
 // is a call that misbehaved silently from a handler before runCustom read
 // the bound value - through the real composed dispatch, end to end.

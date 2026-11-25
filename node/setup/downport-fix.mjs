@@ -25,7 +25,7 @@
  *   node node/setup/downport-fix.mjs check-702
  */
 import { fileURLToPath } from "url";
-import { readFileSync, writeFileSync, readdirSync, rmSync, cpSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, readdirSync, rmSync, cpSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -99,6 +99,22 @@ const MODES = {
     }
     writeFileSync(file, after);
     console.log("abaplint-path: abaplint.jsonc glob rewritten to /src/**/*.*");
+  },
+
+  /* The branch 702 carries no BSP: `auto_downport` drops src/03/02 from the
+   * tree it publishes. The BSP Z2UI5 is the launchpad app around the embed
+   * control, whose UI5 needs more than a 7.02 system ships; what a 7.02 to
+   * 7.4x system gets of src/03 is the ICF node and its handler (src/03/01),
+   * and abap2UI5's own page through them. Only on the branch: src/ of main
+   * and node/downport (the transpile) keep the folder. */
+  "drop-bsp": () => {
+    const bsp = join(ROOT, "src", "03", "02");
+    if (!existsSync(bsp)) {
+      console.error("drop-bsp: src/03/02 not found - did the BSP move? Then change the path here too.");
+      process.exit(1);
+    }
+    rmSync(bsp, { recursive: true, force: true });
+    console.log("drop-bsp: src/03/02 (the BSP) left out of the 702 tree");
   },
 
   /* The remaining shell one-liners of the downport pipeline, for the same

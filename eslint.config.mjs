@@ -4,8 +4,8 @@ import globals from "globals";
 /*
  * ESLint for the Node side of this repository.
  *
- * `app/eslint.config.mjs` is scoped to `files: ["webapp/**\/*.js"]` and runs
- * from inside `app/`, so it reaches the shipped frontend and nothing else.
+ * `bundle/eslint.config.mjs` is scoped to `files: ["webapp/**\/*.js"]` and runs
+ * from inside `bundle/`, so it reaches the shipped frontend and nothing else.
  * Everything that BUILDS and CHECKS that frontend was uncovered: the CI gates
  * under `.github/scripts/`, the generators under `tools/`, the dev server and
  * the transpiler bootstrap under `node/`, and the JS unit specs under
@@ -20,7 +20,7 @@ import globals from "globals";
  * Three source shapes live side by side and each needs its own globals:
  *   - .mjs everywhere: ES modules on Node.
  *   - tools/app2abap/*.js and tools/app2bsp/*.js: CommonJS, `require`/`module`.
- *   - node/tests/*.spec.js: CommonJS too, and they run the REAL app/webapp
+ *   - node/tests/*.spec.js: CommonJS too, and they run the REAL bundle/webapp
  *     modules through a stubbed sap.ui.define, so they touch browser globals.
  */
 export default [
@@ -28,10 +28,10 @@ export default [
     ignores: [
       // Generated or vendored trees. tools/out/ is written by
       // `npm run frontend:build` and node/downport, node/output and
-      // node/deps by the downport/transpile pipeline; app/ has its own
-      // config and is linted by `npm --prefix app run lint`.
+      // node/deps by the downport/transpile pipeline; bundle/ has its own
+      // config and is linted by `npm --prefix bundle run lint`.
       // (tools/out/ is git-ignored, but ESLint does not read .gitignore.)
-      "app/**",
+      "bundle/**",
       "tools/out/**",
       "node/downport/**",
       "node/output/**",
@@ -41,6 +41,9 @@ export default [
       "node/open-abap-core/**",
       "node/coverage/**",
       "node_modules/**",
+      // the two page apps' own installs and builds
+      "app_source/node_modules/**",
+      "app_source/dist/**",
     ],
   },
   {
@@ -77,6 +80,27 @@ export default [
     },
   },
   {
+    // The two page apps - the minimal UI5 app around the embed control, with
+    // the control from npm (app_source; the control's own source is
+    // abap2UI5-addons/embed-ui5-control). Browser code like bundle/webapp, with the same rules as
+    // bundle/eslint.config.mjs; they have no ESLint install of their own, so
+    // they are linted from here.
+    files: ["app_source/webapp/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: { ...globals.browser, sap: "readonly" },
+    },
+    linterOptions: { reportUnusedDisableDirectives: "warn" },
+    rules: {
+      ...js.configs.recommended.rules,
+      "no-new-func": "error",
+      "no-unused-vars": ["error", { caughtErrors: "none", argsIgnorePattern: "^_" }],
+      eqeqeq: ["error", "smart"],
+      "prefer-const": "error",
+    },
+  },
+  {
     // `.github/shared/` is the ecosystem's source copy of these scripts: the
     // same bytes run in samples, samples-controls and samples-stack, whose
     // configs are their own. A disable directive there answers to a ruleset
@@ -87,7 +111,7 @@ export default [
     linterOptions: { reportUnusedDisableDirectives: "off" },
   },
   {
-    // The specs load app/webapp modules into a stubbed UI5 runtime, so they
+    // The specs load bundle/webapp modules into a stubbed UI5 runtime, so they
     // build browser-shaped objects (window, document, URL, setTimeout) and
     // the `sap` global the frontend config also declares. No `z2ui5`: the
     // frontend has no global of its own, so a spec has none to stub.

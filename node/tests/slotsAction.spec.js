@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext, contextStub, bindContext } = require("./loadLibModule");
 
-// core/actions/Slots.js - the VIEW_SLOTS action target, i.e. everything a
+// core/actions/Slots.js - the view-slot actions, i.e. everything a
 // backend response does to the five view slots. Under test here: the entry
 // point `action( )` and the shape of its arguments. The options object is
 // OPTIONAL on the wire (a display that needs none carries no fourth
@@ -19,8 +19,17 @@ function load({
   byId = null,
   byIdBySlot = null,
   controller = null,
+  // the views ViewSlots.getView answers per slot key - none unless a spec
+  // fills it (the window requests ask whether their table is still there)
+  openViews = {},
+  // what core/CustomControls.ensure answers for a view - by default the
+  // controls are simply there; a spec hands in a pending or a rejected load
+  ensureControls = async () => {},
 } = {}) {
   const errors = [];
+  // the order in which a display asks for what the view needs and builds
+  // it: "controls", "preload" (the fragment's modules, UI5 1.71), "build"
+  const order = [];
   const destroyed = [];
   const setViews = [];
   const opened = [];
@@ -89,8 +98,18 @@ function load({
 
   const { module } = loadModule("core/actions/Slots.js", {
     deps: {
-      "sap/ui/core/mvc/XMLView": { create: () => Promise.resolve(view) },
-      "sap/ui/core/Fragment": { load: () => Promise.resolve(fragment) },
+      "sap/ui/core/mvc/XMLView": {
+        create: () => {
+          order.push("build");
+          return Promise.resolve(view);
+        },
+      },
+      "sap/ui/core/Fragment": {
+        load: () => {
+          order.push("build");
+          return Promise.resolve(fragment);
+        },
+      },
       "sap/ui/model/json/JSONModel": JSONModel,
       // the framework model of a slot (actions/Slots) - a JSONModel with
       // the windowed list binding, the same stub stands in for it
@@ -102,13 +121,22 @@ function load({
         // no view in this spec uses XML templating (Slots.templatePreprocessors)
         usesXmlTemplating: () => false,
         isAlive: () => true,
+        isControllerAlive: (c) => Boolean(c),
         isRootModelSlot: (key) => ["MAIN", "NEST", "NEST2"].includes(key),
         effectiveSizeLimit: () => undefined,
         whenRendered: (control, _owner, fn) => fn(control),
       },
       "z2ui5/core/Env": {
-        preloadFragmentModules: async () => {},
+        preloadFragmentModules: async () => {
+          order.push("preload");
+        },
         loadViewLibraries: async () => {},
+      },
+      "z2ui5/core/CustomControls": {
+        ensure: (c, xml) => {
+          order.push("controls");
+          return ensureControls(c, xml);
+        },
       },
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
@@ -124,7 +152,7 @@ function load({
         detach: () => undefined,
         setView: (_ctx, key, oView, xml) => setViews.push({ key, oView, xml }),
         getController: () => controller,
-        getView: () => null,
+        getView: (_ctx, key) => openViews[key] ?? null,
         getViewApp: () => undefined,
         getViewXml: () => "",
         trackedModel: () => undefined,
@@ -133,7 +161,7 @@ function load({
       },
     },
   });
-  const Slots = bindContext(module, ctx, ["action"]);
+  const Slots = bindContext(module, ctx, ["action", "dispatchQueuedWindows"]);
 
   return {
     Slots,
@@ -145,6 +173,7 @@ function load({
     opened,
     fragment,
     view,
+    order,
   };
 }
 
@@ -182,6 +211,25 @@ test("a POPOVER display opens on the anchor the options name", async () => {
   expect(opened).toEqual([anchor]);
 });
 
+test("a model remembers the response it was built from by its token", async () => {
+  // the mark is what lets the same response's model push skip the slot it
+  // just filled (updateModelIfRequired) - an identity, compared and never
+  // read. It used to be the response record: the whole model and the view
+  // XML, kept reachable by the popup's model for as long as the popup
+  // stood, although the model binds a copy of its own
+  const { Slots, state, fragment } = load();
+  state.oResponse = {
+    APP: "ZCL_APP",
+    OVIEWMODEL: { ROWS: [1, 2, 3] },
+    TOKEN: {},
+  };
+  await Slots.action("display", "POPUP", "<Dialog/>");
+
+  expect(fragment.model._z2ui5BuiltFrom).toBe(state.oResponse.TOKEN);
+  expect(fragment.model._z2ui5BuiltFrom).not.toBe(state.oResponse);
+  expect(fragment.model.data).toEqual({ ROWS: [1, 2, 3] });
+});
+
 test("a nested display without options reports the missing parent", async () => {
   // id / methodInsert are destructured from the options
   const { Slots, errors, view } = load();
@@ -196,6 +244,89 @@ test("a superseded display is dropped before anything is torn down", () => {
   // seq 1 against Server._requestSeq 7: a newer request owns the slots
   expect(Slots.action("display", "POPUP", "<Dialog/>", {}, 1)).toBe(undefined);
   expect(destroyed).toEqual([]);
+});
+
+// The frontend's custom controls are a bundle of their own, loaded when a
+// view names one (core/CustomControls.js). Every build waits for that load
+// - a view built before its controls are registered asks the loader for
+// cc/<Name>.js, and the node answers every GET with the page - and a load
+// that fails fails the display: the rejection reaches the error overlay
+// (View1._processAfterRendering) instead of a view without its control.
+test.describe("a display waits for the custom controls its view names", () => {
+  const VIEW = '<mvc:View xmlns:z2ui5="z2ui5.cc"><z2ui5:Dirty/></mvc:View>';
+  const displays = [
+    ["MAIN", {}],
+    ["NEST", { id: "panel", methodInsert: "addContent" }],
+    ["NEST2", { id: "panel", methodInsert: "addContent" }],
+    ["POPUP", {}],
+    ["POPOVER", { openById: "btn" }],
+  ];
+
+  for (const [slot, options] of displays) {
+    test(`${slot}: asked with the view's XML, and the build starts only once they are in`, async () => {
+      let arrive;
+      const asked = [];
+      const h = load({
+        resolveById: { id: "btn" },
+        byId: { addContent() {} },
+        ensureControls: (ctx, xml) => {
+          asked.push({ ctx, xml });
+          return new Promise((resolve) => {
+            arrive = resolve;
+          });
+        },
+      });
+      const done = h.Slots.action("display", slot, VIEW, options);
+      await new Promise((resolve) => setImmediate(resolve));
+      // the context (its endpoint is where the bundle comes from) and the
+      // text the decision is taken from
+      expect(asked).toEqual([{ ctx: h.ctx, xml: VIEW }]);
+      expect(h.order).toEqual(["controls"]);
+      expect(h.setViews).toEqual([]);
+      arrive();
+      await done;
+      // a fragment's control modules are required (UI5 1.71) only after
+      // the bundle registered them
+      expect(h.order).toEqual(
+        slot === "POPUP" || slot === "POPOVER"
+          ? ["controls", "preload", "build"]
+          : ["controls", "build"],
+      );
+      expect(h.setViews.map((entry) => entry.key)).toEqual([slot]);
+    });
+
+    test(`${slot}: a bundle that cannot be loaded fails the display, nothing is built`, async () => {
+      const h = load({
+        resolveById: { id: "btn" },
+        byId: { addContent() {} },
+        ensureControls: () =>
+          Promise.reject(new Error("the custom controls could not be loaded")),
+      });
+      const failure = await h.Slots.action("display", slot, VIEW, options).then(
+        () => null,
+        (e) => e,
+      );
+      expect(failure?.message).toBe("the custom controls could not be loaded");
+      expect(h.order).toEqual(["controls"]);
+      expect(h.setViews).toEqual([]);
+    });
+  }
+
+  test("a failed display does not block the next one", async () => {
+    let fail = true;
+    const h = load({
+      ensureControls: () =>
+        fail ? Promise.reject(new Error("offline")) : Promise.resolve(),
+    });
+    const failure = await h.Slots.action("display", "MAIN", VIEW).then(
+      () => null,
+      (e) => e,
+    );
+    expect(failure?.message).toBe("offline");
+    fail = false;
+    await h.Slots.action("display", "MAIN", VIEW);
+    expect(h.setViews.map((entry) => entry.key)).toEqual(["MAIN"]);
+  });
 });
 
 // Every display under a FIXED id goes through ONE serialized build chain
@@ -272,6 +403,7 @@ test.describe("the fragment slots build through the serialized chain", () => {
         preloadFragmentModules: async () => {},
         loadViewLibraries: async () => {},
       },
+        "z2ui5/core/CustomControls": { ensure: async () => {} },
         "z2ui5/core/ViewSlots": {
           ownId: (_ctx, id) => id,
           slots: [],
@@ -283,7 +415,7 @@ test.describe("the fragment slots build through the serialized chain", () => {
         },
       },
     });
-    const Slots = bindContext(module, ctx, ["action"]);
+    const Slots = bindContext(module, ctx, ["action", "dispatchQueuedWindows"]);
     return { Slots, ctx, destroyed, setViews, loads, fragment, flush };
   }
 
@@ -458,51 +590,101 @@ test.describe("displayNestedView: the parent's destroy and insert methods", () =
 });
 
 test.describe("a slot's model sends the window requests of its tables", () => {
-  const EVENT = [undefined, false, false, false, true, true];
+  // the request's own flag - a window request never shows the overlay
+  const EVENT = [undefined, { noBusy: true }];
 
   async function popupModel() {
     const sent = [];
     const controller = { eB: (...args) => sent.push(args) };
-    const loaded = load({ controller });
+    const openViews = {};
+    const loaded = load({ controller, openViews });
     await loaded.Slots.action("display", "POPUP", "<core:FragmentDefinition/>");
-    return { ...loaded, controller, sent, model: loaded.fragment.model };
+    const model = loaded.fragment.model;
+    // the popup is open, and its model is the slot's
+    openViews.POPUP = { getModel: () => model };
+    return { ...loaded, controller, sent, model, openViews };
   }
 
-  test("through the eB of the slot, kept behind a running roundtrip", async () => {
-    const { model, sent } = await popupModel();
+  test("through the eB of the slot while the app is idle", async () => {
+    const { model, sent, state } = await popupModel();
     model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
     expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
+    expect(state.oQueuedWindow).toBeNull();
   });
 
-  test("a request waiting in the slot is weighed against the new one", async () => {
-    const { model, sent, state, controller } = await popupModel();
-    // sort( ) came while a roundtrip ran: View1.eB kept it in the slot
+  test("kept behind a running roundtrip, and sent once the app is idle", async () => {
+    const { Slots, model, sent, state } = await popupModel();
     state.isBusy = true;
-    state.oQueuedWindow = {
-      controller,
-      args: [EVENT, "/MT_ROWS", "50", "[SORT]"],
-    };
-    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
-    expect(sent).toEqual([
-      [EVENT, "/MT_ROWS", "100", { kept: ["/MT_ROWS", "50", "[SORT]"] }],
-    ]);
-  });
 
-  test("nothing is handed over from another slot's model or once the roundtrip is over", async () => {
-    const { model, sent, state, controller } = await popupModel();
-    state.isBusy = true;
-    state.oQueuedWindow = {
-      controller: { eB() {} },
-      args: [EVENT, "/MT_ROWS", "50", "[SORT]"],
-    };
     model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
-    // a slot left filled is not read without a roundtrip in flight
+
+    expect(sent).toEqual([]);
+    expect(Object.keys(state.oQueuedWindow)).toEqual(["/MT_ROWS"]);
+
+    // still busy: nothing goes out
+    Slots.dispatchQueuedWindows();
+    expect(sent).toEqual([]);
+
     state.isBusy = false;
-    state.oQueuedWindow.controller = controller;
-    model._z2ui5WindowSend(["/MT_ROWS", "150"], true);
+    Slots.dispatchQueuedWindows();
+    expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
+    expect(state.oQueuedWindow).toBeNull();
+  });
+
+  // Three windowed lists on one page, all asking for their rows while a
+  // response renders (the window e2e): with ONE place for every table the
+  // last list's request was the only one kept.
+  test("the requests of two tables do not overwrite each other - one roundtrip each", async () => {
+    const { Slots, model, sent, state, controller } = await popupModel();
+    state.isBusy = true;
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+    model._z2ui5WindowSend(["/MT_LIST", "20"], true);
+    expect(Object.keys(state.oQueuedWindow)).toEqual(["/MT_ROWS", "/MT_LIST"]);
+
+    // the first one is the roundtrip, the second waits for its end
+    state.isBusy = false;
+    controller.eB = (...args) => {
+      sent.push(args);
+      state.isBusy = true;
+    };
+    Slots.dispatchQueuedWindows();
+    expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
+    expect(Object.keys(state.oQueuedWindow)).toEqual(["/MT_LIST"]);
+
+    state.isBusy = false;
+    Slots.dispatchQueuedWindows();
     expect(sent).toEqual([
       [EVENT, "/MT_ROWS", "100"],
-      [EVENT, "/MT_ROWS", "150"],
+      [EVENT, "/MT_LIST", "20"],
     ]);
+    expect(state.oQueuedWindow).toBeNull();
+  });
+
+  test("a request waiting for the same table is weighed against the new one", async () => {
+    const { model, state } = await popupModel();
+    // sort( ) came while a roundtrip ran, then a request for more rows
+    state.isBusy = true;
+    model._z2ui5WindowSend(["/MT_ROWS", "50", "[SORT]"], true);
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+    // what stays is WindowModel.keepRestart's answer (stubbed: both)
+    expect(state.oQueuedWindow["/MT_ROWS"].args).toEqual([
+      "/MT_ROWS",
+      "100",
+      { kept: ["/MT_ROWS", "50", "[SORT]"] },
+    ]);
+  });
+
+  test("a request whose table is gone by then is dropped", async () => {
+    const { Slots, model, sent, state, openViews } = await popupModel();
+    state.isBusy = true;
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+
+    // the response closed the popup - or put another model into the slot
+    openViews.POPUP = { getModel: () => ({}) };
+    state.isBusy = false;
+    Slots.dispatchQueuedWindows();
+
+    expect(sent).toEqual([]);
+    expect(state.oQueuedWindow).toBeNull();
   });
 });

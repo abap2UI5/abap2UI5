@@ -33,6 +33,20 @@ support case.
 
 ## 0. Already done (do not re-litigate)
 
+- [x] `_bind_edit( )`, `view_model_update( )`, `nest_view_model_update( )`,
+      `nest2_view_model_update( )`, `popup_model_update( )` and
+      `popover_model_update( )` of `z2ui5_if_client` removed on 2026-11-22
+      (maintainer decision). `_bind_edit( )` was an alias of `_bind( )` with
+      identical behaviour since binding was unified (its `custom_mapper_back` /
+      `custom_filter_back` were no longer evaluated); the five
+      `*_model_update( )` methods were empty, because the handler pushes the
+      model on its own whenever `main( )` changed it
+      (`z2ui5_cl_ui5_handler=>main_end`). Zero callers in `samples`,
+      `samples-controls` and `samples-stack` at removal. Migration:
+      `_bind_edit(` becomes `_bind(` with the same parameters (drop
+      `custom_mapper_back` / `custom_filter_back`), a `*_model_update( )` call
+      is deleted. API snapshot regenerated, exception 14 in
+      `docs/agents/api-snapshot-exceptions.md`.
 - [x] The offline queue removed on 2026-11-19 (maintainer decision: an edge
       case, the framework stays lean): `cs_event-offline_queue`, the
       frontend's `core/Offline.js`, the keep and replay paths of
@@ -111,7 +125,7 @@ support case.
 - [x] `nest_view_model_update( )` / `nest2_view_model_update( )` delegate to
       `view_model_update( )`; `check_update_model` dropped from `ty_s_view_nest`
 - [x] `cs_event-image_editor_popup_close` removed, with
-      `evImageEditorPopupClose` in `app/webapp/core/actions/ViewOps.js` and the
+      `evImageEditorPopupClose` in `bundle/webapp/core/actions/ViewOps.js` and the
       regenerated `src/01/03/`. This item used to read *"goes when `src/99/02`
       goes"*, and that was the wrong reading: it did not wait on the frozen
       package, it waited on a **missing generic capability**. The handler
@@ -147,7 +161,7 @@ support case.
       the replacement now, one assertion per slot. API snapshot regenerated,
       recorded as BREAKING in `changelog.txt`
 - [x] `cs_event-keyboard_set_mode` removed, with `evKeyboardSetMode` in
-      `app/webapp/core/actions/Shortcuts.js` and the regenerated `src/01/03/`.
+      `bundle/webapp/core/actions/Shortcuts.js` and the regenerated `src/01/03/`.
       It wrote the HTML `inputmode` attribute onto the input's DOM node — the
       wrong layer: UI5 discards that DOM on every re-render, so any later
       render of the field silently dropped the mode, and an app had no way to
@@ -164,7 +178,7 @@ support case.
       this removal still outstanding, in a repository this checkout does not
       carry
 - [x] `cs_event-wizard_set_next_step` removed, with `evWizardSetNextStep` in
-      `app/webapp/core/actions/ViewOps.js` and the regenerated `src/01/03/`.
+      `bundle/webapp/core/actions/ViewOps.js` and the regenerated `src/01/03/`.
       It bundled `discardProgress( oStep )` + `oStep.setNextStep( oNext )`
       into one fixed pair; both methods are on the `CONTROL_METHODS`
       whitelist, so the same flow is two ordinary `control_by_id` calls —
@@ -187,7 +201,7 @@ support case.
       `SET_APP_STATE_ACTIVE` as their values, and have to: a draft can hold a
       queued action, so a value is not renamable the way a constant is. The fourth was not a rename: it composed the share link
       in the BROWSER and could only put it on the clipboard, so its handler
-      (`evClipboardAppState` in `app/webapp/core/actions/Browser.js`) went
+      (`evClipboardAppState` in `bundle/webapp/core/actions/Browser.js`) went
       with it and `src/01/03/` was regenerated. Ecosystem count at removal:
       **0** in code — the samples-controls hits are prose naming the constant
       in an explanation of the bookmark URL. In-repo callers converted: the
@@ -258,7 +272,7 @@ support case.
       - `z2ui5_cl_pop_js_loader` (`src/99/02`), the popup that loaded that
         function. A released object deleted outright, not relocated — the
         decision is recorded in AGENTS.md under "Layered Design"
-      - `app/webapp/Util.js` and the `z2ui5.Util` / `z2ui5.Formatter`
+      - `bundle/webapp/Util.js` and the `z2ui5.Util` / `z2ui5.Formatter`
         globals. The date helpers stay in `z2ui5/model/formatter`, reached
         via `core:require` (UI5 1.69 and later, so every supported
         release); a formatter string naming the global resolves to
@@ -279,36 +293,26 @@ Every entry here is a **rule-5 break**: it needs `node .github/scripts/api-snaps
 a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 [Deprecations](https://abap2ui5.github.io/docs/resources/deprecations) page.
 
-- [x] **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`,
-      deleted on 2026-11-17 (maintainer decision) with the second lookup in
-      `get_user_exit_class( )`, `gi_user_exit_dep` and the two delegating
+- [x] **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`.
+      **Deleted 2026-11-17** (maintainer decision), with the second lookup in
+      `exit_class_lookup( )`, `gi_user_exit_dep` and the two delegating
       branches in `z2ui5_cl_ui5_user_exit`, and the line that put it into
-      `abaplint.jsonc`'s strict ruleset. An exit class written against the old
-      name implements `z2ui5_if_ui5_exit` - same methods, same types.
-- [ ] **`_bind_edit( )`** of `z2ui5_if_client` — alias of `_bind`, identical
-      behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
-      - Former blocker resolved: per-direction mapping was dropped —
-        `custom_mapper_back` / `custom_filter_back` are still accepted for
-        source compatibility but no longer evaluated.
-      - No callers left in the ecosystem: zero in `samples`,
-        `samples-controls` and `samples-stack` (re-checked 2026-08-21). The
-        only in-repo hits are the declaration, the delegating implementation
-        and its test.
-- [ ] **`nest_view_model_update( )` / `nest2_view_model_update( )`** of
-      `z2ui5_if_client` — no-ops now (the model push is automatic), and so is
-      `view_model_update( )` itself.
-      - No callers left: zero across `samples`, `samples-controls` and
-        `samples-stack` (re-checked 2026-08-21). The blocker this item used to
-        carry is cleared.
+      `abaplint.jsonc`'s strict ruleset. It was the last object of `src/99`,
+      so the package went with it. What breaks: an exit class that still
+      writes `INTERFACES z2ui5_if_exit` does not compile after the update -
+      it implements `z2ui5_if_ui5_exit` instead, same methods, same types -
+      and until it does, the installation has NO exit: no custom
+      Content-Security-Policy, theme or bootstrap. Still owed: the examples
+      on the Setup, Security, Style/CSS, Bootstrap-Attributes and
+      Logon-Language pages of `abap2UI5/docs` write the old name.
 - [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
       the declaration. Still evaluated. They hand app code a reference into the **mirrored**
       AJSON library (`src/00/01`, synced from an external project), so an app
       implementing `z2ui5_if_ajson_mapping` / `_filter` binds itself to a type
       this repo does not own.
-      - Removing them is a signature change, so they ride along with the
-        `_bind_edit` removal above rather than going separately (the same
-        parameters exist on `_bind_edit`, plus the already-inert
-        `custom_mapper_back` / `custom_filter_back`).
+      - Removing them is a signature change of `_bind( )`. They were meant to
+        ride along with the `_bind_edit` removal; that went first on its own
+        (2026-11-22, see §0), so these two go in a change of their own.
       - Zero usages across samples, samples-controls and samples-stack.
       - Blocker: `z2ui5_if_ajson_mapping` / `z2ui5_if_ajson_filter` reach app
         code only through these four parameters — check for downstream users
@@ -342,11 +346,23 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 ## 2. `src/99/` — the frozen package (~30,800 ABAP lines)
 
+> **2026-11-17: the package left the core.**
+> Everything below with a box is not deleted but **moved**, unchanged, to the
+> repository [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet)
+> (2026-11-17 to 2026-11-25: abap2UI5/frontend, now retired) - the decision and what did not
+> move are in `docs/agents/decisions.md`, "The `src/99` exemptions". For this
+> repository the items are done: the core no longer ships them. For an
+> installation nothing is removed yet - it pulls the extension and keeps
+> compiling - so the blockers written under each item are now the
+> **extension's** blockers for deleting the class there, and they are kept
+> here because this is where the migration was measured.
+
 The single biggest item. All of it is public and shipped, so removal is a
 breaking change for any downstream app that still references it.
 
-- [ ] **`z2ui5_cl_xml_view` (15,884 lines) + `z2ui5_cl_xml_view_cc` (742)**
-      → `z2ui5_cl_ui5_view_builder` (`src/02/`)
+- [x] **`z2ui5_cl_xml_view` (15,884 lines) + `z2ui5_cl_xml_view_cc` (742)**
+      → `z2ui5_cl_ui5_view_builder` (`src/02/`) — out of the core since
+      2026-11-17, ships from abap2UI5-obsolet
       - **Blocker A: cleared 2026-08-15.** Zero callers across `samples` (150
         classes on the successor), `samples-controls` (431), `samples-stack`
         (32) and `app-template` (1). The last fourteen were
@@ -398,10 +414,14 @@ breaking change for any downstream app that still references it.
         [abap-util](https://github.com/abap-util/abap-util): every addon but
         layout-management carries its own renamed copy; layout-management
         declares abap2UI5-obsolet as a dependency.
+      - Since 2026-11-25 they ship, with the rest of `src/99`, from
+        [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet)
+        (2026-11-17 to 2026-11-25 from abap2UI5/frontend, now retired).
       - abap2UI5-obsolet reads nothing `FROZEN-ONLY` from the core, so the
         FROZEN-ONLY symbols can still leave with the rest of `src/99`.
-- [ ] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
-      → [popups addon](https://github.com/abap2UI5-addons/popups)
+- [x] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
+      → [popups addon](https://github.com/abap2UI5-addons/popups) — out of
+      the core since 2026-11-17, ship from abap2UI5-obsolet
       - **Blocker:** verify the addon actually covers all 17. `z2ui5_cl_pop_bal`
         was already dropped in 1.142.0 without a replacement — do not repeat
         that silently. (The eighteenth, `z2ui5_cl_pop_js_loader`, went on
@@ -413,9 +433,10 @@ breaking change for any downstream app that still references it.
         This does not move the removal itself — the classes still ship and
         are still frozen — it only means the popups no longer hold the
         retired builder in place.
-- [x] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler` -
-      deleted on 2026-11-17 (maintainer decision); what named it names
-      `z2ui5_cl_ui5_http_handler`
+- [x] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
+      — **deleted 2026-11-17**, not moved: an ICF node or a handler class
+      that still names it names `z2ui5_cl_ui5_http_handler` instead, or uses
+      the node and handler of `src/03/01` (`z2ui5_cl_ui5_icf_handler`)
       - An empty subclass that exists so an ICF node pointing at the old
         handler name keeps resolving. AGENTS.md names it deprecated in two
         places; it had no box here, which made `src/99` look like three items
@@ -425,28 +446,37 @@ breaking change for any downstream app that still references it.
         in ABAP anybody wrote, so "zero callers in the sample repositories"
         says nothing about it. It goes when the handler rename is announced
         in the docs Deprecations page, not before.
-      - The shipped frontend no longer names it: the `z2ui5_cl_lp_handler`
-        of every delivery branch calls `z2ui5_cl_ui5_http_handler` (in a
-        release since 1.148.0), and `tools/bsp_rename --backend` rewrites
-        that call to `<prefix>cl_ui5_http_handler`.
+      - The shipped service no longer names it: `z2ui5_cl_ui5_icf_handler`
+        (`src/03/01`, and `cloud/src/03/01` on the branch `cloud`) calls
+        `z2ui5_cl_ui5_http_handler` (in a release since 1.148.0), and
+        `tools/bsp_rename --backend` rewrites that call to
+        `<prefix>cl_ui5_http_handler`.
 
-**Falls out automatically when `src/99` goes:**
+**Did not fall out with the move, because the classes still exist - one
+repository further:**
 
 - [ ] the `FROZEN-ONLY` methods in `z2ui5_cl_ui5_util_context` (`src/00/03/`) — they
-      exist solely because the shipped `src/99` still calls them. Grep the
+      exist solely because the legacy classes still call them, and those are
+      compiled against a release of this repository. They go when the
+      extension stops calling them (its own copies in `z2ui5_cl_util`, or the
+      classes deleted there) - a change over there first. Then: grep the
       marker, delete the marked block. (No count here on purpose: this said 23
       while the file carried 25, because a marker is added by whoever needs one
       and nothing tells this page. `grep -c FROZEN-ONLY` is the answer, and it
       is the same command that does the work.)
-- [ ] `npm run check:frozen` + the `check_gates` workflow
-- [ ] the three `src/99` test skips in `node/setup/abap_transpile.json`
-      and the `src/99` testclass/sidecar exemptions in `check:frozen` +
-      `check_gates.yaml`
-- [ ] the `src/99` exclusions in `abaplint.jsonc`
+- [ ] `npm run check:frozen` + its step in the `check_gates` workflow — kept:
+      it refuses a new `src/99`, and `MOVED_OUT` in it is the record of what
+      went where. It can go whenever that record is not wanted any more.
+- [x] the `src/99` test skips in `node/setup/abap_transpile.json` — none
+      left, the test classes moved with their objects
+- [x] the `/src/99/` ignore in `abap2ui5lint.jsonc` and the two known icon
+      findings in `check:icons` — gone with the popups
+- [x] the `/src/99/z2ui5_if_exit.intf.*` line in `abaplint.jsonc` — gone
+      with the interface
 
 ---
 
-## 3. Frontend (`app/webapp/`)
+## 3. Frontend (`bundle/webapp/`)
 
 Rule 7 of AGENTS.md makes the module IDs, properties and events of the custom
 controls a public contract, so these break hand-written view XML. Regenerate
@@ -471,24 +501,20 @@ controls a public contract, so these break hand-written view XML. Regenerate
       `info_frontend( )`), which now emit a control the frontend does not
       ship - the view fails to load on the first roundtrip that renders it.
 
-- [x] **`app/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** —
+- [x] **`bundle/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** —
       removed with the `z2ui5` global, see §0.
-- [ ] **UI5's own global export of the frontend's classes** —
+- [x] **UI5's own global export of the frontend's classes** —
       `window.z2ui5.Component`, `z2ui5.controller.*`,
       `z2ui5.devtools.DeveloperTools`, `z2ui5.cc.*`: UI5 1.x writes every
       class it creates to `window` under its dotted name, so these came back
-      after the global itself was removed (§0). Since 2026-09-29 every class
-      module hands its class to `Env.ownClass` (`core/Env.js`), and a page an
-      EMBEDDED component runs on - a host's page - keeps none of them
-      (`Env.dropClassGlobals`, from `Component.init`).
-      - **Blocker: 1.71 on a page of the app's own.** There 1.71 looks a
-        BASE class up by that global name when something extends one of ours
-        (`Metadata.applySettings`, `ObjectPath.get( baseType )` - a launchpad
-        extension project extending `z2ui5.Component`, a customer control
-        extending a `cc/` one), and later releases pass the class itself.
-        Take the exports off everywhere once the floor has left that
-        behaviour behind (UI5 2.x exports nothing at all); `Env.ownClass` is
-        then where it happens.
+      after the global itself was removed (§0). Every class module hands its
+      class to `Env.ownClass` (`core/Env.js`), and since 2026-11 no page
+      keeps them: the component is always created by the embed control, on a
+      host's page, and `Component.init` takes the exports off
+      (`Env.dropClassGlobals`). What that costs is written at the code site -
+      up to UI5 1.108 a class of the frontend cannot be extended; that was
+      never an offered way. `Env.ownClass` itself stays while UI5 1.x is
+      supported (UI5 2.x exports nothing at all).
 - [ ] **`destroyPopup` / `destroyPopover` / `destroyNestView` /
       `destroyNestView2` / `destroyView`** — in `View1.controller.js`.
       Thin wrappers around `ViewSlots.destroy()`. Custom JS, the caller

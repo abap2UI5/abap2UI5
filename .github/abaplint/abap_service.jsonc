@@ -1,0 +1,41 @@
+{
+    // src/03 - the ICF node, its handler and the BSP - on its own: the handler
+    // implements if_http_extension, which is Standard ABAP and no released
+    // API, so the dependency every other config resolves against (the
+    // intersection of the released APIs and 7.02) does not know it. That
+    // config stays what it is; this one resolves the handler against
+    // open-abap-core, which carries the ICF interfaces and is pinned already
+    // (the 7.02 lint and the transpiler read it), and against the framework
+    // itself for the one call the handler makes.
+    "global": {
+      "files": "/../../src/03/**/*.*"
+    },
+    "dependencies": [
+      {
+        "url": "https://github.com/open-abap/open-abap-core",
+        "folder": "/../../node/deps/open-abap-core",
+        "files": "/src/**/*.*"
+      },
+      {
+        "folder": "/../../src",
+        "files": "/0[0-2]/**/*.*"
+      }
+    ],
+    "syntax": {
+      "version": "v750",
+      "errorNamespace": "."
+    },
+    "rules": {
+      "begin_end_names": true,
+      "check_include": true,
+      "check_syntax": true,
+      "global_class": true,
+      "implement_methods": true,
+      "method_implemented_twice": true,
+      "parser_error": true,
+      "superclass_final": true,
+      "unknown_types": true,
+      "xml_bom": true,
+      "xml_consistency": true
+    }
+  }

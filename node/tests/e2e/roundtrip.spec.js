@@ -3,6 +3,7 @@
 // browser-level tests below boot with; the request-level tests are
 // bootstrap-independent and run unchanged in every project.
 const { test, expect } = require("./fixtures");
+const { pageComponentId } = require("./pageComponent");
 
 // End-to-end coverage of the abap2UI5 roundtrip against the transpiled
 // backend (node/srv/express.mjs): the POST wire contract (request parsing,
@@ -63,23 +64,16 @@ test("chains the session draft across roundtrips", async ({ request }) => {
   expect(second.S_FRONT.ID).not.toBe(first.S_FRONT.ID);
 });
 
-// The view XML of a response, read from the system action that displays the
-// slot: ["VIEW_SLOTS","display","<slot>","<xml>",{...}?] in
-// S_FRONT.S_ACTION.T_SYSTEM - the wire has no per-slot response fields.
+// The view XML of a response, read from the slot's entry of its VIEWS
+// section: "MAIN": { "XML": "<xml>", "OPT": {...}? }.
 function displayedXml(body, slot = "MAIN") {
-  for (const item of body.S_FRONT?.S_ACTION?.T_SYSTEM ?? []) {
-    const args = Array.isArray(item) ? item : [];
-    if (args[0] === "VIEW_SLOTS" && args[1] === "display" && args[2] === slot) {
-      return args[3];
-    }
-  }
-  return undefined;
+  return body.S_FRONT?.VIEWS?.[slot]?.XML;
 }
 
 // The message-box APP action of a response:
-// ["MESSAGE_BOX","<type>","<text>",{...}?] in T_CUSTOM.
+// ["MESSAGE_BOX","<type>","<text>",{...}?] in ACTIONS.
 function messageBoxText(body) {
-  for (const item of body.S_FRONT?.S_ACTION?.T_CUSTOM ?? []) {
+  for (const item of body.S_FRONT?.ACTIONS ?? []) {
     const args = Array.isArray(item) ? item : [];
     if (args[0] === "MESSAGE_BOX") return args[2];
   }
@@ -188,7 +182,7 @@ test("ships only the edited path as the event roundtrip's MODEL delta, within bu
   // The delta-transfer contract as a test: View1.eB collects the edited model
   // paths and Lib.buildDeltaFromPaths turns them into the request MODEL, so an
   // event roundtrip must carry ONLY what the user changed - never the full
-  // view model (see the wire-format docs in app/webapp/core/Server.js).
+  // view model (see the wire-format docs in bundle/webapp/core/Server.js).
   await page.goto("/?app_start=z2ui5_cl_ui5_app_hi_world");
 
   const input = page.locator("input").first();
@@ -237,8 +231,8 @@ test("does not append a dangling '#' to the URL after app start", async ({
   // before that phase - wait for the flag plus a settle tick so the
   // (synchronous) hash rewrite, if any, has happened before asserting.
   // The response sits on the page component's context (Component.init
-  // creates it; "container-z2ui5" is the id ComponentSupport gives the
-  // component of the GET page).
+  // creates it; the component is the one the page's embed control runs).
+  const componentId = await pageComponentId(page);
   await page.waitForFunction((id) => {
     const Component = window.sap?.ui?.require?.("sap/ui/core/Component");
     if (!Component) return false;
@@ -246,8 +240,31 @@ test("does not append a dangling '#' to the URL after app start", async ({
       ? Component.getComponentById(id)
       : Component.get(id);
     return component?.ctx?.state.oResponse?._processed === true;
-  }, "container-z2ui5");
+  }, componentId);
   await page.waitForTimeout(100);
 
   expect(page.url()).not.toContain("#");
+});
+
+test("the page asks for the frontend by its version, and the browser may keep it", async ({
+  page,
+}) => {
+  // The GET page tells its control the version of the frontend it serves
+  // (componentData.bundle -> bundleVersion), the control asks for the bundle
+  // by it, and the backend lets the browser keep that answer: a start costs
+  // no request for the frontend once it is cached. Without the version - a
+  // host that does not know it - the bundle is revalidated on every load.
+  const bundle = page.waitForResponse((r) => r.url().includes("z2ui5-bundle="));
+  await page.goto("/");
+  const response = await bundle;
+  expect(response.status()).toBe(200);
+  expect(new URL(response.url()).searchParams.get("z2ui5-bundle")).toMatch(
+    /^[0-9a-f]{16}$/,
+  );
+  expect(response.headers()["cache-control"]).toBe(
+    "private, max-age=31536000, immutable",
+  );
+
+  const plain = await page.request.get("/?z2ui5-bundle");
+  expect(plain.headers()["cache-control"]).toBe("private, no-cache");
 });

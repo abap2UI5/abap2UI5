@@ -50,10 +50,10 @@ that the linter did not run and recommend `/abap2ui5-check`.
    cannot be serialized, and logic that assumes something survives on the
    server between roundtrips other than the instance itself.
 3. **Binding** - `client->_bind( attr )` on a PUBLIC attribute (also for
-   display-only; `_bind_edit` is obsolete), row-template fields as
+   display-only; `_bind_edit` is removed), row-template fields as
    `` `{UPPERCASE}` ``, never a model path typed as a text literal,
    booleans through `a( n = ... b = ... )` and never `abap_true` into `v`.
-   `view_model_update( )` is obsolete and should go.
+   `view_model_update( )` is removed and a leftover call goes.
 4. **Events** - `client->_event( ... )` names that the `CASE
    client->get_event( )` handles, and handlers for every name; `$`-prefixed
    client-resolved arguments; `s_ctrl-check_queue_last` on per-keystroke

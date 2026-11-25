@@ -23,6 +23,21 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
     "! exit clamps what an exit hands back to it
     CONSTANTS c_max_exp_time_in_hours TYPE i VALUE 87600.
 
+    "! The fewest drafts prune_chain( ) keeps of a chain, the one just saved
+    "! included. Two, because the frontend may continue the draft BEFORE
+    "! the newest one: the retry of a request whose response was lost (the
+    "! backend saved depth 1 already, the browser re-sends depth 2), a
+    "! request a newer one superseded after the backend had processed it,
+    "! and the error overlay's retry after a failed roundtrip all continue
+    "! the id the browser adopted last, which the newest save made depth 2.
+    "! Everything older is reached only through ids that prune_chain( )
+    "! protects (the app stack, route and app state restores, share links).
+    CONSTANTS c_min_keep_per_chain TYPE i VALUE 2.
+
+    "! The most drafts prune_chain( ) keeps - the walk is keep - 1 keyed
+    "! reads on every save, so a larger value only costs
+    CONSTANTS c_max_keep_per_chain TYPE i VALUE 50.
+
     "! The store the framework uses. Without set_instance( ) this answers a
     "! fresh instance of this class on every call - which is what the call
     "! sites did before the seam existed, so a system that installs nothing
@@ -54,6 +69,15 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
         check_load_app TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result)  TYPE ty_s_db.
+
+    " whether prune_chain( ) has to keep the id and end its walk there
+    METHODS prune_check_stop
+      IMPORTING
+        id            TYPE string
+        t_stop        TYPE string_table
+        t_seen        TYPE string_table
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 ENDCLASS.
 
 
@@ -68,8 +92,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " would pay for an index on TIMESTAMPL/UNAME on every click. Do not add
     " one, and do not "optimize" these statements around the missing index.
     DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-    lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
+    z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_ui5_user_exit=>set_config_http_post clamps the expiry into
     " 1 .. c_max_exp_time_in_hours - but a subclass installed with
@@ -211,6 +234,105 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     SELECT COUNT( * ) FROM z2ui5_t_01
       WHERE uname = @lv_uname
       INTO @result.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_draft_store~prune_chain.
+
+    IF keep <= 0.
+      RETURN.
+    ENDIF.
+    DATA(lv_keep) = nmax( val1 = c_min_keep_per_chain
+                          val2 = nmin( val1 = keep
+                                       val2 = c_max_keep_per_chain ) ).
+
+    " what survives and ends the walk: the ids the caller protects, and the
+    " apps this draft goes back to - nav_app_leave( ) and get_app_prev( )
+    " load them, and the first draft after a hop has the caller's hop
+    " draft as its id_prev too, so the walk never crosses into the app it
+    " came from
+    DATA(lt_stop) = t_protect.
+    INSERT draft-id_prev_app INTO TABLE lt_stop.
+    INSERT draft-id_prev_app_stack INTO TABLE lt_stop.
+    " what the walk passed is kept as well - a chain that a leave closed
+    " into a circle (the caller resumes under its hop-time id) must not
+    " lead back to a draft inside the window
+    DATA(lt_seen) = VALUE string_table( ( draft-id ) ).
+
+    DATA(lv_id) = draft-id_prev.
+    DO lv_keep - 1 TIMES.
+      IF prune_check_stop( id     = lv_id
+                           t_stop = lt_stop
+                           t_seen = lt_seen ) = abap_true.
+        RETURN.
+      ENDIF.
+      INSERT lv_id INTO TABLE lt_seen.
+      " one keyed read per depth, each needs the one before - the chain
+      " is a linked list, there is no set to read it as
+      TRY.
+          lv_id = read( id             = lv_id
+                        check_load_app = abap_false )-id_prev.
+        CATCH cx_root.
+          " gone already (cleanup, an earlier prune), or not this user's
+          RETURN.
+      ENDTRY.
+    ENDDO.
+
+    " lv_id is depth keep + 1 now - the one draft this save deletes
+    IF prune_check_stop( id     = lv_id
+                         t_stop = lt_stop
+                         t_seen = lt_seen ) = abap_true.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+
+    " a draft another one goes back to stays: a caller on an app stack, the
+    " app a popup returns to - also when the draft naming it is not on this
+    " chain (a leave rewrote the caller's id_prev, and the called app's rows
+    " still name it). No index on the two columns (see cleanup( )): the
+    " table this reads is the one prune_chain( ) keeps small
+    " any one of them is enough, hence SINGLE without the key
+    SELECT SINGLE id FROM z2ui5_t_01
+      WHERE uname = @lv_uname
+        AND ( id_prev_app = @lv_id OR id_prev_app_stack = @lv_id )
+      INTO @DATA(lv_ref) ##NEEDED.                       "#EC CI_NOORDER
+    IF sy-subrc = 0.
+      RETURN.
+    ENDIF.
+
+    DELETE FROM z2ui5_t_01 WHERE id = @lv_id AND uname = @lv_uname.
+    IF sy-subrc = 0.
+      COMMIT WORK AND WAIT.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD prune_check_stop.
+
+    IF id IS INITIAL.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+    " a handful of ids each - a sequential read is the cheap one here
+    result = xsdbool( line_exists( t_stop[ table_line = id ] ) ). "#EC CI_SORTSEQ
+    IF result = abap_false.
+      result = xsdbool( line_exists( t_seen[ table_line = id ] ) ). "#EC CI_SORTSEQ
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_draft_store~touch.
+
+    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+    DATA(lv_now) = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
+
+    " owner-scoped like every read: another user's draft keeps its age
+    UPDATE z2ui5_t_01 SET timestampl = @lv_now
+      WHERE id = @id AND uname = @lv_uname.
+    IF sy-subrc = 0.
+      COMMIT WORK AND WAIT.
+    ENDIF.
 
   ENDMETHOD.
 

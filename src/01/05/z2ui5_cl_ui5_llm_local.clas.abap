@@ -69,8 +69,14 @@ CLASS z2ui5_cl_ui5_llm_local IMPLEMENTATION.
     DATA lv_text TYPE string.
 
     lv_text = val.
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_util_context=>cv_char_util_newline IN lv_text WITH ` `.
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab IN lv_text WITH ` `.
+    lv_text = replace( val  = lv_text
+                       sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
+                       with = ` `
+                       occ  = 0 ).
+    lv_text = replace( val  = lv_text
+                       sub  = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+                       with = ` `
+                       occ  = 0 ).
     lv_text = condense( lv_text ).
     IF lv_text = ``.
       RETURN.

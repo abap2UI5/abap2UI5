@@ -214,7 +214,9 @@ test.describe("in front of the framework", () => {
       expect(run.plain.vary).toBe("Accept-Encoding");
       expect(run.gzip.encoding).toBe("gzip");
       expect(run.gzip.samePage).toBe(true);
-      expect(run.gzip.rawLength).toBeLessThan(run.plain.rawLength / 3);
+      // a sanity bound, not a measurement: the page's script is delivered
+      // minified, which leaves gzip less to do than commented source did
+      expect(run.gzip.rawLength).toBeLessThan(run.plain.rawLength / 2);
       expect(run.gzip.etag).toBe(run.plain.etag.replace(/"$/, "-gzip\""));
       // the framework's http_check_etag_match reads the -gzip tag back
       expect(run.revalidated.status).toBe(304);

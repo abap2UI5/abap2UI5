@@ -194,6 +194,8 @@ function load() {
         preloadFragmentModules: async () => {},
         loadViewLibraries: async () => {},
       },
+      // no view in this spec names a custom control
+      "z2ui5/core/CustomControls": { ensure: async () => {} },
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/Context": contextStub(ctx),
     },

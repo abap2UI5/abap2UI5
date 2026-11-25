@@ -13,7 +13,34 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
+    "! The row of the attribute val points at, or nothing - the search of
+    "! main_attri_search WITHOUT its second and third attempt: no dissolve,
+    "! no main_attri_refresh, no exception. For a caller that asks whether a
+    "! value IS an attribute and takes "no" for an answer
+    "! (window_bind_tab( total = lines( lt_all ) )): a miss costs one scan
+    "! and leaves the attribute table exactly as it was, so a row reference
+    "! the caller holds stays valid. What it cannot find is an attribute
+    "! that only a rebuilt table would show - one behind a reference bound
+    "! since the table was last dissolved; such a caller is answered as if
+    "! the value were none
+    METHODS main_attri_find
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+
     METHODS main_attri_db_save_srtti.
+
+    "! The rows the draft stores - a COPY of the attribute table without
+    "! what the table holds only as a cache of the binding search, and
+    "! without the type descriptors. Called after main_attri_db_save_srtti,
+    "! so the payloads travel with it; the live table is not touched, a
+    "! sticky session goes on with every row it had. See the method body
+    "! for which rows stay
+    METHODS main_attri_db_rows
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
+
     METHODS main_attri_db_load.
     METHODS main_attri_refresh.
 
@@ -84,9 +111,10 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
   PRIVATE SECTION.
     "! The JSON text of the value behind ir_ref written directly - a
     "! STANDARD table of flat rows, or one flat structure, every cell an
-    "! elementary type ajson renders from |{ }| (z2ui5_cl_ui5_util_context
-    "! =>rtti_get_flat_components says which). Empty when the value is
-    "! anything else, and the caller takes the general road through ajson.
+    "! elementary type (z2ui5_cl_ui5_util_context=>rtti_get_flat_components
+    "! says which, and lists the fields of an include in its place). Empty
+    "! when the value is anything else, and the caller takes the general
+    "! road through ajson.
     "! Byte for byte what ajson writes for the same value under the
     "! upper-case mapping with format_datetime (the model's instance): the
     "! keys upper-cased and in the order of ajson's node table (by name),
@@ -102,12 +130,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
     " the fast path's state over one main_json_stringify: the tokens set
-    " into the tree with the JSON each stands for, and the uuid of the call
-    " every token carries (taken on the first one)
+    " into the tree with the JSON each stands for and the path it was set
+    " at, and the uuid of the call every token carries (taken on the first
+    " one). lost: the tree will not write the token (json_fast_check)
     TYPES:
       BEGIN OF ty_s_fast,
         token TYPE string,
         json  TYPE string,
+        path  TYPE string,
+        lost  TYPE abap_bool,
       END OF ty_s_fast.
     TYPES:
       BEGIN OF ty_s_fast_state,
@@ -128,11 +159,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS json_custom_set
       IMPORTING
         ir_attri        TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        iv_val          TYPE any
+        ir_ref          TYPE REF TO data
         io_result       TYPE REF TO z2ui5_if_ajson
       CHANGING
         ci_default      TYPE REF TO z2ui5_if_ajson
         ct_mapper_cache TYPE ty_t_mapper_cache
+        cs_fast         TYPE ty_s_fast_state
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -152,6 +184,105 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! iv_json kept on cs_fast and a token standing for it set into the
+    "! tree at iv_path - spliced in by json_fast_splice once the tree is
+    "! text. The one registration of the fast path and the namespaced road
+    METHODS json_fast_token
+      IMPORTING
+        iv_json   TYPE string
+        iv_path   TYPE string
+        io_result TYPE REF TO z2ui5_if_ajson
+      CHANGING
+        cs_fast   TYPE ty_s_fast_state
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! A bound table or structure whose type names a component with a
+    "! namespace (`/ABC/FIELD`, rtti_check_namespaced) and that the fast
+    "! path did not take - a deep row: written through ajson into a tree of
+    "! its own and rendered by json_ns_text, the namespace a level of its
+    "! own (`"ABC":{"FIELD":...}`), then registered as a token. ev_taken
+    "! abap_false for every other value: the caller sets it as before
+    METHODS json_ns_set
+      IMPORTING
+        ir_ref    TYPE REF TO data
+        ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        io_result TYPE REF TO z2ui5_if_ajson
+      EXPORTING
+        ev_taken  TYPE abap_bool
+      CHANGING
+        cs_fast   TYPE ty_s_fast_state
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! The JSON text of an ajson tree - what its stringify( ) writes, byte
+    "! for byte - with every member named `/ABC/FIELD` moved into an object
+    "! `ABC` as its member `FIELD`. The members of one namespace share that
+    "! object; a member named `ABC` itself next to them is left out (the
+    "! namespace object takes its place - two keys of one name are no
+    "! document). Why: a row template binds RELATIVE to its row, and
+    "! `{/ABC/FIELD}` is an ABSOLUTE path in UI5 - `{ABC/FIELD}` is the one
+    "! a row can carry, and it resolves only when the namespace is a level
+    "! of the row (z2ui5_cl_ui5_view_builder=>component_path)
+    CLASS-METHODS json_ns_text
+      IMPORTING
+        it_tree       TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! one node of json_ns_text, its text appended to ct_buffer
+    CLASS-METHODS json_ns_node
+      IMPORTING
+        it_tree   TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        is_node   TYPE z2ui5_if_ajson_types=>ty_node
+      CHANGING
+        ct_buffer TYPE string_table.
+
+    "! the members of one object of json_ns_text, the namespaced ones
+    "! grouped - see there
+    CLASS-METHODS json_ns_object
+      IMPORTING
+        it_tree   TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        iv_path   TYPE string
+      CHANGING
+        ct_buffer TYPE string_table.
+
+    " one member of an object of json_ns_text - see ty_s_ns_member
+    TYPES:
+      BEGIN OF ty_s_ns_node_member,
+        key  TYPE string,
+        sub  TYPE string,
+        node TYPE z2ui5_if_ajson_types=>ty_node,
+      END OF ty_s_ns_node_member.
+    TYPES ty_t_ns_node_member TYPE STANDARD TABLE OF ty_s_ns_node_member WITH EMPTY KEY.
+
+    "! the members of the object whose children sit at iv_path, in the
+    "! order json_ns_object writes them
+    CLASS-METHODS json_ns_object_members
+      IMPORTING
+        it_tree       TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_t_ns_node_member.
+
+    "! a component name `/ABC/FIELD` split into its namespace `ABC` and
+    "! its name `FIELD` - both empty for a name without a namespace
+    CLASS-METHODS ns_split
+      IMPORTING
+        iv_name  TYPE string
+      EXPORTING
+        ev_ns    TYPE string
+        ev_field TYPE string.
+
+    "! every token the tree will not write marked lost - see the body
+    METHODS json_fast_check
+      IMPORTING
+        io_result TYPE REF TO z2ui5_if_ajson
+      CHANGING
+        cs_fast   TYPE ty_s_fast_state
+      RAISING
+        z2ui5_cx_ajson_error.
+
     "! every token's quoted text in the stringified tree replaced by its
     "! JSON - by offset, see json_fast_set
     CLASS-METHODS json_fast_splice
@@ -165,6 +296,46 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         is_row        TYPE any
         it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! one elementary cell as JSON text - the rendering ajson writes for
+    "! the json_kind of its column (see json_row)
+    CLASS-METHODS json_cell
+      IMPORTING
+        iv_cell       TYPE any
+        iv_kind       TYPE z2ui5_cl_ui5_util_context=>ty_s_flat_comp-json_kind
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " one member of a row of the fast path whose columns carry a
+    " namespace: key is the member of the row object (the namespace for a
+    " namespaced column, the name for every other one), sub the member of
+    " the namespace object (empty for a plain column), name the component
+    TYPES:
+      BEGIN OF ty_s_ns_member,
+        key       TYPE string,
+        sub       TYPE string,
+        name      TYPE string,
+        json_kind TYPE z2ui5_cl_ui5_util_context=>ty_s_flat_comp-json_kind,
+      END OF ty_s_ns_member.
+    TYPES ty_t_ns_member TYPE STANDARD TABLE OF ty_s_ns_member WITH EMPTY KEY.
+
+    "! the members of a row with namespaced columns in the order ajson
+    "! writes the grouped object (json_ns_text) - empty when no column
+    "! carries a namespace, and json_row writes the row as before
+    CLASS-METHODS json_ns_members
+      IMPORTING
+        it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
+      RETURNING
+        VALUE(result) TYPE ty_t_ns_member.
+
+    "! one row as a JSON object, the namespaced columns grouped
+    "! (json_ns_members)
+    CLASS-METHODS json_row_ns
+      IMPORTING
+        is_row        TYPE any
+        it_member     TYPE ty_t_ns_member
       RETURNING
         VALUE(result) TYPE string.
 
@@ -193,6 +364,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " itself, or one of its dissolved descendants at ANY depth (the bound row
     " below a struct alias sits two levels down)? Decides how loud a failed
     " restore is (main_attri_db_load_resolve).
+    "! whether main_attri_db_rows stores the row - see there
+    METHODS check_attri_stored
+      IMPORTING
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        it_total      TYPE string_table
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS check_attri_bound
       IMPORTING
         iv_name       TYPE string
@@ -302,6 +481,18 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
 
+    METHODS diss_oref_intf
+      IMPORTING
+        it_attri  TYPE abap_attrdescr_tab
+        iv_prefix TYPE string
+        iv_parent TYPE string
+      CHANGING
+        ct_result TYPE z2ui5_if_ui5_types=>ty_t_attri.
+
+    " dissolve the attributes interfaces declare as well (`<intf>~<attr>`) -
+    " off until a binding asks for one, see main_attri_search
+    DATA mv_intf TYPE abap_bool.
+
     METHODS attri_create_new
       IMPORTING
         name          TYPE string
@@ -372,6 +563,58 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         ir_before   TYPE REF TO data
       CHANGING
         ct_col_kind TYPE ty_t_col_kind
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! A delta member that names no component of the row but a NAMESPACE
+    "! of some (`CWM` for `/CWM/XCWMAT`, json_ns_text): every member of its
+    "! object is applied to the component `/CWM/&lt;member&gt;` as a cell of
+    "! its own. ev_taken abap_false when the member is no such object - the
+    "! caller goes on as before
+    METHODS delta_apply_ns
+      IMPORTING
+        io_delta      TYPE REF TO z2ui5_if_ajson
+        iv_row_path   TYPE string
+        iv_fld        TYPE string
+        iv_table      TYPE string
+        iv_row        TYPE i
+        iv_row_parent TYPE i
+        ir_row        TYPE REF TO data
+        ir_work_row   TYPE REF TO data
+      EXPORTING
+        ev_taken      TYPE abap_bool
+      CHANGING
+        ct_col_kind   TYPE ty_t_col_kind
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! A whole object or array value into its target: to_abap( ), and for
+    "! a type with namespaced components json_ns_to_abap after it - to_abap
+    "! knows no member `ABC` and leaves `/ABC/FIELD` initial
+    METHODS json_to_abap
+      IMPORTING
+        io_json TYPE REF TO z2ui5_if_ajson
+        ir_ref  TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! the namespaced components below ir_ref filled from the node iv_path
+    "! of io_json (`/ABC/FIELD` from `&lt;iv_path&gt;/ABC/FIELD`) - the rows
+    "! of a standard table and the components of a structure, at every depth
+    METHODS json_ns_to_abap
+      IMPORTING
+        io_json TYPE REF TO z2ui5_if_ajson
+        iv_path TYPE string
+        ir_ref  TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! the structure half of json_ns_to_abap
+    METHODS json_ns_to_abap_struc
+      IMPORTING
+        io_json TYPE REF TO z2ui5_if_ajson
+        iv_path TYPE string
+        ir_ref  TYPE REF TO data
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -790,10 +1033,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " customer app that passes one must keep working
           IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
             json_custom_set( EXPORTING ir_attri        = lr_attri
-                                       iv_val          = <val>
+                                       ir_ref          = lr_ref
                                        io_result       = li_ajson_result
                              CHANGING  ci_default      = li_ajson_default
-                                       ct_mapper_cache = lt_mapper_cache ).
+                                       ct_mapper_cache = lt_mapper_cache
+                                       cs_fast         = ls_fast ).
             CONTINUE.
           ENDIF.
 
@@ -814,10 +1058,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
+          json_ns_set( EXPORTING ir_ref    = lr_ref
+                                 ir_attri  = lr_attri
+                                 io_result = li_ajson_result
+                       IMPORTING ev_taken  = lv_taken
+                       CHANGING  cs_fast   = ls_fast ).
+          IF lv_taken = abap_true.
+            CONTINUE.
+          ENDIF.
+
           li_ajson_result->set( iv_ignore_empty = abap_false
                              iv_path            = lr_attri->name_client
                              iv_val             = <val> ).
         ENDLOOP.
+
+        json_fast_check( EXPORTING io_result = li_ajson_result
+                         CHANGING  cs_fast   = ls_fast ).
 
         result = li_ajson_result->stringify( ).
         IF result IS INITIAL.
@@ -837,10 +1093,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD json_custom_set.
 
     IF ir_attri->custom_mapper IS BOUND.
-      READ TABLE ct_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
-           WITH KEY mapper = ir_attri->custom_mapper. "#EC CI_SORTSEQ
-      IF sy-subrc = 0.
-        DATA(ajson) = lr_mapper_cache->ajson.
+      ASSIGN ct_mapper_cache[ mapper = ir_attri->custom_mapper ] TO FIELD-SYMBOL(<mapper_cache>). "#EC CI_SORTSEQ
+      IF <mapper_cache> IS ASSIGNED.
+        DATA(ajson) = <mapper_cache>-ajson.
       ELSE.
         ajson = z2ui5_cl_ajson=>create_empty(
                     ii_custom_mapping = ir_attri->custom_mapper ).
@@ -855,12 +1110,28 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ajson = ci_default.
     ENDIF.
 
+    FIELD-SYMBOLS <val> TYPE any.
+    ASSIGN ir_ref->* TO <val>.
     ajson->set( iv_ignore_empty = abap_false
                 iv_path         = `/`
-                iv_val          = iv_val ).
+                iv_val          = <val> ).
 
     IF ir_attri->custom_filter IS BOUND.
       ajson = ajson->filter( ir_attri->custom_filter ).
+    ENDIF.
+
+    " a filter alone (omit_initial is one) keeps the upper-case names, so
+    " a namespaced component is grouped like on every other road
+    " (json_ns_text); a mapper of the app's own names the members itself
+    IF ir_attri->custom_mapper IS NOT BOUND
+        AND find( val = ir_attri->name_client
+                  sub = `//` ) < 0
+        AND z2ui5_cl_ui5_util_context=>rtti_check_namespaced( ir_ref ) = abap_true.
+      json_fast_token( EXPORTING iv_json   = json_ns_text( ajson->mt_json_tree )
+                                 iv_path   = ir_attri->name_client
+                                 io_result = io_result
+                       CHANGING  cs_fast   = cs_fast ).
+      RETURN.
     ENDIF.
 
     io_result->set( iv_path = ir_attri->name_client
@@ -871,6 +1142,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD json_fast_set.
 
     ev_taken = abap_false.
+    " a path with an empty segment (`/MS_ROW//ABC/FIELD`, the client name
+    " a namespaced component had before z2ui5_cl_ui5_srv_bind=>get_client_name
+    " collapsed it - a draft of a session started then still carries it):
+    " ajson creates the parents segment by segment but files the node under
+    " the path as written, which no parent walks, so a token there never
+    " reaches the document. The general road writes what it always wrote
+    IF find( val = ir_attri->name_client
+             sub = `//` ) >= 0.
+      RETURN.
+    ENDIF.
     IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
         AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
         AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
@@ -880,6 +1161,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF lv_json IS INITIAL.
       RETURN.
     ENDIF.
+
+    json_fast_token( EXPORTING iv_json   = lv_json
+                               iv_path   = ir_attri->name_client
+                               io_result = io_result
+                     CHANGING  cs_fast   = cs_fast ).
+    ev_taken = abap_true.
+
+  ENDMETHOD.
+
+  METHOD json_fast_token.
 
     " The tree keeps deciding the shape of the document - the order of the
     " keys, a dissolved structure's nesting (/MS/T is an object MS around
@@ -891,33 +1182,329 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       cs_fast-uuid = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     ENDIF.
     DATA(ls_token) = VALUE ty_s_fast( token = |z2ui5-fast-{ cs_fast-uuid }-{ lines( cs_fast-t_token ) + 1 }|
-                                      json  = lv_json ).
-    APPEND ls_token TO cs_fast-t_token.
-    io_result->set( iv_path = ir_attri->name_client
+                                      json  = iv_json
+                                      path  = iv_path ).
+    INSERT ls_token INTO TABLE cs_fast-t_token.
+    io_result->set( iv_path = iv_path
                     iv_val  = ls_token-token ).
+
+  ENDMETHOD.
+
+  METHOD json_ns_set.
+
+    ev_taken = abap_false.
+    " a client name with an empty segment cannot hold a token - see
+    " json_fast_set; such a draft keeps the road it always took
+    IF find( val = ir_attri->name_client
+             sub = `//` ) >= 0.
+      RETURN.
+    ENDIF.
+    IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+      RETURN.
+    ENDIF.
+    " the common value has no namespaced component anywhere and is set
+    " into the result directly, as it always was - the scratch tree below
+    " is only paid for the value that needs it
+    IF z2ui5_cl_ui5_util_context=>rtti_check_namespaced( ir_ref ) = abap_false.
+      RETURN.
+    ENDIF.
+
+    FIELD-SYMBOLS <val> TYPE any.
+    ASSIGN ir_ref->* TO <val>.
+    " the scratch is the result's twin - the same mapping, the same
+    " options - so every node is the one the result would have held
+    DATA(li_scratch) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                                ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
+    li_scratch->set( iv_ignore_empty = abap_false
+                     iv_path         = `/`
+                     iv_val          = <val> ).
+    json_fast_token( EXPORTING iv_json   = json_ns_text( li_scratch->mt_json_tree )
+                               iv_path   = ir_attri->name_client
+                               io_result = io_result
+                     CHANGING  cs_fast   = cs_fast ).
     ev_taken = abap_true.
+
+  ENDMETHOD.
+
+  METHOD json_ns_text.
+
+    DATA lt_buffer TYPE string_table.
+    READ TABLE it_tree INTO DATA(ls_root) WITH TABLE KEY path = `` name = ``.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    json_ns_node( EXPORTING it_tree   = it_tree
+                            is_node   = ls_root
+                  CHANGING  ct_buffer = lt_buffer ).
+    result = concat_lines_of( lt_buffer ).
+
+  ENDMETHOD.
+
+  METHOD json_ns_node.
+
+    " ajson's own serializer, compact (lcl_json_serializer): an array by
+    " index, an object by name, a string escaped as the fast path escapes
+    " it (json_row - the same bytes as ajson's escape_string)
+    CASE is_node-type.
+      WHEN z2ui5_if_ajson_types=>node_type-array.
+        INSERT `[` INTO TABLE ct_buffer.
+        DATA(lv_path) = is_node-path && is_node-name && `/`.
+        DATA(lv_first) = abap_true.
+        LOOP AT it_tree INTO DATA(ls_item) USING KEY array_index WHERE path = lv_path.
+          IF lv_first = abap_false.
+            INSERT `,` INTO TABLE ct_buffer.
+          ENDIF.
+          lv_first = abap_false.
+          json_ns_node( EXPORTING it_tree   = it_tree
+                                  is_node   = ls_item
+                        CHANGING  ct_buffer = ct_buffer ).
+        ENDLOOP.
+        INSERT `]` INTO TABLE ct_buffer.
+      WHEN z2ui5_if_ajson_types=>node_type-object.
+        INSERT `{` INTO TABLE ct_buffer.
+        json_ns_object( EXPORTING it_tree   = it_tree
+                                  iv_path   = is_node-path && is_node-name && `/`
+                        CHANGING  ct_buffer = ct_buffer ).
+        INSERT `}` INTO TABLE ct_buffer.
+      WHEN z2ui5_if_ajson_types=>node_type-string.
+        INSERT |"{ z2ui5_cl_ui5_util_context=>c_escape_json( is_node-value ) }"| INTO TABLE ct_buffer.
+      WHEN z2ui5_if_ajson_types=>node_type-null.
+        INSERT `null` INTO TABLE ct_buffer.
+      WHEN OTHERS.
+        " number and boolean: the text as ajson holds it
+        INSERT is_node-value INTO TABLE ct_buffer.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD json_ns_object.
+
+    DATA lv_group TYPE string.
+    DATA lv_first TYPE abap_bool VALUE abap_true.
+
+    DATA(lt_member) = json_ns_object_members( it_tree = it_tree
+                                              iv_path = iv_path ).
+    LOOP AT lt_member REFERENCE INTO DATA(lr_member).
+      " the members are sorted by key and sub, so a namespace's members
+      " follow each other and its object closes at the first other key
+      IF lv_group IS NOT INITIAL AND lr_member->key <> lv_group.
+        INSERT `}` INTO TABLE ct_buffer.
+        CLEAR lv_group.
+      ENDIF.
+      IF lv_first = abap_false.
+        INSERT `,` INTO TABLE ct_buffer.
+      ENDIF.
+      lv_first = abap_false.
+      IF lr_member->sub IS INITIAL.
+        INSERT |"{ lr_member->key }":| INTO TABLE ct_buffer.
+      ELSEIF lr_member->key = lv_group.
+        INSERT |"{ lr_member->sub }":| INTO TABLE ct_buffer.
+      ELSE.
+        lv_group = lr_member->key.
+        INSERT |"{ lr_member->key }":\{"{ lr_member->sub }":| INTO TABLE ct_buffer.
+      ENDIF.
+      json_ns_node( EXPORTING it_tree   = it_tree
+                              is_node   = lr_member->node
+                    CHANGING  ct_buffer = ct_buffer ).
+    ENDLOOP.
+    IF lv_group IS NOT INITIAL.
+      INSERT `}` INTO TABLE ct_buffer.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD json_ns_object_members.
+
+    DATA lt_ns TYPE string_table.
+
+    " the members as ajson orders them - by name, the primary key - with a
+    " namespaced one filed under its namespace
+    LOOP AT it_tree INTO DATA(ls_node) WHERE path = iv_path. "#EC CI_SORTSEQ
+      ns_split( EXPORTING iv_name  = ls_node-name
+                IMPORTING ev_ns    = DATA(lv_ns)
+                          ev_field = DATA(lv_field) ).
+      IF lv_ns IS INITIAL.
+        INSERT VALUE #( key  = ls_node-name
+                        node = ls_node ) INTO TABLE result.
+      ELSE.
+        INSERT VALUE #( key  = lv_ns
+                        sub  = lv_field
+                        node = ls_node ) INTO TABLE result.
+        INSERT lv_ns INTO TABLE lt_ns.
+      ENDIF.
+    ENDLOOP.
+    IF lt_ns IS INITIAL.
+      RETURN.
+    ENDIF.
+    " a member named like a namespace of its neighbours gives way to the
+    " namespace object - see json_ns_text
+    LOOP AT lt_ns INTO lv_ns.
+      DELETE result WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
+    ENDLOOP.
+    SORT result BY key sub.
+
+  ENDMETHOD.
+
+  METHOD ns_split.
+
+    CLEAR: ev_ns, ev_field.
+    " `/ABC/FIELD`: a leading slash, a namespace, a second slash, a name
+    IF strlen( iv_name ) < 4 OR iv_name(1) <> `/`.
+      RETURN.
+    ENDIF.
+    DATA(lv_rest) = substring( val = iv_name
+                               off = 1 ).
+    DATA(lv_off) = find( val = lv_rest
+                         sub = `/` ).
+    DATA(lv_last) = strlen( lv_rest ) - 1.
+    IF lv_off < 1 OR lv_off >= lv_last.
+      RETURN.
+    ENDIF.
+    ev_ns = substring( val = lv_rest
+                       len = lv_off ).
+    ev_field = substring( val = lv_rest
+                          off = lv_off + 1 ).
+
+  ENDMETHOD.
+
+  METHOD json_fast_check.
+
+    " A token is in the document when its node is still there and every
+    " node above it is an object or an array the stringify walks into. It
+    " is not when a LATER attribute of the loop was set at the same path or
+    " above it - two attributes whose client names meet (a field `ABC` next
+    " to a namespaced `/ABC/FIELD` of the same row, both below
+    " `/MS_ROW/ABC`): the later set replaced the subtree, token and all.
+    " The general road loses that value exactly the same way, so the token
+    " is marked lost and the document is what the tree alone writes - not
+    " the internal error, which stays for a token the tree should have
+    " written and did not (json_fast_splice)
+    DATA lt_segment TYPE string_table.
+    DATA lv_path    TYPE string.
+
+    LOOP AT cs_fast-t_token REFERENCE INTO DATA(lr_fast).
+      IF io_result->get_string( lr_fast->path ) <> lr_fast->token.
+        lr_fast->lost = abap_true.
+        CONTINUE.
+      ENDIF.
+      SPLIT lr_fast->path AT `/` INTO TABLE lt_segment.
+      DELETE lt_segment WHERE table_line IS INITIAL.
+      " the parents only - the last segment is the token's own node
+      DATA(lv_last) = lines( lt_segment ).
+      DELETE lt_segment INDEX lv_last.
+      CLEAR lv_path.
+      LOOP AT lt_segment INTO DATA(lv_segment).
+        lv_path = |{ lv_path }/{ lv_segment }|.
+        DATA(lv_type) = io_result->get_node_type( lv_path ).
+        IF lv_type <> z2ui5_if_ajson_types=>node_type-object
+            AND lv_type <> z2ui5_if_ajson_types=>node_type-array.
+          lr_fast->lost = abap_true.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
 
   ENDMETHOD.
 
   METHOD json_fast_splice.
 
-    " each token's quoted text exactly once in the document, in the order
-    " the tree put them. Spliced by offset, not with replace( ): the
-    " transpiled runtime reads a `$` in a replacement text as a pattern
-    " (abap-check, section 4), and a bound value may well carry one
-    LOOP AT is_fast-t_token REFERENCE INTO DATA(lr_fast).
-      DATA(lv_quoted) = |"{ lr_fast->token }"|.
+    " ONE pass over the document: every token is located from where the
+    " previous one ended, the text between them and the JSON each stands for
+    " are collected, and the document is built by one concatenation. It used
+    " to be one find( ) from offset 0 and one rebuilt copy of the WHOLE
+    " model per token - a view of ten bound tables copied its model ten
+    " times, each search running over the rows spliced in before it.
+    " The scan looks for what every token of this call starts with (the
+    " quote and the uuid) and reads the token's number behind it, so it
+    " does not depend on the tree writing the tokens in the order they were
+    " set: the tree sorts by path, the tokens are numbered in the order of
+    " the attribute table. The text already spliced in is never searched
+    " again, so a bound value that happens to look like a token stays a
+    " value.
+    " By offset, not with replace( ): the transpiled runtime reads a `$` in
+    " a replacement text as a pattern (abap-check, section 4), and a bound
+    " value may well carry one
+    IF is_fast-t_token IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    DATA lt_piece TYPE string_table.
+    FIELD-SYMBOLS <fast> TYPE ty_s_fast.
+    DATA lt_used  TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
+    DATA lv_index TYPE i.
+    DATA(lv_start) = |"z2ui5-fast-{ is_fast-uuid }-|.
+    DATA(lv_start_len) = strlen( lv_start ).
+    DATA(lv_pos) = 0.
+    DATA(lv_found) = 0.
+
+    DO.
       DATA(lv_off) = find( val = cv_json
-                           sub = lv_quoted ).
+                           sub = lv_start
+                           off = lv_pos ).
       IF lv_off < 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = `MODEL_FAST_PATH_TOKEN_LOST - internal error while serializing a bound table: a cell placeholder is ` &&
-                  `missing from the document. This is a framework defect, not an app error - please report it`.
+        EXIT.
       ENDIF.
-      DATA(lv_rest) = lv_off + strlen( lv_quoted ).
-      cv_json = cv_json(lv_off) && lr_fast->json && cv_json+lv_rest.
+      DATA(lv_num_off) = lv_off + lv_start_len.
+      DATA(lv_end) = find( val = cv_json
+                           sub = `"`
+                           off = lv_num_off ).
+      IF lv_end < 0.
+        EXIT.
+      ENDIF.
+      " the number is the token's line in t_token (json_fast_set) - the
+      " characters are this call's own, so the conversion cannot fail on
+      " anything an app bound
+      lv_index = substring( val = cv_json
+                            off = lv_num_off
+                            len = lv_end - lv_num_off ).
+      UNASSIGN <fast>.
+      ASSIGN is_fast-t_token[ lv_index ] TO <fast>.
+      IF <fast> IS NOT ASSIGNED.
+        EXIT.
+      ENDIF.
+      " a token json_fast_check found unreachable, in the document after
+      " all - the check and the tree disagree, counted as lost below
+      IF <fast>-lost = abap_true.
+        lv_found = -1.
+        EXIT.
+      ENDIF.
+      INSERT lv_index INTO TABLE lt_used.
+      IF sy-subrc <> 0.
+        " the same token a second time - counted as lost below
+        lv_found = -1.
+        EXIT.
+      ENDIF.
+      " never empty: a token is a member's value, so the document has at
+      " least `{"NAME":` before the first one and `,"NAME":` between two
+      INSERT substring( val = cv_json
+                        off = lv_pos
+                        len = lv_off - lv_pos ) INTO TABLE lt_piece.
+      INSERT <fast>-json INTO TABLE lt_piece.
+      lv_pos = lv_end + 1.
+      lv_found = lv_found + 1.
+    ENDDO.
+
+    " every token exactly once - a token the tree did not write, or wrote
+    " twice, is a document with a table missing, and that must be loud.
+    " Not counted: the tokens json_fast_check marked lost - a later
+    " attribute replaced them, as it replaces the general road's value
+    DATA(lv_expected) = 0.
+    LOOP AT is_fast-t_token TRANSPORTING NO FIELDS WHERE lost = abap_false. "#EC CI_SORTSEQ
+      lv_expected = lv_expected + 1.
     ENDLOOP.
+    IF lv_expected <> lv_found.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `MODEL_FAST_PATH_TOKEN_LOST - internal error while serializing a bound table: a cell placeholder is ` &&
+                `missing from the document. This is a framework defect, not an app error - please report it`.
+    ENDIF.
+
+    " what follows the last token - at least the closing brace
+    INSERT substring( val = cv_json
+                      off = lv_pos ) INTO TABLE lt_piece.
+    cv_json = concat_lines_of( lt_piece ).
 
   ENDMETHOD.
 
@@ -934,10 +1521,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " whose key is the name - the component order of the structure does
     " not show in the text
     SORT lt_comp BY name.
+    " a column with a namespace (`/ABC/FIELD`) is written below an object
+    " of its namespace, as json_ns_text writes it on the general road - so
+    " a row template can bind it relatively. Empty for every other row,
+    " which keeps the text it always had
+    DATA(lt_member) = json_ns_members( lt_comp ).
 
     IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
       " the flat structure itself
       ASSIGN ir_ref->* TO <row>.
+      IF lt_member IS NOT INITIAL.
+        result = json_row_ns( is_row    = <row>
+                              it_member = lt_member ).
+        RETURN.
+      ENDIF.
       result = json_row( is_row  = <row>
                          it_comp = lt_comp ).
       RETURN.
@@ -947,10 +1544,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " system when the kinds differ (abap-check, section 5)
     ASSIGN ir_ref->* TO <tab>.
     DATA lt_row TYPE string_table.
-    LOOP AT <tab> ASSIGNING <row>.
-      APPEND json_row( is_row  = <row>
-                       it_comp = lt_comp ) TO lt_row.
-    ENDLOOP.
+    IF lt_member IS NOT INITIAL.
+      LOOP AT <tab> ASSIGNING <row>.
+        INSERT json_row_ns( is_row    = <row>
+                            it_member = lt_member ) INTO TABLE lt_row.
+      ENDLOOP.
+    ELSE.
+      LOOP AT <tab> ASSIGNING <row>.
+        INSERT json_row( is_row  = <row>
+                         it_comp = lt_comp ) INTO TABLE lt_row.
+      ENDLOOP.
+    ENDIF.
     result = `[` && concat_lines_of( table = lt_row
                                      sep   = `,` ) && `]`.
 
@@ -960,7 +1564,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     FIELD-SYMBOLS <cell> TYPE any.
     DATA lt_member TYPE string_table.
-    DATA lv_text   TYPE string.
 
     LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
       ASSIGN COMPONENT lr_comp->name OF STRUCTURE is_row TO <cell>.
@@ -972,26 +1575,113 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             val = |MODEL_FAST_PATH_COMPONENT_LOST - internal error while serializing a bound table: column | &&
                   |'{ lr_comp->name }' is missing from its own row. This is a framework defect, not an app error - please report it|.
       ENDIF.
-      " the one rendering ajson uses for every elementary value: the string
-      " template, which decides the sign, the decimals and the exponent by
-      " the type of the cell - and the raw digits of a date or a time,
-      " which ajson's format_date / format_time (the model's instance is
-      " created with format_datetime) write as ISO text, empty when initial
-      lv_text = |{ <cell> }|.
-      CASE lr_comp->json_kind.
-        WHEN `S`.
-          lv_text = |"{ z2ui5_cl_ui5_util_context=>c_escape_json( lv_text ) }"|.
-        WHEN `D`.
-          lv_text = COND #( WHEN <cell> IS INITIAL THEN `""`
-                            ELSE |"{ lv_text(4) }-{ lv_text+4(2) }-{ lv_text+6(2) }"| ).
-        WHEN `T`.
-          lv_text = COND #( WHEN <cell> IS INITIAL THEN `""`
-                            ELSE |"{ lv_text(2) }:{ lv_text+2(2) }:{ lv_text+4(2) }"| ).
-        WHEN `B`.
-          lv_text = COND #( WHEN <cell> IS NOT INITIAL THEN `true` ELSE `false` ).
-      ENDCASE.
-      APPEND |"{ lr_comp->name }":{ lv_text }| TO lt_member.
+      INSERT |"{ lr_comp->name }":{ json_cell( iv_cell  = <cell>
+                                                iv_kind = lr_comp->json_kind ) }| INTO TABLE lt_member.
     ENDLOOP.
+    result = `{` && concat_lines_of( table = lt_member
+                                     sep   = `,` ) && `}`.
+
+  ENDMETHOD.
+
+  METHOD json_cell.
+
+    " the one rendering ajson uses for every elementary value: the string
+    " template, which decides the sign, the decimals and the exponent by
+    " the type of the cell - and the raw digits of a date or a time,
+    " which ajson's format_date / format_time (the model's instance is
+    " created with format_datetime) write as ISO text, empty when initial
+    result = |{ iv_cell }|.
+    CASE iv_kind.
+      WHEN `S`.
+        result = |"{ z2ui5_cl_ui5_util_context=>c_escape_json( result ) }"|.
+      WHEN `D`.
+        result = COND #( WHEN iv_cell IS INITIAL THEN `""`
+                         ELSE |"{ result(4) }-{ result+4(2) }-{ result+6(2) }"| ).
+      WHEN `T`.
+        result = COND #( WHEN iv_cell IS INITIAL THEN `""`
+                         ELSE |"{ result(2) }:{ result+2(2) }:{ result+4(2) }"| ).
+      WHEN `B`.
+        result = COND #( WHEN iv_cell IS NOT INITIAL THEN `true` ELSE `false` ).
+      WHEN `U`.
+        " a packed field typed timestamp or timestampl: ajson's
+        " format_timestamp / format_timestampl, an ISO instant in UTC -
+        " never empty, an initial one is 0000-00-00T00:00:00Z. Nothing
+        " to escape: digits and the punctuation of the format
+        result = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stamp( iv_cell ) }"|.
+      WHEN `L`.
+        result = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( iv_cell ) }"|.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD json_ns_members.
+
+    DATA lt_ns TYPE string_table.
+
+    LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
+      ns_split( EXPORTING iv_name  = lr_comp->name
+                IMPORTING ev_ns    = DATA(lv_ns)
+                          ev_field = DATA(lv_field) ).
+      IF lv_ns IS INITIAL.
+        INSERT VALUE #( key       = lr_comp->name
+                        name      = lr_comp->name
+                        json_kind = lr_comp->json_kind ) INTO TABLE result.
+      ELSE.
+        INSERT VALUE #( key       = lv_ns
+                        sub       = lv_field
+                        name      = lr_comp->name
+                        json_kind = lr_comp->json_kind ) INTO TABLE result.
+        INSERT lv_ns INTO TABLE lt_ns.
+      ENDIF.
+    ENDLOOP.
+    IF lt_ns IS INITIAL.
+      CLEAR result.
+      RETURN.
+    ENDIF.
+    " the rule of json_ns_object: a column named like a namespace of its
+    " neighbours gives way to the namespace object
+    LOOP AT lt_ns INTO lv_ns.
+      DELETE result WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
+    ENDLOOP.
+    SORT result BY key sub.
+
+  ENDMETHOD.
+
+  METHOD json_row_ns.
+
+    FIELD-SYMBOLS <cell> TYPE any.
+    DATA lt_member TYPE string_table.
+    DATA lt_inner  TYPE string_table.
+    DATA lv_group  TYPE string.
+
+    LOOP AT it_member REFERENCE INTO DATA(lr_member).
+      ASSIGN COMPONENT lr_member->name OF STRUCTURE is_row TO <cell>.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = |MODEL_FAST_PATH_COMPONENT_LOST - internal error while serializing a bound table: column | &&
+                  |'{ lr_member->name }' is missing from its own row. This is a framework defect, not an app error - please report it|.
+      ENDIF.
+      DATA(lv_text) = json_cell( iv_cell = <cell>
+                                 iv_kind = lr_member->json_kind ).
+      " the members are sorted by key and sub, so a namespace's columns
+      " follow each other and its object closes at the first other key
+      IF lv_group IS NOT INITIAL AND lr_member->key <> lv_group.
+        INSERT |"{ lv_group }":\{{ concat_lines_of( table = lt_inner
+                                                      sep = `,` ) }\}| INTO TABLE lt_member.
+        CLEAR: lv_group, lt_inner.
+      ENDIF.
+      IF lr_member->sub IS INITIAL.
+        INSERT |"{ lr_member->key }":{ lv_text }| INTO TABLE lt_member.
+      ELSE.
+        lv_group = lr_member->key.
+        INSERT |"{ lr_member->sub }":{ lv_text }| INTO TABLE lt_inner.
+      ENDIF.
+    ENDLOOP.
+    IF lv_group IS NOT INITIAL.
+      INSERT |"{ lv_group }":\{{ concat_lines_of( table = lt_inner
+                                                    sep = `,` ) }\}| INTO TABLE lt_member.
+    ENDIF.
     result = `{` && concat_lines_of( table = lt_member
                                      sep   = `,` ) && `}`.
 
@@ -1396,6 +2086,91 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD main_attri_db_rows.
+
+    " Most rows of the table are no state: dissolving an app writes one row
+    " per component of every public structure, of every object it holds -
+    " an app shaped like a large warehouse app had 436 rows, 21 of them
+    " bound, and they were a tenth of its draft. The bound rows are what
+    " the model reads and writes (main_json_stringify, main_json_to_attri,
+    " the snapshot - each loops `bind = abap_true`); the others are a cache
+    " of the binding search. A row the draft leaves out costs, when a later
+    " _bind( ) asks for it, one miss and one main_attri_refresh - which
+    " writes the whole table again (main_attri_search).
+    "
+    " So only LEAVES are left out: elementary rows (no child can hang below
+    " them) that are not bound, carry no alias, are not the total of a
+    " window and do not sit below a data reference. Every other row stays,
+    " and why it must:
+    " - tables, structures and references own or alias a data object: the
+    "   alias pass (attri_update_entry_refs) clears the name_ref of a row
+    "   whose owner row is missing, and the alias comes back from the next
+    "   draft as a COPY - the draft grows, the app writes into a twin
+    " - the chain of parents of a kept row: check_attri_bound walks it, and
+    "   main_attri_db_load_dref asks the parent of an alias - a chain is
+    "   kept whole, since every parent is a structure or a reference
+    " - every row below a data reference: the payload and its restore are
+    "   decided on that chain (main_attri_db_load_resolve, the alias guard)
+    " - the total of a window (window_total_name): window_adopt asks for it
+    "   with main_attri_find, which never rebuilds - a missing row would
+    "   turn a total the app keeps current into the value of one render
+    " An unbound row an INTERFACE declares (`LIF~ATTR`) is an ordinary leaf:
+    " a binding that misses it rebuilds the table like any other, and
+    " main_attri_refresh turns the interface rows on again for a table that
+    " carries a bound `~` row; with none, the fourth attempt of
+    " main_attri_search does.
+    "
+    " The type descriptor is never stored: an object reference that the
+    " load cannot use - dissolve_run resolves the descriptor of a row
+    " afresh from the live attribute when it needs one, and everything the
+    " search compares travels as text (type_name, type_kind, kind)
+    DATA lt_total TYPE string_table.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+         WHERE window_total_name IS NOT INITIAL.
+      INSERT lr_attri->window_total_name INTO TABLE lt_total.
+    ENDLOOP.
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri.
+      IF check_attri_stored( ir_attri = lr_attri
+                             it_total = lt_total ) = abap_false.
+        CONTINUE.
+      ENDIF.
+      DATA(ls_row) = lr_attri->*.
+      CLEAR ls_row-o_typedescr.
+      INSERT ls_row INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD check_attri_stored.
+
+    " a row without a kind (written by a draft older than the component)
+    " is kept: nothing says it is a leaf
+    IF ir_attri->bind = abap_true
+        OR ir_attri->kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem
+        OR ir_attri->name_ref IS NOT INITIAL
+        OR line_exists( it_total[ table_line = ir_attri->name ] ). "#EC CI_SORTSEQ
+      result = abap_true.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_parent) = ir_attri->name_parent.
+    WHILE lv_parent IS NOT INITIAL.
+      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_up)
+           WITH TABLE KEY name = lv_parent.
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+      IF lr_up->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+      lv_parent = lr_up->name_parent.
+    ENDWHILE.
+
+  ENDMETHOD.
+
   METHOD main_attri_reattach.
 
     FIELD-SYMBOLS <dref> TYPE any.
@@ -1455,9 +2230,40 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " the fourth attempt: an attribute an INTERFACE declares
+    " (`zif_state~mv_value`, or `mi_state->mv_value` through an interface
+    " reference without ALIASES). Those rows are left out of the dissolve
+    " until a binding misses everything else - every app implements
+    " z2ui5_if_app, and dissolving its id_draft and id_app, and whatever
+    " other interface an app or an object it holds implements, put rows
+    " into every draft that no app binds. Once on, the rebuilt table keeps
+    " them, and the next roundtrip finds the bound row in the draft;
+    " main_attri_refresh turns it on again for a table that carries a bound
+    " interface row. An app that never binds one pays nothing, and its
+    " draft and model stay what they were
+    IF mv_intf = abap_false.
+      mv_intf = abap_true.
+      main_attri_refresh( ).
+      result = attri_search( val ).
+      IF result IS BOUND.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
+
+  ENDMETHOD.
+
+  METHOD main_attri_find.
+
+    " attri_search refuses a reference to a reference with an exception -
+    " that is "no attribute" here as well
+    TRY.
+        result = attri_search( val ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -1702,6 +2508,54 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           DATA(ls_new) = attri_create_new( lv_prefix && lr_attri->name ).
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
+
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+    IF mv_intf = abap_true.
+      diss_oref_intf( EXPORTING it_attri  = lt_attri
+                                iv_prefix = lv_prefix
+                                iv_parent = ir_attri->name
+                      CHANGING  ct_result = result ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD diss_oref_intf.
+
+    " The attributes an INTERFACE declares, `<intf>~<attr>` - only once a
+    " binding asked for one (mv_intf, see main_attri_search). The rows the
+    " class pass wrote come first: an ALIASES name is a row of its own
+    " there (`MV_VALUE` for `ZIF_STATE~MV_VALUE`) and addresses the SAME
+    " data object, so the interface spelling of an attribute an alias
+    " already carries is left out - compared by reference, the way the
+    " binding search decides (attri_search), not by the alias_for of the
+    " descriptor, which not every runtime fills. One row per data object:
+    " a _bind( ) of either spelling finds the alias row and answers its
+    " path, and the attribute is written and read back once
+    DATA lt_refs TYPE STANDARD TABLE OF REF TO data WITH EMPTY KEY.
+
+    LOOP AT ct_result REFERENCE INTO DATA(lr_row).
+      TRY.
+          INSERT attri_get_val_ref( lr_row->name ) INTO TABLE lt_refs.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+    LOOP AT it_attri REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE visibility   = z2ui5_cl_ui5_util_context=>cv_objectdescr_public
+               AND is_interface = abap_true
+               AND is_class     = abap_false
+               AND is_constant  = abap_false.
+      TRY.
+          DATA(ls_new) = attri_create_new( iv_prefix && lr_attri->name ).
+          DATA(lr_ref) = attri_get_val_ref( ls_new-name ).
+          IF line_exists( lt_refs[ table_line = lr_ref ] ). "#EC CI_SORTSEQ
+            CONTINUE.
+          ENDIF.
+          ls_new-name_parent = iv_parent.
+          INSERT ls_new INTO TABLE ct_result.
 
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.
@@ -2064,6 +2918,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_bound)   "#EC CI_SORTSEQ
          WHERE bind = abap_true.
       INSERT lr_bound->* INTO TABLE lt_attri.
+      " a bound attribute an interface declares is only found again with
+      " the interface rows dissolved - see main_attri_search
+      IF lr_bound->name CA `~`.
+        mv_intf = abap_true.
+      ENDIF.
     ENDLOOP.
     CLEAR mt_attri->*.
 
@@ -2177,8 +3036,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " keyed reads on the sorted node table, so the row is addressed by
       " its full path instead
       DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
-      READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
-      IF sy-subrc <> 0.
+      UNASSIGN <delta_row>.
+      ASSIGN ct_tab[ lv_tabix ] TO <delta_row>.
+      IF <delta_row> IS NOT ASSIGNED.
         " an index past the table's end - the client edited a row the
         " backend no longer has (the app shrank the table without the model
         " going out again). Traced like a sorted-table row: a bare CONTINUE
@@ -2200,6 +3060,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         IF lv_fld CO `0123456789`.
           CONTINUE.
         ENDIF.
+        " a namespace of the row's columns (`CWM` for `/CWM/XCWMAT`) - the
+        " level the model writes them below (json_ns_text), and the one
+        " a relative binding `{CWM/XCWMAT}` edits. Asked first: a column
+        " named `CWM` next to them is not in the model (it gave way to the
+        " namespace object), so the object is never its value
+        delta_apply_ns( EXPORTING io_delta      = io_delta
+                                  iv_row_path   = lv_row_path
+                                  iv_fld        = lv_fld
+                                  iv_table      = iv_table
+                                  iv_row        = lv_tabix
+                                  iv_row_parent = iv_row_parent
+                                  ir_row        = REF #( <delta_row> )
+                                  ir_work_row   = lr_work_row
+                        IMPORTING ev_taken      = DATA(lv_ns_taken)
+                        CHANGING  ct_col_kind   = lt_col_kind ).
+        IF lv_ns_taken = abap_true.
+          CONTINUE.
+        ENDIF.
         ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
         IF sy-subrc <> 0.
           CONTINUE.
@@ -2218,6 +3096,49 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                      ir_before   = REF #( <before> )
                            CHANGING  ct_col_kind = lt_col_kind ).
       ENDLOOP.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD delta_apply_ns.
+
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <work>   TYPE any.
+    FIELD-SYMBOLS <comp>   TYPE any.
+    FIELD-SYMBOLS <before> TYPE any.
+
+    ev_taken = abap_false.
+    DATA(lv_path) = |{ iv_row_path }/{ iv_fld }|.
+    IF io_delta->get_node_type( lv_path ) <> z2ui5_if_ajson_types=>node_type-object.
+      RETURN.
+    ENDIF.
+    ASSIGN ir_row->* TO <row>.
+    ASSIGN ir_work_row->* TO <work>.
+
+    " the member is a namespace when at least one of its members names a
+    " component `/<member>/<name>` - only then is the object taken here
+    DATA(lt_sub) = io_delta->members( lv_path ).
+    LOOP AT lt_sub INTO DATA(lv_sub).
+      DATA(lv_name) = |/{ iv_fld }/{ lv_sub }|.
+      ASSIGN COMPONENT lv_name OF STRUCTURE <row> TO <comp>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      ASSIGN COMPONENT lv_name OF STRUCTURE <work> TO <before>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      ev_taken = abap_true.
+      " the cell under the component's own name - in t_model_skipped too
+      delta_apply_field( EXPORTING io_delta    = io_delta
+                                   iv_path     = |{ lv_path }/{ lv_sub }|
+                                   is_cell     = VALUE #( name       = iv_table
+                                                          row        = iv_row
+                                                          field      = lv_name
+                                                          row_parent = iv_row_parent )
+                                   ir_comp     = REF #( <comp> )
+                                   ir_before   = REF #( <before> )
+                         CHANGING  ct_col_kind = ct_col_kind ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -2392,7 +3313,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <comp>   TYPE any.
     FIELD-SYMBOLS <before> TYPE any.
     DATA lr_col_kind TYPE REF TO ty_s_col_kind.
-    DATA li_slice TYPE REF TO z2ui5_if_ajson.
     ASSIGN ir_comp->* TO <comp>.
 
     " the column's kind first, asked once per COLUMN (a property of the
@@ -2485,16 +3405,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               " sender of a genuinely PARTIAL object is the obsolete
               " _bind( custom_filter ) dropping a non-initial field - such a
               " field is cleared here, exactly as on the attribute level
-              li_slice = io_delta->slice( iv_path ).
-              li_slice->to_abap( EXPORTING iv_corresponding = abap_true
-                                 IMPORTING ev_container     = <comp> ).
+              json_to_abap( io_json = io_delta->slice( iv_path )
+                            ir_ref  = ir_comp ).
             ENDIF.
 
           WHEN z2ui5_if_ajson_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
-            li_slice = io_delta->slice( iv_path ).
-            li_slice->to_abap( EXPORTING iv_corresponding = abap_true
-                               IMPORTING ev_container     = <comp> ).
+            json_to_abap( io_json = io_delta->slice( iv_path )
+                          ir_ref  = ir_comp ).
 
           WHEN OTHERS.
             delta_apply_scalar( io_delta     = io_delta
@@ -2575,7 +3493,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         ls_skip-value = io_delta->get_string( iv_path ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
-    APPEND ls_skip TO mt_skipped.
+    INSERT ls_skip INTO TABLE mt_skipped.
 
   ENDMETHOD.
 
@@ -2657,8 +3575,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " not travel on - it is the answer, and the caller traces the attribute
     TRY.
         IF lo_val_front IS BOUND.
-          lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
-                                 IMPORTING ev_container     = <val> ).
+          json_to_abap( io_json = lo_val_front
+                        ir_ref  = lr_ref ).
         ELSE.
           scalar_apply( io_model     = io_model
                         iv_path      = iv_path
@@ -2668,6 +3586,103 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       CATCH cx_root INTO result.
         <val> = <before>.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD json_to_abap.
+
+    FIELD-SYMBOLS <val> TYPE any.
+    ASSIGN ir_ref->* TO <val>.
+    io_json->to_abap( EXPORTING iv_corresponding = abap_true
+                      IMPORTING ev_container     = <val> ).
+    " to_abap matches a member to a component by name, and the model
+    " writes `/ABC/FIELD` as member FIELD of an object ABC (json_ns_text):
+    " to_abap skips that object and leaves the component initial. Filled
+    " here - only for a type that has such a component at all
+    IF z2ui5_cl_ui5_util_context=>rtti_check_namespaced( ir_ref ) = abap_true.
+      json_ns_to_abap( io_json = io_json
+                       iv_path = ``
+                       ir_ref  = ir_ref ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD json_ns_to_abap.
+
+    FIELD-SYMBOLS <val> TYPE any.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN ir_ref->* TO <val>.
+
+    DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
+    IF lv_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+        OR lv_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+      json_ns_to_abap_struc( io_json = io_json
+                             iv_path = iv_path
+                             ir_ref  = ir_ref ).
+      RETURN.
+    ENDIF.
+    " a sorted or hashed table is not in the order of the array - only a
+    " standard table is matched row by row (and decided by RTTI before the
+    " typed ASSIGN, abap-check section 5)
+    IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+        OR check_table_standard( ir_ref ) = abap_false.
+      RETURN.
+    ENDIF.
+    ASSIGN ir_ref->* TO <tab>.
+    LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
+      " ajson numbers the items of an array from 1
+      json_ns_to_abap( io_json = io_json
+                       iv_path = |{ iv_path }/{ sy-tabix }|
+                       ir_ref  = REF #( <row> ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD json_ns_to_abap_struc.
+
+    FIELD-SYMBOLS <val>  TYPE any.
+    FIELD-SYMBOLS <comp> TYPE any.
+    ASSIGN ir_ref->* TO <val>.
+
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( <val> ).
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      ASSIGN COMPONENT lr_comp->name OF STRUCTURE <val> TO <comp>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      ns_split( EXPORTING iv_name  = lr_comp->name
+                IMPORTING ev_ns    = DATA(lv_ns)
+                          ev_field = DATA(lv_field) ).
+      IF lv_ns IS INITIAL.
+        " a plain component: only a structure or a table can hold a
+        " namespaced one further down
+        DATA(lv_sub) = |{ iv_path }/{ lr_comp->name }|.
+        IF lr_comp->type->kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem
+            AND lr_comp->type->kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_kind_ref
+            AND io_json->exists( lv_sub ) = abap_true
+            AND z2ui5_cl_ui5_util_context=>rtti_check_namespaced( REF #( <comp> ) ) = abap_true.
+          json_ns_to_abap( io_json = io_json
+                           iv_path = lv_sub
+                           ir_ref  = REF #( <comp> ) ).
+        ENDIF.
+        CONTINUE.
+      ENDIF.
+
+      lv_sub = |{ iv_path }/{ lv_ns }/{ lv_field }|.
+      DATA(lv_node_type) = io_json->get_node_type( lv_sub ).
+      " a member that is not there stays initial, as to_abap leaves a
+      " component the object does not carry
+      IF lv_node_type = z2ui5_if_ajson_types=>node_type-object
+          OR lv_node_type = z2ui5_if_ajson_types=>node_type-array.
+        json_to_abap( io_json = io_json->slice( lv_sub )
+                      ir_ref  = REF #( <comp> ) ).
+      ELSEIF lv_node_type IS NOT INITIAL.
+        scalar_apply( io_model     = io_json
+                      iv_path      = lv_sub
+                      iv_node_type = lv_node_type
+                      ir_ref       = REF #( <comp> ) ).
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -2690,7 +3705,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         ls_skip-value = io_model->get_string( iv_path ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
-    APPEND ls_skip TO mt_skipped.
+    INSERT ls_skip INTO TABLE mt_skipped.
 
   ENDMETHOD.
 

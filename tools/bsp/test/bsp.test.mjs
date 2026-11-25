@@ -73,7 +73,7 @@ test("the path mapping is the format the UI5 repository writes", () => {
 test("the ICF node file names are abapGit's", () => {
   const shipped = [
     ...readdirSync(join(repo, "tools/app2bsp/static_files")),
-    ...readdirSync(join(repo, "frontend/abap/standard/01")),
+    ...readdirSync(join(repo, "src/03/01")),
   ].filter((file) => file.endsWith(".sicf.xml"));
   for (const url of ["/sap/bc/ui5_ui5/sap/z2ui5/", "/sap/bc/bsp/sap/z2ui5/", "/sap/bc/z2ui5/"]) {
     assert.ok(shipped.includes(sicfFileName("Z2UI5", url)), url);
@@ -81,7 +81,7 @@ test("the ICF node file names are abapGit's", () => {
 });
 
 test("abap2UI5's webapp: app2bsp, check, bsp2app and back, byte for byte", () => {
-  const webapp = join(repo, "app/webapp");
+  const webapp = join(repo, "bundle/webapp");
   const work = scratch();
   try {
     const first = join(work, "first");

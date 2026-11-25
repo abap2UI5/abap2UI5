@@ -1,7 +1,12 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib, specContext, contextStub, classEnv } = require("./loadLibModule");
+const {
+  loadLib,
+  specContext,
+  contextStub,
+  classEnv,
+} = require("./loadLibModule");
 
 // Tests the two event-side helpers on View1.controller that the backend binds
 // into a view attribute:
@@ -80,7 +85,8 @@ function withRecordedEB() {
 // both are undefined and the guard stays out of the way, which is also the
 // real behaviour for a slot no response has claimed.
 // `builtFrom` names the open slots whose model was built from THIS response
-// (Slots.createViewModel stamps the response record on it) - the push must
+// (Slots.createViewModel stamps the response's token on it - the token, so
+// the model does not keep the record and its data alive) - the push must
 // leave those alone, they hold the data already.
 function withSlots(
   openKeys,
@@ -89,7 +95,7 @@ function withSlots(
 ) {
   const applied = [];
   const views = {};
-  const oResponse = { OVIEWMODEL: model, APP: responseApp };
+  const oResponse = { OVIEWMODEL: model, APP: responseApp, TOKEN: {} };
   for (const key of openKeys) {
     // each open slot carries its own framework-owned (tracked) model; a
     // push must land as setData on exactly that model
@@ -97,7 +103,7 @@ function withSlots(
       _z2ui5Tracked: true,
       setData: (data) => applied.push({ key, data }),
     };
-    if (builtFrom.includes(key)) tracked._z2ui5BuiltFrom = oResponse;
+    if (builtFrom.includes(key)) tracked._z2ui5BuiltFrom = oResponse.TOKEN;
     views[key] = { getModel: (name) => (name ? undefined : tracked) };
   }
   const ViewSlots = {
@@ -122,6 +128,8 @@ function withSlots(
   const ctx = specContext({ oResponse });
   const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
     deps: {
+      // no view in these specs names a custom control
+      "z2ui5/core/CustomControls": { ensure: async () => {} },
       "z2ui5/core/Env": classEnv,
       "z2ui5/core/Context": contextStub(ctx),
       "z2ui5/core/Lib": {
@@ -200,7 +208,8 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
     const { Slots, applied, views } = withSlots(["MAIN", "POPUP"], model, {
       builtFrom: ["MAIN"],
     });
-    views.POPUP.getModel()._z2ui5BuiltFrom = { OVIEWMODEL: { A: 1 } };
+    // the token of that earlier response
+    views.POPUP.getModel()._z2ui5BuiltFrom = {};
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied.map((a) => a.key)).toEqual(["POPUP"]);
   });
@@ -391,9 +400,9 @@ test.describe("textPath (ancestor-text breadcrumb)", () => {
 });
 
 test.describe("_processAfterRendering (action-free responses)", () => {
-  // With the ROUTER and updateModel actions derived/gated away, a response
-  // without any action is the COMMON case - it must still get its model
-  // push, its hash sync and the after-render hooks.
+  // A response that changes no slot and carries no URL intent is the COMMON
+  // case - it must still get its model push, its hash sync and the
+  // after-render hooks.
   function loadForAfterRendering() {
     // the request stamp lives on Server: a spec bumps it to dispatch a newer
     // request mid-phase, which is what "superseded" means BEFORE that
@@ -405,6 +414,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     };
     const logged = [];
     const pushes = [];
+    // the VIEWS entries as they were applied: "display MAIN", "destroy POPUP"
+    const applied = [];
     const syncs = [];
     const hooks = [];
     const destroys = [];
@@ -436,20 +447,36 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           logError: (m) => logged.push(m),
         },
         "z2ui5/core/FrontendAction": {
-          // a spec may replace the response mid-phase, the way a parallel
-          // request does while the system actions are still awaiting
-          runSystem: () => hooks.onRunSystem?.(),
-          // ... and hand an action's result back - a promise for the async
+          // hands an action's result back - a promise for the async
           // ones (SET_ODATA_MODEL), which the runner awaits
           runCustom: (item) => {
             customs.push(item);
             return hooks.onRunCustom?.(item);
           },
+          // the repeating timer's re-arm (actions/ViewOps), recorded with
+          // the busy state it met
+          resumeRepeatTimer: () =>
+            customs.push(["RESUME_REPEAT", state.isBusy]),
         },
         "z2ui5/core/actions/Slots": {
-          action: (_ctx, method) => pushes.push(method),
+          // the model push names no slot; a VIEWS entry does. A spec may
+          // replace the response while an entry is applied, the way a
+          // parallel request does while a view is still building
+          action: (_ctx, method, key) => {
+            if (method === "updateModel") {
+              pushes.push(method);
+              return undefined;
+            }
+            applied.push(`${method} ${key}`);
+            return hooks.onRunSystem?.();
+          },
+          dispatchQueuedWindows: () => {},
         },
         "z2ui5/core/ViewSlots": {
+          // the order the VIEWS entries are applied in
+          slots: ["MAIN", "NEST", "NEST2", "POPUP", "POPOVER"].map((key) => ({
+            key,
+          })),
           destroy: (_ctx, key) => destroys.push(key),
           // no slot views here: a hand-built queued event carries none,
           // and the view check of _dispatchQueuedEvent compares equal
@@ -471,6 +498,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       state,
       server,
       pushes,
+      applied,
       syncs,
       hooks,
       destroys,
@@ -506,14 +534,14 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const queuedDispatches = [];
     state.oQueuedEvent = {
       controller: { eB: (...a) => queuedDispatches.push(a) },
-      args: [["LIVE_CHANGE", false, false, false, true], "abc"],
+      args: [["LIVE_CHANGE", { queueLast: true }], "abc"],
     };
     // the switch REPLACES the page: B displays its own main view
     state.oResponse = {
       ID: "D2",
       APP: "Z2UI5_CL_APP_B",
       MODELPRESENT: false,
-      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "<View/>"]] },
+      VIEWS: { MAIN: { XML: "<View/>" } },
     };
 
     await ctrl._processAfterRendering(1);
@@ -527,8 +555,9 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(state.pendingAppHash).toBe(null);
     expect(state.oQueuedEvent).toBe(null);
     expect(queuedDispatches).toEqual([]);
-    // the standalone slots of the leaving app go with it
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+    // the standalone slots are NOT torn down on the name: the backend
+    // states their teardown for the hop, as VIEWS entries
+    expect(destroys).toEqual([]);
   });
 
   // The counterpart of the drop above: the state an app owns goes with its
@@ -568,24 +597,22 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       ID: "D2",
       APP: "Z2UI5_CL_POP_CONFIRM",
       MODELPRESENT: false,
-      S_ACTION: {
-        T_SYSTEM: [["VIEW_SLOTS", "display", "POPUP", "<Dialog/>"]],
-      },
+      VIEWS: { POPUP: { XML: "<Dialog/>" } },
     };
     await ctrl._processAfterRendering(1);
     expect(state.renderedApp).toBe("Z2UI5_CL_POP_CONFIRM");
     unchanged();
-    // the APP switch still tears the standalone slots down (the backend
-    // sends no destroy for it) - here A had none
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+    // the APP switch tears nothing down by itself
+    expect(destroys).toEqual([]);
 
     // 2: the nav_app_leave back - A answers again, with no MAIN display
     state.oResponse = { ID: "D3", APP: "Z2UI5_CL_APP_A", MODELPRESENT: false };
     await ctrl._processAfterRendering(2);
     expect(state.renderedApp).toBe("Z2UI5_CL_APP_A");
     unchanged();
-    // ... and the popup app's dialog goes with the switch back
-    expect(destroys).toEqual(["POPUP", "POPOVER", "POPUP", "POPOVER"]);
+    // ... and neither does the switch back: the popup app's dialog goes
+    // with the teardown the backend sends for that hop
+    expect(destroys).toEqual([]);
   });
 
   test("a called app that displays MAIN later resets the state on that response", async () => {
@@ -599,7 +626,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.oResponse = {
       ID: "D2",
       APP: "Z2UI5_CL_APP_B",
-      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "POPUP", "<Dialog/>"]] },
+      VIEWS: { POPUP: { XML: "<Dialog/>" } },
     };
     await ctrl._processAfterRendering(1);
     expect(state.shortcuts).toEqual({ "ctrl+s": {} });
@@ -608,7 +635,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.oResponse = {
       ID: "D3",
       APP: "Z2UI5_CL_APP_B",
-      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "<View/>"]] },
+      VIEWS: { MAIN: { XML: "<View/>" } },
     };
     await ctrl._processAfterRendering(2);
     expect(state.shortcuts).toEqual({});
@@ -636,7 +663,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   // FrontendAction.execute promises that a failing handler is logged, never
   // thrown - and kept it for the synchronous ones only. An async action
   // (SET_ODATA_MODEL loading its client) that REJECTED escaped the await in
-  // _runPendingCustomJs: the actions behind it never ran, the queued event
+  // _runPendingActions: the actions behind it never ran, the queued event
   // and the parked hash were skipped, and a screen that had rendered fine
   // ended in the fatal "App Terminated" overlay plus an unhandled rejection.
   test("a rejected async follow-up action is logged and the rest still runs", async () => {
@@ -649,7 +676,10 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     };
     state.oResponse = {
       ID: "D1",
-      _pendingCustomJs: [["SET_ODATA_MODEL", "/svc"], ["SET_FOCUS", "inp"]],
+      _pendingActions: [
+        ["SET_ODATA_MODEL", "/svc"],
+        ["SET_FOCUS", "inp"],
+      ],
     };
     hooks.onRunCustom = (item) =>
       item[0] === "SET_ODATA_MODEL"
@@ -658,7 +688,10 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 
     await ctrl._processAfterRendering(1);
 
-    expect(customs).toEqual([["SET_ODATA_MODEL", "/svc"], ["SET_FOCUS", "inp"]]);
+    expect(customs).toEqual([
+      ["SET_ODATA_MODEL", "/svc"],
+      ["SET_FOCUS", "inp"],
+    ]);
     expect(
       logged.some((m) => m.includes("async action 'SET_ODATA_MODEL' failed")),
     ).toBe(true);
@@ -680,7 +713,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.mainTransition = new Promise((resolve) => {
       endMove = resolve;
     });
-    state.oResponse = { ID: "D1", _pendingCustomJs: [["SET_FOCUS", "inp"]] };
+    state.oResponse = { ID: "D1", _pendingActions: [["SET_FOCUS", "inp"]] };
 
     const done = ctrl._processAfterRendering(1);
     for (let i = 0; i < 5; i += 1) await Promise.resolve();
@@ -704,8 +737,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     hooks.onRunSystem = () => {
       ctx.server.requestSeq = 2;
@@ -725,7 +758,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 
   test("the winning response's failed build still raises the overlay", async () => {
     const { ctrl, state, hooks, busy, renderErrors } = loadForAfterRendering();
-    state.oResponse = { ID: "D1", S_ACTION: { T_SYSTEM: [{}] } };
+    state.oResponse = { ID: "D1", VIEWS: { MAIN: { XML: "<View/>" } } };
     const boom = new Error("view XML broken");
     hooks.onRunSystem = () => {
       throw boom;
@@ -740,14 +773,96 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(state.isBusy).toBe(false);
   });
 
+  // A repeating START_TIMER (its fifth argument) is armed again once a
+  // response is applied - last, after the follow-up actions and the queued
+  // dispatches, and only while the app is not busy again
+  // (frontendAction.spec.js holds the re-arm itself).
+  test.describe("the repeating timer", () => {
+    test("is armed again last, after the follow-up actions", async () => {
+      const { ctrl, state, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.timerRepeat = { event: "POLL", delay: 1000 };
+      state.oResponse = {
+        ID: "D2",
+        APP: "Z2UI5_CL_APP_A",
+        _pendingActions: [["TOAST"]],
+      };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(customs).toEqual([["TOAST"], ["RESUME_REPEAT", false]]);
+    });
+
+    test("is not asked for when none repeats - a one-shot app is untouched", async () => {
+      const { ctrl, state, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_A" };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(customs).toEqual([]);
+    });
+
+    test("ends with an app switch", async () => {
+      const { ctrl, state, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.timerRepeat = { event: "POLL", delay: 1000 };
+      state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_B" };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(state.timerRepeat).toBe(null);
+      expect(customs).toEqual([]);
+    });
+
+    test("is not armed after a failed build", async () => {
+      const { ctrl, state, hooks, customs } = loadForAfterRendering();
+      state.renderedApp = "Z2UI5_CL_APP_A";
+      state.timerRepeat = { event: "POLL", delay: 1000 };
+      state.oResponse = {
+        ID: "D2",
+        APP: "Z2UI5_CL_APP_A",
+        VIEWS: { MAIN: { XML: "<View/>" } },
+      };
+      hooks.onRunSystem = () => {
+        throw new Error("view XML broken");
+      };
+
+      await ctrl._processAfterRendering(1);
+
+      expect(customs).toEqual([]);
+    });
+  });
+
+  test("after the overlay of a failed build nothing of the response runs any more", async () => {
+    const { ctrl, state, hooks, pendingHash, customs, renderErrors } =
+      loadForAfterRendering();
+    // a START_TIMER among the follow-up actions would tick roundtrips under
+    // the overlay, a parked hash change would send one
+    state.oResponse = {
+      ID: "D1",
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["START_TIMER", "TICK", "1000"]],
+    };
+    hooks.onRunSystem = () => {
+      throw new Error("view XML broken");
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(renderErrors.length).toBe(1);
+    expect(customs).toEqual([]);
+    expect(pendingHash).toEqual([]);
+  });
+
   test("a REPLACED response leaves busy, custom JS and the parked hash to the newer one", async () => {
     const { ctrl, state, pushes, syncs, hooks, busy, pendingHash, customs } =
       loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
       MODELPRESENT: true,
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     // a newer request replaces the response while this one's system
     // actions are still running
@@ -792,8 +907,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.oResponse = {
       ID: "D1",
       MODELPRESENT: true,
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     // the restore dispatches its request while the system actions run - the
     // response record still points at THIS response, only the stamp moved
@@ -812,7 +927,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     // ... but its OWN follow-up actions still ran: the newer request is
     // merely DISPATCHED, so the screen they were queued for is still the one
     // on display, and nothing else will ever run them - the superseding
-    // request answers with its own T_CUSTOM. This is what the app's first
+    // request answers with its own ACTIONS. This is what the app's first
     // roundtrip lost every time a control fired an event while the initial
     // view rendered (samples-controls 350: ICON_POOL registerFont; 534:
     // eight Wizard setNextStep calls).
@@ -826,8 +941,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const { ctrl, state, hooks, busy, customs, app } = loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     hooks.onRunSystem = () => {
       app.alive = false;
@@ -844,7 +959,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   // response processed without one is never read as superseded
   test("no stamp handed in: the newest request is the response's own", async () => {
     const { ctrl, state, syncs, busy } = loadForAfterRendering();
-    state.oResponse = { ID: "D1", S_ACTION: { T_SYSTEM: [{}] } };
+    state.oResponse = { ID: "D1", VIEWS: { MAIN: { XML: "<View/>" } } };
 
     await ctrl._processAfterRendering();
 
@@ -884,31 +999,57 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(syncs).toEqual([{ id: "D2" }]);
   });
 
-  test("an APP switch tears the popup/popover down implicitly, once", async () => {
-    const { ctrl, state, destroys } = loadForAfterRendering();
-    // first app ever rendered: nothing of a previous app can be open
+  test("an APP switch tears no slot down by itself - the VIEWS entries do", async () => {
+    const { ctrl, state, destroys, applied } = loadForAfterRendering();
     state.oResponse = { ID: "D1", APP: "Z2UI5_CL_A" };
     await ctrl._processAfterRendering(1);
+
+    // switch to another class: until protocol 3 the frontend took POPUP
+    // and POPOVER down on the name; the backend states it for every hop now
+    state.oResponse = {
+      ID: "D2",
+      APP: "Z2UI5_CL_B",
+      VIEWS: { POPUP: { DESTROY: true }, POPOVER: { DESTROY: true } },
+    };
+    await ctrl._processAfterRendering(1);
     expect(destroys).toEqual([]);
+    expect(applied).toEqual(["destroy POPUP", "destroy POPOVER"]);
 
-    // switch to another class: the standalone slots live outside MAIN's
-    // control tree, so no destroy action travels - the switch itself,
-    // visible right here, kills them before the new app's system actions
-    state.oResponse = { ID: "D2", APP: "Z2UI5_CL_B" };
+    // a switch whose response names no slot leaves every slot alone
+    state.oResponse = { ID: "D3", APP: "Z2UI5_CL_C" };
     await ctrl._processAfterRendering(1);
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
-
-    // an event roundtrip of the SAME app tears nothing down
-    state.oResponse = { ID: "D3", APP: "Z2UI5_CL_B" };
-    await ctrl._processAfterRendering(1);
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+    expect(applied).toEqual(["destroy POPUP", "destroy POPOVER"]);
   });
 
-  test("a travelling ROUTER action's options reach the one per-response sync", async () => {
+  test("the VIEWS entries are applied MAIN first, whatever order they arrive in", async () => {
+    const { ctrl, state, applied } = loadForAfterRendering();
+    state.oResponse = {
+      ID: "D1",
+      APP: "Z2UI5_CL_A",
+      VIEWS: {
+        POPOVER: { XML: "<Popover/>", OPT: { openById: "btn" } },
+        POPUP: { DESTROY: true },
+        NEST2: { XML: "<Nest2/>" },
+        NEST: { XML: "<Nest/>" },
+        MAIN: { XML: "<View/>" },
+      },
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(applied).toEqual([
+      "display MAIN",
+      "display NEST",
+      "display NEST2",
+      "destroy POPUP",
+      "display POPOVER",
+    ]);
+  });
+
+  test("the NAV section's options reach the one per-response sync", async () => {
     const { ctrl, state, syncs } = loadForAfterRendering();
-    // the ControlCall hook stashes the options on the response record; the
-    // stash is consumed by the sync, which injects the response id
-    state.oResponse = { ID: "D3", _routerOptions: { setNavRouting: "KEEP" } };
+    // the sync injects the response id next to them
+    state.oResponse = { ID: "D3", NAV: { setNavRouting: "KEEP" } };
 
     await ctrl._processAfterRendering(1);
 
@@ -1044,6 +1185,8 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
     ctx.server.requestSeq = requestSeq;
     const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
+        // no view in these specs names a custom control
+        "z2ui5/core/CustomControls": { ensure: async () => {} },
         "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/XMLView": { create: async () => oView },
         "sap/ui/model/json/JSONModel": JSONModel,
@@ -1205,6 +1348,8 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     };
     const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
+        // no view in these specs names a custom control
+        "z2ui5/core/CustomControls": { ensure: async () => {} },
         "z2ui5/core/Env": classEnv,
         ...shared,
         "sap/ui/core/mvc/XMLView": {
@@ -1293,9 +1438,9 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
 
 test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   // The wire of client->_event( s_ctrl-check_queue_last ): the event array
-  // carries the flag at position [4], behind two reserved placeholders and
-  // useMainModel (z2ui5_cl_ui5_srv_event=>get_event).
-  const QUEUED = ["LIVE_CHANGE", false, false, false, true];
+  // carries the flag in the options object behind the name
+  // (z2ui5_cl_ui5_srv_event=>get_event).
+  const QUEUED = ["LIVE_CHANGE", { queueLast: true }];
   const PLAIN = ["PRESS"];
 
   // One harness for BOTH sides of the slot: eB (the write side - the busy
@@ -1306,6 +1451,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     const roundtrips = [];
     const busy = [];
     const pendingHash = [];
+    const windowDispatches = [];
     const ctx = specContext();
     ctx.server.requestSeq = 1;
     const state = ctx.state;
@@ -1341,6 +1487,17 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
           // the shipped helper returns a fresh array and leaves plain data
           // alone - which is all a queued event holds
           normalizeEventArgs: (args) => args.slice(),
+          // the real reader of the wire's flags, minus its log line
+          eventOptions: (aEvent) => {
+            const opt = aEvent?.[1];
+            const set = opt !== null && typeof opt === "object" ? opt : {};
+            return {
+              useMainModel: Boolean(set.useMainModel),
+              queueLast: Boolean(set.queueLast),
+              noBusy: Boolean(set.noBusy),
+              timer: Boolean(set.timer),
+            };
+          },
           buildDeltaFromPaths: (paths, data) => {
             const delta = {};
             for (const p of paths) delta[p.slice(1)] = data[p.slice(1)];
@@ -1349,16 +1506,21 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
           isRootModelSlot: () => true,
         },
         "z2ui5/core/FrontendAction": {
-          runSystem: () => {},
           runCustom: () => {},
         },
         "z2ui5/core/actions/Slots": {
           action: () => {},
           resolveTrackedModel: () => model,
+          // the window requests have a place of their own, kept and sent by
+          // actions/Slots (slotsAction.spec.js) - here only that View1 asks
+          dispatchQueuedWindows: () => windowDispatches.push("asked"),
         },
         "z2ui5/core/ViewSlots": {
           keyOfController: () => "MAIN",
           getView: () => slot.view,
+          // the response that built the view in the slot, as its token
+          // (ViewSlots.setView)
+          getViewToken: () => slot.token,
           destroy: () => {},
         },
         "z2ui5/core/Router": {
@@ -1375,8 +1537,159 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       values.VALUE = text;
       model._z2ui5ChangedPaths.add("/VALUE");
     };
-    return { ctrl, state, roundtrips, busy, pendingHash, model, type, app, slot };
+    return {
+      ctrl,
+      state,
+      roundtrips,
+      busy,
+      pendingHash,
+      windowDispatches,
+      model,
+      type,
+      app,
+      slot,
+    };
   }
+
+  // An event a control fires WHILE the response in process builds its view
+  // - a Storage control answering from its onAfterRendering, an
+  // afterRendering an app wired - is no click on a screen being replaced.
+  // Measured in Chromium before this was written: such an event reached the
+  // backend on the first roundtrip (which was not busy, and whose response
+  // it superseded) and was dropped on every later one.
+  test.describe("an event fired while its view is being built", () => {
+    // the response in process, and the slot's view built by it
+    function building(h) {
+      h.state.isBusy = true;
+      h.state.oResponse = { ID: "D1", _processing: true, TOKEN: {} };
+      h.slot.token = h.state.oResponse.TOKEN;
+    }
+
+    test("is kept, whatever its wire's flags, and raises no overlay", () => {
+      const h = loadForQueue();
+      building(h);
+
+      h.ctrl.eB(PLAIN, "stored value");
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toHaveLength(1);
+      expect(h.state.aRenderEvents[0].args).toEqual([PLAIN, "stored value"]);
+      expect(h.busy).toEqual([]);
+    });
+
+    test("a click on a view the response did not build is dropped as before", () => {
+      const h = loadForQueue();
+      building(h);
+      // the slot still shows the view of an EARLIER response
+      h.slot.token = {};
+
+      h.ctrl.eB(PLAIN);
+
+      expect(h.state.aRenderEvents).toEqual([]);
+      expect(h.roundtrips).toEqual([]);
+      expect(h.busy).toEqual(["show(0)"]);
+    });
+
+    test("outside the processing of a response nothing is kept", () => {
+      const h = loadForQueue();
+      building(h);
+      // the request is still in flight: no response is being processed
+      h.state.oResponse = { ID: "D0", TOKEN: {} };
+      h.slot.token = h.state.oResponse.TOKEN;
+
+      h.ctrl.eB(PLAIN);
+
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("the kept events go out one per landed roundtrip, in the order they fired", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["FIRST"]);
+      h.ctrl.eB(["SECOND"]);
+      h.state.oResponse._processing = false;
+      h.state.oResponse._processed = false;
+
+      await h.ctrl._processAfterRendering(1);
+
+      // the first one is the roundtrip in flight now, the second waits
+      expect(h.roundtrips.map((b) => b.ARGUMENTS[0][0])).toEqual(["FIRST"]);
+      expect(h.state.isBusy).toBe(true);
+      expect(h.state.aRenderEvents).toHaveLength(1);
+
+      h.state.oResponse = { ID: "D2" };
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips.map((b) => b.ARGUMENTS[0][0])).toEqual([
+        "FIRST",
+        "SECOND",
+      ]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("a control that fires before its view has reached the slot is kept too", () => {
+      const h = loadForQueue();
+      building(h);
+      // XMLView.create is still building: the slot holds no view at all,
+      // so this cannot be a click on a screen being replaced
+      h.slot.view = undefined;
+      h.slot.token = undefined;
+
+      h.ctrl.eB(["EARLY"]);
+
+      expect(h.state.aRenderEvents).toHaveLength(1);
+    });
+
+    test("a kept event whose view is gone by then is not sent", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["FIRST"]);
+      // a later response replaced the view the event came from
+      h.slot.token = {};
+      h.state.oResponse._processed = false;
+
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("an unbroken run of them ends at the limit - a view that fires on every build", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["LOOP"]);
+      h.state.renderEventChain = 25;
+      h.state.oResponse._processed = false;
+
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("any other event ends the run", () => {
+      const h = loadForQueue();
+      h.state.renderEventChain = 7;
+
+      h.ctrl.eB(PLAIN);
+
+      expect(h.roundtrips).toHaveLength(1);
+      expect(h.state.renderEventChain).toBe(0);
+    });
+
+    test("a response of another app drops what the leaving app's view fired", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.state.renderedApp = "Z2UI5_CL_APP_A";
+      h.ctrl.eB(["FIRST"]);
+
+      h.state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_B" };
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+  });
 
   test("a queued wire fired while busy keeps the LAST event only, and shows the indicator", () => {
     const { ctrl, state, roundtrips, busy } = loadForQueue();
@@ -1393,25 +1706,20 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(busy).toEqual(["show(0)", "show(0)", "show(0)"]);
   });
 
-  test("a table's window request and a keystroke kept meanwhile do not overwrite each other", async () => {
-    const { ctrl, state, roundtrips } = loadForQueue();
-    const WINDOW = ["___ZZZ_WIN", false, false, false, true, true];
+  test("the window requests of the tables are sent after the keystroke, by actions/Slots", () => {
+    const { ctrl, state, roundtrips, windowDispatches } = loadForQueue();
     state.isBusy = true;
-
     ctrl.eB(QUEUED, "abc");
-    ctrl.eB(WINDOW, "/MT_ROWS", "200");
 
-    expect(state.oQueuedEvent.args).toEqual([QUEUED, "abc"]);
-    expect(state.oQueuedWindow.args).toEqual([WINDOW, "/MT_ROWS", "200"]);
-
-    // the response lands: the keystroke goes out first, the window request
-    // meets the busy guard of that roundtrip and is kept again in its slot
+    // the response lands: the keystroke goes out, then Slots is asked for
+    // the window requests it kept (it sends none while that one runs)
     state.isBusy = false;
     ctrl._dispatchQueuedEvent();
+
     expect(roundtrips).toHaveLength(1);
     expect(roundtrips[0].ARGUMENTS).toEqual([QUEUED, "abc"]);
     expect(state.oQueuedEvent).toBeNull();
-    expect(state.oQueuedWindow.args).toEqual([WINDOW, "/MT_ROWS", "200"]);
+    expect(windowDispatches).toEqual(["asked"]);
   });
 
   test("a wire without the flag is dropped as before", () => {
@@ -1517,16 +1825,16 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(state.oQueuedEvent).toBeNull();
   });
 
-  test("the reserved slot [2] is ignored - a truthy value there never bypasses the busy guard", () => {
+  test("a flag written by POSITION is not read any more - the event is dropped like a click", () => {
     const { ctrl, state, roundtrips } = loadForQueue();
     state.isBusy = true;
 
-    // a wire rendered by an older backend can still carry true here; eB must
-    // read straight past it and queue on the flag at [4] as usual
-    ctrl.eB(["LIVE_CHANGE", false, true, false, true], "abc");
+    // the shape of protocol 2: queueLast at [4]. Read as a wire without a
+    // flag (Lib.eventOptions says so in the log), so the busy guard drops it
+    ctrl.eB(["LIVE_CHANGE", false, false, false, true], "abc");
 
     expect(roundtrips).toEqual([]);
-    expect(state.oQueuedEvent).not.toBeNull();
+    expect(state.oQueuedEvent).toBeNull();
   });
 
   // ------------------------------------------------------------------
@@ -1534,10 +1842,9 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   // suppressed is ONLY the two BusyIndicator.show calls; the roundtrip,
   // the busy state, the guard and the queue behave exactly as above.
   // ------------------------------------------------------------------
-  // position [5], behind queueLast - which is written as false rather than
-  // left out, so [5] is [5] for a wire that carries only this flag
-  const SILENT = ["LIVE_CHANGE", false, false, false, false, true];
-  const SILENT_QUEUED = ["LIVE_CHANGE", false, false, false, true, true];
+  // the same options object - and only the flag that is set travels
+  const SILENT = ["LIVE_CHANGE", { noBusy: true }];
+  const SILENT_QUEUED = ["LIVE_CHANGE", { queueLast: true, noBusy: true }];
 
   test("a check_no_busy wire round-trips without raising the indicator", () => {
     const { ctrl, state, roundtrips, busy, type } = loadForQueue();
@@ -1593,11 +1900,12 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(busy).toEqual(["show(0)"]);
   });
 
-  // START_TIMER's tick is the other producer of [5]: armed with its optional
-  // third argument (abap_true), actions/ViewOps dispatches this array - the
-  // reserved slot [2] set as every tick sends it, the flag behind two
-  // falses. frontendAction.spec.js pins that the handler emits exactly this.
-  const SILENT_TICK = ["TICK", false, true, false, false, true];
+  // START_TIMER's tick is the other producer of noBusy: armed with its
+  // optional third argument (abap_true), actions/ViewOps dispatches this
+  // array, the tick's own mark next to the flag. frontendAction.spec.js
+  // pins that the handler emits exactly this.
+  const SILENT_TICK = ["TICK", { noBusy: true, timer: true }];
+  const TICK = ["TICK", { noBusy: false, timer: true }];
 
   test("a no-busy START_TIMER tick round-trips without raising the indicator", () => {
     const { ctrl, state, roundtrips, busy } = loadForQueue();
@@ -1614,23 +1922,105 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   test("a plain START_TIMER tick raises the indicator as it always did", () => {
     const { ctrl, busy } = loadForQueue();
 
-    ctrl.eB(["TICK", false, true]);
+    ctrl.eB(TICK);
 
     expect(busy).toEqual(["show"]);
   });
 
-  test("a click during a no-busy tick is still dropped, with its overlay", () => {
-    const { ctrl, state, roundtrips, busy } = loadForQueue();
+  test("a tick says so on the wire, an event does not", () => {
+    const { ctrl, state, roundtrips } = loadForQueue();
+
     ctrl.eB(SILENT_TICK);
+    expect(roundtrips[0].TIMER).toBe(true);
+    expect(state.tickInFlight).toBe(true);
 
+    state.isBusy = false;
     ctrl.eB(PLAIN);
+    expect(roundtrips[1].TIMER).toBeUndefined();
+    expect(state.tickInFlight).toBe(false);
+  });
 
-    // the tick opted out of the overlay, not out of being the one roundtrip
-    // in flight: the guard drops the click (nothing kept, nothing sent) and
-    // gives it the immediate feedback a dropped click always got
-    expect(roundtrips).toHaveLength(1);
-    expect(state.oQueuedEvent).toBeNull();
-    expect(busy).toEqual(["show(0)"]);
+  // A click that meets a tick in flight used to be dropped like a second
+  // click on a busy app - but the user started no roundtrip and cannot see
+  // the tick (a no-busy tick shows nothing at all): on a screen that polls
+  // every two seconds, a click got lost at random. It is held back instead
+  // and sent once the tick's response is applied, under the id that
+  // response named.
+  test.describe("a click during a tick", () => {
+    test("is kept, the first one only, with the overlay of a dropped click", () => {
+      const { ctrl, state, roundtrips, busy } = loadForQueue();
+      ctrl.eB(SILENT_TICK);
+
+      ctrl.eB(PLAIN, "first");
+      ctrl.eB(PLAIN, "second");
+
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent.controller).toBe(ctrl);
+      expect(state.oTickQueuedEvent.args).toEqual([PLAIN, "first"]);
+      expect(state.oQueuedEvent).toBeNull();
+      expect(busy).toEqual(["show(0)", "show(0)"]);
+    });
+
+    test("goes out once the tick's response is applied, under its id", async () => {
+      const { ctrl, state, roundtrips } = loadForQueue();
+      ctrl.eB(TICK);
+      ctrl.eB(PLAIN, "clicked");
+
+      state.oResponse = { ID: "D_TICK", MODELPRESENT: false };
+      await ctrl._processAfterRendering(1);
+
+      expect(roundtrips).toHaveLength(2);
+      expect(roundtrips[1].ARGUMENTS).toEqual([PLAIN, "clicked"]);
+      expect(roundtrips[1].ID).toBe("D_TICK");
+      expect(roundtrips[1].TIMER).toBeUndefined();
+      expect(state.oTickQueuedEvent).toBeNull();
+      // the click is the roundtrip in flight now - not a tick
+      expect(state.isBusy).toBe(true);
+      expect(state.tickInFlight).toBe(false);
+    });
+
+    test("waits for a roundtrip that went out ahead of it", () => {
+      const { ctrl, state, roundtrips } = loadForQueue();
+      ctrl.eB(TICK);
+      ctrl.eB(PLAIN, "clicked");
+
+      // something else started a roundtrip first (an event a control
+      // fired while the view was built): the click stays kept
+      state.isBusy = true;
+      state.tickInFlight = false;
+      ctrl._dispatchQueuedEvent();
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent).not.toBeNull();
+
+      state.isBusy = false;
+      ctrl._dispatchQueuedEvent();
+      expect(roundtrips).toHaveLength(2);
+      expect(state.oTickQueuedEvent).toBeNull();
+    });
+
+    test("is dropped with its view - a popup the response closed", () => {
+      const { ctrl, state, roundtrips, slot } = loadForQueue();
+      ctrl.eB(TICK);
+      ctrl.eB(PLAIN);
+
+      slot.view = null;
+      state.isBusy = false;
+      ctrl._dispatchQueuedEvent();
+
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent).toBeNull();
+    });
+
+    test("a click during any other roundtrip is dropped as before", () => {
+      const { ctrl, state, roundtrips, busy } = loadForQueue();
+      ctrl.eB(PLAIN, "first");
+
+      ctrl.eB(PLAIN, "second");
+
+      expect(roundtrips).toHaveLength(1);
+      expect(state.oTickQueuedEvent).toBeNull();
+      expect(busy).toEqual(["show", "show(0)"]);
+    });
   });
 });
 

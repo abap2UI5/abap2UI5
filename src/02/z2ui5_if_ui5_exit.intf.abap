@@ -4,10 +4,13 @@
 "! your own, in a package of your own, and abap2UI5 finds it and calls it -
 "! set_config_http_get on the initial page request - and once more per
 "! response for its t_security_header, which every response of the handler
-"! carries - set_config_http_post on every roundtrip after it. Neither is
-"! called exactly once: set_config_http_post runs up to three times per POST
-"! (the CSRF gate, the monitor switch, the error response), so both must be
-"! cheap and idempotent - read configuration, do not write state.
+"! carries - set_config_http_post on every roundtrip after it. The
+"! framework asks set_config_http_post once per request and hands the
+"! answer to everything that reads it (the CSRF gate, the monitor switch,
+"! the draft cleanup, the error response) - but an exit that raised is
+"! asked again, and a reader outside an HTTP request asks every time. So
+"! neither is promised to run exactly once, and both must be cheap and
+"! idempotent - read configuration, do not write state.
 "!
 "! The one exit interface. Its former name z2ui5_if_exit, with the same two
 "! methods and types, was deleted on 2026-11-17: an exit class written against
@@ -111,6 +114,23 @@ INTERFACE z2ui5_if_ui5_exit
       " Read on every roundtrip, so switching it off again takes effect on
       " the next one.
       check_monitor_active       TYPE abap_bool,
+      " how many drafts of a chain survive each save, the one just saved
+      " included. Seeded with 2 before the exit runs; 0 switches the pruning
+      " off and keeps every draft until draft_exp_time_in_hours takes it by
+      " age. N > 0 deletes, on
+      " every save, the one draft at depth N + 1 of the chain the roundtrips
+      " of one app build (z2ui5_if_ui5_draft_store=>prune_chain) - so a
+      " polling app keeps N drafts instead of one per tick for hours.
+      " Values below 2 are raised to 2: the retry of a lost response
+      " continues the draft before the newest one
+      " (z2ui5_cl_ui5_srv_draft=>c_min_keep_per_chain), more than 50 are cut
+      " to 50. Never deleted: the drafts of the app stack (Back, popups),
+      " the draft of an app state link and of a route restore. An app whose
+      " app state hash is active (app_state_set_active) is not pruned - its
+      " URL names every draft. To keep every draft (the behaviour before
+      " 2026-11):
+      "   cs_config-draft_keep_per_chain = 0.
+      draft_keep_per_chain       TYPE i,
     END OF ty_s_http_config_post.
 
   METHODS set_config_http_get

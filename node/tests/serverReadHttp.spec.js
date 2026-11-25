@@ -70,7 +70,6 @@ function load({ libSandbox = {} } = {}) {
       "z2ui5/core/ErrorView": { reset: () => {} },
     },
     sandbox: {
-      AbortSignal: { any: () => ({}), timeout: () => ({}) },
       AbortController: class {
         constructor() {
           this.signal = { aborted: false };
@@ -132,7 +131,7 @@ test.describe("HTTP status outside 2xx", () => {
       expect(env.fetches[1].opts.body).toBe(env.fetches[0].opts.body);
       expect(JSON.parse(env.fetches[1].opts.body)).toEqual({ value: body });
       env.fetches[1].resolve(
-        response({ json: { S_FRONT: { ID: "ok", S_ACTION: {} } } }),
+        response({ json: { S_FRONT: { ID: "ok" } } }),
       );
       await env.fetches[1].promise;
       await new Promise((r) => setTimeout(r, 0));
@@ -242,7 +241,7 @@ test.describe("the wire version (S_FRONT.PROTOCOL)", () => {
     const env = load();
     await answer(
       env,
-      response({ json: { S_FRONT: { ID: "x", PROTOCOL: 1, S_ACTION: {} } } }),
+      response({ json: { S_FRONT: { ID: "x", PROTOCOL: 1 } } }),
     );
 
     expect(env.errors).toHaveLength(1);
@@ -260,7 +259,7 @@ test.describe("the wire version (S_FRONT.PROTOCOL)", () => {
       env,
       response({
         json: {
-          S_FRONT: { ID: "x", PROTOCOL: env.Server.PROTOCOL, S_ACTION: {} },
+          S_FRONT: { ID: "x", PROTOCOL: env.Server.PROTOCOL },
         },
       }),
     );
@@ -273,7 +272,7 @@ test.describe("the wire version (S_FRONT.PROTOCOL)", () => {
     const env = load();
     await answer(
       env,
-      response({ json: { S_FRONT: { ID: "x", S_ACTION: {} } } }),
+      response({ json: { S_FRONT: { ID: "x" } } }),
     );
 
     expect(env.errors).toEqual([]);
@@ -288,14 +287,14 @@ test.describe("the session id header", () => {
       env,
       response({
         headers: { "sap-contextid": "SID:ANON:host:abc" },
-        json: { S_FRONT: { ID: "x", S_ACTION: {} } },
+        json: { S_FRONT: { ID: "x" } },
       }),
     );
     expect(env.ctx.state.contextId).toBe("SID:ANON:host:abc");
 
     const p = env.Server.readHttp(env.ctx, {}, null);
     env.fetches[1].resolve(
-      response({ json: { S_FRONT: { ID: "y", S_ACTION: {} } } }),
+      response({ json: { S_FRONT: { ID: "y" } } }),
     );
     await p;
     expect(env.ctx.state.contextId).toBe("SID:ANON:host:abc");
@@ -320,7 +319,7 @@ test.describe("the X-CSRF-Token handshake", () => {
     });
   const token = (value) => response({ headers: { "x-csrf-token": value } });
   const good = (id) =>
-    response({ json: { S_FRONT: { ID: id, S_ACTION: {} } } });
+    response({ json: { S_FRONT: { ID: id } } });
 
   // let readHttp run up to its next fetch, or to its end
   async function flush() {
@@ -567,4 +566,33 @@ test("the Retry of an embedded component is busy on its own area, not the page's
     ["delay", 0],
     ["busy", true],
   ]);
+});
+
+// The record readHttp hands to responseSuccess carries its own identity:
+// a slot remembers which response built its view, a model which response
+// it was built from, a kept event which response was building - and all
+// three only compare. They kept the record itself until 2026-11, and with
+// it the whole model and the view XML of a response long replaced.
+test.describe("the response record's token", () => {
+  test("every response has one of its own, holding none of its data", async () => {
+    const env = load();
+    const json = (id) => ({ S_FRONT: { ID: id }, MODEL: { ROWS: [1, 2, 3] } });
+    await answer(env, response({ json: json("A") }));
+    const second = env.Server.readHttp(
+      env.ctx,
+      { S_FRONT: { EVENT: "NEXT" } },
+      null,
+    );
+    env.fetches[1].resolve(response({ json: json("B") }));
+    await second;
+
+    const [a, b] = env.successes;
+    expect(a.TOKEN).toBeTruthy();
+    expect(b.TOKEN).toBeTruthy();
+    expect(a.TOKEN).not.toBe(b.TOKEN);
+    // the request stamp, for a reader of a state dump - nothing else
+    expect(Object.keys(a.TOKEN)).toEqual(["seq"]);
+    expect(Object.isFrozen(a.TOKEN)).toBe(true);
+    expect(b.TOKEN.seq).toBe(a.TOKEN.seq + 1);
+  });
 });

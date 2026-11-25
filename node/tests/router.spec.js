@@ -191,11 +191,87 @@ test("a namespaced class round-trips through the route", () => {
     app: "/NS/CL_X",
     draft: "D1",
   });
-  expect(Router.parse("#/app//NS/CL_X")).toEqual({ app: "/NS/CL_X", draft: "" });
+  expect(Router.parse("#/app//NS/CL_X")).toEqual({
+    app: "/NS/CL_X",
+    draft: "",
+  });
   expect(Router.parse(`#${FLP_SHELL}&/app//NS/CL_X/D1`).draft).toBe("D1");
   // a lone leading slash names no class
   expect(Router.parse("/app//NS")).toBe(null);
   expect(Router.parse("/app//")).toBe(null);
+});
+
+// What the frontend sends as S_FRONT.ROUTE with a request that starts an
+// app. The cases are the ones the backend's own parsers were tested with
+// until protocol 3 (z2ui5_cl_ui5_handler: test_route_standalone,
+// test_route_launchpad, test_route_no_route, test_app_state_hash) - there
+// is one reader of the hash now, and it is this one.
+test.describe("startRoute - what a hash asks an app start to restore", () => {
+  const { Router } = loadRouter();
+
+  test("a route names its class, and its draft when it carries one", () => {
+    expect(Router.startRoute("#/app/ZCL_X")).toEqual({ APP: "ZCL_X" });
+    expect(Router.startRoute("#/app/ZCL_X/ABC123")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+    // further parameters of the app hash are not part of the draft
+    expect(Router.startRoute("#/app/ZCL_X/ABC123&my-state=1")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+  });
+
+  test("inside the launchpad only the app part is read", () => {
+    expect(Router.startRoute("#Z2UI5-display&/app/ZCL_X/ABC123")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+    // the two spellings of the separator the launchpad produces
+    expect(Router.startRoute("#Z2UI5-display&//app/ZCL_X")).toEqual({
+      APP: "ZCL_X",
+    });
+  });
+
+  test("the stacked leading slashes of older URLs are read too", () => {
+    expect(Router.startRoute("#//app/ZCL_X/ABC123")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+    expect(Router.startRoute("#app/ZCL_X")).toEqual({ APP: "ZCL_X" });
+  });
+
+  test("a namespaced class keeps its slashes", () => {
+    expect(Router.startRoute("#/app//NS/CL_X/ABC123")).toEqual({
+      APP: "/NS/CL_X",
+      DRAFT: "ABC123",
+    });
+    expect(Router.startRoute("#/app//NS/CL_X")).toEqual({ APP: "/NS/CL_X" });
+  });
+
+  test("an app-state link names its draft and no class", () => {
+    expect(Router.startRoute("#/z2ui5-xapp-state=ABC123")).toEqual({
+      APP_STATE: "ABC123",
+    });
+    expect(Router.startRoute("#Z2UI5-display&/z2ui5-xapp-state=ABC123")).toEqual(
+      { APP_STATE: "ABC123" },
+    );
+    expect(Router.startRoute("#//z2ui5-xapp-state=ABC123")).toEqual({
+      APP_STATE: "ABC123",
+    });
+    expect(Router.startRoute("#/other=1&z2ui5-xapp-state=ABC123")).toEqual({
+      APP_STATE: "ABC123",
+    });
+  });
+
+  test("a hash that names neither asks for nothing", () => {
+    expect(Router.startRoute("")).toBeNull();
+    expect(Router.startRoute("#")).toBeNull();
+    expect(Router.startRoute("#Z2UI5-display")).toBeNull();
+    expect(Router.startRoute("#/Page2")).toBeNull();
+    expect(Router.startRoute("#/detail/app/ZCL_X")).toBeNull();
+    expect(Router.startRoute("#/z2ui5-xapp-state=")).toBeNull();
+  });
 });
 
 test("non-app hashes parse to no route", () => {
@@ -501,70 +577,56 @@ test("the routing mode arrives with every response and switches modes live", () 
   expect(state.navMode).toBe(null);
 });
 
-test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
-  const flp = loadRouter({
-    state: { navRouting: false },
-    href: `https://host/flp#${FLP_SHELL}&/app/X/D1`,
-  });
-  flp.Router.sync({ setPushState: "?pos=42", id: "D2" });
-  expect(flp.pushes).toEqual([
-    `/sap/z2ui5#${FLP_SHELL}&/app/X/D1?pos=42`,
-  ]);
-
-  const standalone = loadRouter({
-    state: { navRouting: false },
-    href: "https://host/sap/z2ui5#/app/X/D1",
-  });
-  standalone.Router.sync({ setPushState: "?pos=42", id: "D2" });
-  expect(standalone.pushes).toEqual(["/sap/z2ui5#/app/X/D1?pos=42"]);
+// An app writes the hash only as its owner: routing off and a listener
+// registered. Until 2026-11 a write without one was appended to the hash the
+// page had, as a suffix - with history.pushState, or behind the route in
+// KEEP mode.
+test("a hash write without a listener is refused, and said so", () => {
+  for (const options of [
+    { setPushState: "?pos=42", id: "D2" },
+    { setHashReplace: "?pos=42", id: "D2" },
+  ]) {
+    const { Router, pushes, replaces, writes, errors } = loadRouter({
+      state: { navRouting: false },
+      href: "https://host/sap/z2ui5#/somewhere",
+    });
+    Router.sync(options);
+    expect(pushes).toEqual([]);
+    expect(replaces).toEqual([]);
+    // nothing of the value reaches the URL - what is written is the
+    // per-response cleanup of a page without an app-state hash
+    expect(writes.filter((w) => w.hash.includes("pos=42"))).toEqual([]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].msg).toContain("?pos=42");
+    expect(errors[0].msg).toContain("hash_attach_changed");
+  }
 });
 
-test("set_push_state in KEEP mode pushes the route through the HashChanger", () => {
-  // history.pushState writes the URL bar but not hasher's cached hash: the
-  // next browser Back landed exactly on the cached value, hasher read "no
-  // change", and the restore roundtrip never fired - the one Back the push
-  // exists for. In KEEP mode the suffix therefore rides behind the CURRENT
-  // draft's route, pushed via setHash so hasher's cache follows; the entry
-  // below keeps the pre-event draft (the updateAppRoute skip) and is what
-  // Back restores. Nothing goes through history.pushState, and sync still
-  // stops before the trailing replaceHash("") cleanup that would wipe the
-  // pushed hash.
-  const { Router, state, writes, pushes } = loadRouter({
-    state: { navRouting: true, navMode: "KEEP", currentApp: CALLER },
-    hash: `app/${CALLER}/D1`,
-    href: `https://host/sap/z2ui5#/app/${CALLER}/D1`,
-  });
-  state.oResponse = { APP: CALLER };
-  Router.sync({ setPushState: "/Page2", id: "D2" });
-  expect(pushes).toEqual([]);
-  expect(writes).toEqual([
-    { op: "set", hash: `app/${CALLER}/D2/Page2`, guard: "D2" },
-  ]);
-  // the entry below the push still names D1, so its echo must not be
-  // swallowed: a D1 route differs from the current draft and restores
-  expect(Router.parse(`#/app/${CALLER}/D1`).draft).toBe("D1");
-  expect(state.currentDraftId).toBe("D2");
-});
-
-test("set_push_state in FRESH mode keeps the legacy history push", () => {
-  // a suffix behind a draft-less route would PARSE as a draft id, so FRESH
-  // stays on history.pushState - Back is inert there by design (a FRESH
-  // route restarts the app on every entry anyway), and the trailing
-  // replaceHash("") cleanup stays skipped
-  const { Router, state, writes, pushes } = loadRouter({
-    state: {
-      navRouting: true,
-      navMode: "FRESH",
-      currentApp: CALLER,
-      currentDraftId: null,
-    },
-    hash: `app/${CALLER}`,
-    href: `https://host/sap/z2ui5#/app/${CALLER}`,
-  });
-  state.oResponse = { APP: CALLER };
-  Router.sync({ setPushState: "?pos=42", id: "D2" });
-  expect(pushes).toEqual([`/sap/z2ui5#/app/${CALLER}?pos=42`]);
-  expect(writes.filter((w) => w.hash === "")).toEqual([]);
+test("under routing a hash write is refused and the route is synced as usual", () => {
+  for (const navMode of ["KEEP", "FRESH"]) {
+    const { Router, state, writes, pushes, errors } = loadRouter({
+      state: {
+        navRouting: true,
+        navMode,
+        currentApp: CALLER,
+        currentDraftId: navMode === "KEEP" ? "D1" : null,
+      },
+      hash: navMode === "KEEP" ? `app/${CALLER}/D1` : `app/${CALLER}`,
+      href: `https://host/sap/z2ui5#/app/${CALLER}`,
+    });
+    state.oResponse = { APP: CALLER };
+    Router.sync({ setPushState: "/Page2", id: "D2" });
+    expect(pushes).toEqual([]);
+    // the route follows the response - with its draft in KEEP mode, already
+    // current in FRESH mode - and carries no suffix
+    expect(writes).toEqual(
+      navMode === "KEEP"
+        ? [{ op: "replace", hash: `app/${CALLER}/D2`, guard: "D2" }]
+        : [],
+    );
+    expect(errors).toHaveLength(1);
+    expect(errors[0].msg).toContain("the hash is the router's");
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -693,7 +755,9 @@ test("a listener push of the bare '/' writes the empty hash and its echo dies", 
   // without a section) pushes "/": navTo strips the slash, the URL loses its
   // app hash - and the echo of that write must be swallowed like any other,
   // so both sides normalize to ""
-  const { Router, state, writes } = loadRouter({ state: { navRouting: false } });
+  const { Router, state, writes } = loadRouter({
+    state: { navRouting: false },
+  });
   const fired = [];
   state.oController = { eB: (a) => fired.push(a) };
   Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
@@ -716,7 +780,9 @@ test("a hash replace writes in place - no new entry, echo swallowed", () => {
   // the router's navTo( ..., true ): an FCL navigation arrow rewrites the
   // URL without adding a Back step - hashChanger.replaceHash, adopted first
   // so the write's own echo dies like a push's would
-  const { Router, state, writes } = loadRouter({ state: { navRouting: false } });
+  const { Router, state, writes } = loadRouter({
+    state: { navRouting: false },
+  });
   const fired = [];
   state.oController = { eB: (a) => fired.push(a) };
   Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
@@ -790,25 +856,6 @@ test("navBack counts the entries behind the browser, not every push", () => {
   expect(state.hashPushCount).toBe(1);
 });
 
-test("a hash replace in KEEP mode replaces the route with the suffix", () => {
-  const { Router, state, writes } = loadRouter();
-  state.oResponse = { APP: CALLER };
-  Router.sync({ setHashReplace: "?pos=42", id: "D2" });
-  expect(writes).toEqual([
-    { op: "replace", hash: `app/${CALLER}/D2?pos=42`, guard: "D2" },
-  ]);
-  expect(state.hashPushCount).toBe(0);
-});
-
-test("a hash replace without listener or routing replaces the raw URL", () => {
-  const { Router, replaces, pushes } = loadRouter({
-    state: { navRouting: false },
-  });
-  Router.sync({ setHashReplace: "?pos=42", id: "D2" });
-  expect(pushes).toEqual([]);
-  expect(replaces).toEqual(["/sap/z2ui5#?pos=42"]);
-});
-
 test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes
@@ -844,14 +891,14 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
 
 // ---------------------------------------------------------------------------
 // Embedded - the hash is the host's (state.embedded), unless the host handed
-// it back (state.ownsHash, which Component.init derives from both)
+// it back (state.ownsPage, which Component.init derives from both)
 // ---------------------------------------------------------------------------
 
 test("an embedded component neither listens to the hash nor starts its engine", () => {
   // the host routes by the hash (a Fiori elements object page) or not at
   // all - either way a hash change is none of the component's business
   const { Router, listeners, inits } = loadRouter({
-    state: { embedded: true, ownsHash: false },
+    state: { ownsPage: false },
     hash: "Customers('1001')",
   });
   Router.init(() => {
@@ -871,7 +918,7 @@ test("an embedded component's roundtrips leave the host's hash alone", () => {
   // replaceHash("") took the object page's route away after every click
   for (const navRouting of [false, true]) {
     const { Router, writes, pushes, replaces, errors } = loadRouter({
-      state: { embedded: true, ownsHash: false, navRouting },
+      state: { ownsPage: false, navRouting },
       hash: "Customers('1001')",
     });
     Router.sync({ id: "D2" });
@@ -888,13 +935,13 @@ test("an embedded component's roundtrips leave the host's hash alone", () => {
   }
 });
 
-// A host whose page is this one component (the abap2UI5/frontend branches
-// standard_new and cloud_new) hands
+// A host whose page is this one component (the BSP of src/03/02, the app
+// of the branch cloud) hands
 // the hash back: the component listens, initializes the engine and writes
 // its routes as on a page of its own.
 test("an embedded component the host handed the hash to routes as on its own page", () => {
   const { Router, state, listeners, inits, writes } = loadRouter({
-    state: { embedded: true, ownsHash: true },
+    state: { ownsPage: true },
   });
   let restored = 0;
   Router.init(() => {
@@ -921,7 +968,15 @@ test("an embedded component the host handed the hash to routes as on its own pag
 // undefined everywhere and simply do nothing - so pin the set here.
 test("reads exactly the option names the backend writes", () => {
   const src = require("fs").readFileSync(
-    require("path").join(__dirname, "..", "..", "app", "webapp", "core", "Router.js"),
+    require("path").join(
+      __dirname,
+      "..",
+      "..",
+      "bundle",
+      "webapp",
+      "core",
+      "Router.js",
+    ),
     "utf8",
   );
   const read = [...src.matchAll(/mOptions\.([a-zA-Z]+)/g)].map((m) => m[1]);

@@ -5,6 +5,7 @@ summary: 'a REF TO data that is a component of a structure - also of a line of a
 priority: medium
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: open-abap/open-abap-core
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the report kept the copies of the field catalog of each grid (z2ui5_cl_cgui_alv_grid) as a REF TO data in a line of a table attribute; after the roundtrip, set_fieldcat( ) looped over it and died with TypeError: table.getArrayLength is not a function. The copies are direct attributes of the report now (mr_cgui_grid_fieldcat), which come back'

@@ -3,6 +3,8 @@ CLASS zcl_tst_timer DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
     DATA ticks TYPE i.
+    DATA clicks TYPE i.
+    DATA polls TYPE i.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
@@ -23,7 +25,7 @@ CLASS zcl_tst_timer IMPLEMENTATION.
     " text. The spec holds the TICK roundtrip back past UI5's one-second
     " busy delay and asks the global busy indicator whether it opened: the
     " flagged tick leaves it down, the plain one raises it as it always did
-    " (see evStartTimer in app/webapp/core/actions/ViewOps.js). The flag
+    " (see evStartTimer in bundle/webapp/core/actions/ViewOps.js). The flag
     " is an ABAP boolean spelled as it travels, `X` - the way t_arg carries
     " every boolean (binding_call's sort flags, a control_by_id setter).
     " check_on_init( ) implies check_on_navigated( ), so one arm displays.
@@ -38,8 +40,34 @@ CLASS zcl_tst_timer IMPLEMENTATION.
       client->follow_up_action( val   = client->cs_event-start_timer
                                 t_arg = VALUE #( ( `TICK` ) ( `50` ) ) ).
 
+    " START_TIMER's fourth argument, the repeat (timer-repeat spec): armed
+    " ONCE, never re-armed here - the browser arms the next tick after every
+    " response, a click's response included, until STOP
+    ELSEIF client->check_on_event( `ARM_REPEAT` ).
+      client->follow_up_action( val   = client->cs_event-start_timer
+                                t_arg = VALUE #( ( `POLL` ) ( `300` ) ( `X` ) ( `X` ) ) ).
+
+    " a repeating tick that changes nothing: every IDLE tick is answered
+    " with the draft it continued (z2ui5_cl_ui5_handler=>main_end_reuse),
+    " and the timer goes on all the same
+    ELSEIF client->check_on_event( `ARM_IDLE` ).
+      client->follow_up_action( val   = client->cs_event-start_timer
+                                t_arg = VALUE #( ( `IDLE` ) ( `200` ) ( `` ) ( `X` ) ) ).
+
+    ELSEIF client->check_on_event( `STOP` ).
+      client->follow_up_action( client->cs_event-stop_timer ).
+
+    ELSEIF client->check_on_event( `POLL` ).
+      polls = polls + 1.
+
     ELSEIF client->check_on_event( `TICK` ).
       ticks = ticks + 1.
+
+    " a click while a tick is in flight is held back and sent after the
+    " tick's response (View1.eB, state.oTickQueuedEvent) - it used to be
+    " dropped
+    ELSEIF client->check_on_event( `CLICK` ).
+      clicks = clicks + 1.
     ENDIF.
 
   ENDMETHOD.
@@ -62,6 +90,32 @@ CLASS zcl_tst_timer IMPLEMENTATION.
     page->tag( `Text`
         )->a( n = `id`   v = `txtTicks`
         )->a( n = `text` v = client->_bind( ticks ) ).
+    page->tag( `Text`
+        )->a( n = `id`   v = `txtClicks`
+        )->a( n = `text` v = client->_bind( clicks ) ).
+    page->tag( `Text`
+        )->a( n = `id`   v = `txtPolls`
+        )->a( n = `text` v = client->_bind( polls ) ).
+    page->tag( `Button`
+        )->a( n = `id`    v = `btnArmRepeat`
+        )->a( n = `text`  v = `arm a repeating poll`
+        )->a( n = `press` v = client->_event( `ARM_REPEAT` ) ).
+    page->tag( `Button`
+        )->a( n = `id`    v = `btnArmIdle`
+        )->a( n = `text`  v = `arm a repeating idle tick`
+        )->a( n = `press` v = client->_event( `ARM_IDLE` ) ).
+    page->tag( `Button`
+        )->a( n = `id`    v = `btnStop`
+        )->a( n = `text`  v = `stop`
+        )->a( n = `press` v = client->_event( `STOP` ) ).
+    page->tag( `Button`
+        )->a( n = `id`    v = `btnStopLocal`
+        )->a( n = `text`  v = `stop in the browser`
+        )->a( n = `press` v = client->follow_up_action( client->cs_event-stop_timer ) ).
+    page->tag( `Button`
+        )->a( n = `id`    v = `btnClick`
+        )->a( n = `text`  v = `click`
+        )->a( n = `press` v = client->_event( `CLICK` ) ).
     page->tag( `Button`
         )->a( n = `id`    v = `btnArmSilent`
         )->a( n = `text`  v = `arm a no-busy tick`

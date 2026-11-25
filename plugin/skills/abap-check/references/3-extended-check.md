@@ -7,7 +7,7 @@
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps, abaplint-timestampl-to-timestamp, abaplint-abapdoc-empty-documentation, abaplint-abapdoc-html-tag-namespaced, abaplint-inline-packed-computation-gaps, abaplint-modify-key-only-table, abaplint-implement-methods-alias-name, abaplint-conv-generic-formal-fixed-type, abaplint-replacement-object-tables, abaplint-select-from-itab-key
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -353,6 +353,23 @@ and points here, so a new trap is added here and nowhere else.
   abaplint 2.120.71 on (abaplint/abaplint#4386): the rule reports a CONV
   whose operand is a built-in function with a result of the target type,
   and a CONV inside a function argument.
+
+  **Two shapes the rule still misses, both from a user's pull
+  (2026-11-24).** `DATA(lv_name) = CONV string( lr_config->n ).` in
+  `z2ui5_cl_ui5_http_handler->_bootstrap_attributes` (`1f85280c`): an inline
+  declaration whose operand is a component reached through a reference or a
+  field symbol, already `string`. And `->a( n = `growing` v = CONV #( xsdbool(
+  … ) ) )` in layout-management's `xml_build_table` (`5b1c8b7`): a `CONV #( )`
+  around a built-in function as the actual of a `string` formal - the builder
+  has `b =` for exactly that. Measured on 2.120.113, isolated and
+  syntax-clean: the rule reports `DATA(x) = CONV string( lv_string )` and
+  `lv_tgt = CONV string( lr->n )` into a typed target, and neither of these
+  two. Fix: assign the component directly (`DATA(lv_name) = lr_config->n.`),
+  and pass a boolean with `b = xsdbool( … )`. A third shape from the same
+  pull: `rtti_get_t_ddic_fixed_values( CONV #( dfies->rollname ) )` with the
+  formal `TYPE clike` - *"Redundant conversion for type ROLLNAME"*
+  (table-maintenance `3751aca`). For a generic formal `CONV #` takes the
+  operand's own type and converts nothing; pass the operand as it is.
 - **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
   type-compatible with a formal parameter typed `string` — the view builder's
   `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
@@ -450,6 +467,56 @@ and points here, so a new trap is added here and nowhere else.
   six statements are how every binding finds its value, they behave
   differently per release (#1937, comments at the sites), and a rewrite to
   `mo_app->(name)` needs a 7.02 and a cloud system to be tested on first.
+
+- **One activation of a consumer system (S5S on S/4HANA EWM, 2026-11-24)**
+  brought a batch of SLIN warnings abaplint 2.120.116 does not report -
+  measured in an isolated, syntax-clean probe with every rule on, a control
+  finding firing (fixes in `oblomov-dev/s5s_dev` `3173ec5`). Each is a stock
+  item:
+  - *"Empty documentation is not allowed"* - `"! @parameter client |` with no
+    text, a lone `"!` in front of `CLASS` or ending a block (~20 times in
+    `/KRO/UI501_CL_APP_VIEW`). Fix: write the text or drop the line; an empty
+    `"!` between two text lines is fine.
+  - *"HTML tag <html:style> is not supported in ABAP Doc"* / *"... is not
+    closed"* - `abapdoc_html_tag` reports `<layoutData>` but not a namespaced
+    tag. Fix: `&lt;html:style&gt;`.
+  - *"... the type P(8,0) is used here implicitly"* on `DATA(x) = ( a + b ).`
+    and `DATA(t) = a + VALUE #( lt[ 1 ]-quan OPTIONAL ).` -
+    `inline_packed_computation` reports the bare chain only. The decimals go:
+    a weight difference below 0.5 counted as none. Fix: declare the target
+    with the operands' type, or `CONV ty_quan( ... )`.
+  - *"Table ... contains only key fields. Entries can be inserted, but not
+    modified"* - `MODIFY` of a table without non-key fields only ever inserts.
+    Fix: `DELETE` + `INSERT`, or give the table a data field.
+  - *"The component addressed here under the name COUNT is accessed in the
+    current context under a different name"* - a `REDEFINITION` of
+    `zif~count` implemented as `METHOD count.` via the superclass alias;
+    abaplint reports a missing implementation instead. Fix:
+    `METHOD zif~count.`
+    The same warning for an attribute: one method that reads
+    `mo_app->mv_shared` (an alias) and `mo_app->lif~mv_shared` (2026-11-25,
+    a unit test of z2ui5_cl_ui5_srv_model); abaplint reports nothing. Fix:
+    one spelling per method.
+  - *"The fixed type STRING is used for the generic type CLIKE"* -
+    `CONV #( lv_quan )` (packed) into `v1 TYPE clike`. Fix: `CONV string( )`.
+  - *"The table MARD has a replacement object and hence should no longer be
+    used"* - MARD, MCHB, MBEW, EBEW, MARC, MKPF, MSEG, MSKA, MSLB, MSKU, MKOL,
+    /SAPAPO/MATMAP, 20+ sites. Fix: the NSDM_* / I_* replacements.
+  - `SELECT ... FROM @itab`: *"The primary key of LT_X is ignored because it is
+    generic or is the standard key"* and, for an aggregate or a join,
+    *"The SELECT command is executed on the database"*. Fix: an explicit key;
+    aggregate in ABAP (`REDUCE`) where the round trip is not wanted.
+  - More shapes of three existing items: `'*'` into N(10) and `'98'` into
+    C(1), `''` against a DATS (`WHERE dalen <> ''` - write `'00000000'` or
+    `IS INITIAL`); `CONV #( 'LIT' )` into a `clike` formal and
+    `CONV string( lr->n )` as an actual; `ts = get_timestampl( )` and the
+    DDIC aliases TZNTSTMPS, TSEGEVTFRS, TSEGEVTTOS.
+
+  The same run also had warnings abaplint DOES report once the rule is on -
+  `strict_sql` (INTO not last), `wrong_abapdoc_position`, `try_without_catch`,
+  `implement_methods` (a truly missing implementation) and most
+  `redundant_conversion` shapes (57 sites, the rule was off there): for those
+  the fix is to switch the rule on, not a stock item.
 
 **Not gated: the BUNDLE.**
 `check:atc` walks this repository's `src/` — that is its stated scope, and

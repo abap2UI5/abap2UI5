@@ -9,7 +9,7 @@ the per-parameter documentation, is `src/02/z2ui5_if_client.intf.abap` in
 [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_if_client.intf.abap) —
 read a method's block there when this page is not enough.
 
-## Methods (34)
+## Methods (40)
 
 ### `view_destroy`
 
@@ -66,7 +66,7 @@ hash_set(
     val TYPE string OPTIONAL )
 ```
 
-HashChanger#setHash: write VAL as the app's URL hash - a PUSHED history entry, so the browser Back button has a step to take. The 1:1 counterpart of a UI5 router's navTo.
+HashChanger#setHash: write VAL as the app's URL hash - a PUSHED history entry, so the browser Back button has a step to take. The 1:1 counterpart of a UI5 router's navTo. The value is the WHOLE app hash (`/Page2`).
 
 ### `hash_replace`
 
@@ -161,6 +161,16 @@ get( )
 
 Everything the frontend sent with this roundtrip, as one structure (ty_s_get): the event and its arguments, the device, focus, scroll and UI5 runtime information, the browser location (s_config), the launchpad startup parameters (t_comp_params), the draft ids, data a returning app handed over (r_event_data) and the …
 
+### `get_start_param`
+
+```abap
+get_start_param(
+    name TYPE clike )
+    -> string
+```
+
+One start parameter of the page, by name - whichever way the app was started: standalone with `?lgn=0001&app=MENU`, from a launchpad tile whose target mapping hands `lgn` and `app` over as startupParameters, or from a launchpad intent `#Object-action?lgn=0001`.
+
 ### `get_event`
 
 ```abap
@@ -205,7 +215,8 @@ The handler expression for a view attribute that LEAVES this app on press - a Pa
 nav_app_leave(
     app TYPE REF TO z2ui5_if_app OPTIONAL
     event TYPE clike OPTIONAL
-    r_data TYPE data OPTIONAL )
+    r_data TYPE data OPTIONAL
+    keep_messages TYPE abap_bool DEFAULT abap_false )
     -> string
 ```
 
@@ -215,7 +226,9 @@ Hand the screen back to the previous app on the stack - the one that called this
 
 ```abap
 nav_app_call(
-    app TYPE REF TO z2ui5_if_app )
+    app TYPE REF TO z2ui5_if_app
+    tag TYPE clike OPTIONAL
+    keep_messages TYPE abap_bool DEFAULT abap_false )
     -> string
 ```
 
@@ -233,7 +246,8 @@ message_box_display(
     actions TYPE string_table OPTIONAL
     emphasizedaction TYPE clike OPTIONAL
     initialfocus TYPE clike OPTIONAL
-    details TYPE clike OPTIONAL )
+    details TYPE clike OPTIONAL
+    icon TYPE clike OPTIONAL )
 ```
 
 Show a sap.m.MessageBox. `text` is TYPE any and takes whatever the app has: a text, a message structure or table (BAPIRET2, T100, RAP, symsg, a log object, an exception), an HTML string, a business table, a nested structure or tree, an object, a number.
@@ -353,22 +367,62 @@ get_app_prev( )
 
 The app instance on the other side of the last navigation: inside a called app, the caller; back in the caller after the called app's nav_app_leave( ), the instance that just returned - cast it to its class and read its public attributes for the result it produced.
 
-## Obsolete (7) — still compile, never write them in new code
+### `check_nav_pending`
 
-- `view_model_update` — does NOTHING. An event round-trip that changes bound data pushes the model AUTOMATICALLY: the framework compares the model state before and after main( ) and, when it differs, sends it to every open view slot (see z2ui5_cl_ui5_handler=>main_end).
-- `nest_view_model_update` — does NOTHING, see view_model_update. A nested view inherits the MAIN view's model anyway, and that model is pushed automatically
-- `nest2_view_model_update` — does NOTHING, see view_model_update. A nested view inherits the MAIN view's model anyway, and that model is pushed automatically
-- `popup_model_update` — does NOTHING, see view_model_update. The automatic push reaches the POPUP slot too, so an open popup refreshes on its own
-- `popover_model_update` — does NOTHING, see view_model_update. The automatic push reaches the POPOVER slot too, so an open popover refreshes on its own
+```abap
+check_nav_pending( )
+    -> abap_bool
+```
+
+Whether THIS roundtrip already ends in a navigation: true from the moment main( ) has called nav_app_call( ) or nav_app_leave( ), false before.
+
+### `get_nav_tag`
+
+```abap
+get_nav_tag( )
+    -> string
+```
+
+The tag this app gave its last nav_app_call( tag = ... ), on the roundtrip the called app comes BACK on - and only then:
+
+### `check_on_nav_back`
+
+```abap
+check_on_nav_back( )
+    -> abap_bool
+```
+
+TRUE on the one roundtrip on which this app gets the screen BACK from an app it called: the called app (or one it called on) left with nav_app_leave( ) - in a handler or through a press wired with _event_nav_app_leave( ) - and this instance is where the leave lands.
+
+### `timer_set`
+
+```abap
+timer_set(
+    event TYPE clike
+    delay_ms TYPE i
+    no_busy TYPE abap_bool DEFAULT abap_false )
+```
+
+DECLARE the repeating timer of this app: the backend event EVENT is raised every DELAY_MS milliseconds for as long as this app has the screen, and the framework - not the app - keeps it running:
+
+### `timer_stop`
+
+```abap
+timer_stop( )
+```
+
+End the timer declared with timer_set( ): the browser stops it with this response, and it is not armed again when the app gets the screen back. Nothing is sent when it did not run. Appended at the END of the interface (rule 5).
+
+## Obsolete (1) — still compile, never write them in new code
+
 - `_event_client` — use follow_up_action( ), which is the same call in the same position now. Since follow_up_action( ) has a RETURNING parameter, a call whose result is CONSUMED - the view-attribute form `v = client->follow_up_action( val = ... t_arg = ...
-- `_bind_edit` — alias of _bind with identical behaviour, please use _bind. custom_mapper_back / custom_filter_back are still accepted for source compatibility but are no longer evaluated.
 
 ## Constants
 
 - **`cs_device`** — the values the device facts take (system, browser, operating system, orientation):
   `phone`, `tablet`, `desktop`, `combi`, `chrome`, `firefox`, `safari`, `edge`, `windows`, `macintosh`, `linux`, `ios`, `android`, `portrait`, `landscape`
 - **`cs_event`** — frontend actions for `follow_up_action( val = client->cs_event-… )` - the per-action `t_arg` is documented on `follow_up_action` in the interface:
-  `popup_close`, `popover_close`, `cross_app_nav_to_ext`, `cross_app_nav_to_prev_app`, `set_size_limit`, `set_odata_model`, `clipboard_copy`, `set_title`, `set_title_launchpad`, `set_favicon`, `set_focus`, `scroll_to`, `scroll_into_view`, `start_timer`, `system_logout`, `keyboard_shortcut`, `open_new_tab`, `location_reload`, `download_b64_file`, `urlhelper`, `store_data`, `play_audio`, `smart_variant_init`, `filter_bar_variant_init`, `control_by_id`, `control_global`, `binding_call`, `bind_element`, `hash_set`, `hash_replace`, `hash_back`, `hash_attach_changed`, `hash_routing`, `app_state_set_active`, `cross_app_nav_get_links`, `set_app_full_width`
+  `popup_close`, `popover_close`, `cross_app_nav_to_ext`, `cross_app_nav_to_prev_app`, `set_size_limit`, `set_odata_model`, `clipboard_copy`, `set_title`, `set_title_launchpad`, `set_favicon`, `set_focus`, `scroll_to`, `scroll_into_view`, `start_timer`, `system_logout`, `keyboard_shortcut`, `open_new_tab`, `location_reload`, `download_b64_file`, `urlhelper`, `store_data`, `play_audio`, `smart_variant_init`, `filter_bar_variant_init`, `control_by_id`, `control_global`, `binding_call`, `bind_element`, `hash_set`, `hash_replace`, `hash_back`, `hash_attach_changed`, `hash_routing`, `app_state_set_active`, `cross_app_nav_get_links`, `set_app_full_width`, `stop_timer`
 - **`cs_view`** — the view slots, for actions scoped to one of them:
   `main`, `nested`, `nested2`, `popup`, `popover`
 - **`cs_nav_mode`** — the modes of `cs_event-hash_routing`:

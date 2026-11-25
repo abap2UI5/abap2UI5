@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadEnv } = require("./loadLibModule");
 
 // The version-guarded Theming/Localization probes shipped in
-// app/webapp/core/Env.js (getThemingModule / getTheme / getLocale) - the
+// bundle/webapp/core/Env.js (getThemingModule / getTheme / getLocale) - the
 // single implementation behind Component.init's S_UI5 block, the devtools
 // Inspect report and the THEMING global target in core/actions/ControlCall.
 // Loaded with a seeded sap.ui.require / sap.ui.getCore, so the modern

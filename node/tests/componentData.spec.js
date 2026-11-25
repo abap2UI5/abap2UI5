@@ -3,8 +3,8 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Component.init splits the frontend settings off the component data: what
-// the backend GET page passes (checkLocal, ccResourceRoot, cccResourceRoot),
-// what the z2ui5/embed module of ?z2ui5-bundle passes (embedded, nodePath)
+// the bundle's z2ui5/embed module passes (ccResourceRoot, cccResourceRoot),
+// what the z2ui5/embed module of ?z2ui5-bundle passes (nodePath)
 // and what a host app embedding the component passes (endpoint). They
 // configure the frontend, so they land in the state and never travel to the
 // backend with the rest of the component data (oConfig.ComponentData).
@@ -120,137 +120,90 @@ test("an endpoint among the launchpad startup parameters is not taken", () => {
   });
 });
 
-test("the GET page settings are still split off as before", () => {
+test("the resource roots are still split off as before", () => {
   const state = init({
-    checkLocal: true,
     ccResourceRoot: "/cci/",
     cccResourceRoot: "/ccc/",
   });
 
-  expect(state.checkLocal).toBe(true);
   expect(state.ccResourceRoot).toBe("/cci/");
   expect(state.cccResourceRoot).toBe("/ccc/");
   expect(state.endpoint).toBeNull();
   expect(state.oConfig.ComponentData).toBeUndefined();
 });
 
-// ?z2ui5-bundle's z2ui5/embed module passes embedded: a page that loads the
-// frontend that way embeds it, and its URL is the host's (core/Router.js,
-// core/Server.js). A setting like the endpoint - never app data.
-test("an embedding page's flag lands in the state, not in the data sent to the backend", () => {
+// The component is always embedded since 2026-11-14: the embed control
+// creates it everywhere. The flag an older control or a host of its own
+// still passes is a setting like the endpoint - split off, never app data.
+test("an embedding page's flag is split off, not sent to the backend", () => {
   const state = init({
     embedded: true,
     endpoint: "/sap/bc/z2ui5",
     startupParameters: { app_start: ["ZCL_APP"], customer: ["4711"] },
   });
 
-  expect(state.embedded).toBe(true);
+  expect("embedded" in state).toBe(false);
   expect(state.oConfig.ComponentData).toEqual({
     startupParameters: { app_start: ["ZCL_APP"], customer: ["4711"] },
   });
+  // a launchpad link's parameter of that name is app data, and stays
+  expect(
+    init({ startupParameters: { embedded: ["true"] } }).oConfig.ComponentData,
+  ).toEqual({ startupParameters: { embedded: ["true"] } });
 });
 
-test("only a boolean true embeds - the page and the launchpad do not", () => {
-  expect(init({ embedded: "true" }).embedded).toBe(false);
-  expect(init({ embedded: 1 }).embedded).toBe(false);
-  expect(init({}).embedded).toBe(false);
-  expect(init(undefined).embedded).toBe(false);
-  // a launchpad link cannot switch it on either: startup parameters are app
-  // data, and they stay where they are
-  const state = init({ startupParameters: { embedded: ["true"] } });
-  expect(state.embedded).toBe(false);
-  expect(state.oConfig.ComponentData).toEqual({
-    startupParameters: { embedded: ["true"] },
-  });
-});
+// What belongs to the page - the URL hash, the title, the favicon, the
+// global busy indicator, the "leave page?" prompt - is the host's, unless
+// the host hands the page over with ownsPage: true (the backend's own page,
+// one control filling it) or its older name ownsHash: true, which
+// @abap2ui5/embed-control 0.3.0 passes. A host's setting: read on the top
+// level only, a boolean true only, and never sent.
+test("the page is the host's, unless handed over", () => {
+  for (const data of [{}, undefined, { embedded: true }]) {
+    expect(init(data).ownsPage).toBe(false);
+  }
 
-// The URL hash: a page of the app's own owns it, an embedded component
-// leaves it to the host - unless the host hands it back with ownsHash: true
-// (the abap2UI5/frontend branches standard_new and cloud_new, one control
-// filling an empty page). A host's
-// setting: read on the top level only, a boolean true only, and never sent.
-test("the hash is the page's own, the host's when embedded, unless handed back", () => {
-  expect(init({}).ownsHash).toBe(true);
-  expect(init(undefined).ownsHash).toBe(true);
-  expect(init({ embedded: true }).ownsHash).toBe(false);
+  for (const handed of [{ ownsPage: true }, { ownsHash: true }]) {
+    const state = init({
+      ...handed,
+      startupParameters: { app_start: ["ZCL_APP"] },
+    });
+    expect(state.ownsPage).toBe(true);
+    expect(state.oConfig.ComponentData).toEqual({
+      startupParameters: { app_start: ["ZCL_APP"] },
+    });
+  }
 
-  const state = init({
-    embedded: true,
-    ownsHash: true,
-    startupParameters: { app_start: ["ZCL_APP"] },
-  });
-  expect(state.embedded).toBe(true);
-  expect(state.ownsHash).toBe(true);
-  expect(state.oConfig.ComponentData).toEqual({
-    startupParameters: { app_start: ["ZCL_APP"] },
-  });
-});
-
-// The rest of the page - the title, the favicon, the global busy indicator,
-// the "leave page?" prompt - goes with the hash: ownsPage hands all of it
-// back, and ownsHash, the switch's older name, does the same, so a host that
-// passes it keeps what it had. Read like ownsHash, and never sent.
-test("the page is the component's own, the host's when embedded, unless handed back", () => {
-  expect(init({}).ownsPage).toBe(true);
-  expect(init({ embedded: true }).ownsPage).toBe(false);
-
-  const state = init({
-    embedded: true,
-    ownsPage: true,
-    startupParameters: { app_start: ["ZCL_APP"] },
-  });
-  expect(state.ownsPage).toBe(true);
-  expect(state.ownsHash).toBe(true);
-  expect(state.oConfig.ComponentData).toEqual({
-    startupParameters: { app_start: ["ZCL_APP"] },
-  });
-
-  expect(init({ embedded: true, ownsHash: true }).ownsPage).toBe(true);
-  expect(init({ embedded: true, ownsPage: "true" }).ownsPage).toBe(false);
-  const linked = init({
-    embedded: true,
-    startupParameters: { ownsPage: ["true"] },
-  });
+  expect(init({ ownsPage: "true" }).ownsPage).toBe(false);
+  const linked = init({ startupParameters: { ownsPage: ["true"] } });
   expect(linked.ownsPage).toBe(false);
-  expect(linked.ownsHash).toBe(false);
 });
 
-test("only a host's boolean true hands the hash back - not a launchpad link", () => {
-  expect(init({ embedded: true, ownsHash: "true" }).ownsHash).toBe(false);
-  expect(init({ embedded: true, ownsHash: 1 }).ownsHash).toBe(false);
-  const state = init({
-    embedded: true,
-    startupParameters: { ownsHash: ["true"] },
-  });
-  expect(state.ownsHash).toBe(false);
+test("only a host's boolean true hands the page over by the older name - not a launchpad link", () => {
+  expect(init({ ownsHash: "true" }).ownsPage).toBe(false);
+  expect(init({ ownsHash: 1 }).ownsPage).toBe(false);
+  const state = init({ startupParameters: { ownsHash: ["true"] } });
+  expect(state.ownsPage).toBe(false);
   expect(state.oConfig.ComponentData).toEqual({
     startupParameters: { ownsHash: ["true"] },
   });
 });
 
 // UI5 1.x exports every class it creates as a global - window.z2ui5.Component
-// and the rest (core/Env.js ownClass). An embedded component runs on a HOST's
-// page, whose window is not the frontend's: its init takes them off. A page
-// of the app's own keeps them - 1.71 looks a base class up by that name when
-// something extends one of ours.
+// and the rest (core/Env.js ownClass). The component always runs on a HOST's
+// page, whose window is not the frontend's: its init takes them off.
 // ... and its Restart restarts the app in place instead of reloading the
 // host's page (core/ErrorView.js restart, Component._restartApp)
-test("only an embedded component offers the in-place restart", () => {
-  const embedded = initContext({ embedded: true });
-  expect(typeof embedded.restart).toBe("function");
-  expect(initContext({}).restart ?? null).toBe(null);
-  expect(initContext({ checkLocal: true }).restart ?? null).toBe(null);
+test("every component offers the in-place restart", () => {
+  expect(typeof initContext({}).restart).toBe("function");
+  expect(typeof initContext({ ownsPage: true }).restart).toBe("function");
 });
 
-test("an embedded component takes the frontend's class globals off", () => {
-  const embedded = [];
-  init({ embedded: true }, { globalsDropped: embedded });
-  expect(embedded).toEqual([true]);
-
-  const own = [];
-  init({ checkLocal: true }, { globalsDropped: own });
-  init({}, { globalsDropped: own });
-  expect(own).toEqual([]);
+test("every component takes the frontend's class globals off", () => {
+  const dropped = [];
+  init({}, { globalsDropped: dropped });
+  init({ ownsPage: true }, { globalsDropped: dropped });
+  expect(dropped).toEqual([true, true]);
 });
 
 // The two roots are absolute paths on the SYSTEM. A page that reaches the
@@ -374,7 +327,7 @@ test.describe("the sibling BSP roots behind a proxy", () => {
   // ComponentContainer an endpoint but no node path, and a stack that
   // reported no path an empty one
   test("without an endpoint or a node path nothing moves", () => {
-    const page = init({ checkLocal: true, ...roots }, { location });
+    const page = init({ ...roots }, { location });
     expect(page.ccResourceRoot).toBe(CCI);
     expect(page.cccResourceRoot).toBe(CCC);
     expect(page.nodePath).toBeNull();
@@ -454,9 +407,9 @@ test.describe("the sibling BSP roots behind a proxy", () => {
 // mobile app. An embedded component's root (a sap.m.NavContainer) never
 // calls it, but a sap.m.Shell or sap.m.SplitApp in the app's view does when
 // it is created - so the component makes the call first, with everything
-// off, before the root view exists; on a page of the app's own the call
-// stays sap.m.App's.
-test("an embedded component makes the page's Mobile.init( ) call first, with everything off", () => {
+// off, before the root view exists; on a page handed to the app (ownsPage)
+// the call stays sap.m.App's.
+test("on a host's page the component makes the page's Mobile.init( ) call first, with everything off", () => {
   const calls = [];
   initContext({ embedded: true }, { calls });
   expect(calls).toEqual([
@@ -474,9 +427,9 @@ test("an embedded component makes the page's Mobile.init( ) call first, with eve
   ]);
 });
 
-test("on a page of the app's own, Mobile.init( ) is left to sap.m.App", () => {
+test("on a page handed to the app, Mobile.init( ) is left to the app's sap.m.App", () => {
   const calls = [];
-  initContext({}, { calls });
+  initContext({ ownsPage: true }, { calls });
   expect(calls).toEqual(["UIComponent.init"]);
 });
 

@@ -3,9 +3,52 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ui5_exit.
 
+    "! Opens a request: the context the exit is called with from now on,
+    "! and a fresh memo for config_http_post( ). The HTTP handler calls it
+    "! once per request, before anything asks the exit.
     CLASS-METHODS init_context
       IMPORTING
         http_info TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+
+    "! Ends the request init_context( ) opened: what the exit answered for
+    "! it is forgotten, and until the next init_context( ) every
+    "! config_http_post( ) asks the exit again. The context itself stays -
+    "! as before, an exit asked outside a request sees the last one.
+    CLASS-METHODS close_context.
+
+    "! The exit's POST config - set_config_http_post of the installed exit,
+    "! asked ONCE per request. A roundtrip reads it in several places (the
+    "! CSRF gate, the monitor switch, the draft cleanup of a first start,
+    "! the error response), and each of them used to call the exit - customer
+    "! code - again for the same answer. Inside a request (init_context( )
+    "! to close_context( )) the first answer is kept and handed to the
+    "! others. Per REQUEST, never longer: a stateful session keeps this
+    "! class's statics across requests, and a switch the exit flips
+    "! (check_monitor_active, check_hide_error_details) has to take effect
+    "! on the next roundtrip. Outside a request nothing is kept at all.
+    "! Only an exit that RETURNED is remembered; one that raised is asked
+    "! again by the next reader, and whatever it wrote into cs_config before
+    "! raising stays there for the caller, exactly as with the direct call
+    "! (the error response and the start page read the structure after
+    "! their CATCH). The caller hands in an initial structure.
+    "! @parameter cs_config | the config, as the exit left it
+    CLASS-METHODS config_http_post
+      CHANGING
+        cs_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+
+    "! The response headers of the exit (t_security_header of the GET
+    "! config) for a response that is not the page - a roundtrip, a bundle,
+    "! a HEAD, an error. Every response carries them, but only the page
+    "! needs the rest of that config, and assembling it for five header
+    "! rows cost every POST the whole default (theme, bootstrap URL, the
+    "! CSP meta tag). Where no customer code is installed the rows are the
+    "! shipped constants and are answered directly. Any installed exit - a
+    "! class the lookup found, a host's own, a subclass of this one - is
+    "! asked through set_config_http_get exactly as before, with the full
+    "! defaults seeded: it may derive its headers from any of them.
+    CLASS-METHODS security_headers
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
 
     CLASS-METHODS get_instance
       RETURNING
@@ -54,15 +97,35 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-    " the default CSP meta tag, assembled once per roll area. This method
-    " runs on EVERY request - z2ui5_cl_ui5_http_handler=>set_response reads
-    " the security headers from the GET config on a POST as well - and the
-    " tag is a constant, so the seven-fragment template ran per roundtrip
-    " for the same string. Lazily filled on first use, not in a class
+    " the default CSP meta tag, assembled once per roll area. With a
+    " customer exit installed set_config_http_get runs on EVERY request -
+    " z2ui5_cl_ui5_http_handler=>set_response reads the exit's security
+    " headers on a POST as well (security_headers) - and the tag is a
+    " constant, so the seven-fragment template ran per roundtrip for the
+    " same string. Lazily filled on first use, not in a class
     " constructor: a class_constructor outside the PUBLIC SECTION is the
     " activation trap abap-check names, and the view builder's
     " gv_name_chars takes the same road
     CLASS-DATA gv_csp_default TYPE string.
+
+    " the memo of config_http_post( ) and the request it belongs to - see
+    " there. Both are cleared where a request begins and where it ends, and
+    " with every set_instance( )
+    CLASS-DATA gs_config_post     TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    CLASS-DATA gv_config_post_set TYPE abap_bool.
+    CLASS-DATA gv_context_open    TYPE abap_bool.
+
+    " the instance this class created of ITSELF as gi_me - bound only then.
+    " security_headers( ) compares it with gi_me to know that no customer
+    " code is in play: a subclass (set_instance) or a reference a test put
+    " into gi_me is another object, and gets the full call
+    CLASS-DATA go_shipped TYPE REF TO z2ui5_cl_ui5_user_exit.
+
+    " the header rows every response carries by default - the one place
+    " they are written, for set_config_http_get and security_headers( )
+    CLASS-METHODS default_security_headers
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
 
     " the exit class the lookup named, instantiated and bound - or a
     " chained exception, never a silent fall-back to the shipped defaults
@@ -113,7 +176,8 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     ENDIF.
 
     IF gi_me IS NOT BOUND.
-      gi_me = NEW z2ui5_cl_ui5_user_exit( ).
+      go_shipped = NEW z2ui5_cl_ui5_user_exit( ).
+      gi_me      = go_shipped.
     ENDIF.
     gv_exit_class       = lv_class_name.
     gv_exit_class_known = lv_known.
@@ -127,6 +191,11 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     CLEAR gi_user_exit.
     CLEAR gv_exit_class.
     CLEAR gv_exit_class_known.
+    CLEAR go_shipped.
+    " another exit answers differently - what the previous one said for the
+    " running request does not stand
+    CLEAR gs_config_post.
+    CLEAR gv_config_post_set.
 
     IF io_exit IS NOT BOUND.
       RETURN.
@@ -147,9 +216,17 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     ENDTRY.
     IF lo_shipped IS BOUND.
       gi_me = io_exit.
+      " the shipped class itself and not a subclass of it: the defaults
+      " and nothing else (see go_shipped). Asked once, at installation
+      DATA(lo_default) = NEW z2ui5_cl_ui5_user_exit( ).
+      IF z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_shipped )
+          = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_default ).
+        go_shipped = lo_shipped.
+      ENDIF.
     ELSE.
       gi_user_exit   = io_exit.
-      gi_me          = NEW z2ui5_cl_ui5_user_exit( ).
+      go_shipped     = NEW z2ui5_cl_ui5_user_exit( ).
+      gi_me          = go_shipped.
       gv_exit_class  = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( io_exit ).
     ENDIF.
     gv_exit_class_known = abap_true.
@@ -375,7 +452,21 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     "          TO cs_config-t_security_header.
     " Cross-Origin-Resource-Policy below is NOT secure-context-only - it is
     " honoured over plain HTTP and warns about nothing - so it stays.
-    cs_config-t_security_header = VALUE #(
+    cs_config-t_security_header = default_security_headers( ).
+
+    IF gi_user_exit IS BOUND.
+      gi_user_exit->set_config_http_get( EXPORTING is_context = gs_context
+                                         CHANGING  cs_config  = cs_config ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD default_security_headers.
+
+    " the reasoning for what is NOT in this table - cache-control, HSTS,
+    " Cross-Origin-Opener-Policy - is where it is assigned
+    " (set_config_http_get)
+    result = VALUE #(
         ( n = `X-Content-Type-Options` v = `nosniff` )
         ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
         ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
@@ -385,9 +476,44 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " otherwise soften
         ( n = `Cross-Origin-Resource-Policy` v = `same-origin` ) ).
 
-    IF gi_user_exit IS BOUND.
-      gi_user_exit->set_config_http_get( EXPORTING is_context = gs_context
-                                         CHANGING  cs_config  = cs_config ).
+  ENDMETHOD.
+
+  METHOD security_headers.
+
+    DATA(li_exit) = get_instance( ).
+
+    " no customer code anywhere: no exit behind the shipped one, and the
+    " shipped one is the instance this class created of itself. The rows
+    " are then what set_config_http_get would have put into the table, and
+    " nothing could have changed them
+    IF gi_user_exit IS NOT BOUND AND go_shipped IS BOUND AND gi_me = go_shipped.
+      result = default_security_headers( ).
+      RETURN.
+    ENDIF.
+
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
+    result = ls_config-t_security_header.
+
+  ENDMETHOD.
+
+  METHOD config_http_post.
+
+    IF gv_config_post_set = abap_true.
+      cs_config = gs_config_post.
+      RETURN.
+    ENDIF.
+
+    " the caller's structure goes to the exit itself, not a copy: what the
+    " exit wrote before it raised is the caller's to read (see the method's
+    " documentation)
+    DATA(li_exit) = get_instance( ).
+    li_exit->set_config_http_post( CHANGING cs_config = cs_config ).
+
+    " reached only when the exit returned - and kept only for a request
+    IF gv_context_open = abap_true.
+      gs_config_post     = cs_config.
+      gv_config_post_set = abap_true.
     ENDIF.
 
   ENDMETHOD.
@@ -397,6 +523,11 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     CONSTANTS lc_default_exp_time_in_hours TYPE i VALUE 4.
 
     cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
+
+    " the chain is pruned by default to the minimum a retry needs; an
+    " installation that wants every draft until its expiry sets 0 in its
+    " own set_config_http_post
+    cs_config-draft_keep_per_chain = z2ui5_cl_ui5_srv_draft=>c_min_keep_per_chain.
 
     " CSRF protection is on by default: the whole state machine hangs off the
     " POST, so out of the box a cross-origin POST must be rejected rather than
@@ -426,9 +557,36 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       cs_config-draft_exp_time_in_hours = z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
     ENDIF.
 
+    " 0 switches the pruning off; any other value keeps at least what a
+    " retry of a lost response needs and at most what the walk is meant to
+    " cost (z2ui5_cl_ui5_srv_draft=>prune_chain clamps the same way, for a
+    " subclass that redefines this method)
+    IF cs_config-draft_keep_per_chain < 0.
+      cs_config-draft_keep_per_chain = 0.
+    ELSEIF cs_config-draft_keep_per_chain > 0.
+      cs_config-draft_keep_per_chain = nmax( val1 = z2ui5_cl_ui5_srv_draft=>c_min_keep_per_chain
+                                             val2 = nmin( val1 = cs_config-draft_keep_per_chain
+                                                          val2 = z2ui5_cl_ui5_srv_draft=>c_max_keep_per_chain ) ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD close_context.
+
+    CLEAR gs_config_post.
+    CLEAR gv_config_post_set.
+    CLEAR gv_context_open.
+
   ENDMETHOD.
 
   METHOD init_context.
+
+    " a new request: nothing the exit said for the previous one stands. A
+    " stateful session keeps these statics across requests, so the memo is
+    " dropped here whether or not the previous request was ever closed
+    CLEAR gs_config_post.
+    CLEAR gv_config_post_set.
+    gv_context_open = abap_true.
 
     gs_context = CORRESPONDING #( http_info ).
     " normalized the way request_app_start reads the parameter - the SAME

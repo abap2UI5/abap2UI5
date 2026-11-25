@@ -1,0 +1,29 @@
+{
+  "name": "z2ui5",
+  "private": true,
+  "version": "0.0.1",
+  "description": "abap2UI5 frontend tooling - the source of the bundle the backend serves (webapp/), its lint, format and type check",
+  "keywords": [
+    "ui5",
+    "openui5",
+    "sapui5"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@ui5/cli": "^4.0.71",
+    "@ui5/linter": "^1.23.7",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "format": "prettier --write 'webapp/**/*.js' 'tail/**/*.js' '../app_source/webapp/**/*.js' --cache --cache-strategy content",
+    "format:check": "prettier --check 'webapp/**/*.js' 'tail/**/*.js' '../app_source/webapp/**/*.js'",
+    "lint": "eslint 'webapp/**/*.js' 'tail/**/*.js'",
+    "typecheck": "tsc -p ."
+  }
+}

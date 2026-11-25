@@ -27,12 +27,12 @@ name: test
 # `test_browser` could not be required if it were the matrix itself.
 
 # Pull requests AND pushes to main. The push leg is not redundant with the
-# pull-request one: `auto_downport`, `frontend_deploy` and
-# `trigger_local` all fire on `push: main` and rebuild or deploy from the
+# pull-request one: `auto_downport`, `auto-cloud` and
+# `trigger_local` all fire on `push: main` and rebuild or publish from the
 # merged state, and a merge is not the state any pull request tested - two
 # individually green branches can merge into a red main. Without this leg the
-# first thing that touches the merge result is a deployment. Same pattern as
-# `frontend_check.yaml` and `render-gate.yaml`, which already had it.
+# first thing that touches the merge result is a published branch. Same
+# pattern as `delivery-check.yaml` and `render-gate.yaml`.
 on:
   pull_request:
   push:
@@ -251,6 +251,11 @@ jobs:
     - name: Install Playwright OS dependencies
       if: steps.playwright-cache.outputs.cache-hit == 'true'
       run: npx playwright install-deps ${{ matrix.browser }}
+    # embedded.spec.js serves the embed control to its host page from the
+    # pinned checkout of abap2UI5-addons/embed-ui5-control (tools/deps/), which the
+    # transpiled artefact does not carry
+    - name: Fetch the pinned dependencies
+      run: node node/setup/fetch-deps.mjs
     - name: Run browser tests against the transpiled backend
       run: cd node && npx playwright test --config=playwright.config.js --project=${{ matrix.project }}
 
@@ -295,7 +300,7 @@ jobs:
 
   # The conformance suites of the abap2UI5 protocol (abap2UI5/protocol)
   # against THIS checkout - the backend suite against the npm package this
-  # commit packs, the frontend suite against its app/webapp. The protocol
+  # commit packs, the frontend suite against its bundle/webapp. The protocol
   # is checked out at a pinned commit of its main and drives everything
   # through its own scripts, so nothing of it is copied here: its
   # conformance/hosts/node-runtime builds the conformance apps
@@ -324,11 +329,11 @@ jobs:
     - run: tar -xzf transpiled.tar.gz -C node
     - name: Pack @abap2ui5/node-runtime from this checkout
       run: npm run pack:node-runtime -- --out npm-package
-    - name: abap2UI5/protocol at a pinned commit of its main
+    - name: abap2UI5/protocol at a pinned commit of its branch DEV
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: 26d79089cf93da2904ce02b5b3757627a24110a4   # branch claude/brave-lovelace-kzlhdf (the app-driven window) - move to its merge on main
+        ref: 501bb21150ba26d568f3f7941b328b162f44b4d1   # DEV, protocol 3 (VIEWS / NAV / ACTIONS, ROUTE)
         path: protocol
         persist-credentials: false
     - name: The protocol package, with the runtime packed here
@@ -359,7 +364,7 @@ jobs:
 
   conformance_frontend:
     # the frontend suite with the protocol's ui5 adapter: this checkout's
-    # app/webapp in Chromium, booted against the suite's mock backend with
+    # bundle/webapp in Chromium, booted against the suite's mock backend with
     # OpenUI5 from the protocol's npm packages - no transpile needed, so it
     # does not wait for one. About two minutes for the suite itself
     needs: changes
@@ -373,11 +378,11 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - name: abap2UI5/protocol at a pinned commit of its main
+    - name: abap2UI5/protocol at a pinned commit of its branch DEV
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: 26d79089cf93da2904ce02b5b3757627a24110a4   # branch claude/brave-lovelace-kzlhdf (the app-driven window) - move to its merge on main - keep equal to conformance_backend
+        ref: 501bb21150ba26d568f3f7941b328b162f44b4d1   # DEV, protocol 3 (VIEWS / NAV / ACTIONS, ROUTE) - keep equal to conformance_backend
         path: protocol
         persist-credentials: false
     - uses: ./.github/actions/setup
@@ -389,7 +394,7 @@ jobs:
       run: |
         npm ci --no-audit --no-fund
         npx playwright-core install --with-deps chromium
-    - name: Frontend suite against app/webapp (ui5 adapter)
+    - name: Frontend suite against bundle/webapp (ui5 adapter)
       working-directory: protocol
       env:
         ABAP2UI5_HOME: ${{ github.workspace }}
@@ -398,7 +403,7 @@ jobs:
       run: node conformance/backend/bin/abap2ui5-conformance.mjs frontend --adapter ui5
 
   test_unit_js:
-    # The frontend unit specs run against app/webapp directly - no ABAP, so
+    # The frontend unit specs run against bundle/webapp directly - no ABAP, so
     # no transpile to wait for.
     needs: changes
     if: needs.changes.outputs.code == 'true'

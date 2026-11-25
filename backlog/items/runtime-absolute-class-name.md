@@ -5,6 +5,7 @@ summary: 'a local class of a class pool is named from outside the pool by its ab
 priority: low
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'found 2026-10-24 in abap2UI5-addons/abap-cloud-gui (report2cloud) - the stand-in of the SAP GUI controls called a static event handler of a local class of a converted report by `\CLASS-POOL=Z2UI5_CL_CGUI_R2C_31\CLASS=LCL_COUNTER`: the transpiled runtime (@abap2ui5/node-runtime 1.148.0, @abaplint/runtime 2.14.5) answered HTTP 500 "Error at cl_abap_typedescr.describe_by_name ... at cl_abap_typedescr.describe_by_dashes"; the converter now passes an object of the local class instead (`handler = NEW lcl( )`) and uses the absolute name only for a class whose constructor takes parameters'

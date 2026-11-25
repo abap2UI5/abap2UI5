@@ -5,6 +5,7 @@ summary: 'a class that inherits from nothing but OBJECT and calls `super->constr
 priority: low
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui, `report2cloud:web --start`) - a report of the open-source web corpus defines `CLASS lcl_range DEFINITION.` (no INHERITING FROM, INTERFACES if_serializable_object) whose constructor begins with `super->constructor( ).`; the converted report fails at its first screen with HTTP 500 "TypeError: (intermediate value).constructor_ is not a function at lcl_range.constructor_"'

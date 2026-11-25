@@ -331,7 +331,19 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_test ).
         IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = ms_home-classname
                                                                   intf  = lv_app_intf ) = abap_false.
-          check_failed( |Class { ms_home-classname } does not exist or does not implement { to_lower( lv_app_intf ) }| ).
+          " a class that exists but cannot even be described - a syntax
+          " error in it, a missing dependency - is no "does not exist": the
+          " user is told why, under the same text rules as every other
+          " failure here, so an exit that hides error details gets the
+          " plain sentence
+          DATA(lx_load) = z2ui5_cl_ui5_util_context=>rtti_get_class_load_error( ms_home-classname ).
+          IF lx_load IS BOUND.
+            check_failed( |Class { ms_home-classname } could not be loaded: | &&
+                          error_text_for_user( ix           = lx_load
+                                               hide_details = hide_details ) ).
+          ELSE.
+            check_failed( |Class { ms_home-classname } does not exist or does not implement { to_lower( lv_app_intf ) }| ).
+          ENDIF.
           RETURN.
         ENDIF.
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
@@ -368,8 +380,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
     TRY.
-        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
+        z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
     result = ls_config-check_hide_error_details.

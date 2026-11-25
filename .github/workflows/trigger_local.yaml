@@ -8,9 +8,10 @@ name: trigger_local
 # safety net.
 #
 # abap2UI5/frontend used to be kept in sync the same way (create_frontend,
-# which mirrored app/webapp into its main). It no longer is: the frontend
-# build lives here now, and frontend_deploy.yaml pushes finished branches
-# there instead of a source to build from.
+# which mirrored bundle/webapp into its main). It no longer is, and since
+# 2026-11 nothing is delivered there at all: the ICF node and the BSP are
+# src/03 here, the cloud service is the branch `cloud`, and that repository
+# is the extension.
 #
 # Requires the secret ACTION_KEY_LOCAL: the private half of a deploy key
 # registered on abap2UI5/abap2UI5-local with write access (same pattern as

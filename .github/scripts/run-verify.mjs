@@ -22,16 +22,16 @@
  *
  * `--full` is `npm run verify:full`: the same run plus the frontend gates —
  * the ui5lint zero-error gate (check:ui5) and the app ESLint — which need
- * app/node_modules. The runner HOISTS that install out of the pool in --full
+ * bundle/node_modules. The runner HOISTS that install out of the pool in --full
  * mode only, the way it hoists `npm run deps`, because both members need it
  * and a concurrent install twice over is not a thing.
  *
  * That is not the same as "the default run does not install the app
  * toolchain", which this paragraph used to claim: `check:app2abap` is a
  * BUILD member in both modes and its first command is the same
- * ensure-app-deps.mjs, because the drift gate regenerates src/01/03 through
- * `npm --prefix app run format`. So a default `verify` on a checkout without
- * app/node_modules still installs it — later, from inside that gate, and only
+ * ensure-bundle-deps.mjs, because the drift gate regenerates src/01/03 through
+ * `npm --prefix bundle run format`. So a default `verify` on a checkout without
+ * bundle/node_modules still installs it — later, from inside that gate, and only
  * when it is missing.
  *
  * Each member is still the command a developer reruns on its own; the report
@@ -65,13 +65,17 @@ const CHECKS = [
   "check:format",
   "check:standard",
   "check:cloud",
+  "check:service",
 ].map((script) => ({ cmd: `npm run ${script}`, argv: [NPM, "run", script] }));
 
 if (full) {
   CHECKS.push(
     { cmd: "npm run check:ui5", argv: [NPM, "run", "check:ui5"] },
     { cmd: "npm run check:types", argv: [NPM, "run", "check:types"] },
-    { cmd: "npm --prefix app run lint", argv: [NPM, "--prefix", "app", "run", "lint"] },
+    { cmd: "npm --prefix bundle run lint", argv: [NPM, "--prefix", "bundle", "run", "lint"] },
+    // the page app (app_source) has no drift gate that would
+    // reformat them, so their format is asked for here
+    { cmd: "npm --prefix bundle run format:check", argv: [NPM, "--prefix", "bundle", "run", "format:check"] },
   );
 }
 
@@ -82,7 +86,7 @@ const BUILD = [
   "unit",
   "check:js",
   "check:app2abap",
-  "check:frontend",
+  "cloud:build",
 ];
 
 const runSync = (label, argv) => {
@@ -97,7 +101,7 @@ if (!runSync("npm run deps", [NPM, "run", "deps"])) {
   console.error("\nverify: npm run deps failed — nothing that lints can run without the pinned checkouts");
   process.exit(1);
 }
-if (full && !runSync("ensure app/node_modules", ["node", path.join(SCRIPTS, "ensure-app-deps.mjs")])) {
+if (full && !runSync("ensure bundle/node_modules", ["node", path.join(SCRIPTS, "ensure-bundle-deps.mjs")])) {
   console.error("\nverify: the app toolchain install failed — check:ui5 and the app lint need it");
   process.exit(1);
 }

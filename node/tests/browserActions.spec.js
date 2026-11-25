@@ -446,7 +446,7 @@ test.describe("STORE_DATA", () => {
   });
 
   // A follow-up action queued from a HANDLER carries the payload as the model
-  // PATH of the structure: T_CUSTOM is pure data, so the `${/S_STORAGE}` that
+  // PATH of the structure: ACTIONS is pure data, so the `${/S_STORAGE}` that
   // a view wire has UI5 resolve at view-build time arrives here as a literal
   // string. Before it was read as a path, every field destructured to
   // undefined and the write was a silent no-op - the samples-controls
@@ -768,7 +768,7 @@ test.describe("URLHELPER", () => {
 
   // The samples wire `( `TRIGGER_EMAIL` ) ( |${ client->_bind( email ) }| )`
   // into a press, where UI5 resolves the binding when the view is built. The
-  // same call queued from a HANDLER is data (T_CUSTOM): the params arrive as
+  // same call queued from a HANDLER is data (ACTIONS): the params arrive as
   // the model path, every field read undefined - an empty mailto: opened, a
   // REDIRECT answered "Invalid redirect URL" for a URL the app had bound.
   // Read as a path, the way STORE_DATA reads its payload.
@@ -862,6 +862,81 @@ test("SET_TITLE sets the title only for a component that owns the page", () => {
   ctx.state.ownsPage = false;
   handlers.SET_TITLE(null, ["SET_TITLE", "Other"]);
   expect(document.title).toBe("App");
+});
+
+// Inside the launchpad SET_TITLE titles the shell as well (Lib.setShellTitle),
+// so an app sets one title in both environments instead of branching into
+// SET_TITLE_LAUNCHPAD - and still only when the component owns the page.
+test.describe("SET_TITLE inside the launchpad", () => {
+  test("sets the shell title and the document title", () => {
+    const shellTitles = [];
+    const { handlers, document } = load({
+      oLaunchpad: {
+        ShellUIService: { setTitle: (t) => shellTitles.push(t) },
+      },
+    });
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(shellTitles).toEqual(["Stock"]);
+    expect(document.title).toBe("Stock");
+  });
+
+  test("a title before the shell service is kept for it", () => {
+    // ShellUIService resolves asynchronously at component start - the
+    // first response of a launch can outrun it; Component sets the kept
+    // title once the service is there
+    const oLaunchpad = {};
+    const { handlers, errors } = load({ oLaunchpad });
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(oLaunchpad.pendingTitle).toBe("Stock");
+    expect(errors()).toEqual([]);
+  });
+
+  test("an embedded component that does not own the page titles no shell", () => {
+    const shellTitles = [];
+    const { handlers, ctx } = load({
+      oLaunchpad: {
+        ShellUIService: { setTitle: (t) => shellTitles.push(t) },
+      },
+    });
+    ctx.state.ownsPage = false;
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(shellTitles).toEqual([]);
+  });
+
+  test("SET_TITLE_LAUNCHPAD's shell title follows the same rule (Lib.setShellTitle)", () => {
+    // the owner sets it, an embedded component sets none and says so in the
+    // log - SET_TITLE leaves both titles alone before it gets there
+    const shellTitles = [];
+    const { Lib, ctx, errors } = load({
+      oLaunchpad: {
+        ShellUIService: { setTitle: (t) => shellTitles.push(t) },
+      },
+    });
+
+    expect(Lib.setShellTitle(ctx, "Owner", "SET_TITLE_LAUNCHPAD")).toBe(true);
+    ctx.state.ownsPage = false;
+    expect(Lib.setShellTitle(ctx, "Guest", "SET_TITLE_LAUNCHPAD")).toBe(false);
+
+    expect(shellTitles).toEqual(["Owner"]);
+    expect(errors()).toContain(
+      "SET_TITLE_LAUNCHPAD: the shell title is the page's - 'Guest' is not set. The component does not own the page (embedded, ownsPage); its host titles the shell",
+    );
+  });
+
+  test("outside the launchpad only the document title changes", () => {
+    const { handlers, document, errors } = load();
+
+    handlers.SET_TITLE(null, ["SET_TITLE", "Stock"]);
+
+    expect(document.title).toBe("Stock");
+    expect(errors()).toEqual([]);
+  });
 });
 
 // SET_FAVICON: the one decision in it is which <link> to write - a page

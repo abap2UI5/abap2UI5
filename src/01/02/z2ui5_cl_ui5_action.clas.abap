@@ -13,6 +13,11 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
     " value is taken from the container the request began with and carried
     " through prepare_app_stack like the switch itself
     DATA mv_check_sticky_start TYPE abap_bool.
+    " the draft this action continues, as factory_by_frontend read it -
+    " what an unchanged timer tick answers with instead of a new one
+    " (z2ui5_cl_ui5_handler=>main_end_reuse). Empty on every other factory:
+    " a hop, a start and a sticky session never reuse a draft
+    DATA ms_loaded TYPE z2ui5_cl_ui5_app_cont=>ty_s_buffer.
 
     METHODS factory_system_startup
       RETURNING
@@ -71,6 +76,14 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_app.
 
+    "! the queued actions of this roundtrip that show a message - a
+    "! MESSAGE_TOAST or MESSAGE_BOX call, as message_toast_display( ) and
+    "! message_box_display( ) queue it or as follow_up_action( cs_event-
+    "! control_global ) does - in the order they were queued
+    METHODS messages_queued
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_queued_action.
+
     " set by prepare_app_stack on the action it builds: whether the target
     " came out of a persisted draft. Read by factory_stack_leave right
     " after, which used to ask the database a third time for the same fact
@@ -100,6 +113,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       IF mo_handler->mv_session_sticky = abap_false.
         CLEAR result->mo_app->mv_check_sticky.
       ENDIF.
+      result->ms_loaded = z2ui5_cl_ui5_app_cont=>db_load_buffered( mo_handler->ms_request-s_front-id ).
     ENDIF.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
@@ -127,6 +141,16 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   METHOD factory_first_start.
 
     result = NEW #( mo_handler ).
+
+    " An app start is an app switch as well when the page already runs one -
+    " Back/Forward restoring a route, a hash edited by hand - and the
+    " frontend no longer takes the standalone slots down by itself (see
+    " prepare_app_stack). On a page that has just loaded the two teardowns
+    " find nothing; an app that opens a popup in its first main( ) replaces
+    " the teardown through slot_reset( ).
+    DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
     IF mo_handler->ms_request-s_control-app_start_draft IS NOT INITIAL.
       TRY.
@@ -165,6 +189,10 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           " whatever id was serialized in a previous session
           result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_control-app_start_draft.
           result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+          " the restored draft is what the bookmark, the shared link or the
+          " browser history entry names - pruning this session's chain
+          " (draft_keep_per_chain) must stop there, not delete it
+          result->mo_app->draft_keep( mo_handler->ms_request-s_control-app_start_draft ).
           RETURN.
         CATCH cx_root INTO DATA(lx_restore).
           " A draft that is there, is the user's and still could not be
@@ -192,7 +220,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           " There is no client object yet at this point in the factory,
           " so the toast is queued directly through the action builder
           " message_toast_display( ) delegates to.
-          NEW z2ui5_cl_ui5_frontend( result )->msg_toast(
+          lo_frontend->msg_toast(
               `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
       ENDTRY.
     ENDIF.
@@ -202,8 +230,12 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " a bookmark without ?app_start= whose draft is gone names no app to
     " start fresh - it lands where a request without one lands, on the
     " start page (factory_system_startup), with the toast above
+    " ... or, under the test harness, the instance its test prepared (see
+    " mo_app_start on the handler)
     DATA li_app TYPE REF TO z2ui5_if_app.
-    IF mo_handler->ms_request-s_control-app_start IS INITIAL.
+    IF mo_handler->mo_app_start IS BOUND.
+      li_app = mo_handler->mo_app_start.
+    ELSEIF mo_handler->ms_request-s_control-app_start IS INITIAL.
       li_app = z2ui5_cl_ui5_app_start=>factory( ).
     ELSE.
       li_app = app_create( ).
@@ -273,7 +305,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " active for the app being navigated to (its own mode, or the caller's
     " inherited one - see prepare_app_stack). Without routing the frontend
     " router reads none of these fields, so a plain nav_app_call sends no
-    " ROUTER action at all.
+    " NAV section at all.
     IF result->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep
         OR result->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-fresh.
       " the frontend pushes a new route history entry for the called app, so
@@ -363,6 +395,27 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD messages_queued.
+
+    LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action).
+      TRY.
+          " ["MESSAGE_TOAST","show",...] as the client's own methods queue
+          " it, ["CONTROL_GLOBAL","MESSAGE_BOX",...] as follow_up_action
+          DATA(lv_name) = lr_action->o_json->get_string( `/1` ).
+          IF lv_name = z2ui5_if_client=>cs_event-control_global.
+            lv_name = lr_action->o_json->get_string( `/2` ).
+          ENDIF.
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+      IF lv_name = z2ui5_if_ui5_types=>cs_global_target-message_toast
+          OR lv_name = z2ui5_if_ui5_types=>cs_global_target-message_box.
+        INSERT lr_action->* INTO TABLE result.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD check_draft_on_stack.
 
     IF id = mo_app->ms_draft-id.
@@ -392,6 +445,16 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD prepare_app_stack.
+
+    " The leaving app's declarative timer (client->timer_set) ends with the
+    " hop: the draft saved here says it no longer runs, so the roundtrip that
+    " brings the app back arms it again (z2ui5_cl_ui5_handler=>
+    " main_end_timer), and the response of the app navigated to stops it
+    " unless that app declares one of its own (check_timer_end, carried
+    " across every hop of the request)
+    DATA(lv_timer_end) = xsdbool( ms_next-check_timer_end = abap_true
+                                  OR mo_app->ms_timer_sent IS NOT INITIAL ).
+    CLEAR mo_app->ms_timer_sent.
 
     mo_app->db_save( ).
 
@@ -473,6 +536,28 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     CLEAR result->ms_next-s_nav-set_nav_routing.
     result->ms_next-s_stateful = ms_next-s_stateful.
     result->mv_check_sticky_start = mv_check_sticky_start.
+    result->ms_next-check_timer_end = lv_timer_end.
+    " nav_app_call( me ) puts the SAME instance into a new container: the
+    " declaration belongs to the instance's screen, so it goes along (and is
+    " armed again, check_on_navigated) - a declaration is otherwise the
+    " container's own, restored with its draft
+    IF lv_minted = abap_true AND result->mo_app->mo_app = mo_app->mo_app.
+      result->mo_app->ms_timer = mo_app->ms_timer.
+    ENDIF.
+
+    " ... unless the app asked to keep its MESSAGES (nav_app_call/
+    " nav_app_leave with keep_messages): a "Saved." toast or an error box
+    " queued right before the hop is about the work just done, not about
+    " the screen being replaced, and it is shown after the target renders -
+    " the frontend runs ACTIONS last, once the views of the response are in
+    " the DOM (View1._processAfterRendering). They go ahead of whatever the
+    " target queues itself, in the order they were queued. Only the
+    " messages: a focus, a scroll or a control call names a control of
+    " the old screen. Per hop - a target that navigates on keeps them only
+    " if it asks again
+    IF ms_next-keep_messages = abap_true.
+      result->ms_next-s_action-t_custom = messages_queued( ).
+    ENDIF.
 
     result->ms_actual-event  = ms_next-next_event.
     result->ms_actual-r_data = ms_next-r_data.
@@ -490,23 +575,18 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     " The two standalone slots (POPUP/POPOVER) die on every app switch - they
     " live OUTSIDE the MAIN control tree, so they do not fall with the page
-    " the new app renders. The FRONTEND does that implicitly whenever the
-    " response's APP differs from the one before (View1), so no action has
-    " to travel for it. The one switch the frontend cannot see is a hop to
-    " ANOTHER INSTANCE OF THE SAME CLASS - only then the teardown is queued
-    " here, before the called app runs its main( ), so its own
-    " popup_display( ) still replaces the destroy through slot_reset( ).
-    " Both directions pass through here (call and leave alike), so this is
-    " the ONE place that decides it - a back-navigation must not queue a
-    " teardown of its own on top, or every cross-class Back would carry two
-    " destroy actions for slots the frontend had already torn down.
-    IF mo_app->mo_app IS BOUND
-        AND z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( val )
-          = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
-      DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
-      lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
-      lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
-    ENDIF.
+    " the new app renders. The backend says so, on every hop: it is the one
+    " side that knows a hop happened - another instance of the SAME class
+    " looks like the same app from the browser. Queued before the called app
+    " runs its main( ), so its own popup_display( ) still replaces the
+    " teardown through slot_reset( ). Both directions pass through here (call
+    " and leave alike), so this is the ONE place that decides it.
+    " Until protocol 3 the frontend took the two slots down itself whenever
+    " a response named another class, and this method covered only the hop
+    " it could not see.
+    DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
   ENDMETHOD.
 

@@ -391,8 +391,8 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     " fine on a system, unknown to the NodeJS runtime, which only answers
     " for the built-in types by their anonymous names
     DATA lv_flag TYPE c LENGTH 1.
-    APPEND VALUE #( name = `SELKZ`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) INTO TABLE lt_comp.
     DATA(lo_struc) = cl_abap_structdescr=>create( lt_comp ).
     DATA(lo_tab)   = cl_abap_tabledescr=>create( p_line_type  = lo_struc
                                                  p_table_kind = cl_abap_tabledescr=>tablekind_std ).
@@ -400,10 +400,10 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     CREATE DATA mr_handle_tab TYPE HANDLE lo_tab.
     ASSIGN mr_handle_tab->* TO <tab>.
     ls_sel = VALUE #( col1 = `handle-row-1` selkz = abap_true ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     ls_sel = VALUE #( col1 = `handle-row-2` ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
 
     CREATE DATA mr_handle_struc TYPE HANDLE lo_struc.
@@ -422,7 +422,7 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     CREATE DATA mr_shared_a TYPE HANDLE lo_tab.
     ASSIGN mr_shared_a->* TO <tab>.
     ls_sel = VALUE #( col1 = `shared` ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     mr_shared_b = mr_shared_a.
 
@@ -444,10 +444,10 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
 
     " a structure that exists at runtime only, with a table inside
     DATA lt_nested_comp TYPE abap_component_tab.
-    APPEND VALUE #( name = `ID`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( mv_string ) ) ) TO lt_nested_comp.
-    APPEND VALUE #( name = `T_ITEMS`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( mt_std ) ) ) TO lt_nested_comp.
+    INSERT VALUE #( name = `ID`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( mv_string ) ) ) INTO TABLE lt_nested_comp.
+    INSERT VALUE #( name = `T_ITEMS`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( mt_std ) ) ) INTO TABLE lt_nested_comp.
     " a variable as the handle: a method call in this position is a syntax
     " error on a system ("No method can be specified in the current
     " position"), which neither abaplint nor the transpiler model
@@ -467,10 +467,10 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     CREATE DATA ms_with_dref-r_tab TYPE HANDLE lo_tab.
     ASSIGN ms_with_dref-r_tab->* TO <tab>.
     ls_sel = VALUE #( col1 = `in-struc-tab` ).
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
 
-    APPEND INITIAL LINE TO mt_rows_ref ASSIGNING FIELD-SYMBOL(<row_ref>).
+    INSERT INITIAL LINE INTO TABLE mt_rows_ref ASSIGNING FIELD-SYMBOL(<row_ref>).
     <row_ref>-id = `r1`.
     CREATE DATA <row_ref>-r_elem.
     <row_ref>-r_elem->* = `cell-ref`.
@@ -480,7 +480,7 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     mv_protected = `protected`.
     mo_hidden = NEW #( ).
 
-    APPEND NEW ltcl_shp_inner( ) TO mt_apps.
+    INSERT NEW ltcl_shp_inner( ) INTO TABLE mt_apps.
     mt_apps[ 1 ]->mv_inner = `in-table`.
 
     mv_markup = |<b>tag</b> & "quoted" 'single' \\ backslash{ z2ui5_cl_ui5_util_context=>cv_char_util_newline }second line|.
@@ -520,14 +520,14 @@ CLASS ltcl_shp_sub_a IMPLEMENTATION.
     " a field no dictionary has
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_line ) ).
     DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `SELKZ`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) INTO TABLE lt_comp.
     DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA mt_table TYPE HANDLE lo_tab.
     ASSIGN mt_table->* TO <tab>.
     ls_line-col1 = `a`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_line TO <row>.
     mo_layout->mr_shared = mt_table.
   ENDMETHOD.
@@ -559,14 +559,14 @@ CLASS ltcl_shp_sub_b IMPLEMENTATION.
     " a field no dictionary has
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_line ) ).
     DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `SELKZ`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) TO lt_comp.
+    INSERT VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) INTO TABLE lt_comp.
     DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA mt_data TYPE HANDLE lo_tab.
     ASSIGN mt_data->* TO <tab>.
     ls_line-col1 = `b`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_line TO <row>.
     mo_lay->mr_shared = mt_data.
   ENDMETHOD.
@@ -697,9 +697,10 @@ CLASS ltcl_03_model_out DEFINITION DEFERRED.
 CLASS ltcl_04_model_in DEFINITION DEFERRED.
 CLASS ltcl_05_draft DEFINITION DEFERRED.
 CLASS ltcl_06_fast_json DEFINITION DEFERRED.
+CLASS ltcl_07_intf_attr DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_dissolve ltcl_02_search
                                                      ltcl_03_model_out ltcl_04_model_in ltcl_05_draft
-                                                     ltcl_06_fast_json.
+                                                     ltcl_06_fast_json ltcl_07_intf_attr.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -807,12 +808,21 @@ CLASS ltcl_00_base IMPLEMENTATION.
     result->bind = abap_true.
     " a path the ajson writer accepts: no `-` and no `->` inside a segment
     DATA(lv_path) = result->name.
-    REPLACE ALL OCCURRENCES OF `->*` IN lv_path WITH `_D`.
-    REPLACE ALL OCCURRENCES OF `->` IN lv_path WITH `_`.
-    REPLACE ALL OCCURRENCES OF `-` IN lv_path WITH `_`.
+    lv_path = replace( val  = lv_path
+                       sub  = `->*`
+                       with = `_D`
+                       occ  = 0 ).
+    lv_path = replace( val  = lv_path
+                       sub  = `->`
+                       with = `_`
+                       occ  = 0 ).
+    lv_path = replace( val  = lv_path
+                       sub  = `-`
+                       with = `_`
+                       occ  = 0 ).
     result->name_client = |/{ lv_path }|.
     IF NOT line_exists( mt_bound[ table_line = result->name ] ).
-      APPEND result->name TO mt_bound.
+      INSERT result->name INTO TABLE mt_bound.
     ENDIF.
 
   ENDMETHOD.
@@ -904,18 +914,23 @@ CLASS ltcl_00_base IMPLEMENTATION.
     DATA(lv_open)  = |<{ iv_tag }>|.
     DATA(lv_close) = |</{ iv_tag }>|.
     DO.
-      FIND FIRST OCCURRENCE OF lv_open IN result MATCH OFFSET DATA(lv_from).
-      IF sy-subrc <> 0.
+      DATA(lv_from) = find( val = result
+                            sub = lv_open ).
+      IF lv_from < 0.
         EXIT.
       ENDIF.
-      FIND FIRST OCCURRENCE OF lv_close IN result MATCH OFFSET DATA(lv_to).
-      IF sy-subrc <> 0 OR lv_to < lv_from.
+      DATA(lv_to) = find( val = result
+                          sub = lv_close ).
+      IF lv_to < 0 OR lv_to < lv_from.
         EXIT.
       ENDIF.
       DATA(lv_end) = lv_to + strlen( lv_close ).
       result = result(lv_from) && result+lv_end.
     ENDDO.
-    REPLACE ALL OCCURRENCES OF |<{ iv_tag }/>| IN result WITH ``.
+    result = replace( val  = result
+                      sub  = |<{ iv_tag }/>|
+                      with = ``
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -930,10 +945,12 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD row_ref.
 
-    READ TABLE mr_attri->* REFERENCE INTO result WITH TABLE KEY name = iv_name.
-    IF sy-subrc <> 0.
+    ASSIGN mr_attri->*[ name = iv_name ] TO FIELD-SYMBOL(<attri>).
+    IF <attri> IS NOT ASSIGNED.
       cl_abap_unit_assert=>fail( |no row { iv_name }| ).
+      RETURN.
     ENDIF.
+    result = REF #( <attri> ).
 
   ENDMETHOD.
 
@@ -1441,11 +1458,11 @@ CLASS ltcl_02_search IMPLEMENTATION.
     " not k*k/2 - and the hit is still confirmed by a fresh ASSIGN
     DATA(lr_row) = bind( REF #( mo_app->mv_string ) ).
 
-    READ TABLE mo_model->mt_ref_idx REFERENCE INTO DATA(lr_idx)
-         WITH TABLE KEY name = `MV_STRING`.
-    cl_abap_unit_assert=>assert_subrc( msg = `the resolved row was not indexed` ).
+    ASSIGN mo_model->mt_ref_idx[ name = `MV_STRING` ] TO FIELD-SYMBOL(<idx>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <idx> IS ASSIGNED )
+                                      msg = `the resolved row was not indexed` ).
     DATA(lr_val) = REF #( mo_app->mv_string ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lr_idx->ref = lr_val ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( <idx>-ref = lr_val ) ).
 
     " the second search lands on the same row
     DATA(lr_again) = mo_model->main_attri_search( REF #( mo_app->mv_string ) ).
@@ -2243,8 +2260,8 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
     bind( mo_app->mr_typed_tab ).
     " the backend appends two rows and ships the table...
-    APPEND VALUE #( col1 = `second` ) TO mo_app->mr_typed_tab->*.
-    APPEND VALUE #( col1 = `third` ) TO mo_app->mr_typed_tab->*.
+    INSERT VALUE #( col1 = `second` ) INTO TABLE mo_app->mr_typed_tab->*.
+    INSERT VALUE #( col1 = `third` ) INTO TABLE mo_app->mr_typed_tab->*.
     DATA(lv_json) = mo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"third"` ) ).
 
@@ -2396,8 +2413,8 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     mo_model->main_json_to_attri( delta( |\{"{ lv_key }":\{"__delta":\{"1":\{"COL1":"edited"\}\}\}\}| ) ).
 
     ASSIGN mo_app->mr_handle_tab->* TO <tab>.
-    READ TABLE <tab> INDEX 2 ASSIGNING <row>.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 2 ] TO <row>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO <col>.
     cl_abap_unit_assert=>assert_subrc( ).
     cl_abap_unit_assert=>assert_equals( exp = `edited`
@@ -2738,10 +2755,10 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_app_typed( ).
     DO 6 TIMES.
-      APPEND VALUE #( name     = |row-{ sy-index }|
+      INSERT VALUE #( name     = |row-{ sy-index }|
                       price    = sy-index * 100
                       t_pos    = VALUE #( ( qty = sy-index ) )
-                      t_sorted = VALUE #( ( qty = 1 ) ) ) TO lo_app->mt_tab.
+                      t_sorted = VALUE #( ( qty = 1 ) ) ) INTO TABLE lo_app->mt_tab.
     ENDDO.
     DATA(lo_model) = typed_model( lo_app ).
 
@@ -3309,7 +3326,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     DATA ls_sel TYPE ltcl_app_shapes=>ty_s_row_sel.
     ASSIGN mo_app->mo_inner->mr_shared->* TO <tab>.
     ls_sel-col1 = `appended after the restore`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     DATA(lv_changed) = mo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_differs( exp = lv_second
@@ -3721,7 +3738,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     " table (S-RTTI inside asXML) - both serializations escape and unescape
     ASSIGN mo_app->mr_handle_tab->* TO <tab>.
     ls_sel-col1 = mo_app->mv_markup.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     bind( REF #( mo_app->mv_markup ) ).
     bind( mo_app->mr_handle_tab ).
@@ -3760,8 +3777,8 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
     ASSIGN mo_app->mr_handle_tab->* TO <tab>.
-    READ TABLE <tab> INDEX 2 ASSIGNING <row>.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 2 ] TO <row>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
     cl_abap_unit_assert=>assert_subrc( ).
     lv_path = lo_bind->main( val    = REF #( <cell> )
@@ -3875,7 +3892,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     CREATE DATA lr_own TYPE HANDLE lo_tab.
     ASSIGN lr_own->* TO <tab>.
     ls_sel-col1 = `own`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     mo_app->mr_shared_a = lr_own.
 
@@ -3976,7 +3993,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     CREATE DATA lr_new TYPE HANDLE lo_tab.
     ASSIGN lr_new->* TO <tab>.
     ls_sel-col1 = `re-created`.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     MOVE-CORRESPONDING ls_sel TO <row>.
     mo_app->mr_shared_a = lr_new.
     mo_app->mr_shared_b = lr_new.
@@ -4791,9 +4808,19 @@ CLASS ltcl_app_fast DEFINITION FINAL CREATE PUBLIC.
         day   TYPE d,
       END OF ty_s_row.
     TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    " a row type as a DDIC table or a reuse structure gives it: an include
+    " with a suffix, and the two time stamp kinds
+    TYPES BEGIN OF ty_s_log.
+    TYPES id TYPE i.
+    INCLUDE TYPE ty_s_row AS s_row RENAMING WITH SUFFIX _r.
+    TYPES created_at TYPE timestamp.
+    TYPES changed_at TYPE timestampl.
+    TYPES END OF ty_s_log.
+    TYPES ty_t_log TYPE STANDARD TABLE OF ty_s_log WITH EMPTY KEY.
     DATA mt_rows  TYPE ty_t_row.
     DATA ms_head  TYPE ty_s_row.
     DATA mv_title TYPE string.
+    DATA mt_log   TYPE ty_t_log.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -4801,6 +4828,181 @@ ENDCLASS.
 CLASS ltcl_app_fast IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
   ENDMETHOD.
+ENDCLASS.
+
+
+" the edit popup of abap2UI5-addons/table-maintenance (z2ui5_cl_tm_pop), as
+" it binds a row of an arbitrary DDIC table: the row and the fixed values
+" per field are structures built at runtime behind REF TO data, one
+" component per field - named like the field, so a table with fields of an
+" industry solution or a customer namespace (MARA: /CWM/XCWMAT,
+" /VSO/R_TILT_IND, ...) carries components that start with a slash - and
+" every fixed-value component a table of flat rows, the fast path's form
+CLASS ltcl_app_tm_pop DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    TYPES:
+      BEGIN OF ty_s_fix_val,
+        low   TYPE string,
+        high  TYPE string,
+        descr TYPE string,
+      END OF ty_s_fix_val.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH EMPTY KEY.
+    DATA ms_data_row TYPE REF TO data.
+    DATA ms_fixval   TYPE REF TO data.
+    " the fields of the "DDIC table"
+    DATA mt_field    TYPE string_table.
+    METHODS build.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_tm_pop IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+
+  METHOD build.
+
+    DATA lt_comp_row TYPE cl_abap_structdescr=>component_table.
+    DATA lt_comp_fix TYPE cl_abap_structdescr=>component_table.
+    DATA lt_fixval   TYPE ty_t_fix_val.
+    DATA lv_text     TYPE string.
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <fixval> TYPE any.
+    FIELD-SYMBOLS <val>    TYPE any.
+    FIELD-SYMBOLS <tab>    TYPE ty_t_fix_val.
+
+    LOOP AT mt_field INTO DATA(lv_field).
+      INSERT VALUE #( name = lv_field
+                      type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) ) INTO TABLE lt_comp_row.
+      INSERT VALUE #( name = lv_field
+                      type = CAST #( cl_abap_typedescr=>describe_by_data( lt_fixval ) ) ) INTO TABLE lt_comp_fix.
+    ENDLOOP.
+    DATA(lo_row) = cl_abap_structdescr=>create( lt_comp_row ).
+    DATA(lo_fix) = cl_abap_structdescr=>create( lt_comp_fix ).
+    CREATE DATA ms_data_row TYPE HANDLE lo_row.
+    CREATE DATA ms_fixval TYPE HANDLE lo_fix.
+
+    ASSIGN ms_data_row->* TO <row>.
+    ASSIGN ms_fixval->* TO <fixval>.
+    LOOP AT mt_field INTO lv_field.
+      ASSIGN COMPONENT lv_field OF STRUCTURE <row> TO <val>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <val> = |v-{ lv_field }|.
+      ASSIGN COMPONENT lv_field OF STRUCTURE <fixval> TO <tab>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <tab> = VALUE #( ( low = `A` descr = |a of { lv_field }| )
+                       ( low = `B` descr = `b` ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_app_ns DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    " a table of flat rows with namespaced columns (the fast path), the
+    " same row as one structure, and a table whose rows carry a table of
+    " such rows as well (the general road) - built at run time, the only
+    " way a component gets a name with a namespace in a unit test
+    DATA mr_tab  TYPE REF TO data.
+    DATA mr_row  TYPE REF TO data.
+    DATA mr_deep TYPE REF TO data.
+    METHODS build.
+    " one cell of a row, by component name
+    CLASS-METHODS cell
+      IMPORTING
+        is_row        TYPE any
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_ns IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+
+  METHOD build.
+
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+    DATA lv_text TYPE string.
+    DATA lv_int  TYPE i.
+    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>  TYPE any.
+    FIELD-SYMBOLS <cell> TYPE any.
+
+    " MATNR sorts between the namespace CWM and the plain ZZ_LAST - the
+    " namespace object takes its place by its own name
+    lt_comp = VALUE #( ( name = `MATNR`       type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `/CWM/XCWMAT` type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `/CWM/VALUM`  type = CAST #( cl_abap_typedescr=>describe_by_data( lv_int ) ) )
+                       ( name = `/VSO/R_TILT` type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `AA_FIRST`    type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) ) ).
+    DATA(lo_row) = cl_abap_structdescr=>create( lt_comp ).
+    DATA(lo_tab) = cl_abap_tabledescr=>create( lo_row ).
+    CREATE DATA mr_row TYPE HANDLE lo_row.
+    CREATE DATA mr_tab TYPE HANDLE lo_tab.
+
+    ASSIGN mr_tab->* TO <tab>.
+    DO 2 TIMES.
+      INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
+      ASSIGN COMPONENT `MATNR` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |M{ sy-index }|.
+      ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |X{ sy-index }|.
+      ASSIGN COMPONENT `/CWM/VALUM` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = sy-index * 10.
+      ASSIGN COMPONENT `/VSO/R_TILT` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |T{ sy-index }|.
+      ASSIGN COMPONENT `AA_FIRST` OF STRUCTURE <row> TO <cell>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <cell> = |A{ sy-index }|.
+    ENDDO.
+    ASSIGN mr_row->* TO <cell>.
+    <cell> = <tab>[ 1 ].
+
+    " the deep rows: a key, a namespaced column and a namespaced table of
+    " the flat rows above
+    lt_comp = VALUE #( ( name = `ID`         type = CAST #( cl_abap_typedescr=>describe_by_data( lv_int ) ) )
+                       ( name = `/ABC/NOTE`  type = CAST #( cl_abap_typedescr=>describe_by_data( lv_text ) ) )
+                       ( name = `/ABC/ITEMS` type = lo_tab ) ).
+    DATA(lo_deep_row) = cl_abap_structdescr=>create( lt_comp ).
+    DATA(lo_deep) = cl_abap_tabledescr=>create( lo_deep_row ).
+    CREATE DATA mr_deep TYPE HANDLE lo_deep.
+    FIELD-SYMBOLS <deep> TYPE STANDARD TABLE.
+    ASSIGN mr_deep->* TO <deep>.
+    INSERT INITIAL LINE INTO TABLE <deep> ASSIGNING <row>.
+    ASSIGN COMPONENT `ID` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <cell> = 1.
+    ASSIGN COMPONENT `/ABC/NOTE` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <cell> = `note`.
+    ASSIGN COMPONENT `/ABC/ITEMS` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <cell> = <tab>.
+
+  ENDMETHOD.
+
+  METHOD cell.
+
+    FIELD-SYMBOLS <cell> TYPE any.
+    ASSIGN COMPONENT iv_name OF STRUCTURE is_row TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    result = <cell>.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -4844,10 +5046,43 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
     TYPES ty_t_nested TYPE STANDARD TABLE OF ty_s_nested WITH EMPTY KEY.
     TYPES:
       BEGIN OF ty_s_stamp,
-        id TYPE i,
-        ts TYPE timestamp,
+        id  TYPE i,
+        ts  TYPE timestamp,
+        tsl TYPE timestampl,
       END OF ty_s_stamp.
     TYPES ty_t_stamp TYPE STANDARD TABLE OF ty_s_stamp WITH EMPTY KEY.
+
+    " row types with includes: plain, an include of an include, the same
+    " structure twice under two suffixes, and one whose include is not flat
+    TYPES:
+      BEGIN OF ty_s_inc_base,
+        b_id   TYPE i,
+        b_text TYPE string,
+        b_day  TYPE d,
+        b_ok   TYPE abap_bool,
+      END OF ty_s_inc_base.
+    TYPES BEGIN OF ty_s_inc_plain.
+    TYPES z_own TYPE string.
+    INCLUDE TYPE ty_s_inc_base.
+    TYPES a_own TYPE i.
+    TYPES END OF ty_s_inc_plain.
+    TYPES ty_t_inc_plain TYPE STANDARD TABLE OF ty_s_inc_plain WITH EMPTY KEY.
+    TYPES BEGIN OF ty_s_inc_nested.
+    INCLUDE TYPE ty_s_inc_plain.
+    TYPES m_own TYPE t.
+    TYPES END OF ty_s_inc_nested.
+    TYPES ty_t_inc_nested TYPE STANDARD TABLE OF ty_s_inc_nested WITH EMPTY KEY.
+    TYPES BEGIN OF ty_s_inc_suffix.
+    TYPES key TYPE i.
+    INCLUDE TYPE ty_s_inc_base AS s_old RENAMING WITH SUFFIX _old.
+    INCLUDE TYPE ty_s_inc_base AS s_new RENAMING WITH SUFFIX _new.
+    TYPES END OF ty_s_inc_suffix.
+    TYPES ty_t_inc_suffix TYPE STANDARD TABLE OF ty_s_inc_suffix WITH EMPTY KEY.
+    TYPES BEGIN OF ty_s_inc_deep.
+    TYPES key TYPE i.
+    INCLUDE TYPE ty_s_nested AS s_deep RENAMING WITH SUFFIX _d.
+    TYPES END OF ty_s_inc_deep.
+    TYPES ty_t_inc_deep TYPE STANDARD TABLE OF ty_s_inc_deep WITH EMPTY KEY.
 
     DATA mo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
 
@@ -4873,8 +5108,68 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
     METHODS keys_in_ajson_order      FOR TESTING RAISING cx_static_check.
     METHODS escape_as_ajson          FOR TESTING RAISING cx_static_check.
     METHODS not_taken_falls_back     FOR TESTING RAISING cx_static_check.
+    METHODS include_plain_identical  FOR TESTING RAISING cx_static_check.
+    METHODS include_nested_identical FOR TESTING RAISING cx_static_check.
+    METHODS include_suffix_identical FOR TESTING RAISING cx_static_check.
+    METHODS include_deep_falls_back  FOR TESTING RAISING cx_static_check.
+    METHODS timestamp_identical      FOR TESTING RAISING cx_static_check.
+    METHODS timestamp_struct_identical FOR TESTING RAISING cx_static_check.
+    METHODS model_log_identical      FOR TESTING RAISING cx_static_check.
     METHODS model_identical          FOR TESTING RAISING cx_static_check.
     METHODS model_dollar_and_token   FOR TESTING RAISING cx_static_check.
+    METHODS splice_any_order         FOR TESTING RAISING cx_static_check.
+    METHODS splice_no_token          FOR TESTING RAISING cx_static_check.
+    METHODS splice_token_lost        FOR TESTING RAISING cx_static_check.
+    " the edit popup of table-maintenance over a table with namespaced
+    " fields - MODEL_FAST_PATH_TOKEN_LOST on initial rendering (1.150.0)
+    METHODS tm_pop_namespaced_fields FOR TESTING RAISING cx_static_check.
+    " a draft written before the fix keeps its client names with `//`
+    METHODS tm_pop_legacy_double_slash FOR TESTING RAISING cx_static_check.
+    " a token overwritten by a later attribute at the same path
+    METHODS tm_pop_token_overwritten FOR TESTING RAISING cx_static_check.
+    METHODS splice_lost_token_skipped FOR TESTING RAISING cx_static_check.
+    " a namespaced column of a bound table is a level of its row
+    " (`"CWM":{"XCWMAT":...}`), so a row template can bind it relatively -
+    " the fast path and the general road alike, and every other row as
+    " before, byte for byte
+    METHODS ns_fast_path_grouped     FOR TESTING RAISING cx_static_check.
+    METHODS ns_struct_grouped        FOR TESTING RAISING cx_static_check.
+    METHODS ns_general_road_grouped  FOR TESTING RAISING cx_static_check.
+    METHODS ns_text_plain_identical  FOR TESTING RAISING cx_static_check.
+    METHODS ns_omit_initial_grouped  FOR TESTING RAISING cx_static_check.
+    " and an edit comes back onto the component
+    METHODS ns_delta_applied         FOR TESTING RAISING cx_static_check.
+    METHODS ns_whole_value_applied   FOR TESTING RAISING cx_static_check.
+    METHODS ns_deep_whole_applied    FOR TESTING RAISING cx_static_check.
+    METHODS ns_cell_bind_path        FOR TESTING RAISING cx_static_check.
+
+    " the app of the ns_* tests with its three values bound
+    METHODS ns_setup
+      EXPORTING
+        eo_app  TYPE REF TO ltcl_app_ns
+        eo_cont TYPE REF TO z2ui5_cl_ui5_app_cont
+        et_path TYPE string_table.
+
+    " the popup's render: every field bound as value and as fixed values,
+    " through the real bind service - the bind paths, field by field
+    METHODS tm_pop_bind
+      IMPORTING
+        io_app        TYPE REF TO ltcl_app_tm_pop
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+      RETURNING
+        VALUE(result) TYPE string_table
+      RAISING
+        cx_static_check.
+
+    " the document the general road writes: every bound attribute set into
+    " ajson at its client name, in the order of the attribute table
+    METHODS tm_pop_ajson_text
+      IMPORTING
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        cx_static_check.
 
 ENDCLASS.
 
@@ -4915,7 +5210,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     ls_row-v_xsd    = abap_true.
     ls_row-za_last  = `z`.
     ls_row-a_first  = `a`.
-    APPEND ls_row TO result.
+    INSERT ls_row INTO TABLE result.
     " row 2: negatives and decimals
     CLEAR ls_row.
     ls_row-v_i     = -7.
@@ -4926,10 +5221,10 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     ls_row-v_c     = `"`.
     ls_row-v_n     = '00007'.
     ls_row-v_string = `\`.
-    APPEND ls_row TO result.
+    INSERT ls_row INTO TABLE result.
     " row 3: everything initial
     CLEAR ls_row.
-    APPEND ls_row TO result.
+    INSERT ls_row INTO TABLE result.
 
   ENDMETHOD.
 
@@ -5026,24 +5321,165 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
   METHOD not_taken_falls_back.
 
     " a nested structure in the row, a sorted table, a table of scalars, a
-    " scalar, a column typed timestamp (ajson converts it through the time
-    " zone): none of them is written here - the general road through ajson
-    " stays the reference for them
+    " scalar: none of them is written here - the general road through
+    " ajson stays the reference for them
     DATA lt_nested TYPE ty_t_nested.
     DATA lt_sorted TYPE ty_t_kinds_sorted.
     DATA lt_scalar TYPE string_table.
-    DATA lt_stamp  TYPE ty_t_stamp.
     DATA lv_scalar TYPE string.
-    APPEND VALUE #( id = 1 ) TO lt_nested.
+    INSERT VALUE #( id = 1 ) INTO TABLE lt_nested.
     INSERT VALUE #( v_i = 1 ) INTO TABLE lt_sorted.
-    APPEND `x` TO lt_scalar.
-    APPEND VALUE #( id = 1 ts = '20240229230000' ) TO lt_stamp.
+    INSERT `x` INTO TABLE lt_scalar.
 
-    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_stamp ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_nested ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_sorted ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_scalar ) ) ).
     cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lv_scalar ) ) ).
+
+  ENDMETHOD.
+
+  METHOD include_plain_identical.
+
+    " the fields of an include are members of the row like its own - in
+    " ajson's order (by name), whatever the order of the components
+    DATA lt_rows TYPE ty_t_inc_plain.
+    INSERT VALUE #( z_own = `z` b_id = 1 b_text = `in "clu" de` b_day = '20240229' b_ok = abap_true a_own = 7 ) INTO TABLE lt_rows.
+    INSERT INITIAL LINE INTO TABLE lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"A_OWN":7,"B_DAY":"2024-02-29","B_ID":1,"B_OK":true,"B_TEXT":"in \"clu\" de","Z_OWN":"z"}` ) ).
+    " and the structure itself
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows[ 1 ] )
+                                        act = mo_model->attri_json_fast( REF #( lt_rows[ 1 ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD include_nested_identical.
+
+    " an include whose structure has an include of its own
+    DATA lt_rows TYPE ty_t_inc_nested.
+    INSERT VALUE #( z_own = `z` b_id = 1 b_text = `deep` b_ok = abap_true a_own = 7 m_own = '120000' ) INTO TABLE lt_rows.
+    INSERT INITIAL LINE INTO TABLE lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_TEXT":"deep","M_OWN":"12:00:00","Z_OWN":"z"}` ) ).
+
+  ENDMETHOD.
+
+  METHOD include_suffix_identical.
+
+    " the same structure twice, told apart by RENAMING WITH SUFFIX: the
+    " members carry the suffixed names, and the name of the include itself
+    " (AS s_old) is no member
+    DATA lt_rows TYPE ty_t_inc_suffix.
+    INSERT VALUE #( key = 1 b_id_old = 10 b_text_old = `before` b_id_new = 11 b_text_new = `after` b_ok_new = abap_true )
+           INTO TABLE lt_rows.
+    INSERT INITIAL LINE INTO TABLE lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_ID_NEW":11,"B_ID_OLD":10,` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_TEXT_NEW":"after","B_TEXT_OLD":"before","KEY":1}` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `S_OLD` ) ).
+
+  ENDMETHOD.
+
+  METHOD include_deep_falls_back.
+
+    " an include that brings a nested structure along: not flat, so the
+    " general road - which writes the same document as before
+    DATA lt_rows TYPE ty_t_inc_deep.
+    INSERT VALUE #( key = 1 id_d = 2 ) INTO TABLE lt_rows.
+
+    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_rows ) ) ).
+
+  ENDMETHOD.
+
+  METHOD timestamp_identical.
+
+    " the two time stamp kinds as ajson writes them - an ISO instant in
+    " UTC, never empty. Row 1 initial, row 2 a typical one, row 3 a long
+    " one with a fraction. The fraction is a half and the time a whole
+    " hour on purpose: the transpiled runtime copies a packed field
+    " through a double (backlog/items/runtime-packed-copy-precision.md),
+    " which holds exactly these and shifts most others by some hundred
+    " nanoseconds - a system holds them all. Row 4 carries such a
+    " fraction and is only compared, not pinned
+    DATA lt_rows TYPE ty_t_stamp.
+    INSERT VALUE #( id = 1 ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000' ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 3 ts = '19991231120000' tsl = '20240229230000.5' ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 4 ts = '20240229235959' tsl = '20240229235959.1234567' ) INTO TABLE lt_rows.
+
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"ID":1,"TS":"0000-00-00T00:00:00Z","TSL":"0000-00-00T00:00:00.0Z"}` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"ID":2,"TS":"2024-02-29T23:00:00Z","TSL":"2024-02-29T23:00:00.0Z"}` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"ID":3,"TS":"1999-12-31T12:00:00Z","TSL":"2024-02-29T23:00:00.5Z"}` ) ).
+
+  ENDMETHOD.
+
+  METHOD timestamp_struct_identical.
+
+    " a flat structure with time stamps, row by row
+    DATA lt_rows TYPE ty_t_stamp.
+    INSERT VALUE #( id = 1 ) INTO TABLE lt_rows.
+    INSERT VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000.5' ) INTO TABLE lt_rows.
+
+    LOOP AT lt_rows REFERENCE INTO DATA(lr_row).
+      cl_abap_unit_assert=>assert_not_initial( mo_model->attri_json_fast( lr_row ) ).
+      cl_abap_unit_assert=>assert_equals( exp = ajson_text( lr_row->* )
+                                          act = mo_model->attri_json_fast( lr_row ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD model_log_identical.
+
+    " the whole model with a table whose row type has an include and both
+    " time stamp kinds: the document the tree alone writes
+    DATA(lo_app) = CAST ltcl_app_fast( mo_model->mo_app ).
+    lo_app->mt_log = VALUE #( ( id = 1 id_r = 10 name_r = `one` price_r = '1.50' ok_r = abap_true day_r = '20240101'
+                                created_at = '20240229230000' changed_at = '20240229230000.5' )
+                              ( ) ).
+    mo_model->main_attri_refresh( ).
+    LOOP AT mo_model->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE name = `MT_LOG`.
+      lr_attri->bind        = abap_true.
+      lr_attri->name_client = |/{ lr_attri->name }|.
+    ENDLOOP.
+
+    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_exp->set( iv_ignore_empty = abap_false
+                 iv_path         = `/MT_LOG`
+                 iv_val          = lo_app->mt_log ).
+
+    DATA(lv_act) = mo_model->main_json_stringify( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool(
+        lv_act CS `{"MT_LOG":[{"CHANGED_AT":"2024-02-29T23:00:00.5Z","CREATED_AT":"2024-02-29T23:00:00Z","DAY_R":"2024-01-01",` ) ).
+    " through the fast path, not the tree: the row type is taken
+    cl_abap_unit_assert=>assert_not_initial( mo_model->attri_json_fast( REF #( lo_app->mt_log ) ) ).
 
   ENDMETHOD.
 
@@ -5111,6 +5547,922 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
                                         act = mo_model->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD splice_any_order.
+
+    " one pass, whatever order the document holds the tokens in: the third
+    " token first, a scalar between two tokens, the JSON of one carrying
+    " what a replace( ) would read as a pattern and what looks like the
+    " token that follows it - spliced text is not searched again
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    ls_fast-uuid = `U1`.
+    INSERT VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[{"A":"$& $1 \"z2ui5-fast-U1-2\""}]` ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[]` ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-3`
+                    json  = `{"B":1}` ) INTO TABLE ls_fast-t_token.
+    DATA(lv_json) = `{"C":"z2ui5-fast-U1-3","D":"z2ui5-fast-U1-1","E":"x","F":"z2ui5-fast-U1-2"}`.
+
+    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                              CHANGING  cv_json = lv_json ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"C":{"B":1},"D":[{"A":"$& $1 \"z2ui5-fast-U1-2\""}],"E":"x","F":[]}`
+        act = lv_json ).
+
+  ENDMETHOD.
+
+  METHOD splice_no_token.
+
+    " nothing took the fast path: the document is not touched
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    DATA(lv_json) = `{"A":"z2ui5-fast--1"}`.
+
+    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                              CHANGING  cv_json = lv_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{"A":"z2ui5-fast--1"}`
+                                        act = lv_json ).
+
+  ENDMETHOD.
+
+  METHOD splice_token_lost.
+
+    " a token the document does not hold, and one it holds twice: both are
+    " a table missing from the model, and both are refused
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    ls_fast-uuid = `U1`.
+    INSERT VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[]` ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[]` ) INTO TABLE ls_fast-t_token.
+
+    DATA(lv_json) = `{"A":"z2ui5-fast-U1-2"}`.
+    TRY.
+        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                                  CHANGING  cv_json = lv_json ).
+        cl_abap_unit_assert=>fail( `a lost token must be refused` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_lost).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_lost->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
+    ENDTRY.
+
+    lv_json = `{"A":"z2ui5-fast-U1-1","B":"z2ui5-fast-U1-1"}`.
+    TRY.
+        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                                  CHANGING  cv_json = lv_json ).
+        cl_abap_unit_assert=>fail( `a token written twice must be refused` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_twice).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_twice->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD splice_lost_token_skipped.
+
+    " a token the tree cannot write (main_json_stringify marked it lost)
+    " is not expected in the document - every other one still is
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    ls_fast-uuid = `U1`.
+    INSERT VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[1]`
+                    lost  = abap_true ) INTO TABLE ls_fast-t_token.
+    INSERT VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[2]` ) INTO TABLE ls_fast-t_token.
+    DATA(lv_json) = `{"A":"z2ui5-fast-U1-2"}`.
+
+    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                              CHANGING  cv_json = lv_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{"A":[2]}`
+                                        act = lv_json ).
+
+    " but a token marked lost that the document holds after all is the
+    " inconsistency the error is for
+    lv_json = `{"A":"z2ui5-fast-U1-1","B":"z2ui5-fast-U1-2"}`.
+    TRY.
+        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                                  CHANGING  cv_json = lv_json ).
+        cl_abap_unit_assert=>fail( `a lost token in the document must be refused` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD tm_pop_bind.
+
+    DATA lr_val TYPE REF TO data.
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <fixval> TYPE any.
+    FIELD-SYMBOLS <val>    TYPE any.
+    FIELD-SYMBOLS <struc>  TYPE any.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( io_cont ).
+    ASSIGN io_app->ms_data_row->* TO <row>.
+    ASSIGN io_app->ms_fixval->* TO <fixval>.
+    LOOP AT io_app->mt_field INTO DATA(lv_field).
+      ASSIGN COMPONENT lv_field OF STRUCTURE <row> TO <val>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      lr_val = REF #( <val> ).
+      INSERT lo_bind->main( val    = lr_val
+                            config = VALUE #( path_only = abap_true ) ) INTO TABLE result.
+      ASSIGN COMPONENT lv_field OF STRUCTURE <fixval> TO <struc>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      lr_val = REF #( <struc> ).
+      INSERT lo_bind->main( val    = lr_val
+                            config = VALUE #( path_only = abap_true ) ) INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD tm_pop_ajson_text.
+
+    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = io_cont->mt_attri
+                                                 app   = io_cont->mo_app ).
+    LOOP AT io_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE bind = abap_true.
+      DATA(lr_ref) = lo_model->attri_get_val_ref( lr_attri->name ).
+      ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+      li_exp->set( iv_ignore_empty = abap_false
+                   iv_path         = lr_attri->name_client
+                   iv_val          = <val> ).
+    ENDLOOP.
+    result = li_exp->stringify( ).
+
+  ENDMETHOD.
+
+  METHOD tm_pop_namespaced_fields.
+
+    " a "large" DDIC table: its own fields, a long one, and the fields an
+    " industry solution or a customer namespace appended - the shape that
+    " raised MODEL_FAST_PATH_TOKEN_LOST on the first rendering of the popup
+    DATA(lo_app) = NEW ltcl_app_tm_pop( ).
+    lo_app->mt_field = VALUE #( ( `MANDT` ) ( `MATNR` ) ( `ERSDA` ) ( `ZZ_A_RATHER_LONG_FIELD_NAME_XX` )
+                                ( `/CWM/XCWMAT` ) ( `/CWM/VALUM` ) ( `/VSO/R_TILT_IND` ) ( `/SAPMP/KADU` ) ).
+    DO 30 TIMES.
+      INSERT |F{ sy-index }| INTO TABLE lo_app->mt_field.
+    ENDDO.
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+
+    DATA(lt_path) = tm_pop_bind( io_app  = lo_app
+                                 io_cont = lo_cont ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+
+    " the document the general road writes, and no token left in it
+    cl_abap_unit_assert=>assert_equals( exp = tm_pop_ajson_text( lo_cont )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+
+    " every binding path is one UI5 resolves - no empty segment, at which
+    " sap.ui.model.json.JSONModel stops walking - and finds the field's
+    " value and its fixed values in the document
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lv_act ).
+    LOOP AT lo_app->mt_field INTO DATA(lv_field).
+      DATA(lv_val_path) = lt_path[ 2 * sy-tabix - 1 ].
+      DATA(lv_fix_path) = lt_path[ 2 * sy-tabix ].
+      cl_abap_unit_assert=>assert_false( act = xsdbool( lv_val_path CS `//` OR lv_fix_path CS `//` )
+                                         msg = |empty path segment for { lv_field }| ).
+      cl_abap_unit_assert=>assert_equals( exp = |v-{ lv_field }|
+                                          act = li_doc->get_string( lv_val_path )
+                                          msg = |value of { lv_field }| ).
+      cl_abap_unit_assert=>assert_equals( exp = |a of { lv_field }|
+                                          act = li_doc->get_string( |{ lv_fix_path }/1/DESCR| )
+                                          msg = |fixed values of { lv_field }| ).
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = `/MS_FIXVAL/CWM/XCWMAT`
+                                        act = lt_path[ 10 ] ).
+
+  ENDMETHOD.
+
+  METHOD tm_pop_legacy_double_slash.
+
+    " a session started before the fix: its draft keeps the client names
+    " the bind wrote then (main_attri_db_load takes name_client over), with
+    " the empty segment ajson files under a path no parent walks. Not a
+    " fast path case - the general road, which writes what it always wrote
+    DATA(lo_app) = NEW ltcl_app_tm_pop( ).
+    lo_app->mt_field = VALUE #( ( `MATNR` ) ( `/CWM/XCWMAT` ) ).
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    tm_pop_bind( io_app  = lo_app
+                 io_cont = lo_cont ).
+    LOOP AT lo_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE bind = abap_true.
+      lr_attri->name_client = replace( val  = lr_attri->name_client
+                                       sub  = `/CWM/`
+                                       with = `//CWM/` ).
+    ENDLOOP.
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = tm_pop_ajson_text( lo_cont )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"MATNR":[{"DESCR":"a of MATNR"` ) ).
+
+  ENDMETHOD.
+
+  METHOD tm_pop_token_overwritten.
+
+    " a field named like the namespace of another: /CWM/XCWMAT sorts before
+    " CWM and sits below it in the document, so the later set of CWM
+    " replaces the node holding the first token. The general road loses
+    " that value the same way - the document is the same, not an error
+    DATA(lo_app) = NEW ltcl_app_tm_pop( ).
+    lo_app->mt_field = VALUE #( ( `/CWM/XCWMAT` ) ( `CWM` ) ( `MATNR` ) ).
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    tm_pop_bind( io_app  = lo_app
+                 io_cont = lo_cont ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = tm_pop_ajson_text( lo_cont )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"CWM":[{"DESCR":"a of CWM"` ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_setup.
+
+    eo_app = NEW #( ).
+    eo_app->build( ).
+    eo_cont = NEW #( ).
+    eo_cont->mo_app = eo_app.
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( eo_cont ).
+    INSERT lo_bind->main( val    = eo_app->mr_tab
+                          config = VALUE #( path_only = abap_true ) ) INTO TABLE et_path.
+    INSERT lo_bind->main( val    = eo_app->mr_deep
+                          config = VALUE #( path_only = abap_true ) ) INTO TABLE et_path.
+
+  ENDMETHOD.
+
+  METHOD ns_fast_path_grouped.
+
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+
+    DATA(lv_exp) = `[{"AA_FIRST":"A1","CWM":{"VALUM":10,"XCWMAT":"X1"},"MATNR":"M1","VSO":{"R_TILT":"T1"}},` &&
+                   `{"AA_FIRST":"A2","CWM":{"VALUM":20,"XCWMAT":"X2"},"MATNR":"M2","VSO":{"R_TILT":"T2"}}]`.
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp
+                                        act = lo_model->attri_json_fast( lo_app->mr_tab ) ).
+
+    " the general road writes the same text for the same table
+    DATA(li_tree) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    FIELD-SYMBOLS <tab> TYPE any.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    li_tree->set( iv_ignore_empty = abap_false
+                  iv_path         = `/`
+                  iv_val          = <tab> ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp
+                                        act = z2ui5_cl_ui5_srv_model=>json_ns_text( li_tree->mt_json_tree ) ).
+
+    " and the model carries it, a relative row path resolves in it
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `X2`
+                                        act = li_doc->get_string( |{ lt_path[ 1 ] }/2/CWM/XCWMAT| ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `CWM/XCWMAT`
+                                        act = z2ui5_cl_ui5_view_builder=>component_path( `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MATNR`
+                                        act = z2ui5_cl_ui5_view_builder=>component_path( `MATNR` ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_struct_grouped.
+
+    DATA(lo_app) = NEW ltcl_app_ns( ).
+    lo_app->build( ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"AA_FIRST":"A1","CWM":{"VALUM":10,"XCWMAT":"X1"},"MATNR":"M1","VSO":{"R_TILT":"T1"}}`
+        act = mo_model->attri_json_fast( lo_app->mr_row ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_general_road_grouped.
+
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    " a deep row is no fast path case
+    cl_abap_unit_assert=>assert_initial( lo_model->attri_json_fast( lo_app->mr_deep ) ).
+
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `"/` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS
+        `[{"ABC":{"ITEMS":[{"AA_FIRST":"A1","CWM":{"VALUM":10,"XCWMAT":"X1"},"MATNR":"M1","VSO":{"R_TILT":"T1"}},` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `],"NOTE":"note"},"ID":1}]` ) ).
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = `X2`
+                                        act = li_doc->get_string( |{ lt_path[ 2 ] }/1/ABC/ITEMS/2/CWM/XCWMAT| ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_text_plain_identical.
+
+    " the renderer of the general road writes what ajson writes for a value
+    " without a namespace - the shapes the identity tests above hold
+    DATA(lt_rows) = rows( ).
+    DATA(li_tree) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_tree->set( iv_ignore_empty = abap_false
+                  iv_path         = `/`
+                  iv_val          = lt_rows ).
+    cl_abap_unit_assert=>assert_equals( exp = li_tree->stringify( )
+                                        act = z2ui5_cl_ui5_srv_model=>json_ns_text( li_tree->mt_json_tree ) ).
+
+    DATA lt_nested TYPE ty_t_nested.
+    lt_nested = VALUE #( ( id = 1 ) ( id = 2 ) ).
+    li_tree = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_tree->set( iv_ignore_empty = abap_false
+                  iv_path         = `/`
+                  iv_val          = lt_nested ).
+    cl_abap_unit_assert=>assert_equals( exp = li_tree->stringify( )
+                                        act = z2ui5_cl_ui5_srv_model=>json_ns_text( li_tree->mt_json_tree ) ).
+
+    " and the plain table on the fast path is the text it always was
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = mo_model->attri_json_fast( REF #( lt_rows ) ) ).
+
+  ENDMETHOD.
+
+  METHOD ns_omit_initial_grouped.
+
+    " omit_initial is a filter on the compatibility branch - the namespace
+    " is grouped there too, the initial cells left out (the test filter
+    " drops an initial string; a namespace left without a member is gone)
+    DATA(lo_app) = NEW ltcl_app_ns( ).
+    lo_app->build( ).
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    DELETE <tab> FROM 2.
+    " the row first: the transpiled runtime assigns the ROW for a component
+    " of a table expression (ASSIGN COMPONENT ... OF STRUCTURE <tab>[ 1 ])
+    ASSIGN <tab>[ 1 ] TO FIELD-SYMBOL(<row>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
+    ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    CLEAR <cell>.
+    ASSIGN COMPONENT `/VSO/R_TILT` OF STRUCTURE <row> TO <cell>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    CLEAR <cell>.
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    DATA(lo_client) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).
+    lo_client->main( val    = lo_app->mr_tab
+                     config = VALUE #( path_only     = abap_true
+                                       custom_filter = NEW ltcl_shp_filter( ) ) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(lv_act) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true(
+        act = xsdbool( lv_act CS `[{"AA_FIRST":"A1","CWM":{"VALUM":10},"MATNR":"M1"}]` )
+        msg = lv_act ).
+
+  ENDMETHOD.
+
+  METHOD ns_delta_applied.
+
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    " what Lib.buildDeltaFromPaths sends for an edit at /<table>/1/CWM/XCWMAT:
+    " the row's member CWM whole, read from the client's model
+    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/CWM/XCWMAT|
+                   iv_val  = `edited` ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/CWM/VALUM|
+                   iv_val  = `abc` ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/MATNR|
+                   iv_val  = `M-edited` ).
+    lo_model->main_json_to_attri( li_front ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `M-edited`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `MATNR` ) ).
+    " row 1 untouched
+    cl_abap_unit_assert=>assert_equals( exp = `X1`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    " a refused cell is traced under the component's own name, its old
+    " value kept
+    cl_abap_unit_assert=>assert_equals( exp = `20`
+                                        act = condense( ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                           iv_name = `/CWM/VALUM` ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/CWM/VALUM`
+                                        act = lo_model->mt_skipped[ 1 ]-field ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_model->mt_skipped[ 1 ]-row ).
+
+  ENDMETHOD.
+
+  METHOD ns_whole_value_applied.
+
+    " the table sent whole - what the client ships for an edit it cannot
+    " express as a row delta (Lib.buildDeltaFromPaths): the array as the
+    " model holds it, the namespaces as levels of the rows
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(li_out) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    li_front->set( iv_path = lt_path[ 1 ]
+                   iv_val  = li_out->slice( lt_path[ 1 ] ) ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/1/CWM/XCWMAT|
+                   iv_val  = `whole` ).
+    li_front->set( iv_path = |{ lt_path[ 1 ] }/2/VSO/R_TILT|
+                   iv_val  = `tilt` ).
+    lo_model->main_json_to_attri( li_front ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <tab> ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `whole`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `tilt`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `/VSO/R_TILT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `T1`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                                                 iv_name = `/VSO/R_TILT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `20`
+                                        act = condense( ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                           iv_name = `/CWM/VALUM` ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `M2`
+                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                                                 iv_name = `MATNR` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD ns_deep_whole_applied.
+
+    " a nested table edited (the cell sits below a namespaced table of the
+    " row - the client ships the row's member ABC whole) comes back down
+    " to the namespaced cell of the inner row
+    ns_setup( IMPORTING eo_app  = DATA(lo_app)
+                        eo_cont = DATA(lo_cont)
+                        et_path = DATA(lt_path) ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(li_out) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC|
+                   iv_val  = li_out->slice( |{ lt_path[ 2 ] }/1/ABC| ) ).
+    li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC/ITEMS/2/CWM/XCWMAT|
+                   iv_val  = `deep` ).
+    li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC/NOTE|
+                   iv_val  = `note2` ).
+    lo_model->main_json_to_attri( li_front ).
+
+    FIELD-SYMBOLS <deep>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <items> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_deep->* TO <deep>.
+    cl_abap_unit_assert=>assert_equals( exp = `note2`
+                                        act = ltcl_app_ns=>cell( is_row  = <deep>[ 1 ]
+                                                                 iv_name = `/ABC/NOTE` ) ).
+    ASSIGN <deep>[ 1 ] TO FIELD-SYMBOL(<deep_row>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <deep_row> IS ASSIGNED ) ).
+    ASSIGN COMPONENT `/ABC/ITEMS` OF STRUCTURE <deep_row> TO <items>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <items> ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `deep`
+                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 2 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `X1`
+                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 1 ]
+                                                                 iv_name = `/CWM/XCWMAT` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `T1`
+                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 1 ]
+                                                                 iv_name = `/VSO/R_TILT` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD ns_cell_bind_path.
+
+    " _bind( val = <row>-/cwm/xcwmat tab = ... tab_index = 2 ): the cell
+    " path carries the namespace as a level, as the model does
+    DATA(lo_app) = NEW ltcl_app_ns( ).
+    lo_app->build( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_app.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    ASSIGN <tab>[ 2 ] TO FIELD-SYMBOL(<row>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
+    ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).
+    DATA(lv_path) = lo_bind->main( val    = REF #( <cell> )
+                                   config = VALUE #( tab       = lo_app->mr_tab
+                                                     tab_index = 2
+                                                     path_only = abap_true ) ).
+    DATA(lv_tab) = lo_bind->main( val    = lo_app->mr_tab
+                                  config = VALUE #( path_only = abap_true ) ).
+    " UI5 counts the rows from 0
+    cl_abap_unit_assert=>assert_equals( exp = |{ lv_tab }/1/CWM/XCWMAT|
+                                        act = lv_path ).
+
+    " and the model holds the cell there - ajson counts from 1
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
+                                                 app   = lo_app ).
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `X2`
+                                        act = li_doc->get_string( |{ lv_tab }/2/CWM/XCWMAT| ) ).
+
+  ENDMETHOD.
+
+
+ENDCLASS.
+
+
+INTERFACE lif_intf_attr.
+  TYPES:
+    BEGIN OF ty_s_row,
+      name TYPE string,
+      qty  TYPE i,
+    END OF ty_s_row.
+  TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+  CONSTANTS c_const TYPE string VALUE `C` ##NEEDED.
+  DATA mv_intf TYPE string.
+  DATA ms_intf TYPE ty_s_row.
+  DATA mt_intf TYPE ty_t_row.
+  DATA mr_intf TYPE REF TO data.
+ENDINTERFACE.
+
+INTERFACE lif_intf_alias.
+  DATA mv_shared TYPE string.
+ENDINTERFACE.
+
+CLASS ltcl_intf_impl DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES lif_intf_attr.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_intf_impl IMPLEMENTATION.
+ENDCLASS.
+
+CLASS ltcl_app_intf DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    INTERFACES lif_intf_attr.
+    INTERFACES lif_intf_alias.
+    ALIASES mv_shared FOR lif_intf_alias~mv_shared.
+    DATA mv_own   TYPE string.
+    DATA mi_state TYPE REF TO lif_intf_attr.
+    DATA mo_state TYPE REF TO ltcl_intf_impl.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_intf IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" An attribute an INTERFACE declares binds (decided 2026-11-24, it raised
+" BINDING_ERROR before): the app's own `LIF~ATTR`, one reached through an
+" interface reference without ALIASES (`mi_state->attr`) or through an
+" object (`mo_state->lif~attr`). The client path keeps the `~` - no class
+" attribute can carry it, so the name cannot meet one; a namespaced
+" interface becomes a level like every namespace (`/NS/IF~ATTR`). The
+" interface rows are dissolved only once a binding misses every class
+" row (main_attri_search): an app that never binds one keeps the draft and
+" the model it had
+CLASS ltcl_07_intf_attr DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA mo_app  TYPE REF TO ltcl_app_intf.
+    DATA mo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA mo_bind TYPE REF TO z2ui5_cl_ui5_srv_bind.
+
+    METHODS setup.
+    METHODS bind
+      IMPORTING
+        ir_val        TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE string.
+    METHODS model
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
+    METHODS intf_rows
+      RETURNING
+        VALUE(result) TYPE i.
+
+    METHODS intf_attribute_bound FOR TESTING RAISING cx_static_check.
+    METHODS class_attribute_stays_lean FOR TESTING RAISING cx_static_check.
+    METHODS intf_reference_bound FOR TESTING RAISING cx_static_check.
+    METHODS intf_struct_and_table FOR TESTING RAISING cx_static_check.
+    METHODS intf_model_out_and_back FOR TESTING RAISING cx_static_check.
+    METHODS intf_namespaced_level FOR TESTING RAISING cx_static_check.
+    METHODS alias_and_intf_one_row FOR TESTING RAISING cx_static_check.
+    " the alias spelling of MV_SHARED, in a method of its own: a method that
+    " names one component both ways draws the extended check's "accessed in
+    " the current context under a different name"
+    METHODS alias_ref
+      RETURNING
+        VALUE(result) TYPE REF TO string.
+    METHODS alias_dedupe_by_reference FOR TESTING RAISING cx_static_check.
+    METHODS intf_survives_refresh FOR TESTING RAISING cx_static_check.
+    METHODS intf_dref_save_load FOR TESTING RAISING cx_static_check.
+    METHODS no_attribute_still_refused FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_07_intf_attr IMPLEMENTATION.
+
+  METHOD setup.
+
+    mo_app = NEW #( ).
+    mo_app->mo_state = NEW #( ).
+    mo_app->mi_state = NEW ltcl_intf_impl( ).
+    mo_cont = NEW #( ).
+    mo_cont->mo_app = mo_app.
+    mo_bind = NEW #( mo_cont ).
+
+  ENDMETHOD.
+
+  METHOD bind.
+
+    result = mo_bind->main( val    = ir_val
+                            config = VALUE #( path_only = abap_true ) ).
+
+  ENDMETHOD.
+
+  METHOD model.
+
+    result = NEW z2ui5_cl_ui5_srv_model( attri = mo_cont->mt_attri
+                                         app   = mo_app ).
+
+  ENDMETHOD.
+
+  METHOD intf_rows.
+
+    LOOP AT mo_cont->mt_attri->* TRANSPORTING NO FIELDS WHERE name CA `~`. "#EC CI_SORTSEQ
+      result = result + 1.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD intf_attribute_bound.
+
+    cl_abap_unit_assert=>assert_equals( exp = `/MV_OWN`
+                                        act = bind( REF #( mo_app->mv_own ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->lif_intf_attr~mv_intf ) ) ).
+    " a second bind finds the row the first one created
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->lif_intf_attr~mv_intf ) ) ).
+    " and the class attribute keeps its path
+    cl_abap_unit_assert=>assert_equals( exp = `/MV_OWN`
+                                        act = bind( REF #( mo_app->mv_own ) ) ).
+
+  ENDMETHOD.
+
+  METHOD class_attribute_stays_lean.
+
+    " the app implements three interfaces - none of their attributes is
+    " dissolved while nothing binds one
+    bind( REF #( mo_app->mv_own ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = intf_rows( ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_reference_bound.
+
+    " a reference typed with the interface, no alias: the class of the
+    " object behind it declares nothing of its own
+    cl_abap_unit_assert=>assert_equals( exp = `/MI_STATE/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->mi_state->mv_intf ) ) ).
+    " an object reference, its interface attribute spelled out
+    cl_abap_unit_assert=>assert_equals( exp = `/MO_STATE/LIF_INTF_ATTR~MV_INTF`
+                                        act = bind( REF #( mo_app->mo_state->lif_intf_attr~mv_intf ) ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_struct_and_table.
+
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MS_INTF/NAME`
+                                        act = bind( REF #( mo_app->lif_intf_attr~ms_intf-name ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MT_INTF`
+                                        act = bind( REF #( mo_app->lif_intf_attr~mt_intf ) ) ).
+    " a constant of the interface is no row
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mo_cont->mt_attri->*[ name = `LIF_INTF_ATTR~C_CONST` ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_model_out_and_back.
+
+    mo_app->lif_intf_attr~mv_intf = `out`.
+    mo_app->lif_intf_attr~mt_intf = VALUE #( ( name = `A` qty = 1 ) ( name = `B` qty = 2 ) ).
+    mo_app->mi_state->mv_intf = `ref-out`.
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    bind( REF #( mo_app->lif_intf_attr~mt_intf ) ).
+    bind( REF #( mo_app->mi_state->mv_intf ) ).
+
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( model( )->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `out`
+                                        act = li_doc->get_string( `/LIF_INTF_ATTR~MV_INTF` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `B`
+                                        act = li_doc->get_string( `/LIF_INTF_ATTR~MT_INTF/2/NAME` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `ref-out`
+                                        act = li_doc->get_string( `/MI_STATE/LIF_INTF_ATTR~MV_INTF` ) ).
+
+    " back in: a whole value, a row delta and a value behind the reference
+    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse(
+        `{"LIF_INTF_ATTR~MV_INTF":"in","LIF_INTF_ATTR~MT_INTF":{"__delta":{"1":{"QTY":7}}},` &&
+        `"MI_STATE":{"LIF_INTF_ATTR~MV_INTF":"ref-in"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `in`
+                                        act = mo_app->lif_intf_attr~mv_intf ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = mo_app->lif_intf_attr~mt_intf[ 2 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = mo_app->lif_intf_attr~mt_intf[ 1 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = `ref-in`
+                                        act = mo_app->mi_state->mv_intf ).
+
+  ENDMETHOD.
+
+  METHOD intf_namespaced_level.
+
+    " a namespaced interface - `/NS/IF~ATTR`, no local interface can be
+    " named so - becomes a level of the model like every namespace
+    " (z2ui5_cl_ui5_srv_bind=>get_client_name, ltcl_01_path): the row is
+    " given that client name, and the value travels out and back under it
+    mo_app->lif_intf_attr~mv_intf = `out`.
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    mo_cont->mt_attri->*[ name = `LIF_INTF_ATTR~MV_INTF` ]-name_client = `/NS/LIF_INTF_ATTR~MV_INTF`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `{"NS":{"LIF_INTF_ATTR~MV_INTF":"out"}}`
+                                        act = model( )->main_json_stringify( ) ).
+
+    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse( `{"NS":{"LIF_INTF_ATTR~MV_INTF":"in"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `in`
+                                        act = mo_app->lif_intf_attr~mv_intf ).
+
+  ENDMETHOD.
+
+  METHOD alias_and_intf_one_row.
+
+    " the alias and the interface spelling are one data object: either
+    " name answers the same path, and one row carries it. Which row is a
+    " question of the runtime: a system lists the alias among the class's
+    " attributes (`MV_SHARED`) and the interface spelling is left out
+    " (diss_oref_intf, alias_dedupe_by_reference below); the transpiled
+    " runtime lists no ALIASES at all, so there it is the interface row
+    DATA(lv_path) = bind( REF #( mo_app->lif_intf_alias~mv_shared ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_path
+                                        act = bind( alias_ref( ) ) ).
+    " with the interface rows on (another interface attribute was looked
+    " for), still the same row
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_path
+                                        act = bind( REF #( mo_app->lif_intf_alias~mv_shared ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_path
+                                        act = bind( alias_ref( ) ) ).
+    DATA(lv_alias_row) = xsdbool( line_exists( mo_cont->mt_attri->*[ name = `MV_SHARED` ] ) ).
+    DATA(lv_intf_row) = xsdbool( line_exists( mo_cont->mt_attri->*[ name = `LIF_INTF_ALIAS~MV_SHARED` ] ) ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_alias_row
+                                         act = lv_intf_row ).
+
+    " written once, out and back
+    DATA(lr_alias) = alias_ref( ).
+    lr_alias->* = `out`.
+    DATA(lv_member) = substring( val = lv_path
+                                 off = 1 ).
+    DATA(li_doc) = z2ui5_cl_ajson=>parse( model( )->main_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( li_doc->members( `/` ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `out`
+                                        act = li_doc->get_string( lv_path ) ).
+    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse( |\{"{ lv_member }":"in"\}| ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `in`
+                                        act = mo_app->lif_intf_alias~mv_shared ).
+
+  ENDMETHOD.
+
+  METHOD alias_ref.
+    result = REF #( mo_app->mv_shared ).
+  ENDMETHOD.
+
+  METHOD alias_dedupe_by_reference.
+
+    " the class pass wrote the alias's row - the interface spelling of the
+    " same data object is not added next to it, another one is
+    DATA lt_result TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    INSERT VALUE #( name = `MV_SHARED` ) INTO TABLE lt_result.
+    DATA(lt_descr) = VALUE abap_attrdescr_tab(
+        ( name = `LIF_INTF_ALIAS~MV_SHARED` visibility = z2ui5_cl_ui5_util_context=>cv_objectdescr_public is_interface = abap_true )
+        ( name = `LIF_INTF_ATTR~MV_INTF`    visibility = z2ui5_cl_ui5_util_context=>cv_objectdescr_public is_interface = abap_true ) ).
+
+    model( )->diss_oref_intf( EXPORTING it_attri  = lt_descr
+                                        iv_prefix = ``
+                                        iv_parent = ``
+                              CHANGING  ct_result = lt_result ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_result ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_result[ name = `LIF_INTF_ALIAS~MV_SHARED` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_result[ name = `LIF_INTF_ATTR~MV_INTF` ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD intf_survives_refresh.
+
+    bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+
+    " the next roundtrip: a fresh model instance over the draft's rows,
+    " rebuilt - the bound interface row is found again, bound
+    DATA(lo_model) = model( ).
+    lo_model->main_attri_refresh( ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = mo_cont->mt_attri->*[ name = `LIF_INTF_ATTR~MV_INTF` ]-bind ).
+    DATA(lr_row) = lo_model->main_attri_search( REF #( mo_app->lif_intf_attr~mv_intf ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `LIF_INTF_ATTR~MV_INTF`
+                                        act = lr_row->name ).
+
+  ENDMETHOD.
+
+  METHOD intf_dref_save_load.
+
+    FIELD-SYMBOLS <tab> TYPE lif_intf_attr=>ty_t_row.
+
+    " CREATE DATA ... LIKE, not NEW: the downport writes the NEW of a type
+    " of a local interface as CREATE OBJECT ... TYPE lif_intf_attr, and the
+    " transpiled runtime refuses CREATE DATA ... TYPE lif_intf_attr=>ty_t_row
+    CREATE DATA mo_app->lif_intf_attr~mr_intf LIKE mo_app->lif_intf_attr~mt_intf.
+    ASSIGN mo_app->lif_intf_attr~mr_intf->* TO <tab>.
+    INSERT VALUE #( name = `R`
+                    qty  = 3 ) INTO TABLE <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = `/LIF_INTF_ATTR~MR_INTF/*`
+                                        act = bind( REF #( <tab> ) ) ).
+
+    " the draft: the data reference is detached and its payload written,
+    " the load puts it back - by the row's name, `~` and all
+    DATA(lo_model) = model( ).
+    DATA(lv_before) = lo_model->main_json_stringify( ).
+    lo_model->main_attri_db_save_srtti( ).
+    cl_abap_unit_assert=>assert_not_bound( mo_app->lif_intf_attr~mr_intf ).
+    lo_model->main_attri_db_load( ).
+    cl_abap_unit_assert=>assert_bound( mo_app->lif_intf_attr~mr_intf ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = model( )->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD no_attribute_still_refused.
+
+    DATA lv_local TYPE string.
+
+    TRY.
+        bind( REF #( lv_local ) ).
+        cl_abap_unit_assert=>fail( `a local variable is no attribute` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( act = xsdbool( lx->get_text( ) CS `BINDING_ERROR` )
+                                          msg = lx->get_text( ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

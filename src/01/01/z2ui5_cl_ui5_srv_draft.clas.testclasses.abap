@@ -37,6 +37,12 @@ CLASS ltcl_store_double IMPLEMENTATION.
   METHOD z2ui5_if_ui5_draft_store~cleanup ##NEEDED.
   ENDMETHOD.
 
+  METHOD z2ui5_if_ui5_draft_store~prune_chain ##NEEDED.
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_draft_store~touch ##NEEDED.
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -417,6 +423,199 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = lv_total + 1
                                         act = lo_draft->count_entries_total( )
                                         msg = `the total count must include every owner` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" prune_chain( ): the pruning that keeps a chain at N drafts
+" (z2ui5_if_ui5_exit=>ty_s_http_config_post-draft_keep_per_chain). Every
+" test writes its own chain under fresh ids, so a run on a system that
+" kept rows of an earlier run reads only its own
+CLASS ltcl_prune DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA mi_store TYPE REF TO z2ui5_if_ui5_draft_store.
+
+    METHODS setup.
+
+    " drafts 1 .. count, each with the one before as id_prev - the chain
+    " the roundtrips of one app write; answers the ids, oldest first
+    METHODS chain
+      IMPORTING
+        count         TYPE i
+        id_prev_app   TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    METHODS info
+      IMPORTING
+        id            TYPE string
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
+
+    METHODS keep_zero_deletes_nothing FOR TESTING RAISING cx_static_check.
+    METHODS keep_two_keeps_two        FOR TESTING RAISING cx_static_check.
+    METHODS keep_one_is_raised_to_two FOR TESTING RAISING cx_static_check.
+    METHODS protected_id_survives     FOR TESTING RAISING cx_static_check.
+    METHODS referenced_draft_survives FOR TESTING RAISING cx_static_check.
+    METHODS walk_stops_at_previous_app FOR TESTING RAISING cx_static_check.
+    METHODS touch_renews_the_time     FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_prune IMPLEMENTATION.
+
+  METHOD setup.
+
+    mi_store = z2ui5_cl_ui5_srv_draft=>get_instance( ).
+
+  ENDMETHOD.
+
+  METHOD chain.
+
+    " the id column holds 32 characters - room for the suffixes the tests add
+    DATA(lv_prefix) = substring( val = z2ui5_cl_ui5_util_context=>uuid_get_c32( )
+                                 len = 24 ).
+    DATA(lv_prev) = ``.
+    DO count TIMES.
+      DATA(lv_id) = |{ lv_prefix }_{ sy-index }|.
+      mi_store->create( draft     = VALUE #( id          = lv_id
+                                             id_prev     = lv_prev
+                                             id_prev_app = id_prev_app )
+                        model_xml = lv_id ).
+      INSERT lv_id INTO TABLE result.
+      lv_prev = lv_id.
+    ENDDO.
+
+  ENDMETHOD.
+
+  METHOD info.
+
+    result = VALUE #( id      = id
+                      id_prev = mi_store->read_info( id )-id_prev ).
+
+  ENDMETHOD.
+
+  METHOD keep_zero_deletes_nothing.
+
+    DATA(lt_id) = chain( 4 ).
+
+    mi_store->prune_chain( draft = info( lt_id[ 4 ] )
+                           keep  = 0 ).
+
+    LOOP AT lt_id INTO DATA(lv_id).
+      cl_abap_unit_assert=>assert_true( act = mi_store->check_exists( lv_id )
+                                        msg = |keep 0 is the behaviour before: { lv_id } stays| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD keep_two_keeps_two.
+
+    DATA(lt_id) = chain( 3 ).
+
+    " the save of draft 3: drafts 3 and 2 stay, draft 1 (depth 3) goes
+    mi_store->prune_chain( draft = info( lt_id[ 3 ] )
+                           keep  = 2 ).
+    cl_abap_unit_assert=>assert_false( mi_store->check_exists( lt_id[ 1 ] ) ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_id[ 2 ] ) ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_id[ 3 ] ) ).
+
+    " the next save takes the next one - one per save, the chain stays at 2
+    DATA(lv_next) = |{ lt_id[ 3 ] }_NEXT|.
+    mi_store->create( draft     = VALUE #( id      = lv_next
+                                           id_prev = lt_id[ 3 ] )
+                      model_xml = `next` ).
+    mi_store->prune_chain( draft = info( lv_next )
+                           keep  = 2 ).
+    cl_abap_unit_assert=>assert_false( mi_store->check_exists( lt_id[ 2 ] ) ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_id[ 3 ] ) ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lv_next ) ).
+
+  ENDMETHOD.
+
+  METHOD keep_one_is_raised_to_two.
+
+    DATA(lt_id) = chain( 3 ).
+
+    " one would delete the draft the retry of a lost response continues
+    mi_store->prune_chain( draft = info( lt_id[ 3 ] )
+                           keep  = 1 ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_id[ 2 ] ) ).
+    cl_abap_unit_assert=>assert_false( mi_store->check_exists( lt_id[ 1 ] ) ).
+
+  ENDMETHOD.
+
+  METHOD protected_id_survives.
+
+    DATA(lt_id) = chain( 3 ).
+
+    " the draft a share link names, or a restore started from
+    mi_store->prune_chain( draft     = info( lt_id[ 3 ] )
+                           keep      = 2
+                           t_protect = VALUE #( ( lt_id[ 1 ] ) ) ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_id[ 1 ] ) ).
+
+  ENDMETHOD.
+
+  METHOD referenced_draft_survives.
+
+    DATA(lt_id) = chain( 3 ).
+    " a draft somewhere else goes back to draft 1 - a called app whose
+    " caller it is
+    DATA(lv_callee) = |{ lt_id[ 1 ] }_CALLEE|.
+    mi_store->create( draft     = VALUE #( id                = lv_callee
+                                           id_prev_app_stack = lt_id[ 1 ] )
+                      model_xml = `callee` ).
+
+    mi_store->prune_chain( draft = info( lt_id[ 3 ] )
+                           keep  = 2 ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_id[ 1 ] ) ).
+
+  ENDMETHOD.
+
+  METHOD walk_stops_at_previous_app.
+
+    " the chain of a called app starts at the caller's hop draft: its
+    " first draft has it as id_prev AND as id_prev_app
+    DATA(lt_caller) = chain( 2 ).
+    DATA(lt_id) = chain( count       = 2
+                         id_prev_app = lt_caller[ 2 ] ).
+    mi_store->create( draft     = VALUE #( id          = lt_id[ 1 ]
+                                           id_prev     = lt_caller[ 2 ]
+                                           id_prev_app = lt_caller[ 2 ] )
+                      model_xml = `first after the hop` ).
+
+    " depth 3 of the callee's draft 2 is the caller's hop draft - kept
+    mi_store->prune_chain( draft = VALUE #( id          = lt_id[ 2 ]
+                                            id_prev     = lt_id[ 1 ]
+                                            id_prev_app = lt_caller[ 2 ] )
+                           keep  = 2 ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_caller[ 2 ] ) ).
+    cl_abap_unit_assert=>assert_true( mi_store->check_exists( lt_caller[ 1 ] ) ).
+
+  ENDMETHOD.
+
+  METHOD touch_renews_the_time.
+
+    DATA(lt_id) = chain( 1 ).
+    DATA(lv_before) = mi_store->read_draft( lt_id[ 1 ] )-timestampl.
+
+    " dated back an hour, the way cleanup( ) would find a draft a poll
+    " kept answering with
+    DATA(lv_old) = z2ui5_cl_ui5_util_context=>time_subtract_seconds( time     = lv_before
+                                                                      seconds = 3600 ).
+    DATA(lv_id) = lt_id[ 1 ].
+    UPDATE z2ui5_t_01 SET timestampl = @lv_old WHERE id = @lv_id ##SUBRC_OK.
+    COMMIT WORK.
+
+    mi_store->touch( lt_id[ 1 ] ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( mi_store->read_draft( lt_id[ 1 ] )-timestampl > lv_old ) ).
 
   ENDMETHOD.
 

@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real app/webapp/core/AppState.js: the SHAPE of a component's
+// Tests the real bundle/webapp/core/AppState.js: the SHAPE of a component's
 // state - createState( ) and its defaults. The instance lives on the
 // component's context (core/Context.js, context.spec.js); this module keeps
 // no state of its own and puts nothing on the global object. `window` is
@@ -19,7 +19,6 @@ test.describe("createState", () => {
   test("installs the defaults for every field", () => {
     const { AppState } = load();
     const state = AppState.createState();
-    expect(state.checkLocal).toBe(false);
     expect(state.endpoint).toBeNull();
     expect(state.url).toBeNull();
     expect(state.oConfig).toEqual({});
@@ -32,6 +31,9 @@ test.describe("createState", () => {
     expect(state.viewSizeLimits).toEqual({});
     expect(state.slotXml).toEqual({});
     expect(state.slotApp).toEqual({});
+    expect(state.slotToken).toEqual({});
+    expect(state.aRenderEvents).toEqual([]);
+    expect(state.renderEventChain).toBe(0);
     expect(state.onBeforeRoundtrip).toEqual([]);
     expect(state.oSentModel).toBeNull();
   });
@@ -99,8 +101,6 @@ test("resetApp resets the app's fields in place and keeps the component's", () =
   const state = AppState.createState();
   const hook = () => {};
   Object.assign(state, {
-    embedded: true,
-    ownsHash: false,
     url: "/sap/bc/z2ui5",
     oConfig: { ComponentData: { startupParameters: {} } },
     oApp: { id: "app" },
@@ -116,8 +116,6 @@ test("resetApp resets the app's fields in place and keeps the component's", () =
 
   AppState.resetApp(state);
 
-  expect(state.embedded).toBe(true);
-  expect(state.ownsHash).toBe(false);
   expect(state.url).toBe("/sap/bc/z2ui5");
   expect(state.oConfig.ComponentData).toEqual({ startupParameters: {} });
   expect(state.oApp).toEqual({ id: "app" });

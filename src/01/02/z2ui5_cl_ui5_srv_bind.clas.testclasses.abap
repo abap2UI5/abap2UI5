@@ -84,6 +84,8 @@ CLASS ltcl_bnd_app DEFINITION FINAL
     DATA mo_obj   TYPE REF TO ltcl_bnd_helper.
     " a value that looks like a cell and is none
     DATA mv_other TYPE string.
+    " the total of a windowed table, as an attribute
+    DATA mv_total TYPE i.
 
     METHODS fill.
 ENDCLASS.
@@ -255,10 +257,39 @@ CLASS ltcl_01_path DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS path_decorations       FOR TESTING RAISING cx_static_check.
     " a value that is no attribute of the app - the model's error
     METHODS foreign_value_refused  FOR TESTING RAISING cx_static_check.
+    " an attribute an interface declares keeps its `~`; a namespaced
+    " interface is a level like every namespace
+    METHODS interface_names        FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
 CLASS ltcl_01_path IMPLEMENTATION.
+
+  METHOD interface_names.
+
+    " no class attribute can carry a `~`, so the interface spelling cannot
+    " meet one; no local interface can be named with a namespace, so the
+    " names are handed to the method as the dissolve writes them
+    DATA ls_attri TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    mo_bind->mr_attri = REF #( ls_attri ).
+
+    ls_attri-name = `ZIF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/ZIF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `ZIF_STATE~MS_DATA-FIELD`.
+    cl_abap_unit_assert=>assert_equals( exp = `/ZIF_STATE~MS_DATA/FIELD`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `MI_STATE->ZIF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/MI_STATE/ZIF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `/NS/IF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/IF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+    ls_attri-name = `MO_HELPER->/NS/IF_STATE~MV_VALUE`.
+    cl_abap_unit_assert=>assert_equals( exp = `/MO_HELPER/NS/IF_STATE~MV_VALUE`
+                                        act = mo_bind->get_client_name( ) ).
+
+  ENDMETHOD.
 
   METHOD root_value.
 
@@ -646,7 +677,7 @@ CLASS ltcl_02_cell IMPLEMENTATION.
     DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( mo_app->mt_tab ) ).
     CREATE DATA mo_app->mr_tab TYPE HANDLE lo_tab.
     ASSIGN mo_app->mr_tab->* TO <tab>.
-    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    INSERT INITIAL LINE INTO TABLE <tab> ASSIGNING <row>.
     ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
     cl_abap_unit_assert=>assert_subrc( ).
     <name> = `re-created`.
@@ -875,10 +906,10 @@ CLASS ltcl_03_options IMPLEMENTATION.
           is_config = VALUE #( custom_filter = lo_third ) ).
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( mo_bind->mt_impl_names ) ).
-    READ TABLE mo_bind->mt_impl_names INTO DATA(ls_memo) WITH TABLE KEY ref = lo_stored.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN mo_bind->mt_impl_names[ ref = lo_stored ] TO FIELD-SYMBOL(<memo>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <memo> IS ASSIGNED ) ).
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_stored )
-                                        act = ls_memo-name ).
+                                        act = <memo>-name ).
     cl_abap_unit_assert=>assert_equals( exp = lo_stored
                                         act = mo_bind->mr_attri->custom_filter ).
 
@@ -1005,6 +1036,18 @@ CLASS ltcl_04_window DEFINITION FINAL INHERITING FROM ltcl_00_base
     " a new total from the app has to reach the browser in the same
     " roundtrip: the model is marked for a push; the same one is not
     METHODS new_total_pushed     FOR TESTING RAISING cx_static_check.
+    " the total as a value that is no attribute (`total = lines( lt_all )`)
+    " and as one (`total = mv_total`) - what the binding holds afterwards,
+    " and that looking the total up leaves the attribute table alone
+    METHODS total_no_attribute   FOR TESTING RAISING cx_static_check.
+    METHODS total_no_attri_rebind FOR TESTING RAISING cx_static_check.
+    METHODS total_attribute      FOR TESTING RAISING cx_static_check.
+    METHODS total_attri_then_value FOR TESTING RAISING cx_static_check.
+
+    " the row of mo_app->mt_tab in the attribute table
+    METHODS tab_row
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
 ENDCLASS.
 
@@ -1087,6 +1130,138 @@ CLASS ltcl_04_window IMPLEMENTATION.
     bind( ir_val    = REF #( mo_app->mt_tab )
           is_config = ls_config ).
     cl_abap_unit_assert=>assert_true( mo_cont->mv_model_client_stale ).
+
+  ENDMETHOD.
+
+  METHOD tab_row.
+
+    ASSIGN mo_cont->mt_attri->*[ name = `MT_TAB` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <attri> IS ASSIGNED )
+                                      msg = `MT_TAB has no row in the attribute table` ).
+    result = REF #( <attri> ).
+
+  ENDMETHOD.
+
+  METHOD total_no_attribute.
+
+    " what window_bind_tab( val = mt_tab total = lines( lt_all ) ) hands
+    " over: a reference to a value that lives nowhere in the app
+    DATA(lv_total) = lines( mo_app->mt_tab ) + 40.
+
+    " a first bind of another attribute builds the attribute table; a mark
+    " on a row that is NOT bound shows whether the table is built anew
+    bind( REF #( mo_app->mv_value ) ).
+    ASSIGN mo_cont->mt_attri->*[ name = `MV_OTHER` ] TO FIELD-SYMBOL(<mark>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <mark> IS ASSIGNED ) ).
+    DATA(lr_mark) = REF #( <mark> ).
+    lr_mark->name_client = `MARK`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
+                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
+                                                    is_config = VALUE #( window           = 10
+                                                                         window_total     = lv_total
+                                                                         window_total_ref = REF #( lv_total )
+                                                                         window_event     = `ROWS` ) ) ).
+
+    DATA(lr_row) = tab_row( ).
+    cl_abap_unit_assert=>assert_true( lr_row->bind ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MT_TAB`
+                                        act = lr_row->name_client ).
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = lr_row->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = 42
+                                        act = lr_row->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
+                                        act = lr_row->window_event ).
+    cl_abap_unit_assert=>assert_initial( lr_row->window_total_name ).
+
+    " the miss cost a search and nothing else: the row the service works
+    " on is still the row of the table, and no row was created anew
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_bind->mr_attri = lr_row )
+                                      msg = `the bind service holds a row that is no longer in the attribute table` ).
+    UNASSIGN <mark>.
+    ASSIGN mo_cont->mt_attri->*[ name = `MV_OTHER` ] TO <mark>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <mark> IS ASSIGNED ) ).
+    lr_mark = REF #( <mark> ).
+    cl_abap_unit_assert=>assert_equals( exp = `MARK`
+                                        act = lr_mark->name_client
+                                        msg = `looking up a total that is no attribute rebuilt the attribute table` ).
+
+  ENDMETHOD.
+
+  METHOD total_no_attri_rebind.
+
+    " the same on a table that is bound already - the branch a second
+    " render takes (adopt_new_options)
+    DATA(lv_total) = 7.
+    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config( window           = 10
+                                                                  window_total     = lv_total
+                                                                  window_total_ref = REF #( lv_total )
+                                                                  window_event     = `ROWS` ).
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    lv_total = 8.
+    ls_config-window_total = lv_total.
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
+                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
+                                                    is_config = ls_config ) ).
+
+    DATA(lr_row) = tab_row( ).
+    cl_abap_unit_assert=>assert_equals( exp = 8
+                                        act = lr_row->window_total ).
+    cl_abap_unit_assert=>assert_initial( lr_row->window_total_name ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_attri = lr_row ) ).
+
+  ENDMETHOD.
+
+  METHOD total_attribute.
+
+    mo_app->mv_total = 500.
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
+                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
+                                                    is_config = VALUE #( window           = 10
+                                                                         window_total     = mo_app->mv_total
+                                                                         window_total_ref = REF #( mo_app->mv_total )
+                                                                         window_event     = `ROWS` ) ) ).
+
+    DATA(lr_row) = tab_row( ).
+    cl_abap_unit_assert=>assert_true( lr_row->bind ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MT_TAB`
+                                        act = lr_row->name_client ).
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = lr_row->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_TOTAL`
+                                        act = lr_row->window_total_name ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_attri = lr_row ) ).
+    " the total is read by its name - it is not bound itself
+    ASSIGN mo_cont->mt_attri->*[ name = `MV_TOTAL` ] TO FIELD-SYMBOL(<total>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <total> IS ASSIGNED ) ).
+    DATA(lr_total) = REF #( <total> ).
+    cl_abap_unit_assert=>assert_false( lr_total->bind ).
+
+  ENDMETHOD.
+
+  METHOD total_attri_then_value.
+
+    " the latest bind decides: a render that passes a value after one that
+    " passed the attribute stops reading the attribute
+    mo_app->mv_total = 500.
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = VALUE #( window           = 10
+                               window_total     = mo_app->mv_total
+                               window_total_ref = REF #( mo_app->mv_total )
+                               window_event     = `ROWS` ) ).
+    DATA(lv_total) = 3.
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = VALUE #( window           = 10
+                               window_total     = lv_total
+                               window_total_ref = REF #( lv_total )
+                               window_event     = `ROWS` ) ).
+
+    DATA(lr_row) = tab_row( ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lr_row->window_total ).
+    cl_abap_unit_assert=>assert_initial( lr_row->window_total_name ).
 
   ENDMETHOD.
 

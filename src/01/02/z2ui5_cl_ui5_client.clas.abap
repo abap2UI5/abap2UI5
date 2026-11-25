@@ -70,7 +70,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " The five navigation branches of the CASE below configure how the
     " browser URL has to look after this roundtrip. Router derives ONE
     " outcome from all of them together, so they are collected here and
-    " leave as options of the single ROUTER/sync call main_end( ) queues -
+    " leave as the options of the one NAV section main_end( ) writes -
     " never as actions of their own, which would make the router run
     " several times and fight over the same hash.
     "
@@ -141,6 +141,16 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " next response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
         mo_action->mo_app->mv_app_state_active = mo_action->ms_next-s_nav-set_app_state_active.
         RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-start_timer
+          OR z2ui5_if_client=>cs_event-stop_timer.
+        " the app takes the one timer slot over itself: the declaration of
+        " timer_set( ) goes, and so does the record of what was sent for it -
+        " the browser's slot holds this action now, and main_end_timer must
+        " neither stop it nor arm the declared one over it. Queued below as
+        " ever
+        CLEAR: mo_action->mo_app->ms_timer,
+               mo_action->mo_app->ms_timer_sent.
     ENDCASE.
 
     " a frontend event travels as pure data - a JSON array built and escaped
@@ -237,6 +247,48 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~get_start_param.
+
+    " what the seven copies of "url_param_get( s_config-search ), else
+    " t_comp_params, else ..." in the apps of one installation did, once:
+    " the first source that has the parameter with a value - the order is
+    " the one the interface documents
+    DATA(lv_name) = z2ui5_cl_ui5_util_context=>c_trim_lower( name ).
+    IF lv_name IS INITIAL.
+      RETURN.
+    ENDIF.
+    DATA(ls_get) = z2ui5_if_client~get( ).
+
+    " 1. the URL query - url_param_get_tab unpacks sap-startup-params and
+    " lower-cases the names
+    result = z2ui5_cl_ui5_util_context=>url_param_get( val = lv_name
+                                                       url = ls_get-s_config-search ).
+    IF result IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    " 2. the launchpad startupParameters, under the tile's own spelling
+    LOOP AT ls_get-t_comp_params REFERENCE INTO DATA(lr_param).
+      IF z2ui5_cl_ui5_util_context=>c_trim_lower( lr_param->n ) = lv_name
+          AND lr_param->v IS NOT INITIAL.
+        result = lr_param->v.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+    " 3. the query of the launchpad intent - the shell's part of the hash
+    " (`#Object-action?p=v&/app-route`). A raw location hash: a bare
+    " intent without the separator is all shell
+    DATA(lv_shell) = z2ui5_cl_ui5_handler=>hash_get_shell_part( iv_hash            = ls_get-s_config-hash
+                                                               check_bare_is_shell = abap_true ).
+    IF lv_shell CS `?`.
+      result = z2ui5_cl_ui5_util_context=>url_param_get( val = lv_name
+                                                         url = lv_shell ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~get_event.
 
     result = mo_action->ms_actual-event.
@@ -277,7 +329,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                           actions          = actions
                           emphasizedaction = emphasizedaction
                           initialfocus     = initialfocus
-                          details          = details ).
+                          details          = details
+                          icon             = icon ).
 
   ENDMETHOD.
 
@@ -312,6 +365,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     mo_action->ms_next-o_app_call = app.
     result = nav_app_set_id( app ).
 
+    " after nav_app_set_id( ), which raises for an unbound target: a call
+    " that does not happen must not replace the tag. Written on the CALLER's
+    " container, which the hop saves - see mv_nav_tag there
+    mo_action->mo_app->mv_nav_tag = tag.
+    mo_action->ms_next-keep_messages = keep_messages.
+
   ENDMETHOD.
 
 
@@ -337,6 +396,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
     mo_action->ms_next-o_app_leave = app.
     mo_action->ms_next-next_event  = event.
+    mo_action->ms_next-keep_messages = keep_messages.
 
     " IS SUPPLIED (not IS NOT INITIAL) so an intentionally empty return
     " value still reaches the previous app (https://github.com/abap2UI5/abap2UI5/issues/2404)
@@ -367,15 +427,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest2_view_model_update.
-
-    " deliberately EMPTY - see view_model_update. A nested view owns no model
-    " anyway: it inherits the MAIN view's by UI5 model propagation, so the
-    " automatic push of the root model already covers it
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~nest_view_destroy.
 
     mo_frontend->slot_destroy( z2ui5_if_client=>cs_view-nested ).
@@ -390,13 +441,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                id             = id
                                method_insert  = method_insert
                                method_destroy = method_destroy ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~nest_view_model_update.
-
-    " deliberately EMPTY - see nest2_view_model_update
 
   ENDMETHOD.
 
@@ -417,14 +461,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popover_model_update.
-
-    " deliberately EMPTY - see view_model_update. The automatic push reaches
-    " every open slot, so an open popover refreshes without this call
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~popup_destroy.
 
     mo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
@@ -436,14 +472,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
     mo_frontend->slot_display( slot = z2ui5_if_client=>cs_view-popup
                                xml  = val ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~popup_model_update.
-
-    " deliberately EMPTY - see view_model_update. The automatic push reaches
-    " every open slot, so an open popup refreshes without this call
 
   ENDMETHOD.
 
@@ -484,17 +512,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                transition_back               = transition_back
                                nav_back                      = lv_nav_back
                                app_instance                  = lv_instance ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~view_model_update.
-
-    " deliberately EMPTY - the handler queues the model push itself: on
-    " every view roundtrip, and otherwise whenever main( ) changed the model
-    " (z2ui5_cl_ui5_handler=>main_end). The push names no slot; every open
-    " model-owning slot picks it up. The method stays in the interface so
-    " existing apps keep compiling and their calls keep being harmless
 
   ENDMETHOD.
 
@@ -587,28 +604,11 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_path.
 
-    " delegate instead of repeating the _bind( ) call, same reason as
-    " _bind_edit right below: one behaviour, so the two spellings can never
-    " drift apart. Deliberately no further parameters - see the interface.
+    " delegate instead of repeating the _bind( ) call: one behaviour, so the
+    " two spellings can never drift apart. Deliberately no further
+    " parameters - see the interface.
     result = z2ui5_if_client~_bind( val  = val
                                     path = abap_true ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~_bind_edit.
-
-    " compatibility alias of _bind - delegate instead of repeating the call so
-    " both can never drift apart. custom_mapper_back / custom_filter_back exist
-    " only on this signature and are deliberately no longer evaluated (_bind
-    " has no counterpart for them).
-    result = z2ui5_if_client~_bind( val                  = val
-                                    path                 = path
-                                    custom_mapper        = custom_mapper
-                                    custom_filter        = custom_filter
-                                    tab                  = tab
-                                    tab_index            = tab_index
-                                    switch_default_model = switch_default_model ).
 
   ENDMETHOD.
 
@@ -622,7 +622,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " slot, and dropping it would shift every following position.
     DATA(lt_arg) = t_arg.
     IF arg IS SUPPLIED.
-      APPEND CONV string( arg ) TO lt_arg.
+      INSERT CONV string( arg ) INTO TABLE lt_arg.
     ENDIF.
 
     result = mo_srv_event->get_event( val   = val
@@ -684,6 +684,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " Router.splitHash) - never re-implement it here.
     DATA(ls_front) = mo_action->mo_handler->ms_request-s_front.
     DATA(lv_state) = |z2ui5-xapp-state={ mo_action->mo_app->ms_draft-id }|.
+    " the link outlives this session: pruning the chain (draft_keep_per_chain)
+    " must keep the draft it names. On the app, so it is in the draft this
+    " roundtrip writes - which also makes the state differ from the draft
+    " the roundtrip continued, so an unchanged timer tick that hands out a
+    " link still writes the draft the link names (main_end_reuse)
+    mo_action->mo_app->draft_keep( mo_action->mo_app->ms_draft-id ).
 
     " check_bare_is_shell: s_front-hash is the RAW location hash, so a bare
     " '#So-action' (FLP intent, no app part yet) is all shell - without it
@@ -748,6 +754,66 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app_prev.
 
     result = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~check_nav_pending.
+
+    " the same two references get( )-_s_nav reads, asked without building
+    " the whole ty_s_get around them
+    result = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL
+                   OR mo_action->ms_next-o_app_leave IS NOT INITIAL ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~get_nav_tag.
+
+    " check_nav_back is the one hop that returns to an instance restored
+    " from the stack (z2ui5_cl_ui5_action=>factory_stack_leave) - the only
+    " roundtrip on which the container's tag answers a call of THIS app. An
+    " app that is called again later arrives with check_on_navigated as
+    " well, and must not read the tag of a call it made in an earlier life
+    IF mo_action->ms_actual-check_nav_back = abap_true.
+      result = mo_action->mo_app->mv_nav_tag.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~check_on_nav_back.
+
+    " the flag factory_stack_leave sets on the hop that returns to an
+    " instance restored from its draft - the same question get_nav_tag( )
+    " asks before it answers. A leave to a fresh instance, a call and every
+    " start (route restore and app-state bookmark included) leave it unset
+    result = mo_action->ms_actual-check_nav_back.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~timer_set.
+
+    " declared, not sent: main_end_timer of the handler decides at the end
+    " of the roundtrip whether the browser needs it - see
+    " z2ui5_cl_ui5_app_cont->ms_timer. An empty event or no delay is no timer
+    IF event IS INITIAL OR delay_ms <= 0.
+      z2ui5_if_client~timer_stop( ).
+      RETURN.
+    ENDIF.
+    mo_action->mo_app->ms_timer = VALUE #( event    = event
+                                           delay_ms = delay_ms
+                                           no_busy  = no_busy ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~timer_stop.
+
+    " the STOP_TIMER goes out with this response only when the browser runs
+    " the declared timer (ms_timer_sent) - see main_end_timer
+    CLEAR mo_action->mo_app->ms_timer.
 
   ENDMETHOD.
 

@@ -20,7 +20,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
-  moduleExports, boxTypes, clientEvents, companionControl, frozenBuilderHelpers, globalTargets,
+  moduleExports, boxTypes, clientEvents, companionControl, frozenBuilderHelpers, builderStatics, globalTargets,
   stringList, bindingMethods, frontendEvents, upperKeys, urlHelperActions, controlMethodKinds,
   shortcutAliases, objectsByPackage, buildManifest, problemsOf, REQUIRED,
 } from "./generate-linter-manifest.mjs";
@@ -142,6 +142,25 @@ test("the frozen builder's helpers: helper -> control, z2ui5 namespace only", ()
   ENDMETHOD.
 ENDCLASS.`;
   assert.deepEqual(frozenBuilderHelpers(abap), { timer: "Timer", lp_title: "LPTitle" });
+});
+
+test("builderStatics: the CLASS-METHODS of the PUBLIC SECTION only, chains, comments skipped", () => {
+  const abap = [
+    "CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.",
+    "  PUBLIC SECTION.",
+    "    CLASS-METHODS factory RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.",
+    "    METHODS ele IMPORTING n TYPE clike.",
+    "    \" CLASS-METHODS commented_out.",
+    "* CLASS-METHODS star_comment.",
+    "    CLASS-METHODS: escape_literal IMPORTING val TYPE clike RETURNING VALUE(result) TYPE string,",
+    "                   Component_Path IMPORTING val TYPE clike RETURNING VALUE(result) TYPE string.",
+    "  PROTECTED SECTION.",
+    "    CLASS-METHODS hidden.",
+    "  PRIVATE SECTION.",
+    "    CLASS-METHODS also_hidden.",
+    "ENDCLASS.",
+  ].join("\n");
+  assert.deepEqual(builderStatics(abap), ["factory", "escape_literal", "component_path"]);
 });
 
 test("cs_event: both quote forms, de-duplicated, comments and other blocks excluded", () => {

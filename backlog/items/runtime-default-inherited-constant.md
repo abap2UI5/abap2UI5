@@ -5,6 +5,7 @@ summary: 'a parameter default that names a constant the class inherits, unqualif
 priority: medium
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - z2ui5_cl_cgui_textedit inherits true / false from z2ui5_cl_cgui_gui, as cl_gui_textedit does from cl_gui_control; its parameters DEFAULT false / DEFAULT true threw ReferenceError: $false is not defined in the transpiled unit run. They are written z2ui5_cl_cgui_gui=>false now'

@@ -186,7 +186,7 @@ precisely because no gate will catch it.
   and ABAP Cloud (`check:standard`, `check:cloud`, `downport`). A statement
   that only exists in a newer release passes the default target and fails the
   others.
-- **`app/webapp/` source must be 7-bit ASCII** — every frontend file is
+- **`bundle/webapp/` source must be 7-bit ASCII** — every frontend file is
   embedded verbatim into an ABAP class under `src/01/03/`, where abaplint's
   `7bit_ascii` rule applies. Build non-ASCII runtime strings at run time, never
   as a literal.
@@ -240,3 +240,67 @@ only non-key components. Writing `<sum>-cnt` directly is fine.
 - **Gate: abaplint — `changing_sorted_line`** (abaplint/abaplint#4420), on in
   `abaplint.jsonc` since the 2.120.75 pin. A script could not decide it: it
   needs the table kind behind the field symbol, a type question.
+
+### A namespaced component name is a slash in a path
+
+abap2UI5-addons/table-maintenance failed on the first rendering of its edit
+popup on a user's S/4 system (2026-11-24, abap2UI5 1.150.0) with
+`MODEL_FAST_PATH_TOKEN_LOST` - for "large" tables only. Large meant MARA and
+its kind: a standard table that carries fields of an industry solution or a
+customer namespace (`/CWM/XCWMAT`, `/VSO/R_TILT_IND`). The popup builds a
+structure at run time with one component per field, so the component is
+called `/CWM/XCWMAT`, and the client path `/MS_FIXVAL//CWM/XCWMAT` got an
+empty segment. **ajson's `set( )` creates the parents segment by segment but
+files the node under the path as written** (`prove_path_exists` drops empty
+segments, `split_path` does not), so no parent walks to it and `stringify( )`
+leaves it out - silently for a scalar, loudly for a table on the fast path.
+UI5's `JSONModel` stops resolving at the empty segment too. Fixed at the
+name: `z2ui5_cl_ui5_srv_bind=>get_client_name` makes the namespace a segment
+of its own (`/MS_FIXVAL/CWM/XCWMAT`), and the fast path falls back to ajson
+for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
+`json_fast_check`).
+
+- **Why nothing caught it:** every fixture named its components like an
+  ABAP programmer does. Any code that builds a path, a key or a file name
+  from a DDIC field or a class name has to be tested with a `/NS/` name -
+  `ltcl_06_fast_json->tm_pop_namespaced_fields` is the shape.
+- **Gate: none.** Whether a name can carry a namespace is a question of
+  where it comes from at run time, not of the source.
+- **The second half (same day): a namespaced COLUMN of a bound table.** A
+  table row carried the key `"/CWM/XCWMAT"`, and the row template's
+  `{/CWM/XCWMAT}` is an ABSOLUTE path in UI5 - an empty cell, and the edit
+  went nowhere, without an error anywhere (S5S, /KRO/ EWM apps over
+  /SCWM/ tables). The model now writes a namespace as a level of its row,
+  `"CWM":{"XCWMAT":...}` - on the fast path (`json_row_ns`) and on the
+  general road, where ajson cannot address a node named `/CWM/XCWMAT`
+  (`split_path` again), so the tree is rendered by `json_ns_text` instead of
+  moved. Back in, `CWM` is no component: the row delta asks
+  `delta_apply_ns`, a whole value `json_ns_to_abap` after `to_abap( )`.
+  A template binds `{CWM/XCWMAT}` -
+  `z2ui5_cl_ui5_view_builder=>component_path( )` writes it. The tests
+  (`ltcl_06_fast_json->ns_*`) build the row types with
+  `cl_abap_structdescr=>create( )`: no typed declaration can carry such a
+  name.
+
+### Two a clean-up pass broke in a downstream app (S5S, 2026-11-25)
+
+- **A guard before FOR ALL ENTRIES changes what the statement returns.**
+  `SELECT … FOR ALL ENTRIES IN itab` over an EMPTY `itab` ignores the whole
+  WHERE and reads every row. ATC and the `unsecure_fae` rule ask for
+  `IF itab IS NOT INITIAL` around it - which turns "every row" into "none".
+  Usually that is the fix, but code can live on the old behaviour: an input
+  handler read its check customizing FAE over the app's scan fields, and the
+  apps WITHOUT customized fields (they add theirs at run time) got every
+  check class from the empty FAE. After the guard, scanning in them reported
+  "No Syntax check Class customized". **When guarding an FAE, decide what an
+  empty driver means there**: a lookup for the driver's own rows (guard),
+  or "all" (an explicit `SELECT` without FAE in the `ELSE`). Gate: none.
+- **An RTTI reference in the app state does not survive the draft.**
+  `abap_component_tab` (and any attribute holding `cl_abap_*descr`) is
+  serialized without its object references: after the next roundtrip
+  `type` is initial and `cl_abap_structdescr=>create( )` raises
+  `CX_SY_STRUCT_COMP_TYPE`. A rebuild "from the components" that worked in
+  the first roundtrip fails in the second. Take the type from a data
+  reference the draft keeps (`CREATE DATA lr LIKE <tab>` over the bound
+  `REF TO data`), or rebuild the component table first. Gate: none - the
+  transpiled suite keeps objects in memory between "roundtrips".

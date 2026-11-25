@@ -121,26 +121,34 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " (the tools open on load), and a GET with it is the page as always.
     CONSTANTS c_bundle_devtools TYPE string VALUE `devtools`.
 
-    " The sibling BSPs of the frontend (see the settings in _http_get): the
-    " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
-    " customer's own artefacts (z2ui5_ccc, abap2UI5-addons/custom-controls-customer).
-    " Handed to the component by the page and by the bundle alike.
-    CONSTANTS c_cci_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_cci`.
-    CONSTANTS c_ccc_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_ccc`.
+    " The value of c_bundle_param that asks for the CUSTOM CONTROLS bundle:
+    " GET <node>?z2ui5-bundle=cc answers the files of bundle/webapp/cc/
+    " (z2ui5_cl_ui5f_preload=>get_cc), which the frontend bundle does not
+    " carry - about one app in forty uses a control, and every page paid
+    " for all of them. z2ui5/core/CustomControls loads it with a <script>
+    " element before the first view that names a control is built.
+    CONSTANTS c_bundle_cc TYPE string VALUE `cc`.
 
-    " The second name the bundle registers the component under (its
-    " Component.js and manifest.json under z2ui5/embed/frontend/, see
-    " BUNDLE_CLOSE in tools/app2abap/trans2abap.js), for a page whose own
-    " component is z2ui5 - the branches standard_new and cloud_new of
-    " abap2UI5/frontend, the BSP Z2UI5 a launchpad's target mappings name.
-    " The bundle's z2ui5/embed module tells the embedding control which
-    " name to create the component under.
-    CONSTANTS c_bundle_component TYPE string VALUE `z2ui5.embed.frontend`.
+    " The parameter the custom controls bundle is asked BY ITS VERSION with:
+    " ?z2ui5-bundle=cc&z2ui5-version=<z2ui5_cl_ui5f_preload=>cc_hash>. The
+    " frontend bundle knows that digest (it is generated into its z2ui5/embed
+    " module), so the answer may be kept without asking again - see
+    " _is_bundle_versioned. A parameter of its own, not a part of the value:
+    " the value stays the one word _is_cc_request compares.
+    CONSTANTS c_bundle_version TYPE string VALUE `z2ui5-version`.
+
+    " The token in the bundle's tail (bundle/tail/embed.js, NODE_PATH_TOKEN
+    " in tools/app2abap/trans2abap.js) that _http_get_bundle replaces with
+    " the path of the request as the system saw it.
+    CONSTANTS c_bundle_node_path TYPE string VALUE `@z2ui5-node-path@`.
 
     " Per-request cache of the HTTP-GET exit config. Both _http_get (page body)
     " and set_response (security headers) need it; without the cache the user
-    " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
-    " after init_context( ), so the exit always sees the current request context.
+    " exit set_config_http_get( ) would run twice on every GET of the page.
+    " Reset where a request begins - main( ), or _main( ) when it is called
+    " directly - after init_context( ), so the exit always sees the current
+    " request context. Only the page fills it: every other response asks for
+    " the exit's headers alone (set_response_exit_headers).
     CLASS-DATA ss_config_http_get     TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
@@ -156,7 +164,22 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " again, and the ICF stack dumped with no body and no status; on a POST
     " the GET exit ran here for the first time, unguarded. A raising exit now
     " costs its headers, not the response.
+    " The page's response takes the headers from the config the page was
+    " built from. Every other response - a roundtrip, a bundle, a HEAD, an
+    " error - asks z2ui5_cl_ui5_user_exit=>security_headers( ), which does
+    " not assemble the page config where no exit could have changed it.
     METHODS set_response_exit_headers.
+
+    " What _main( ) does once the request is open: the verb decides, and
+    " one catch turns whatever is raised into a 500. main( ) opens the
+    " request itself - the CSRF gate asks the exit before anything is
+    " routed - and comes here directly; _main( ) is the same for a caller
+    " that hands over a request without a server object.
+    CLASS-METHODS _dispatch
+      IMPORTING
+        is_req        TYPE ty_s_http_req
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
 
     " The CSRF gate over THIS request: reads the headers the decision needs
     " and hands them to _check_csrf_rejected. Split off so the reads happen
@@ -214,9 +237,26 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    " a GET that asks for a bundle by its version: the frontend bundle with
+    " the current build hash as the value of c_bundle_param, the custom
+    " controls bundle with its own digest in c_bundle_version
+    CLASS-METHODS _is_bundle_versioned
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " a GET that asks for the devtools bundle - c_bundle_param with the
     " value c_bundle_devtools
     CLASS-METHODS _is_devtools_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " a GET that asks for the custom controls bundle - c_bundle_param with
+    " the value c_bundle_cc
+    CLASS-METHODS _is_cc_request
       IMPORTING
         it_params     TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
@@ -236,11 +276,18 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
-    " the validator of a bundle response: the frontend bundle's, or the
-    " devtools bundle's, which changes with the devtools files alone
+    " the custom controls as a script of their own - see the method
+    CLASS-METHODS _http_get_cc
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
+    " the validator of a bundle response: the frontend bundle's, the
+    " devtools bundle's, which changes with the devtools files alone, or
+    " the custom controls bundle's, which changes with the controls alone
     CLASS-METHODS _bundle_etag
       IMPORTING
         iv_devtools   TYPE abap_bool
+        iv_cc         TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string.
 
@@ -263,7 +310,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         VALUE(result) TYPE string.
 
     " The whole 500 response for an exception that reached one of the two
-    " top-level catches - main( ) and _main( ) share it. Everything it does is
+    " top-level catches - main( ), _main( ) and _dispatch( ) share it. Everything it does is
     " guarded, because it RUNS INSIDE A CATCH BLOCK and a raise there is not
     " caught by its own TRY: it would replace the error report with an
     " unhandled dump. Two things can fail here. Reading
@@ -283,6 +330,33 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     "! the extra attributes of the bootstrap script tag from the exit's
     "! t_add_config - a row whose name is no attribute name is left out
     CLASS-METHODS _bootstrap_attributes
+      IMPORTING
+        t_add_config  TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the page itself - _http_get( ) for a request whose path is known.
+    " iv_path is the path of THIS request as the system saw it
+    " (ty_s_http_req-path), which decides the bundle hint (_bundle_preload);
+    " empty when nobody knows it
+    CLASS-METHODS _http_get_page
+      IMPORTING
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
+    " the <link rel="preload"> that announces the frontend bundle with the
+    " page - or nothing, for a path the hint is not guaranteed to match on
+    " (see the method)
+    CLASS-METHODS _bundle_preload
+      IMPORTING
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " data-sap-ui-libs for the bootstrap tag - or nothing, when the exit
+    " names the libraries itself (see the method)
+    CLASS-METHODS _bootstrap_libs
       IMPORTING
         t_add_config  TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
@@ -328,12 +402,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD main.
 
-    " Outer top-level catch. _main( ) carries one of its own and is where a
+    " Outer top-level catch. _dispatch( ) carries one of its own and is where a
     " failing app lands, but three things run OUTSIDE it and used to be
     " unprotected: get_req_info( ), init_context( ) and the CSRF gate's call
     " into the user exit - arbitrary customer code. An exception in any of
     " them left the ICF stack to dump: no body, no status code and none of
-    " the security headers - the state the WHEN OTHERS branch of _main( )
+    " the security headers - the state the WHEN OTHERS branch of _dispatch( )
     " exists to prevent. set_response( ) sits after ENDTRY so it runs on both
     " paths; this TRY does not cover it, and its own call into the user exit
     " (the security headers) is guarded where it happens.
@@ -341,14 +415,17 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " the one place the Layer 0 request type meets the public one - both are
         " structurally identical, and the public signature stays free of
         " z2ui5_cl_ui5_util_http (see ty_s_http_req above)
-        MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
+        ms_req = CORRESPONDING #( BASE ( ms_req ) mo_server->get_req_info( ) ).
 
-        " initialize the exit context and reset the per-request GET-config cache
-        " up front: the CSRF gate below already calls the user exit, and a
-        " rejected POST never reaches _main( ) - without this the exit would see
-        " the previous request's context and set_response( ) would emit the
-        " previous request's cached security headers ( _main( ) repeats both,
-        " harmlessly - they are idempotent )
+        " open the request - the exit context, and with it the per-request
+        " memo of the exit's POST config - and reset the per-request
+        " GET-config cache up front: the CSRF gate below already asks the
+        " user exit, and a rejected POST is never routed - without this the
+        " exit would see the previous request's context and set_response( )
+        " would emit the previous request's cached security headers. Once
+        " per request: the routing below is _dispatch( ), not _main( ),
+        " which would open the request a second time and make every reader
+        " behind the gate ask the exit again
         z2ui5_cl_ui5_user_exit=>init_context( ms_req ).
         CLEAR: ss_config_http_get, sv_config_http_get_set, sv_if_none_match.
 
@@ -367,14 +444,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             " and the reply being opaque does not stop the call from executing.
             " The terminate also needs the `sap-terminate` header, which a
             " cross-origin page cannot add without a preflight - the gate is
-            " the first fence there all the same. Reading the config is cheap
-            " (get_instance is cached); check_csrf_active defaults to abap_true
-            " (seeded in z2ui5_cl_ui5_user_exit=>set_config_http_post), so a
-            " cross-origin request is rejected unless an app opts out via its
-            " own exit.
+            " the first fence there all the same. check_csrf_active defaults
+            " to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
+            " set_config_http_post), so a cross-origin request is rejected
+            " unless an app opts out via its own exit. This is the request's
+            " one call into the exit's POST config: the monitor switch, the
+            " draft cleanup and the error response read the same answer
+            " (z2ui5_cl_ui5_user_exit=>config_http_post)
             DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
-            DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-            lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
+            z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config_post ).
 
             IF check_csrf_rejected_request( ls_config_post ) = abap_true.
               ms_res = VALUE #( body          = `CSRF validation failed - cross-origin request rejected`
@@ -417,10 +495,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
               ms_res = VALUE #( status_code   = 200
                                 status_reason = `OK` ).
             ELSE.
-              ms_res = _main( ms_req ).
+              ms_res = _dispatch( ms_req ).
             ENDIF.
           WHEN OTHERS.
-            ms_res = _main( ms_req ).
+            ms_res = _dispatch( ms_req ).
         ENDCASE.
 
       CATCH cx_root INTO DATA(lx_fatal).
@@ -429,6 +507,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDTRY.
 
     set_response( ).
+
+    " the request is answered: what the exit said for it is dropped here,
+    " not carried in a stateful session until the next request opens
+    z2ui5_cl_ui5_user_exit=>close_context( ).
 
   ENDMETHOD.
 
@@ -702,7 +784,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " `. - :` (the XML name rule the view builder holds its names to) - and
     " a row whose name is not one is left out
     LOOP AT t_add_config REFERENCE INTO DATA(lr_config).
-      DATA(lv_name) = CONV string( lr_config->n ).
+      DATA(lv_name) = lr_config->n.
       DATA(lv_first) = substring( val = lv_name && ` `
                                   len = 1 ).
       IF lv_name IS INITIAL
@@ -717,7 +799,124 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _http_get.
 
+    " The page for a caller that hands over no request - and with it no
+    " path: without one nothing says where the page will be opened from, so
+    " it goes out without the bundle hint (_bundle_preload). _dispatch( ) asks
+    " _http_get_page with the path of the request it routes.
+    result = _http_get_page( `` ).
+
+  ENDMETHOD.
+
+  METHOD _bundle_preload.
+
+    " The frontend bundle, announced with the page. Without the hint the
+    " browser learns of it last: the page, then sap-ui-core, then the
+    " page's own app has to render before its z2ui5.embed.Container asks
+    " for ?z2ui5-bundle=<build hash> - a third of a megabyte that could
+    " have been on its way while UI5 booted. Measured in headless Chromium
+    " against the transpiled dev server (cold cache, 40 ms latency), this
+    " hint and the sap.m one (_bootstrap_libs) take the first view from
+    " about 3.5 s to about 2.8 s.
+    "
+    " A preload the loader does not match is a wasted download - the reason
+    " the page preloads nothing of UI5's own (see _http_get_page) - and here
+    " it would be the whole frontend twice, plus a console warning. So the
+    " hint is the URL the control builds, or it is not there:
+    "
+    " - The control (embed/Container.js, sameOriginUrl + loadFrontend) asks
+    "   for <origin><path of the page>?z2ui5-bundle=<bundleVersion>, the
+    "   path being window.location.pathname without its trailing slashes and
+    "   bundleVersion the build hash _http_get_page hands the page's
+    "   component. The hint is the RELATIVE reference ?z2ui5-bundle=<hash>,
+    "   which the browser resolves against the same location: the page's
+    "   path stays, its query (sap-client, app_start) and its fragment go,
+    "   exactly like in the control's URL. Relative on purpose - the path
+    "   the system saw is not the path the browser has behind a proxy that
+    "   puts the system under a prefix of its own (see _http_get_bundle),
+    "   and a relative reference needs neither.
+    " - The one difference is a trailing slash: the control drops it, a
+    "   relative reference keeps it. So a page asked for under a path that
+    "   ends in one gets no hint - nor does a path that begins with //,
+    "   which the control refuses as an endpoint altogether, and a request
+    "   whose path nobody knows (a direct _http_get( )). The root path / is
+    "   the exception the control makes itself.
+    " - The hash is lower-case hex, so encodeURIComponent( ) leaves it as it
+    "   is, and nothing has to be escaped for the attribute either.
+    " - The request mode is the script element's: no crossorigin attribute
+    "   on either, so both are no-cors requests with the page's credentials,
+    "   and the browser hands the preloaded response to the script.
+    " - The policy: a preload with as="script" is checked against script-src
+    "   like the script it stands for, the same URL on the page's own
+    "   origin - what the page may load, it may announce. It is a <link>
+    "   outside the inline script, whose CSP hash stays what it was.
+    "
+    " What stays open is a proxy that adds or drops the trailing slash
+    " between the browser and the system: the path here would say one thing
+    " and the address bar the other. The page still works - the bundle is
+    " then loaded once more, by the control.
+    DATA(lv_len) = strlen( iv_path ).
+    IF lv_len = 0.
+      RETURN.
+    ENDIF.
+    IF lv_len > 1
+        AND ( substring( val = iv_path
+                         off = lv_len - 1
+                         len = 1 ) = `/`
+              OR substring( val = iv_path
+                            len = 2 ) = `//` ).
+      RETURN.
+    ENDIF.
+
+    result = |<link rel="preload" as="script" href="?{ c_bundle_param }={ z2ui5_cl_ui5f_preload=>build_hash }">\n|.
+
+  ENDMETHOD.
+
+  METHOD _bootstrap_libs.
+
+    " sap.m, named on the bootstrap tag. The frontend needs the library on
+    " every start (its manifest declares it), but the page's own app does
+    " not - it is one view with one control - so UI5 used to learn of sap.m
+    " only when the control created the frontend's component: sap-ui-core,
+    " the page's app, the bundle, and only then sap/m/library-preload.js,
+    " the largest request of the start. Named here, UI5 loads it with the
+    " core, next to the bundle (_bundle_preload). No <link rel="preload">
+    " for it - UI5 builds that URL, and the page cannot (see
+    " _http_get_page); the bootstrap attribute lets the loader ask itself.
+    "
+    " An exit that names the libraries itself keeps the last word. HTML
+    " takes the FIRST of two attributes with one name, and the exit's rows
+    " come after this one (_bootstrap_attributes), so a second
+    " data-sap-ui-libs would silently be the one that is dropped; and UI5
+    " lets the single attribute override the same entry of
+    " data-sap-ui-config, so a libs entry in there would lose as well.
+    " Either one, and nothing is added. sap.m is NOT merged into the exit's
+    " value: the list and its order are the installation's decision, and
+    " nothing breaks without it - the component still loads sap.m when it
+    " is created, as it always did.
+    " Attribute names are case-insensitive, hence to_lower.
+    LOOP AT t_add_config REFERENCE INTO DATA(lr_config).
+      DATA(lv_name) = to_lower( lr_config->n ).
+      IF lv_name = `data-sap-ui-libs`.
+        RETURN.
+      ENDIF.
+      IF lv_name = `data-sap-ui-config` AND to_lower( lr_config->v ) CS `libs`.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+    result = ` data-sap-ui-libs="sap.m"`.
+
+  ENDMETHOD.
+
+  METHOD _http_get_page.
+
     DATA(ls_config) = config_http_get( ).
+
+    " the two hints that let the browser start on the frontend while UI5
+    " boots - each decided in its own method, and both part of the key
+    " below: the page differs with them
+    DATA(lv_bundle_preload) = _bundle_preload( iv_path ).
+    DATA(lv_libs) = _bootstrap_libs( ls_config-t_add_config ).
 
     " every config part the body is built from, length-prefixed so two
     " different configs can never concatenate to the same key. The embedded
@@ -726,7 +925,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_cache_key) = |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
                          |{ strlen( ls_config-src ) }:{ ls_config-src }| &&
                          |{ strlen( ls_config-content_security_policy ) }:{ ls_config-content_security_policy }| &&
-                         |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }|.
+                         |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }| &&
+                         |{ strlen( lv_bundle_preload ) }:{ lv_bundle_preload }| &&
+                         |{ strlen( lv_libs ) }:{ lv_libs }|.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config_key).
       lv_cache_key = lv_cache_key &&
                      |{ strlen( lr_config_key->n ) }:{ lr_config_key->n }| &&
@@ -737,7 +938,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " version constant and the embedded frontend's build hash alone
     " (_get_etag), never of the assembled page - so a browser that still
     " holds the current shell is answered right here, with a bodyless 304,
-    " and the ~700 KB concatenation of the preload below never runs.
+    " and the page below is not assembled (about 12 KB since it carries the
+    " embed control alone; about 700 KB while it carried the frontend).
     " set_response used to decide the 304 AFTER this method had built the
     " body and threw it away; the cache below is CLASS-DATA and never hits
     " on stateless ICF, so every reload and every FLP re-entry paid the
@@ -784,32 +986,27 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                           occ  = 0 ) }</style>\n|.
     ENDIF.
 
-    " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
-    " customer's own frontend artefacts (z2ui5_ccc,
-    " abap2UI5-addons/custom-controls-customer) each live in their own BSP, which
-    " the frontend finds through the reserved resourceRoots in manifest.json
-    " ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc": "../z2ui5_ccc/"). Those paths are
-    " siblings of the FRONTEND BSP, so they are only correct when the app is
-    " served from it. Here the component base is this ICF node and the same
-    " relative path resolves next to /sap/bc/, where nothing is.
-    "
-    " Hand the absolute BSP paths to the frontend instead, as component data
-    " of the container below together with checkLocal (this page is the
-    " backend endpoint). They cannot be applied here: the manifest registers
-    " its own value during component creation, which happens after everything
-    " this page can run, so it would win. Component.js applies the fields in
-    " init( ), after manifest processing, and keeps them out of the component
-    " data it sends to the backend. In BSP and Launchpad mode the fields are
-    " absent and the manifest entries stand. Registering a path costs nothing
-    " when the BSP is not installed - nothing is requested from it until a
-    " view names the namespace. There is no window.z2ui5 global any more; it
-    " used to carry these fields (removed 2026-09-22).
+    " The page is the minimal UI5 app of app_source/webapp: a component with one
+    " XML view with one z2ui5.embed.Container in it. The control
+    " loads the frontend from this node (?z2ui5-bundle, _http_get_bundle) and
+    " runs the app in it. So the page carries nothing of the frontend: the
+    " sibling BSP roots reach the frontend's component through the bundle's
+    " z2ui5/embed module (bundle/tail/embed.js), and the page is
+    " handed to the app by the control's ownsPage, set in the view - which
+    " also leaves the class to start to the roundtrip, where it always was
+    " decided (?app_start= or a route of the page's URL, else the start
+    " page). checkLocal tells the app's component that this page is the
+    " service node itself, so its endpoint is the page's path and not the
+    " manifest's (its Component.js). The page used to embed the whole
+    " preload and create the frontend's component itself (2026-11).
+    " bundle is the version the control asks the frontend by (its
+    " bundleVersion), so the browser keeps the bundle without asking again -
+    " see the cache policy in set_response.
     DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true, | &&
-                        |"ccResourceRoot" : "{ c_cci_root }", | &&
-                        |"cccResourceRoot" : "{ c_ccc_root }"\}\}|.
+                        |"bundle" : "{ z2ui5_cl_ui5f_preload=>build_hash }"\}\}|.
 
-    " The one inline script of the page - onInitComponent and the preload of
-    " every embedded frontend file - is generated from app/webapp together
+    " The one inline script of the page - onInitComponent with the preload of
+    " that app and the control - is generated together
     " with its CSP hash (z2ui5_cl_ui5f_preload, tools/app2abap/trans2abap.js),
     " and _csp_add_script_hash lists that hash in the policy's script-src.
     " Nothing may be added between the two script tags: the browser runs the
@@ -823,10 +1020,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " is left here is the name the browser shows while UI5 boots, before any
     " app can speak - and a page whose <title> is empty shows the URL.
     " The UI5 origin, announced before the browser reaches the bootstrap
-    " tag: it sits BELOW the embedded preload - ~300 KB of inline script
-    " the parser executes first - so without the hint the DNS lookup, the
-    " TCP and the TLS handshake to the CDN start only once the parser gets
-    " there. Two hints for the two connection pools the browser keeps: the
+    " tag, so the DNS lookup, the TCP and the TLS handshake to the CDN start
+    " while the parser is still on the lines above it. Two hints for the two connection pools the browser keeps: the
     " bootstrap script, every module and the theme's library.css load
     " without CORS, UI5's own XHRs (sap-ui-version.json, the library
     " manifests, i18n) with it, and a preconnect serves only the pool its
@@ -835,7 +1030,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " not derivable here across versions and configs (the sap-ui-cachebuster
     " segment of the default src, library-RTL.css, a theme root, the theme
     " fallbacks), and a preload the loader does not match is a wasted
-    " download. Relative src: no hint - only another host is worth one
+    " download. Relative src: no hint - only another host is worth one.
+    " The same goes for every other resource of UI5: sap.m is named on the
+    " bootstrap tag instead, so the loader builds its URL itself
+    " (_bootstrap_libs). The one resource that IS preloaded is the page's
+    " own: the frontend bundle, whose URL this node defines - and only
+    " where that URL is certain to be the one the control asks for
+    " (_bundle_preload)
     DATA(lv_preconnect) = ``.
     DATA(lv_origin) = z2ui5_cl_ui5_util_context=>url_get_origin( ls_config-src ).
     IF lv_origin IS NOT INITIAL.
@@ -852,6 +1053,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
                   lv_preconnect &&
+                  lv_bundle_preload &&
                   |<title>abap2UI5</title>\n| &&
                   " an empty icon: a page that names none makes the browser ask the
                   " host for /favicon.ico, which this node cannot serve - a 404 or,
@@ -863,13 +1065,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |        \}</style> \n| &&
                   lv_style_exit &&
                   |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>\n| &&
-                  |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
-                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
+                  |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./", "abap2ui5.page": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
+                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"{ lv_libs }\n| &&
                   |data-sap-ui-theme="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-theme ) }" src="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-src ) }"|.
 
-    " built apart and appended once: result-body already carries the whole
-    " embedded preload here, so appending per config row re-copied ~400KB
-    " per entry. Name and value are both escaped like theme and src above:
+    " built apart and appended once. Name and value are both escaped like theme and src above:
     " the exit may derive any of them from the request (t_params reaches
     " it), and unescaped that is a quote-breakout into the bootstrap script
     " tag. The CSP value stays raw on purpose - it is a whole meta TAG, not
@@ -899,11 +1099,38 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _is_bundle_versioned.
+
+    " The custom controls bundle carries its version in a parameter of its
+    " own (c_bundle_version). Asked for with another digest - a page that
+    " was loaded before the frontend was redeployed - it is still answered,
+    " with the controls of today, and revalidated like a bundle asked for
+    " without a version: the URL does not name these bytes.
+    IF _is_cc_request( it_params ) = abap_true.
+      result = xsdbool( line_exists( it_params[ n = c_bundle_version
+                                                v = z2ui5_cl_ui5f_preload=>cc_hash ] ) ). "#EC CI_SORTSEQ
+      RETURN.
+    ENDIF.
+
+    " the one parameter with the one value - the hash is lower-case hex
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param
+                                              v = z2ui5_cl_ui5f_preload=>build_hash ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
   METHOD _is_devtools_request.
 
     " the one parameter with the one value - see c_bundle_devtools
     result = xsdbool( line_exists( it_params[ n = c_bundle_param
                                               v = c_bundle_devtools ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _is_cc_request.
+
+    " the one parameter with the one value - see c_bundle_cc
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param
+                                              v = c_bundle_cc ] ) ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
@@ -913,8 +1140,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " itself; the devtools bundle's files are not part of that digest (the
     " hash is taken over the shell's script, which they are not in), so
     " their own digest goes into the key - a redeployed developer tool
-    " changes the tag, a redeployed shell alone changes it too, harmlessly
-    IF iv_devtools = abap_true.
+    " changes the tag, a redeployed shell alone changes it too, harmlessly.
+    " The custom controls bundle has its digest in the key the same way
+    IF iv_cc = abap_true.
+      result = _get_etag( |{ c_bundle_param }={ c_bundle_cc }:{ z2ui5_cl_ui5f_preload=>cc_hash }| ).
+    ELSEIF iv_devtools = abap_true.
       result = _get_etag( |{ c_bundle_param }={ c_bundle_devtools }:{ z2ui5_cl_ui5f_preload=>devtools_hash }| ).
     ELSE.
       result = _get_etag( c_bundle_param ).
@@ -926,7 +1156,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " GET <node>?z2ui5-bundle=devtools - the developer tools as a script of
     " their own: the dialog, its fragment, the inspectors, the tabs, the
-    " picker, the live editor, the report - every file of app/webapp/
+    " picker, the live editor, the report - every file of bundle/webapp/
     " devtools/ the shell's inline script does not carry (the facade, the
     " console capture and the roundtrip recorder stay in the shell: they
     " have to run from the first roundtrip on). The same shape as the
@@ -956,6 +1186,39 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _http_get_cc.
+
+    " GET <node>?z2ui5-bundle=cc - the custom controls as a script of their
+    " own: every file of bundle/webapp/cc/, which the frontend bundle left
+    " out (tools/app2abap/trans2abap.js, CC_DIR). The same shape as the
+    " devtools bundle - sap.ui.require.preload( ) over the generated
+    " entries, nothing run, nothing evaluated from a string - and one
+    " module defined behind it that tells the frontend the script it loaded
+    " was this one (z2ui5/core/CustomControls). Served the same way: as
+    " JavaScript, with nosniff, under a tag of its own (_bundle_etag) that a
+    " conditional GET revalidates to a bodyless 304 - and, asked for by its
+    " version as the frontend does, kept by the browser without asking
+    " (set_response). A <script> element of the page's origin, which
+    " script-src 'self' allows. No user or app data, the same for everybody.
+    DATA(lv_etag) = _bundle_etag( iv_devtools = abap_false
+                                  iv_cc       = abap_true ).
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
+                                                         etag          = lv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+      RETURN.
+    ENDIF.
+
+    result-body          = z2ui5_cl_ui5f_preload=>get_cc( ).
+    result-status_code   = 200.
+    result-status_reason = `OK`.
+
+  ENDMETHOD.
+
   METHOD _http_get_bundle.
 
     " GET <node>?z2ui5-bundle - the frontend of THIS installation as a script
@@ -979,13 +1242,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the paths of the sibling BSPs, which the page passes as component data
     " as well (see _http_get) - and a page tells the bundle from anything else
     " by it: a logon page or an older abap2UI5 answering with its shell
-    " defines no such module. Its embedded flag is the one setting the page
-    " does not pass: a page that loads the frontend this way runs it in a
-    " page of its own, whose URL the component leaves alone (Component.init,
-    " core/Router.js) - a Fiori elements host routes by its hash.
+    " defines no such module.
     "
     " Its componentName is the second name the bundle registers the
-    " component under (c_bundle_component): a page whose own component is
+    " component under: a page whose own component is
     " z2ui5 has the name taken, and the control creates the frontend under
     " this one instead.
     "
@@ -1016,19 +1276,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result-body = z2ui5_cl_ui5f_preload=>get_bundle( ) &&
-                  |sap.ui.define("z2ui5/embed", function () \{\n| &&
-                  |  "use strict";\n| &&
-                  |  return \{\n| &&
-                  |    componentName: "{ c_bundle_component }",\n| &&
-                  |    componentData: \{\n| &&
-                  |      embedded: true,\n| &&
-                  |      nodePath: "{ z2ui5_cl_ui5_util_context=>c_escape_js( iv_path ) }",\n| &&
-                  |      ccResourceRoot: "{ c_cci_root }",\n| &&
-                  |      cccResourceRoot: "{ c_ccc_root }"\n| &&
-                  |    \}\n| &&
-                  |  \};\n| &&
-                  |\});\n|.
+    " The module and its create( ) are no text of this class any more: they
+    " are the tail of the generated bundle (bundle/tail/embed.js). The one
+    " thing only this request knows goes into it here.
+    " No occ: the first occurrence is the default, and the transpiled
+    " runtime replaces nothing at all for an occ other than 0.
+    result-body = replace( val  = z2ui5_cl_ui5f_preload=>get_bundle( )
+                           sub  = c_bundle_node_path
+                           with = z2ui5_cl_ui5_util_context=>c_escape_js( iv_path ) ).
     result-status_code   = 200.
     result-status_reason = `OK`.
 
@@ -1043,8 +1298,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " computed once at generation time). It used to hash the assembled BODY
     " instead - the same guarantee, but paid per page load: the cache in
     " _http_get lives in CLASS-DATA and dies with the internal session, so on
-    " stateless ICF "once per cache fill" was every GET, ~700 KB through an
-    " interpreted byte loop before set_response could even decide on a 304.
+    " stateless ICF "once per cache fill" was every GET, and the body was
+    " ~700 KB then (it carried the frontend), through an interpreted byte
+    " loop before set_response could even decide on a 304.
     " The key is the exit config the body is built from (a few KB), and the
     " build hash carries what the body hash carried: a redeployed frontend
     " between releases changes the tag with the version constant unchanged.
@@ -1090,14 +1346,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " compare below stays for a 200 that reached this method without
     " main( ) having read the header (a direct _main( ) call), and costs one
     " header read on a full shell reply
-    " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools) revalidate the
-    " same way, each under its own tag
+    " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools, ?z2ui5-bundle=cc)
+    " revalidate the same way, each under its own tag
     DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
                                AND _is_bundle_request( ms_req-t_params ) = abap_true ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
       lv_etag_get = COND #( WHEN lv_bundle = abap_true
-                            THEN _bundle_etag( _is_devtools_request( ms_req-t_params ) )
+                            THEN _bundle_etag( iv_devtools = _is_devtools_request( ms_req-t_params )
+                                               iv_cc       = _is_cc_request( ms_req-t_params ) )
                             ELSE sv_get_etag ).
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
@@ -1116,7 +1373,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Options: nosniff header below, stops a container that defaults to
     " text/html from rendering a reflected app name / exception text as markup
     " (reflected-XSS). Success bodies are HTML for the GET shell, JavaScript
-    " for the bundle and JSON for the POST roundtrip.
+    " for the bundles and JSON for the POST roundtrip.
     DATA(lv_content_type) = COND string(
         WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
         WHEN lv_bundle = abap_true     THEN `application/javascript; charset=UTF-8`
@@ -1126,9 +1383,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                  v = lv_content_type ).
 
     " Ask the ICF runtime to gzip the response when the client accepts it.
-    " Every body this handler sends is text (the GET shell carries the whole
-    " embedded frontend, ~400KB; the POST roundtrip the model JSON), so this
-    " is a 70-85% transfer cut on installations whose ICM profile does not
+    " Every body this handler sends is text (the frontend bundle, about
+    " 354 KB; the GET page, about 12 KB; the POST roundtrip the model JSON),
+    " so this is a 70-85% transfer cut on installations whose ICM profile does not
     " compress already - and a no-op on ones that do. Dynamic on purpose:
     " if_http_response does not exist in the cloud language version (the
     " platform router compresses there, mo_response_onprem stays unbound), and
@@ -1151,7 +1408,22 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " a 304. Every other response is roundtrip data, a 500 dump or a 403 and
     " stays no-store, exactly the trio the exit default used to carry for
     " ALL responses (z2ui5_cl_ui5_user_exit leaves it to this method now).
-    IF lv_etag_get IS NOT INITIAL.
+    "
+    " A bundle asked for BY ITS VERSION - ?z2ui5-bundle=<build_hash>, which
+    " the GET page hands its control (bundleVersion) - is the same bytes for
+    " as long as that URL exists: a new frontend has a new hash, and the page
+    " that names it is itself revalidated on every load. So it may be kept
+    " without asking again, and a start costs no request for the frontend
+    " at all. A bundle asked for without the version (a host that does not
+    " know it) revalidates as before. The custom controls bundle is asked
+    " for by ITS version (_is_bundle_versioned) and kept the same way.
+    IF lv_etag_get IS NOT INITIAL AND lv_bundle = abap_true
+        AND _is_bundle_versioned( ms_req-t_params ) = abap_true.
+      mo_server->set_header_field( n = `cache-control`
+                                   v = `private, max-age=31536000, immutable` ).
+      mo_server->set_header_field( n = `etag`
+                                   v = lv_etag_get ).
+    ELSEIF lv_etag_get IS NOT INITIAL.
       mo_server->set_header_field( n = `cache-control`
                                    v = `private, no-cache` ).
       mo_server->set_header_field( n = `etag`
@@ -1195,14 +1467,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD set_response_exit_headers.
 
-    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA lt_header TYPE z2ui5_if_client=>ty_t_name_value.
     TRY.
-        ls_config = config_http_get( ).
+        IF sv_config_http_get_set = abap_true.
+          " the page: the config it was built from is this request's
+          lt_header = ss_config_http_get-t_security_header.
+        ELSE.
+          lt_header = z2ui5_cl_ui5_user_exit=>security_headers( ).
+        ENDIF.
       CATCH cx_root ##NO_HANDLER.
         " a raising exit costs its headers, not the response
     ENDTRY.
 
-    LOOP AT ls_config-t_security_header INTO DATA(ls_header).
+    LOOP AT lt_header INTO DATA(ls_header).
       " a policy the exit sends as a header (the enforcing one or the
       " -Report-Only one) has to allow the shell's inline script by its hash
       " exactly like the meta tag - see _csp_add_script_hash
@@ -1218,7 +1495,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD _http_post.
 
     " the request itself is intentionally not wrapped - exceptions bubble up
-    " to the single top-level catch in _main( ), which turns them into a 500.
+    " to the single top-level catch in _dispatch( ), which turns them into a 500.
     " Only the sticky-handler bookkeeping at the end has its own catch, which
     " must never turn an already successful response into a 500
     IF so_sticky_handler IS NOT BOUND.
@@ -1236,7 +1513,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     lo_post->mv_session_sticky = xsdbool( so_sticky_handler IS BOUND ).
 
     " the only place the core's own response type meets the public one. Both
-    " are structurally identical, so MOVE-CORRESPONDING carries every field
+    " are structurally identical, so CORRESPONDING carries every field
     " including s_stateful - and the public signature stays free of a Layer 1
     " type (see ty_s_http_res above).
     "
@@ -1247,15 +1524,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the sticky container holds an app) then ran against an app the
     " frontend never saw, with the state main( ) had left it in. The action
     " the request started with is put back and its queues cleared before
-    " the exception travels on to _main( )'s single catch; the app's own
+    " the exception travels on to _dispatch( )'s single catch; the app's own
     " state stays what main( ) made of it, like in any stateful ABAP session.
     " CLEANUP, not CATCH-and-RAISE: re-raising a variable typed cx_root is
     " "CX_STATIC_CHECK not caught or declared" for the extended check (the
     " static type could be one), while CLEANUP runs on the way out to the
-    " handler in _main( ) and lets the original exception pass untouched
+    " handler in _dispatch( ) and lets the original exception pass untouched
     DATA(lo_action_before) = lo_post->mo_action.
     TRY.
-        MOVE-CORRESPONDING lo_post->main( ) TO result.
+        result = CORRESPONDING #( BASE ( result ) lo_post->main( ) ).
       CLEANUP.
         IF so_sticky_handler IS BOUND.
           lo_post->mo_action = lo_action_before.
@@ -1287,23 +1564,45 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _main.
 
+    " A request without a server object - a test, a host that routes
+    " itself. Nobody opened it, so it is opened and closed here, exactly
+    " like main( ) does around its own routing; main( ) does not come
+    " through this method any more, or every request would be opened twice
+    " (init_context ran twice per request until then). The catch is for an
+    " init_context( ) that raises - _dispatch( ) has its own.
+    TRY.
+        z2ui5_cl_ui5_user_exit=>init_context( is_req ).
+        CLEAR: ss_config_http_get, sv_config_http_get_set.
+
+        result = _dispatch( is_req ).
+
+      CATCH cx_root INTO DATA(lx).
+        result = _error_response( val    = lx
+                                  method = is_req-method ).
+    ENDTRY.
+
+    z2ui5_cl_ui5_user_exit=>close_context( ).
+
+  ENDMETHOD.
+
+  METHOD _dispatch.
+
     " Single top-level catch for the whole request. The framework may raise
     " anywhere (e.g. a wrong app name in the URL -> CREATE OBJECT of an unknown
     " class in factory_first_start); any unhandled exception is turned into a
     " 500 whose body carries the exception text, so the frontend shows the real
     " reason instead of the SAP ICF 500 page, which suppresses that text.
     TRY.
-        z2ui5_cl_ui5_user_exit=>init_context( is_req ).
-        CLEAR: ss_config_http_get, sv_config_http_get_set.
-
         CASE is_req-method.
           WHEN `GET`.
             IF _is_devtools_request( is_req-t_params ) = abap_true.
               result = _http_get_devtools( ).
+            ELSEIF _is_cc_request( is_req-t_params ) = abap_true.
+              result = _http_get_cc( ).
             ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
             ELSE.
-              result = _http_get( ).
+              result = _http_get_page( is_req-path ).
             ENDIF.
           WHEN `POST`.
             result = _http_post( is_req ).
@@ -1329,10 +1628,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " system/user context the full dump carries) is replaced by a generic
     " message instead of leaking to the client.
     " Default is abap_false -> the real reason is returned as before.
+    " The request's POST config, which the exit has usually answered
+    " already (the CSRF gate) - then this is no call into customer code at
+    " all. An exit that raised was not remembered and is asked again here.
     DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
     TRY.
-        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config_post ).
       CATCH cx_root ##NO_HANDLER.
         " the exit is customer code and may be what failed in the first place.
         " Falling through leaves check_hide_error_details at its abap_false
@@ -1389,7 +1690,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Reading only body and method left path and t_params blank, and t_params
     " is where app_start and every other URL parameter lives: the two fields
     " app code reading the raw request is most likely after
-    MOVE-CORRESPONDING lo_handler->mo_server->get_req_info( ) TO result.
+    result = CORRESPONDING #( BASE ( result ) lo_handler->mo_server->get_req_info( ) ).
 
   ENDMETHOD.
 

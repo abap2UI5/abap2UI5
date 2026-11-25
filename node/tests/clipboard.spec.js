@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the clipboard module app/webapp/model/clipboard.js (loaded via a
+// Tests the clipboard module bundle/webapp/model/clipboard.js (loaded via a
 // stubbed sap.ui.define). The module backs
 // core:require="{Clipboard: 'z2ui5/model/clipboard'}" and
 // <plugins:CopyProvider extractData="Clipboard.extractData"/> - the export

@@ -19,7 +19,7 @@
  *   - and in both cases the change was green here and wrong there, days later.
  *
  * So the direction is turned round. This script reads the sets from their
- * SOURCES - app/webapp for everything that is JavaScript, never the embedded
+ * SOURCES - bundle/webapp for everything that is JavaScript, never the embedded
  * copy - and writes them as one JSON file, `.github/shared/linter-manifest.json`.
  * The linter reads that file (`check-upstream --manifest`) instead of finding
  * the sets itself. A layout change is then a change to THIS script, made in
@@ -58,11 +58,12 @@ const SCHEMA = 1;
 
 /* ── where each set lives ─────────────────────────────────────────────── */
 
-const FORMATTER = "app/webapp/model/formatter.js";
-const CLIPBOARD = "app/webapp/model/clipboard.js";
-const ACTIONS_DIR = "app/webapp/core/actions";
-const CC_DIR = "app/webapp/cc";
+const FORMATTER = "bundle/webapp/model/formatter.js";
+const CLIPBOARD = "bundle/webapp/model/clipboard.js";
+const ACTIONS_DIR = "bundle/webapp/core/actions";
+const CC_DIR = "bundle/webapp/cc";
 const CLIENT_INTF = "src/02/z2ui5_if_client.intf.abap";
+const VIEW_BUILDER = "src/02/z2ui5_cl_ui5_view_builder.clas.abap";
 /* `ct_box_type` - the MessageBox display methods box_resolve( ) accepts. */
 const BOX_TYPES = "src/01/02/z2ui5_cl_ui5_srv_message.clas.abap";
 /* The frozen builder's companion-control helpers (one method per control). */
@@ -177,6 +178,26 @@ export function baseOf(src) {
     return i === -1 ? null : deps[i] ?? null;
   }
   return null;
+}
+
+/* The CLASS-METHODS of the PUBLIC SECTION of the view builder, lower case:
+ * what the linter's unknown-builder-method accepts beside the instance verbs.
+ * It kept them as a hand-written list, and component_path( ) (40e8a073) was
+ * reported as unknown by every release until the list was edited. Comments
+ * are dropped first, a `CLASS-METHODS:` chain gives every element. */
+export function builderStatics(abap) {
+  const code = abap.replace(/^\*.*$/gm, "").replace(/"[^\n]*/g, "");
+  const pub = code.match(/\bPUBLIC\s+SECTION\s*\.([\s\S]*?)(?=\b(?:PROTECTED|PRIVATE)\s+SECTION\b|\bENDCLASS\b)/i);
+  if (!pub) return [];
+  const out = [];
+  for (const m of pub[1].matchAll(/\bCLASS-METHODS\b\s*(:?)([\s\S]*?)\./gi)) {
+    const elements = m[1] ? m[2].split(",") : [m[2]];
+    for (const el of elements) {
+      const name = el.trim().match(/^(\w+)/);
+      if (name && !out.includes(name[1].toLowerCase())) out.push(name[1].toLowerCase());
+    }
+  }
+  return out;
 }
 
 /* helper method -> the control its `_generic( name = … ns = `z2ui5` )` writes */
@@ -307,6 +328,7 @@ export function buildManifest(root = ROOT) {
     clientEvents: clientEvents(read(CLIENT_INTF)),
     companionControls: Object.fromEntries(filesIn(CC_DIR, /^\w+\.js$/).map((n) => [n.replace(/\.js$/, ""), companionControl(read(`${CC_DIR}/${n}`))])),
     frozenBuilderHelpers: exists(XML_VIEW_CC) ? frozenBuilderHelpers(read(XML_VIEW_CC)) : null,
+    builderStatics: builderStatics(read(VIEW_BUILDER)),
     objects: objectsByPackage(root),
     globalTargets: globalTargets(actions),
     cssProperties: stringList(actions, "CSS_PROPERTIES", "];"),
@@ -331,7 +353,7 @@ export const REQUIRED = [
   "formatters", "messageBoxTypes", "clientEvents", "companionControls", "objects", "globalTargets",
   "cssProperties", "controlMethodDenyExact", "controlMethodDenyPrefixes", "bindingMethods", "frontendEvents",
   "filterOperators", "viewSlots", "shortcutModifiers", "shortcutAliases", "urlHelperActions",
-  "controlMethodKinds", "urlPolicies",
+  "controlMethodKinds", "urlPolicies", "builderStatics",
 ];
 
 /** What is wrong with a manifest before it may be written: the required sets

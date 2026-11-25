@@ -1,37 +1,31 @@
 # bsp_rename
 
-`rename-bsp.mjs` renames the abap2UI5 frontend BSP so a second copy can be
-installed into the **same SAP system** without object-name collisions — the
-delivered `standard`/`standard_v2` branches ship as `Z2UI5`, a renamed
-variant ships under the name of your choice (e.g. `ZMYUI5`).
+`rename-bsp.mjs` renames the service package of abap2UI5 - the BSP, its ICF
+nodes, the node `/sap/bc/z2ui5` and its handler class (`src/03`) - so a second
+copy can be installed into the **same SAP system** without object-name
+collisions: `main` ships them as `Z2UI5`, a renamed variant under the name of
+your choice (e.g. `ZMYUI5`).
 
 Dependency-free Node script (Node 16+). Nothing to install.
 
-## Renamed branches via `frontend_deploy` (recommended)
+## Renamed branches via `build-rename` (recommended)
 
-The easiest way to get a renamed install: run the **`frontend_deploy`**
-GitHub workflow (Actions → frontend_deploy → Run workflow) and enter the
-branch name **`standard_<name>`** / **`standard_v2_<name>`** (name
-lowercased, e.g. `standard_zmyui5`; for namespaced names `/` becomes `#`
-like in abapGit file names, e.g. `standard_#abapgit#ui5`, see below). It
-builds the base variant, applies this rename script to the generated `src`
-tree and pushes the result as that branch into `abap2UI5/frontend` — ready
-to pull with abapGit. Re-running the workflow with the same name updates
-the branch to the current `main` state.
+The easiest way to get a renamed install: run the **`build-rename`** GitHub
+workflow (Actions → build-rename → Run workflow) and enter the name - a
+customer name (`ZMYUI5`) or a registered namespace (`/CA2UI5/`). It renames
+the framework with `abaplint --rename`, then `src/03` with this script
+(`.github/scripts/rename-service.mjs`), lints the result and pushes it as the
+branch `rename_<name>` - one branch, the whole installation, ready to pull
+with abapGit. Re-running the workflow with the same name updates the branch
+to the current `main` state.
 
-The same build runs locally with
+The renamed branch is self-contained: the framework, the BSP, the SICF nodes
+and the ICF handler class all carry the new name, and the handler calls the
+renamed `<prefix>cl_ui5_http_handler`, so it installs alongside an existing
+`Z2UI5` without touching it.
 
-```bash
-node tools/build-branches.mjs standard_zmyui5        # -> tools/out/standard_zmyui5
-node tools/build-branches.mjs standard_v2_zmyui5     # legacy-free variant
-node tools/build-branches.mjs 'standard_#abapgit#'   # namespaced -> BSP /ABAPGIT/UI5
-node tools/build-branches.mjs 'standard_#abap2ui5#__#abap2ui5#'  # + renamed backend, see below
-```
-
-The renamed branch is fully self-contained: BSP, SICF nodes and the ICF
-handler class all carry the new name, so it installs alongside an existing
-`Z2UI5` without touching it (it still requires the abap2UI5 backend, see
-below).
+Until 2026-11 the BSP came from a second repository (abap2UI5/frontend),
+built by `frontend_deploy` under a branch name `standard_<name>__<backend>`.
 
 ## Usage
 
@@ -66,18 +60,16 @@ Instead of a plain name you can rename into a **registered SAP namespace**:
 
 | Input | BSP application | ICF handler class |
 | --- | --- | --- |
-| `/ABAPGIT/` | `/ABAPGIT/UI5` | `/ABAPGIT/CL_LP_HANDLER` |
-| `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP_CL_LP_HANDLER` |
+| `/ABAPGIT/` | `/ABAPGIT/UI5` | `/ABAPGIT/CL_UI5_ICF_HANDLER` |
+| `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP_CL_UI5_ICF_HANDLER` |
 
-(The abapGit file-name spelling `#abapgit#myapp` is accepted as input too —
-that is also how the name is encoded in the branch name given to the
-`frontend_deploy` dispatch.)
+(The abapGit file-name spelling `#abapgit#myapp` is accepted as input too.)
 
 Namespace max. 8 characters between the slashes, full BSP name max. 15
 characters including the slashes. What happens on top of a plain rename:
 
 - **File names** use the abapGit `#` escaping: `#abapgit#ui5.wapa.*`,
-  `#abapgit#cl_lp_handler.clas.*`.
+  `#abapgit#cl_ui5_icf_handler.clas.*`.
 - **SICF paths** follow the SAP convention for namespaced BSPs — the
   namespace replaces the `sap` path segment and is an ICF node of its own:
   `/sap/bc/abapgit/ui5`, `/sap/bc/bsp/abapgit/ui5`,
@@ -118,17 +110,9 @@ namespace with both slashes (max. 10 characters, `#abap2ui5#` works too).
 a frontend module id, not an ABAP object, and the backend rename does not
 touch it either.
 
-In a `build-branches.mjs` / `frontend_deploy` branch name the backend
-follows the BSP name after a double underscore:
-
-| Branch | BSP | Handler calls |
-| --- | --- | --- |
-| `standard_#abap2ui5#__#abap2ui5#` | `/ABAP2UI5/UI5` | `/abap2ui5/cl_ui5_http_handler` |
-| `standard_v2_zmyui5__zmyui5` | `ZMYUI5` | `zmyui5_cl_ui5_http_handler` |
-
-The `abaplint.jsonc` of such a tree reads the backend from the branch
-`rename_<backend>` instead of `main`, so run `build-rename` for that name
-first — `frontend_deploy` lints the tree against it.
+`build-rename` passes the same name for both: the BSP becomes `<NAME>` and
+the handler calls `<prefix>cl_ui5_http_handler` of the framework renamed in
+the same run.
 
 ## What it renames (the "deployment identity")
 
@@ -139,9 +123,9 @@ system:
 - **SICF service nodes** (3×): `/sap/bc/z2ui5`, `/sap/bc/bsp/sap/z2ui5`,
   `/sap/bc/ui5_ui5/sap/z2ui5`
 - **SMIM** folder URL (`/SAP/BC/BSP/SAP/Z2UI5`)
-- **ICF handler class** `Z2UI5_CL_LP_HANDLER` → `<NEW>_CL_LP_HANDLER`
+- **ICF handler class** `Z2UI5_CL_UI5_ICF_HANDLER` → `<NEW>_CL_UI5_ICF_HANDLER`
 - **manifest.json** data source `/sap/bc/z2ui5` (points at the handler above)
-- **all on-disk file names** (`z2ui5.wapa.*`, `z2ui5_cl_lp_handler.*`, and the
+- **all on-disk file names** (`z2ui5.wapa.*`, `z2ui5_cl_ui5_icf_handler.*`, and the
   SICF files — both the 15-char name field and the 25-char hash. The hash is
   the first 25 hex chars of `sha1(<ICF URL>)`, so it changes with the rename;
   keeping the old hash would make abapGit re-serialize the service under a

@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/Recorder.js (loaded via a stubbed sap.ui.define).
+// bundle/webapp/devtools/Recorder.js (loaded via a stubbed sap.ui.define).
 // The recorder observes the framework from the outside - through the
 // onAfterRendering callback array of its component context and the
 // browser's Resource Timing API - so the harness below builds one spec
@@ -125,12 +125,12 @@ function loadRecorder({ storage = {} } = {}) {
 function fakeResponse({
   id = "draft-new",
   app = "ZCL_APP",
-  system = [],
+  views = {},
   custom = [],
   model = undefined,
 } = {}) {
   return {
-    S_FRONT: { ID: id, APP: app, S_ACTION: { T_SYSTEM: system, T_CUSTOM: custom } },
+    S_FRONT: { ID: id, APP: app, VIEWS: views, ACTIONS: custom },
     MODEL: model,
   };
 }
@@ -148,7 +148,7 @@ test.describe("Tier 1 - metadata", () => {
 
     h.state.oBody = fakeRequest({ event: "SAVE" });
     h.state.responseData = fakeResponse({
-      system: ["a", "b"],
+      views: { MAIN: { XML: "<View/>" }, POPUP: { DESTROY: true } },
       custom: ["c"],
     });
     h.addEntry({ start: 100, end: 180, bytes: 2048 });
@@ -165,8 +165,8 @@ test.describe("Tier 1 - metadata", () => {
     expect(record.renderMs).toBe(20);
     expect(record.totalMs).toBe(100);
     expect(record.respBytes).toBe(2048);
-    expect(record.systemActions).toBe(2);
-    expect(record.customActions).toBe(1);
+    expect(record.viewCount).toBe(2);
+    expect(record.actionCount).toBe(1);
     expect(record.rendered).toBe(true);
   });
 
@@ -732,15 +732,15 @@ test.describe("app navigation", () => {
 });
 
 test.describe("view diff", () => {
-  const display = (xml) => ["VIEW_SLOTS", "display", "MAIN", xml];
+  const display = (xml) => ({ MAIN: { XML: xml } });
 
   function recordViews(h, xmlA, xmlB) {
     h.Recorder.setRecordingPayloads(h.ctx, true);
     h.state.oBody = fakeRequest({ event: "FIRST" });
-    h.state.responseData = fakeResponse({ system: [display(xmlA)] });
+    h.state.responseData = fakeResponse({ views: display(xmlA) });
     h.fireAfterRendering();
     h.state.oBody = fakeRequest({ event: "SECOND" });
-    h.state.responseData = fakeResponse({ system: [display(xmlB)] });
+    h.state.responseData = fakeResponse({ views: display(xmlB) });
     h.fireAfterRendering();
   }
 
@@ -784,11 +784,11 @@ test.describe("view diff", () => {
     h.Recorder.install(h.ctx);
     h.Recorder.setRecordingPayloads(h.ctx, true);
     h.state.oBody = fakeRequest();
-    h.state.responseData = fakeResponse({ system: [display("<View/>")] });
+    h.state.responseData = fakeResponse({ views: display("<View/>") });
     h.fireAfterRendering();
     // second roundtrip rebuilds nothing
     h.state.oBody = fakeRequest();
-    h.state.responseData = fakeResponse({ system: [] });
+    h.state.responseData = fakeResponse({ views: {} });
     h.fireAfterRendering();
     expect(h.Recorder.formatViewDiff(h.ctx)).toContain("needs two");
   });
@@ -806,7 +806,7 @@ test.describe("view diff", () => {
     for (const xml of ["<Dialog a=1/>", "<Dialog a=2/>"]) {
       h.state.oBody = fakeRequest();
       h.state.responseData = fakeResponse({
-        system: [["VIEW_SLOTS", "display", "POPUP", xml]],
+        views: { POPUP: { XML: xml } },
       });
       h.fireAfterRendering();
     }

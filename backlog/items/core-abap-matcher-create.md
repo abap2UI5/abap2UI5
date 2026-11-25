@@ -5,6 +5,7 @@ summary: 'cl_abap_matcher of open-abap-core has the instance methods (find_all, 
 priority: low
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui) - 11 converted report snippets that build a matcher with `cl_abap_matcher=>create( pattern = ... text = ... )` fail the syntax check of the transpile with `check_syntax: Method "create" not found, methodCallChain`; across the snippets `cl_abap_matcher=>create` is called 16 times, `->replace_all( )` twice'
   - 'read 2026-10-24 in @abap2ui5/node-runtime 1.148.0 `output/open-abap-core/cl_abap_matcher.clas.mjs` - its methods are constructor, find_all, find_next, get_length, get_offset, get_submatch and match; `cl_abap_regex.clas.mjs` has create_matcher( ) and the static create_pcre( )'

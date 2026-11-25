@@ -5,6 +5,7 @@ summary: '`RaiseTranspiler` throws for any `RAISE` with `RESUMABLE`, so one resu
 priority: low
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/transpiler
 evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui, `report2cloud:web --start`) - a class of the open-source web corpus that converted reports depend on raises `RAISE RESUMABLE EXCEPTION TYPE ...`; the transpile of the whole set stopped without naming a file, and the measurement now leaves such objects out before the build (`UNSUPPORTED` in `tools/report2cloud/lib/start.mjs`)'

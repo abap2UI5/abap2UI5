@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext, bindContext } = require("./loadLibModule");
 
-// Tests the real app/webapp/core/ErrorView.js (loaded via a stubbed
+// Tests the real bundle/webapp/core/ErrorView.js (loaded via a stubbed
 // sap.ui.define). Focus: the friendly UI5 error dialog shown first, its
 // Details / Restart actions, that Escape does NOT dismiss it, and the
 // fallback to the raw-DOM overlay when UI5 cannot render the dialog. The raw

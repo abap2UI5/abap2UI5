@@ -63,10 +63,12 @@ const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*\.(yml|yaml)$/;
  *      protection change in the same pull request.
  *   3. `ABAP_702`, `auto_downport`, `auto_abaplint_fix`, `trigger_local` -
  *      single-purpose workflows with few references each.
- *   4. LAST - `check_gates`, `check_app2abap`, `frontend_check`,
- *      `frontend_deploy`. These are the required checks and the ones the
- *      documentation names most (`check_gates` alone is referenced ~50 times),
- *      so each is its own change.
+ *   4. LAST - `check_gates`, `check_app2abap`. These are the required
+ *      checks and the ones the documentation names most (`check_gates` alone
+ *      is referenced ~50 times), so each is its own change.
+ *      (`frontend_check` and `frontend_deploy` left the list on 2026-11-17
+ *      with the delivery into abap2UI5/frontend; their successors are named
+ *      by the rule - delivery-check, auto-cloud.)
  *
  * The list only shrinks: an entry for a file that no longer exists fails
  * below, so a rename drops its exception in the same change. */
@@ -77,8 +79,6 @@ const GRANDFATHERED = new Set([
   'auto_downport.yaml',
   'check_app2abap.yaml',
   'check_gates.yaml',
-  'frontend_check.yaml',
-  'frontend_deploy.yaml',
   'trigger_local.yaml',
 ]);
 
@@ -116,9 +116,9 @@ if (has('AGENTS.md') && !has('CLAUDE.md')) {
 /* src/ is pulled into SAP systems by abapGit, which expects LF. Measured
  * when the root file went in: `git add --renormalize .` changed nothing, so
  * the tree was already LF throughout and the file records that rather than
- * converting anything. (The delivery trees are no longer committed here -
- * they are built into the git-ignored tools/out/ and shipped byte for byte
- * by frontend_deploy, out of reach of any attribute of this repository.) */
+ * converting anything. (The tree of the branch `cloud` is not committed
+ * here - it is built into the git-ignored tools/out/ and published byte for
+ * byte by auto-cloud, out of reach of any attribute of this repository.) */
 if (!has('.gitattributes')) {
   err('no .gitattributes — CONVENTIONS §6 asks for one in every repository that'
     + ' carries ABAP or generated trees, and this one carries both. Without it a'

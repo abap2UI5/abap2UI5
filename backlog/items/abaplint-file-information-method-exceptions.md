@@ -5,6 +5,7 @@ summary: 'getClassDefinition( ) of a class object (the ABAP file information) li
 priority: low
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - report2cloud keeps a table of the methods of z2ui5_cl_cgui_frontend (the stand-in for CL_GUI_FRONTEND_SERVICES) with their parameters and classic exceptions, and a test compares it with the class; the file information gave the parameters but no exceptions, so the test parses the definition text itself'

@@ -23,7 +23,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     " it has to be: the intent is re-asserted on every response, but
     " ms_next-s_nav is per-request (z2ui5_cl_ui5_handler=>main clears it) and
     " the frontend reads a missing setAppStateActive as "clear the hash"
-    " (app/webapp/core/Router.js). Held only on ms_next, the flag survived
+    " (bundle/webapp/core/Router.js). Held only on ms_next, the flag survived
     " exactly one response: opening a bookmarked app-state URL restored the
     " draft, and the first button click then wiped z2ui5-xapp-state from the
     " address bar - the bookmark stopped tracking the app it was made for.
@@ -47,6 +47,13 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     " The z2ui5_if_app attributes they replaced are gone: an app asks
     " client->check_on_init( ) whether this is the first render, and
     " client->set_session_stateful( ) to switch sticky on.
+    " The tag THIS app gave its last nav_app_call( tag = ... ) - why it
+    " called. On the app - and therefore in its draft, saved at the hop - so
+    " it is there again when the called app leaves and this app is restored
+    " from the stack: z2ui5_if_client~get_nav_tag( ) answers it on that one
+    " roundtrip. Every nav_app_call( ) writes it, an untagged one clears it.
+    DATA mv_nav_tag TYPE string.
+
     DATA mv_check_sticky      TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
 
@@ -65,6 +72,35 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     " roundtrip, so nothing about the client model has to survive a draft
     " except this one bit
     DATA mv_model_client_stale TYPE abap_bool.
+
+    " Draft ids pruning must never delete (z2ui5_if_ui5_draft_store=>
+    " prune_chain, through draft_keep_per_chain): an id handed out
+    " as an app state link (z2ui5_if_client~app_state_get_href) and the
+    " draft a route or app state restore started from. On the app - and
+    " therefore in its draft - because pruning walks the chain from the
+    " draft being saved, and the ids it must stop at are known only to the
+    " roundtrip that handed them out; every later draft of the app carries
+    " them on, and a session restored from a share link inherits them. A
+    " draft is a candidate exactly once, when it falls to depth keep + 1,
+    " so the list keeps only the last c_draft_keep_max ids. Added 2026-11:
+    " a draft written before carries no element for it and deserializes
+    " with an empty list
+    DATA mt_draft_keep TYPE string_table.
+
+    CONSTANTS c_draft_keep_max TYPE i VALUE 50.
+
+    " The declarative timer of THIS app (z2ui5_if_client~timer_set /
+    " timer_stop) and the one last sent to the browser for it - see
+    " z2ui5_if_ui5_types=>ty_s_timer. On the app - and therefore in its
+    " draft - so the app need not remember whether the browser still runs
+    " it: z2ui5_cl_ui5_handler=>main_end_timer arms it again whenever the app
+    " gets the screen (a start, a restore, every hop back to it) and sends
+    " nothing while it is unchanged and running. A hop away clears
+    " ms_timer_sent (z2ui5_cl_ui5_action=>prepare_app_stack). Added 2026-11:
+    " a draft written before carries no element for either and deserializes
+    " with no timer
+    DATA ms_timer      TYPE z2ui5_if_ui5_types=>ty_s_timer.
+    DATA ms_timer_sent TYPE z2ui5_if_ui5_types=>ty_s_timer.
 
     " The windowed tables of the app as the last draft carried them - their
     "! the pre-main( ) snapshot of the bound values - see
@@ -132,8 +168,14 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
 
     TYPES:
       BEGIN OF ty_s_buffer,
-        id  TYPE string,
-        app TYPE REF TO z2ui5_cl_ui5_app_cont,
+        id         TYPE string,
+        app        TYPE REF TO z2ui5_cl_ui5_app_cont,
+        " the draft as it was read - what z2ui5_cl_ui5_action=>
+        " factory_by_frontend hands main_end_reuse to compare against. Empty
+        " for a container db_load_by_app built around a live instance
+        data       TYPE string,
+        timestampl TYPE timestampl,
+        s_draft    TYPE z2ui5_if_ui5_draft_store=>ty_s_draft,
       END OF ty_s_buffer.
 
     CLASS-DATA mt_buffer TYPE SORTED TABLE OF ty_s_buffer WITH UNIQUE KEY id.
@@ -154,6 +196,30 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
 
     METHODS constructor.
     METHODS db_save.
+
+    "! What db_load( ) read for this id in this request - empty when it was
+    "! not read here
+    CLASS-METHODS db_load_buffered
+      IMPORTING
+        !id           TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_s_buffer.
+
+    "! Whether this container, saved under the ids of the draft it was
+    "! loaded from, would be that draft byte for byte. When it would, the
+    "! container takes those ids back (and the app its id_draft) and the
+    "! caller answers with that draft instead of saving a new one; when it
+    "! would not, nothing changed. See z2ui5_cl_ui5_handler=>main_end_reuse
+    METHODS db_check_unchanged
+      IMPORTING
+        is_loaded     TYPE ty_s_buffer
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    "! Remember a draft id pruning must keep - see mt_draft_keep
+    METHODS draft_keep
+      IMPORTING
+        !id TYPE clike.
 
   PROTECTED SECTION.
 
@@ -223,10 +289,18 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result = draft_parse( id ).
+    DATA(ls_db) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( id ).
+    result = all_xml_parse( ls_db-data ).
+    " the ids before anybody changed them - factory_by_frontend mints the
+    " next ones right after
+    DATA(ls_draft) = result->ms_draft.
     result->create_model( )->main_attri_db_load( ).
 
-    INSERT VALUE #( id = lv_id app = result ) INTO TABLE mt_buffer.
+    INSERT VALUE #( id         = lv_id
+                    app        = result
+                    data       = ls_db-data
+                    timestampl = ls_db-timestampl
+                    s_draft    = ls_draft ) INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
@@ -301,8 +375,81 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       app_refresh_draft_id( ).
     ENDIF.
 
-    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft = ms_draft
-                                           model_xml       = all_xml_stringify( ) ).
+    DATA(li_store) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
+    li_store->create( draft     = ms_draft
+                      model_xml = all_xml_stringify( ) ).
+
+    " draft_keep_per_chain (2 by default): the draft that fell out of the window
+    " goes now instead of when cleanup( ) finds it old. Not for an app
+    " whose app state hash is active - its URL names every draft, and a
+    " bookmark of any of them must last until the expiry. A failure here
+    " costs nothing but the draft's earlier end: the save above is done
+    " and committed, and cleanup( ) still takes the draft by age
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+    z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
+    IF ls_config-draft_keep_per_chain <= 0 OR mv_app_state_active = abap_true.
+      RETURN.
+    ENDIF.
+    TRY.
+        li_store->prune_chain( draft     = ms_draft
+                               keep      = ls_config-draft_keep_per_chain
+                               t_protect = mt_draft_keep ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD db_load_buffered.
+
+    DATA(lv_id) = CONV string( id ).
+    READ TABLE mt_buffer INTO result WITH TABLE KEY id = lv_id.
+    IF sy-subrc <> 0.
+      CLEAR result.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD db_check_unchanged.
+
+    " Only the shipped serializer, whose text IS the state. A host's own
+    " need not answer the same text for the same state - the Node host's
+    " (node/srv/zcl_serializer_live) answers a fresh id per call and keeps
+    " a live copy behind each - so the compare could never succeed there
+    " and would cost a copy per tick
+    IF is_loaded-data IS INITIAL OR mo_app IS NOT BOUND OR gi_serializer IS BOUND.
+      RETURN.
+    ENDIF.
+
+    " exactly what db_save( ) would write, under the loaded ids: the two
+    " fields db_save( ) sets before it serializes, and the ids the draft
+    " carried - every other byte is the app's state after main( )
+    DATA(ls_draft) = ms_draft.
+    DATA(lv_initialized) = mv_check_initialized.
+    ms_draft = is_loaded-s_draft.
+    mv_check_initialized = abap_true.
+    app_refresh_draft_id( ).
+
+    IF all_xml_stringify( ) = is_loaded-data.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+
+    ms_draft = ls_draft.
+    mv_check_initialized = lv_initialized.
+    app_refresh_draft_id( ).
+
+  ENDMETHOD.
+
+  METHOD draft_keep.
+
+    DATA(lv_id) = CONV string( id ).
+    IF lv_id IS INITIAL OR line_exists( mt_draft_keep[ table_line = lv_id ] ). "#EC CI_SORTSEQ
+      RETURN.
+    ENDIF.
+    INSERT lv_id INTO TABLE mt_draft_keep.
+    WHILE lines( mt_draft_keep ) > c_draft_keep_max.
+      DELETE mt_draft_keep INDEX 1.
+    ENDWHILE.
 
   ENDMETHOD.
 

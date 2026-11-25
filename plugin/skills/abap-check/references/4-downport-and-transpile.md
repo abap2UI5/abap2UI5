@@ -394,3 +394,48 @@ break one of those four.
   script patches is upstream already (abaplint/abaplint#3735, #3240), and
   `syfixes` only runs when the `--fix` call before it may fail:
   `(abaplint --fix ... || true) && npm run syfixes`.
+
+- **`ASSIGN COMPONENT name OF STRUCTURE <tab>[ n ] TO <fs>` assigns the ROW
+  under the transpiler** (found 2026-11-24, `ltcl_06_fast_json->ns_*`): the
+  table expression is read into `<fs>` and the component is never taken, so a
+  `CLEAR <fs>` that follows clears the whole row - green on a system, a wrong
+  test on Node. Read the row first (`READ TABLE <tab> INDEX n ASSIGNING
+  <row>`), then `ASSIGN COMPONENT ... OF STRUCTURE <row>`. No gate: the
+  statement is valid ABAP and right on every release.
+
+- **An interface attribute and the transpiler: four differences in one
+  test class** (found 2026-11-24, `z2ui5_cl_ui5_srv_model`
+  `ltcl_07_intf_attr`, when interface attributes became bindable).
+  (1) The transpiled RTTI lists **no `ALIASES`** among a class's attributes
+  (`cl_abap_classdescr->attributes` holds `LIF~ATTR` only), where a system
+  lists the alias as an attribute of its own - so a test that expects the
+  alias row is red on Node and one that expects the interface row is red on
+  a system; assert what both share (one row, one path for both spellings).
+  (2) `NEW lif_x=>ty_t( ... )` of a type of a LOCAL interface is downported
+  to `CREATE OBJECT ... TYPE lif_x` (a check_syntax error of the downported
+  tree). (3) The runtime refuses `CREATE DATA ... TYPE lif_x=>ty_t`
+  (`CX_SY_CREATE_DATA_ERROR`) - write `CREATE DATA ... LIKE` a typed
+  attribute. (4) `xsdbool( ... ) + xsdbool( ... )` is left unparsed by the
+  downport (a parser_error its lint reports in `node/downport` - read that
+  line of the log, the step itself does not fail on it). No gate: all four are valid ABAP; the downport's own
+  lint names (2) and (4), the unit run (1) and (3).
+
+- **Two table expressions the 702 downport gets wrong** (found 2026-11-25,
+  when READ TABLE and APPEND were forbidden across the repositories).
+  (1) `REF #( itab[ ... ] OPTIONAL )` is lowered to `READ TABLE ...
+  ASSIGNING` + `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` (`ASSERT 1 =
+  0` after `syfixes`) - the OPTIONAL is dropped, so a row that is not found
+  aborts on 7.02 where the source returns an initial reference. Write
+  `ASSIGN itab[ ... ] TO <fs>` and test `IS ASSIGNED` (`UNASSIGN` first in a
+  loop), or `line_exists( )` before `REF #( itab[ ... ] )`. `VALUE #( itab[
+  ... ] OPTIONAL )` is lowered correctly. The same gap hits a bare
+  `x = line_index( itab[ ... ] )`: it becomes `READ TABLE ...` + `x = sy-tabix`
+  without a `sy-subrc` check, so a missing row gives a stale index instead
+  of 0 - call it only after `line_exists( )`. (2) `itab[ KEY primary_key
+  COMPONENTS ... ]` comes out as `READ TABLE ... WITH KEY KEY primary_key
+  ...`, which does not compile - name the components without the key name
+  (they cover the unique key, the read is the same) or keep `READ TABLE ...
+  WITH TABLE KEY`. Reproduced with abaplint 2.120.120. Gate: none yet -
+  backlog items `abaplint-downport-ref-optional` and
+  `abaplint-downport-key-primary-key`; the downport's own lint catches (2),
+  nothing catches (1).

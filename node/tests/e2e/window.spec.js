@@ -105,10 +105,7 @@ test.describe("the wire", () => {
     // the other table keeps its rows
     expect(second.MODEL.MT_GRID).toHaveLength(30);
     // no view was rebuilt - the app only loaded rows
-    const system = second.S_FRONT?.S_ACTION?.T_SYSTEM ?? [];
-    expect(
-      system.some((a) => a[0] === "VIEW_SLOTS" && a[1] === "display"),
-    ).toBe(false);
+    expect(second.S_FRONT?.VIEWS).toBeUndefined();
   });
 
   test("SORT and FILTER hand the app the binding's state; the total follows the app", async ({
@@ -307,6 +304,13 @@ test.describe("the browser", () => {
     await expect(
       page.locator("[id$='--list']").getByText("Item 20", { exact: true }),
     ).toBeVisible();
+    // ... and so do the tables, on a release whose controls ask for more
+    // rows than the first window as they render (1.71: the table and the
+    // grid). Every table's request is its own roundtrip, one after the
+    // other, and none of them is lost any more - there was one place for
+    // all of them, the last one winning - so the page is busy for as long
+    // as they take. Wait for the last one before the click.
+    await page.waitForLoadState("networkidle");
 
     // the app sorts: the highest id first
     await page.locator("[id$='--preset']").click();

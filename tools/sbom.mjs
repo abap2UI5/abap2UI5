@@ -11,14 +11,20 @@
 // What is in it, and why it is short:
 //
 //   - the framework itself: the ABAP objects of src/ and the frontend of
-//     app/webapp/ (embedded into src/01/03 as string constants, which is how
+//     bundle/webapp/ (embedded into src/01/03 as string constants, which is how
 //     it reaches the system), each part with the SHA-256 of its files, so the
 //     bytes a system imported can be held against the list
 //   - UI5, the one thing it needs at runtime and does not carry: loaded by the
 //     browser from the SAP system or a UI5 CDN, never bundled
 //
+//   - the page app of app_source/webapp: the minimal UI5 app the page a GET
+//     answers with consists of. The control it runs the frontend in
+//     (z2ui5.embed.Container) is copied in by the generator from
+//     abap2UI5-addons/embed-ui5-control, the same project's own repository and MIT
+//     licence, at the commit node/setup/fetch-deps.mjs pins
+//
 // and nothing else, because nothing else is shipped: no third-party library is
-// copied into src/ or app/webapp/. `.github/scripts/sbom-gate.mjs` holds the
+// copied into src/ or bundle/webapp/. `.github/scripts/sbom-gate.mjs` holds the
 // tree to that sentence on every pull request (a foreign licence header, a
 // vendored minified file), so the list stays complete by construction rather
 // than by somebody remembering it. The npm packages behind the CI and the
@@ -86,7 +92,8 @@ export function sbom() {
   const repo = "https://github.com/abap2UI5/abap2UI5";
 
   const abap = filesUnder("src");
-  const webapp = filesUnder("app/webapp");
+  const webapp = filesUnder("bundle/webapp");
+  const page = filesUnder("app_source/webapp");
   const part = (name, description, files, sub) => ({
     type: "library",
     "bom-ref": `${ref}#${sub}`,
@@ -130,7 +137,13 @@ export function sbom() {
     },
     components: [
       part("abap2UI5 ABAP objects", "The ABAP packages Z2UI5 (src/00-99) an abapGit pull imports", abap, "src"),
-      part("abap2UI5 frontend", "The UI5 frontend, shipped inside the ABAP objects of src/01/03 as string constants", webapp, "app/webapp"),
+      part("abap2UI5 frontend", "The UI5 frontend, shipped inside the ABAP objects of src/01/03 as string constants", webapp, "bundle/webapp"),
+      part(
+        "abap2UI5 page app",
+        "The minimal UI5 app of the page a GET answers with, and the control z2ui5.embed.Container it runs the frontend in - shipped inside the ABAP objects of src/01/03",
+        page,
+        "app_source/webapp",
+      ),
       {
         type: "framework",
         "bom-ref": "ui5",
@@ -149,9 +162,10 @@ export function sbom() {
       },
     ],
     dependencies: [
-      { ref, dependsOn: [`${ref}#src`, `${ref}#app/webapp`, "ui5"] },
-      { ref: `${ref}#src`, dependsOn: [`${ref}#app/webapp`] },
-      { ref: `${ref}#app/webapp`, dependsOn: ["ui5"] },
+      { ref, dependsOn: [`${ref}#src`, `${ref}#bundle/webapp`, `${ref}#app_source/webapp`, "ui5"] },
+      { ref: `${ref}#src`, dependsOn: [`${ref}#bundle/webapp`, `${ref}#app_source/webapp`] },
+      { ref: `${ref}#app_source/webapp`, dependsOn: [`${ref}#bundle/webapp`, "ui5"] },
+      { ref: `${ref}#bundle/webapp`, dependsOn: ["ui5"] },
       { ref: "ui5", dependsOn: [] },
     ],
   };

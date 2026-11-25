@@ -20,6 +20,8 @@ CLASS ltcl_test_app DEFINITION FINAL.
     DATA mt_emp TYPE STANDARD TABLE OF ty_s_emp WITH EMPTY KEY ##NEEDED.
     " a table typed at runtime - the attribute _bind( ) takes as a reference
     DATA mr_tab TYPE REF TO data ##NEEDED.
+    " the total of a windowed table, as an attribute
+    DATA mv_total TYPE i ##NEEDED.
 ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
@@ -89,14 +91,10 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
-    METHODS test_view_model_update    FOR TESTING RAISING cx_static_check.
-    METHODS test_nest_model_update    FOR TESTING RAISING cx_static_check.
     METHODS test_popup_display        FOR TESTING RAISING cx_static_check.
     METHODS test_popup_destroy        FOR TESTING RAISING cx_static_check.
-    METHODS test_popup_model_update   FOR TESTING RAISING cx_static_check.
     METHODS test_popover_display      FOR TESTING RAISING cx_static_check.
     METHODS test_popover_destroy      FOR TESTING RAISING cx_static_check.
-    METHODS test_popover_model_update FOR TESTING RAISING cx_static_check.
     METHODS test_nest_view_display    FOR TESTING RAISING cx_static_check.
     METHODS test_nest_view_destroy    FOR TESTING RAISING cx_static_check.
     METHODS test_nest2_view_display   FOR TESTING RAISING cx_static_check.
@@ -155,12 +153,20 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_bind_dref_attribute  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_dref_tab_cell   FOR TESTING RAISING cx_static_check.
     METHODS test_bind_dref_initial    FOR TESTING RAISING cx_static_check.
+    " window_bind_tab( ): the total as a value and as an attribute
+    METHODS test_window_total_value   FOR TESTING RAISING cx_static_check.
+    METHODS test_window_total_attri   FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_shorthand  FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_appends    FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
     METHODS test_bind_path_alias      FOR TESTING RAISING cx_static_check.
     METHODS test_get_comp_params_memo FOR TESTING RAISING cx_static_check.
+    " get_start_param( ): the URL query first, then the launchpad's
+    " startupParameters, then the query of the launchpad intent in the hash
+    METHODS test_start_param_order    FOR TESTING RAISING cx_static_check.
+    METHODS test_start_param_sources  FOR TESTING RAISING cx_static_check.
     METHODS test_get_nav_flags_live   FOR TESTING RAISING cx_static_check.
+    METHODS test_check_nav_pending    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ui5_client DEFINITION LOCAL FRIENDS ltcl_test_client.
@@ -227,35 +233,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_view_model_update.
-
-    " the model is pushed automatically now (z2ui5_cl_ui5_handler=>main_end),
-    " so this method is an obsolete NO-OP kept for source compatibility - it
-    " must not raise and must not set any slot flag
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->view_model_update( ).
-
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
-
-  ENDMETHOD.
-
-  METHOD test_nest_model_update.
-
-    " both nested variants are obsolete NO-OPs too: a nested view owns no
-    " model (it inherits MAIN's by propagation) and MAIN is pushed
-    " automatically - see test_view_model_update
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->nest_view_model_update( ).
-    li_client->nest2_view_model_update( ).
-
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
-
-  ENDMETHOD.
-
   METHOD test_popup_display.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
@@ -279,18 +256,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `POPUP|destroy|`
         act = system_actions( ) ).
-
-  ENDMETHOD.
-
-  METHOD test_popup_model_update.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->popup_model_update( ).
-
-    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -323,18 +288,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `POPOVER|destroy|`
         act = system_actions( ) ).
-
-  ENDMETHOD.
-
-  METHOD test_popover_model_update.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->popover_model_update( ).
-
-    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -1218,6 +1171,67 @@ CLASS ltcl_test_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD test_start_param_order.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " the same parameter in all three sources - the URL query answers, in
+    " whatever case the name is asked or written
+    mo_action->mo_handler->ms_request-s_front-search = `?sap-client=100&LGN=0001&app=menu`.
+    mo_action->mo_handler->ms_request-s_front-o_comp_data =
+        z2ui5_cl_ajson=>parse( `{"startupParameters":{"lgn":["FLP1"],"App":["FLP"],"MaintenanceOrder":["4711"]}}` ).
+    mo_action->mo_handler->ms_request-s_front-hash = `#EWM-display?lgn=HASH&vc=CLUSTER&/app/ZCL_X?vc=ROUTE`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `0001`
+                                        act = li_client->get_start_param( `lgn` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `menu`
+                                        act = li_client->get_start_param( `APP` ) ).
+    " only in the startupParameters - the tile's own spelling, any case
+    cl_abap_unit_assert=>assert_equals( exp = `4711`
+                                        act = li_client->get_start_param( `maintenanceorder` ) ).
+    " only in the launchpad intent - and the app's route behind &/ is not read
+    cl_abap_unit_assert=>assert_equals( exp = `CLUSTER`
+                                        act = li_client->get_start_param( `vc` ) ).
+    " nowhere
+    cl_abap_unit_assert=>assert_initial( li_client->get_start_param( `nothing` ) ).
+    cl_abap_unit_assert=>assert_initial( li_client->get_start_param( `` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_start_param_sources.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " the launchpad packs the target's parameters into sap-startup-params
+    mo_action->mo_handler->ms_request-s_front-search = `?sap-startup-params=lgn%3D0002%26app%3DMENU`.
+    cl_abap_unit_assert=>assert_equals( exp = `0002`
+                                        act = li_client->get_start_param( `LGN` ) ).
+
+    " an EMPTY value in the URL is no answer - the next source is asked
+    mo_action->mo_handler->ms_request-s_front-search = `?lgn=`.
+    mo_action->mo_handler->ms_request-s_front-o_comp_data =
+        z2ui5_cl_ajson=>parse( `{"startupParameters":{"LGN":["0003"]}}` ).
+    CLEAR mo_client->mv_comp_params_set.
+    cl_abap_unit_assert=>assert_equals( exp = `0003`
+                                        act = li_client->get_start_param( `lgn` ) ).
+
+    " a bare intent without &/ is all shell; an app hash (#/...) is none
+    CLEAR: mo_action->mo_handler->ms_request-s_front-search,
+           mo_action->mo_handler->ms_request-s_front-o_comp_data,
+           mo_client->mv_comp_params_set,
+           mo_client->mt_comp_params.
+    mo_action->mo_handler->ms_request-s_front-hash = `#Object-action?wp=W1`.
+    cl_abap_unit_assert=>assert_equals( exp = `W1`
+                                        act = li_client->get_start_param( `WP` ) ).
+    mo_action->mo_handler->ms_request-s_front-hash = `#/app/ZCL_X?wp=W1`.
+    cl_abap_unit_assert=>assert_initial( li_client->get_start_param( `wp` ) ).
+
+  ENDMETHOD.
+
+
   METHOD test_get_nav_flags_live.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
@@ -1232,6 +1246,27 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA(ls_get_2) = li_client->get( ).
 
     cl_abap_unit_assert=>assert_true( ls_get_2-_s_nav-check_call ).
+
+  ENDMETHOD.
+
+
+  METHOD test_check_nav_pending.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " nothing requested yet in this roundtrip
+    cl_abap_unit_assert=>assert_false( li_client->check_nav_pending( ) ).
+
+    " a call counts ...
+    mo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
+    cl_abap_unit_assert=>assert_true( li_client->check_nav_pending( ) ).
+
+    " ... and so does a leave on its own
+    CLEAR mo_action->ms_next-o_app_call.
+    cl_abap_unit_assert=>assert_false( li_client->check_nav_pending( ) ).
+    mo_action->ms_next-o_app_leave = NEW ltcl_test_app( ).
+    cl_abap_unit_assert=>assert_true( li_client->check_nav_pending( ) ).
 
   ENDMETHOD.
 
@@ -1355,11 +1390,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " between rows, so an inline `( )` row would arrive as a copy of its
     " predecessor instead of an all-initial line
     DATA lt_tab TYPE ty_t_row.
-    APPEND VALUE #( title = `first`
-                    count = 1 ) TO lt_tab.
-    APPEND INITIAL LINE TO lt_tab.
-    APPEND VALUE #( title = `third`
-                    count = 3 ) TO lt_tab.
+    INSERT VALUE #( title = `first`
+                    count = 1 ) INTO TABLE lt_tab.
+    INSERT INITIAL LINE INTO TABLE lt_tab.
+    INSERT VALUE #( title = `third`
+                    count = 3 ) INTO TABLE lt_tab.
 
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
     lo_ajson->set( iv_ignore_empty = abap_false
@@ -1627,6 +1662,86 @@ CLASS ltcl_test_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD test_window_total_value.
+
+    " `total = lines( lt_all )` - the form the interface documents next to
+    " the attribute: the binding holds the value of this render and names
+    " no attribute to read it from
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lt_all    LIKE mo_test_app->mt_emp.
+
+    li_client ?= mo_client.
+    lt_all = VALUE #( ( name = `a` ) ( name = `b` ) ( name = `c` ) ).
+    mo_test_app->mt_emp = VALUE #( ( name = `a` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
+                                        act = li_client->window_bind_tab( val    = mo_test_app->mt_emp
+                                                                          total  = lines( lt_all )
+                                                                          event  = `ROWS`
+                                                                          window = 2 ) ).
+
+    ASSIGN mo_action->mo_app->mt_attri->*[ name = `MT_EMP` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <attri> IS ASSIGNED ) ).
+    DATA(lr_attri) = REF #( <attri> ).
+    cl_abap_unit_assert=>assert_true( lr_attri->bind ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
+                                        act = lr_attri->name_client ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lr_attri->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lr_attri->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
+                                        act = lr_attri->window_event ).
+    cl_abap_unit_assert=>assert_initial( lr_attri->window_total_name ).
+
+    " and the same call again, as every render makes it
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
+                                        act = li_client->window_bind_tab( val    = mo_test_app->mt_emp
+                                                                          total  = lines( lt_all ) + 1
+                                                                          event  = `ROWS`
+                                                                          window = 2 ) ).
+    UNASSIGN <attri>.
+    ASSIGN mo_action->mo_app->mt_attri->*[ name = `MT_EMP` ] TO <attri>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <attri> IS ASSIGNED ) ).
+    lr_attri = REF #( <attri> ).
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lr_attri->window_total ).
+    cl_abap_unit_assert=>assert_initial( lr_attri->window_total_name ).
+
+  ENDMETHOD.
+
+
+  METHOD test_window_total_attri.
+
+    " `total = mv_total`: the binding names the attribute, so a response
+    " reads the total anew without the view being rendered again
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+    mo_test_app->mt_emp = VALUE #( ( name = `a` ) ).
+    mo_test_app->mv_total = 500.
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
+                                        act = li_client->window_bind_tab( val   = mo_test_app->mt_emp
+                                                                          total = mo_test_app->mv_total
+                                                                          event = `ROWS` ) ).
+
+    ASSIGN mo_action->mo_app->mt_attri->*[ name = `MT_EMP` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <attri> IS ASSIGNED ) ).
+    DATA(lr_attri) = REF #( <attri> ).
+    cl_abap_unit_assert=>assert_true( lr_attri->bind ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
+                                        act = lr_attri->name_client ).
+    cl_abap_unit_assert=>assert_equals( exp = 100
+                                        act = lr_attri->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = lr_attri->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_TOTAL`
+                                        act = lr_attri->window_total_name ).
+
+  ENDMETHOD.
+
+
   METHOD test_bind_dref_to_attribute.
 
     " a reference TO an attribute binds the attribute, not the reference -
@@ -1811,7 +1926,7 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    DATA ls_row TYPE ty_s_product.
+    FIELD-SYMBOLS <row> TYPE ty_s_product.
 
     DATA(ls_get) = client->get( ).
 
@@ -1823,13 +1938,14 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
     LOOP AT ls_get-t_model_skipped INTO DATA(ls_skip).
 
       IF ls_skip-name = `MT_PRODUCT`.
-        " the row index is an ABAP table index, so the app's own READ TABLE
-        " reaches the same row with no translation
-        READ TABLE mt_product INDEX ls_skip-row INTO ls_row.
-        IF sy-subrc <> 0.
+        " the row index is an ABAP table index, so the app's own table
+        " expression reaches the same row with no translation
+        UNASSIGN <row>.
+        ASSIGN mt_product[ ls_skip-row ] TO <row>.
+        IF <row> IS NOT ASSIGNED.
           CONTINUE.
         ENDIF.
-        message_add( |{ label_of( ls_skip-field ) } of '{ ls_row-name }' was not accepted| ).
+        message_add( |{ label_of( ls_skip-field ) } of '{ <row>-name }' was not accepted| ).
         CONTINUE.
       ENDIF.
 
@@ -1847,7 +1963,7 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
       mv_saved = xsdbool( mv_message IS INITIAL ).
     ENDIF.
 
-    mv_bind_path = client->_bind_edit( mt_product ).
+    mv_bind_path = client->_bind( mt_product ).
     client->_bind( mv_discount ).
 
   ENDMETHOD.
@@ -1895,13 +2011,13 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
 
     ls_product-name  = `Notebook`.
     ls_product-price = '1249.00'.
-    APPEND VALUE #( qty = 1 ) TO ls_product-t_pos.
-    APPEND ls_product TO mo_app->mt_product.
+    INSERT VALUE #( qty = 1 ) INTO TABLE ls_product-t_pos.
+    INSERT ls_product INTO TABLE mo_app->mt_product.
 
     CLEAR ls_product.
     ls_product-name  = `Monitor`.
     ls_product-price = '299.00'.
-    APPEND ls_product TO mo_app->mt_product.
+    INSERT ls_product INTO TABLE mo_app->mt_product.
 
     mo_action->mo_app->mo_app = mo_app.
 

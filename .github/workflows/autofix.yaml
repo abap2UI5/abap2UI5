@@ -9,7 +9,7 @@ name: autofix
 # request that trips four gates is one command away from green instead of
 # four local toolchains away.
 #
-#   app2abap   prettier over app/webapp, regenerate src/01/03, abaplint --fix
+#   app2abap   prettier over bundle/webapp, regenerate src/01/03, abaplint --fix
 #   abaplint   abaplint --fix on its own (app2abap ends in it; this is the
 #              same pass without the Fiori toolchain in front of it)
 #   chains     abap2ui5lint --fix over the view chains
@@ -138,7 +138,7 @@ jobs:
           autofix cannot push to a fork's branch. Run the generators locally and commit the result:
 
           ```
-          npm ci && npm --prefix app ci
+          npm ci && npm --prefix bundle ci
           npm run app2abap && npm run fmt:chains && npm run backlog
           ```
 
@@ -237,7 +237,7 @@ jobs:
       # only after the first has been fixed and asked for again. What did
       # succeed is still committed.
 
-      # prettier over app/webapp, regenerate the embedded ABAP under src/01/03,
+      # prettier over bundle/webapp, regenerate the embedded ABAP under src/01/03,
       # then abaplint --fix over src/ (check_app2abap, abaplint)
       - name: app2abap
         if: ${{ !cancelled() && steps.plan.outputs.app2abap == 'true' }}
@@ -274,7 +274,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@d0b01107b5db882071f96de5dd4b54961ea93f4c # v7.2.1
         with:
           commit_message: "autofix: ${{ steps.plan.outputs.summary }}"
-          file_pattern: "src/ app/webapp/ backlog/"
+          file_pattern: "src/ bundle/webapp/ backlog/"
 
       # A commit by the GITHUB_TOKEN does not start a new workflow run, so the
       # checks on the pull request still belong to the commit before it. Say so

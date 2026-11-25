@@ -241,7 +241,7 @@ test("exit() tears the popup and popover slots down", () => {
 // The app's keyboard shortcuts: the REGISTRY is app-scoped and the state
 // rebuild empties it, but the `document` keydown listener behind it is module
 // state in core/actions/Shortcuts and used to stay installed for the life of
-// the page - the one addEventListener in app/webapp with no removeEventListener
+// the page - the one addEventListener in bundle/webapp with no removeEventListener
 // anywhere, so on an FLP re-launch it went on running a registry lookup per
 // keystroke of whatever came after, and could never be collected.
 test("exit() takes the app's keyboard shortcut listener off document", () => {

@@ -334,11 +334,32 @@ reasoning:
 - `client->_bind( var )` binds a PUBLIC attribute: the value renders into
   the view, and user input is written back into the attribute
   before your event handler runs. Use it for everything, display-only
-  included (`_bind_edit` is an obsolete alias — do not use it in new code).
+  included (`_bind_edit`, its former alias, is removed — write `_bind`).
 - Inside a bound aggregation (a table/list template), child properties bind
   **relative to the row** with braces on the upper-cased field name:
   `` `{PRODUCT}` ``. A camelCase ABAP field `supplierName` becomes
   `{SUPPLIERNAME}`.
+- A column whose name carries a **namespace** — `/CWM/XCWMAT`, the fields an
+  industry solution or a customer appends to a DDIC table — is a level of
+  its row in the model: `"CWM":{"XCWMAT":…}`. Bind it relatively as
+  `{CWM/XCWMAT}`, never `{/CWM/XCWMAT}`, which UI5 reads as an *absolute*
+  path from the model root (an empty cell, and the edit goes nowhere). When
+  the column name is only known at run time (a table maintenance, a layout
+  over any table), let
+  `z2ui5_cl_ui5_view_builder=>component_path( lv_name )` write it:
+  `` v = |\{{ z2ui5_cl_ui5_view_builder=>component_path( lv_name ) }\}| ``
+  — `/CWM/XCWMAT` becomes `CWM/XCWMAT`, every other name comes back as it
+  is. A cell bound with `_bind( val = … tab = … tab_index = … )` gets the
+  same path by itself, and an edit comes back onto the component.
+- An attribute an *interface* declares binds like one of the class:
+  `client->_bind( zif_my_state~mv_value )`, and through a reference typed
+  with the interface `client->_bind( mi_state->mv_value )`. Its path keeps
+  the `~` - `{/ZIF_MY_STATE~MV_VALUE}`, `{/MI_STATE/ZIF_MY_STATE~MV_VALUE}`,
+  a namespaced interface a level like every namespace
+  (`{/NS/IF_STATE~MV_VALUE}`) - so never spell it by hand: take it from
+  `_bind( )` / `_bind_path( )`. With `ALIASES mv_value FOR
+  zif_my_state~mv_value`, both spellings are one attribute and bind to the
+  same path.
 - A value shared by the whole app lives at the model **root** — inside a row
   template a relative `{FIELD}` resolves against the row and silently renders
   empty if the row has no such column; bind root values with
@@ -428,9 +449,9 @@ reasoning:
   at render time. Where one stays, a comment above it says which of these
   it is.
 - `view_model_update( )`, `popup_model_update( )`, `popover_model_update( )`
-  and the two nested variants are **obsolete and do nothing**. They stay in
-  the interface so existing apps keep compiling; delete the calls whenever
-  you touch such an app, and never add a new one.
+  and the two nested variants are **removed** - they had done nothing since
+  the push became automatic. An app written for an older release deletes
+  the calls; nothing changes at runtime.
 
 ## 5. Events
 
@@ -467,7 +488,7 @@ reasoning:
   robust thing to write. Two properties on the same object need two walks,
   which is still less code than a mapping that has to anticipate the rest.
   **Not every such payload is flat.** `projectValue` in
-  `app/webapp/core/Lib.js` passes an object- or array-valued property through
+  `bundle/webapp/core/Lib.js` passes an object- or array-valued property through
   unchanged (up to `MAX_ARG_DEPTH`), so a control with a property typed
   `object`/`any` marshals as a nested node. When that is what you are looking
   at, do not grow the reader: bind the value into the model instead and let
@@ -542,7 +563,8 @@ reasoning:
   `t_arg` spells every flag — is the tick's `check_no_busy`:
   `` client->follow_up_action( val = z2ui5_if_client=>cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ``.
   Like the flag, it takes the overlay down and nothing else — a click that
-  lands while the tick is in flight is still dropped, and still raises it.
+  lands while the tick is in flight is held back and sent once the tick's
+  response is applied.
   `check_prevent_default` / `prevent_default_expr` cancel the
   control's built-in default before the roundtrip, `check_arg_literal`
   quotes every argument — see the doc on `z2ui5_if_client=>_event`.
@@ -557,6 +579,51 @@ reasoning:
   method on a control), `binding_call` (filter/sort an aggregation binding).
   The full catalog with per-action `t_arg` documentation sits on
   `z2ui5_if_client=>follow_up_action` and in `cs_event`.
+- Timers: `cs_event-start_timer` raises a backend event once after a delay,
+  `t_arg` = event, delay in ms, optional no-busy flag, optional REPEAT flag.
+  A one-shot timer is cancelled by every roundtrip, so it has to be armed
+  again by each response that keeps it going. A poll arms a REPEATING timer
+  instead, ONCE — the fourth `t_arg` `` `X` ``:
+  `` client->follow_up_action( val = z2ui5_if_client=>cs_event-start_timer t_arg = VALUE #( ( `POLL` ) ( `5000` ) ( `X` ) ( `X` ) ) ) ``
+  (no-busy and repeat; `` ( `` ) `` in third place for a repeat that shows the
+  overlay). The browser arms the same tick again after every applied response:
+  a user event in between pauses it and it goes on, with the full delay, after
+  that event's response; no tick is sent while a user event waits or is in
+  flight. It keeps running under a popup or popover of the same app. It ends
+  with `cs_event-stop_timer` (`` client->follow_up_action( z2ui5_if_client=>cs_event-stop_timer ) ``,
+  or round-trip free on a press), with a new `start_timer` (it replaces the
+  timer; one without the repeat flag is one-shot again), with every navigation
+  to another app — a called popup app too; restart it in the
+  `check_on_navigated( )` branch — with a browser Back/Forward restore and the
+  error overlay. One timer per app. The handler of the tick is an ordinary
+  `check_on_event( `POLL` )` branch and arms nothing; a tick that leaves the
+  app unchanged writes no draft. Switching an existing poll: replace the
+  `start_timer` call made on every roundtrip by one call with the repeat flag
+  where the screen is shown, and call `stop_timer` where polling should end.
+- A poll that belongs to the app's screen is best DECLARED:
+  `` client->timer_set( event = `POLL` delay_ms = 5000 no_busy = abap_true ) ``
+  (in `check_on_init( )`, or in the render method on every roundtrip — an
+  unchanged declaration that runs is not sent again). The framework stores it
+  with the app (in its draft, no attribute of yours) and arms it as the
+  repeating `start_timer` whenever the app gets the screen: the first display,
+  the return from a called app (a popup app closing included), a browser
+  Back/Forward restore or app-state link. It stops it when the app is left and
+  arms it again on the way back, so there is no `check_on_navigated( )` re-arm
+  and no "is it still armed" memo in the app. Other values replace it,
+  `client->timer_stop( )` ends it (an empty event or a delay of 0 does the
+  same). The tick is the same repeating timer, so a click pauses it and an
+  unchanged tick still writes no draft. The last statement wins: a
+  `follow_up_action( )` with `start_timer`/`stop_timer` takes the timer over
+  and drops the declaration until the next `timer_set( )`.
+- The title of a screen is one call in both environments:
+  `` client->follow_up_action( val = z2ui5_if_client=>cs_event-set_title t_arg = VALUE #( ( `Stock` ) ) ) ``
+  sets the browser title, and inside the Fiori launchpad the shell title as
+  well — no `check_launchpad_active` branch into `set_title_launchpad`.
+  Both leave the titles to the host when the app is embedded in a page it
+  does not own (a section of a Fiori elements app). A
+  `Page` that should not repeat the shell's title inside the launchpad hides
+  its header with one attribute, not a second view:
+  `` )->a( n = `showHeader` b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ) ``.
 
 ## 6. Popups, popovers, messages
 
@@ -606,6 +673,15 @@ reasoning:
   `Z2UI5_CL_SMP_APP_381` and `Z2UI5_CL_SMP_APP_512` are the two samples that
   show that half. Wired into a view the same call runs without a round-trip
   at all, and extra arguments fill `{0}`, `{1}` placeholders in the text.
+- A message queued right before a navigation is dropped with the screen it
+  was queued on — a `nav_app_leave( )` or `nav_app_call( )` replaces it. To
+  show it on the next screen instead (the "Saved." of a detail page that
+  returns to its list), navigate with `keep_messages = abap_true`:
+  `` client->message_toast_display( `Saved.` ) `` then
+  `client->nav_app_leave( keep_messages = abap_true )`. The toasts and
+  boxes of this roundtrip appear after the target app has rendered, ahead
+  of the target's own; a focus or a control call queued with them is still
+  dropped, since it names a control of the old screen.
 - Bind popup data exactly like main-view data; changed bound data reaches
   an open popup automatically.
 - A popup or popover is closed automatically by anything that replaces the
@@ -622,6 +698,51 @@ reasoning:
 - Call another app: `client->nav_app_call( NEW zcl_other_app( ) )`; return
   with `client->nav_app_leave( )` (or `client->get_app_prev( )` to hand data
   back). The framework keeps the app stack across roundtrips.
+- `client->check_nav_pending( )` is true once this `main( )` has called
+  `nav_app_call( )` or `nav_app_leave( )`. A base class or helper that runs
+  after the app's handlers asks it before it arms a timer or prepares
+  output for a screen the app is about to give away.
+- An app that opens the same popup class for several purposes names the
+  purpose in the call - `client->nav_app_call( app = lo_popup tag = `CONFIRM_DELETE` )` -
+  and reads it on the way back: `client->get_nav_tag( )` answers the tag on
+  the roundtrip the called app returns on, and is empty on every other one.
+  No flag attribute per popup, no `CAST` in a `TRY` to find out which one
+  came back.
+- `client->check_on_nav_back( )` is true on exactly the roundtrip on which
+  this app gets the screen back because an app it called left with
+  `nav_app_leave( )` (or a press wired with `_event_nav_app_leave( )`):
+  with or without a tag, with `event`/`r_data`/`keep_messages`, a popup
+  app closing (value help, confirm, error popup app) included. It is false
+  on the first start, on every roundtrip of the called app (its first one
+  too), on every event after the return, on a browser Back/Forward or
+  reload under hash routing (KEEP and FRESH restore like a start), on an
+  app-state bookmark, on `nav_app_call( me )` and on a leave to a `NEW`
+  instance (that replaces the leaving app - a forward move).
+  `client->check_on_navigated( )` is true in both directions of a hop and
+  on every start; `check_on_nav_back( )` only on the way back, so it is the
+  question to ask before reading a result - never compare class names of
+  `get_app_prev( )`, which is the caller on the way in, the callee on the
+  way back and the app itself on a first start:
+
+  ```abap
+  IF client->check_on_nav_back( ).
+    DATA(li_prev) = client->get_app_prev( ).
+    IF li_prev IS INSTANCE OF zcl_popup_confirm.
+      IF CAST zcl_popup_confirm( li_prev )->result( ) = abap_true.
+        " ...
+      ENDIF.
+    ENDIF.
+  ENDIF.
+  ```
+- **Start parameters** — a value the app is started with (`?lgn=0001` on
+  the URL, a `startupParameters` entry of a launchpad tile, the query of a
+  launchpad intent `#Object-action?lgn=0001`) — are read with one call,
+  whichever way the app was started: `` client->get_start_param( `lgn` ) ``.
+  The URL query answers first, then the launchpad's startupParameters,
+  then the intent in the hash; the name matches in any case, the value
+  comes back as it was written (upper-case it yourself where a key needs
+  it). The sources themselves stay in `get( )-s_config-search`,
+  `get( )-t_comp_params` and `get( )-s_config-hash`.
 - URL routing: `client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )`
   in `check_on_init` makes the app bookmarkable and wires the browser
   Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the
@@ -631,7 +752,9 @@ reasoning:
   `client->hash_set( val )` writes `val` as the app's URL hash with a pushed
   history entry (the UI5 router's `navTo`), `client->hash_replace( val )`
   writes it without one (`navTo( ..., true )` — e.g. a layout arrow whose
-  drags must not become Back steps). `client->app_state_set_active( )`
+  drags must not become Back steps). Both write the WHOLE app hash and need
+  the app to own it: register `hash_attach_changed` first (below), or
+  nothing is written. `client->app_state_set_active( )`
   keeps the id of the CURRENT app state in the URL on every roundtrip, so a
   reload/bookmark/shared link restores the exact state;
   `client->app_state_get_href( )` returns the absolute, FLP-safe link to
@@ -731,6 +854,12 @@ reasoning:
 - **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents
   the full loop without a SAP system: `capabilities` → `deploy_app` →
   `build_backend` → `run_app` (headless screenshot + errors).
+- **Need a UI5 fact - which properties a control has, what an aggregation is
+  called?** SAP's own [UI5 MCP server](https://github.com/UI5/mcp-server)
+  gives an agent the official UI5 API documentation, next to the abap2UI5
+  one above. It answers for the CURRENT UI5 release: whether a control,
+  property or icon exists on the oldest release an app has to run on is
+  still the linter's answer, not its.
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
 - **Worked examples**, three catalogues with the same row shape, so one search
@@ -742,91 +871,68 @@ reasoning:
   in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5
   can express at all is answered in samples-controls' `CAPABILITIES.md`, each
   claim naming the port that proves it.
-- **Unit-test the app class without a system**: a local test double
-  `ltd_client` with `INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` in
-  the class's `.clas.testclasses.abap` answers `check_on_init` /
-  `check_on_event` / `get_event` from attributes and records what
-  `view_display( )` and `message_toast_display( )` receive; a test then
-  calls `main( )` and asserts.
-  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships
-  one for its starter class — abaplint checks it statically, ABAP Unit runs
-  it on the system, and the MCP server's `run_unit_tests` runs it in the
-  transpiled backend; `npm run test:unit` in the project and the
-  `abap2UI5/mcp-server` GitHub Action do the same at the terminal and in CI,
-  no system involved. Implement every method the app calls in the double:
-  the transpiled runtime generates no empty stubs for a `PARTIALLY
-  IMPLEMENTED` interface, a system does. The double and one test, for the
-  template of §2:
+- **Unit-test the app class with `z2ui5_cl_ui5_test`** - the framework's
+  own test harness, a global `FOR TESTING` class (usable in test code only).
+  It drives the app through the REAL framework, one roundtrip per call, the
+  way the browser drives it: the handler, the client, `_bind( )` and
+  `_event( )`, the draft. No test double of `z2ui5_if_client`, no framework
+  internals. `start( )` is the first roundtrip (`check_on_init( )` and
+  `check_on_navigated( )` true), `set_model( )` is what the user types into a
+  bound control (it travels as the model delta of the next request and is in
+  the attribute when `main( )` runs), `event( )` is a press of a control wired
+  with `_event( )`:
 
   ```abap
-  CLASS ltd_client DEFINITION FINAL FOR TESTING.
-    PUBLIC SECTION.
-      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.
-      " what the lifecycle questions are answered with
-      DATA init      TYPE abap_bool.
-      DATA navigated TYPE abap_bool.
-      DATA event     TYPE abap_bool.
-      DATA event_id  TYPE string.
-      " what the app did back, in order
-      DATA t_view  TYPE string_table.
-      DATA t_toast TYPE string_table.
-  ENDCLASS.
-
-  CLASS ltd_client IMPLEMENTATION.
-    METHOD z2ui5_if_client~check_on_init.
-      result = init.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~check_on_navigated.
-      result = navigated.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~check_on_event.
-      result = event.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~get_event.
-      result = event_id.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~view_display.
-      APPEND val TO t_view.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~message_toast_display.
-      APPEND text TO t_toast.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~_bind.
-      result = `bound`.
-    ENDMETHOD.
-    METHOD z2ui5_if_client~_event.
-      result = val.
-    ENDMETHOD.
-  ENDCLASS.
-
   CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
     PRIVATE SECTION.
-      METHODS save_toasts_the_name FOR TESTING RAISING cx_static_check.
+      METHODS post_names_the_input FOR TESTING RAISING cx_static_check.
   ENDCLASS.
 
   CLASS ltcl_app IMPLEMENTATION.
-    METHOD save_toasts_the_name.
-      DATA(app)    = NEW zcl_my_app( ).
-      DATA(double) = NEW ltd_client( ).
-      " an event roundtrip: the framework has already written the user's
-      " input into the bound attribute when main( ) is called
-      double->event    = abap_true.
-      double->event_id = `SAVE`.
-      app->name        = `World`.
+    METHOD post_names_the_input.
+      DATA(test) = z2ui5_cl_ui5_test=>start( NEW zcl_my_app( ) ).
+      cl_abap_unit_assert=>assert_true( xsdbool( test->view_xml( ) CS `POST` ) ).
 
-      app->z2ui5_if_app~main( double ).
+      test->set_model( path = `/NAME`
+                       val  = `World` )->event( `POST` ).
 
-      cl_abap_unit_assert=>assert_equals( exp = `Saved, World`
-                                          act = double->t_toast[ 1 ] ).
-      " an event does not rebuild the view
-      cl_abap_unit_assert=>assert_initial( double->t_view ).
+      DATA(messages) = test->messages( ).
+      cl_abap_unit_assert=>assert_equals( exp = `Hello World`
+                                          act = messages[ 1 ]-text ).
+      cl_abap_unit_assert=>assert_equals( exp = `World`
+                                          act = CAST zcl_my_app( test->app( ) )->name ).
     ENDMETHOD.
   ENDCLASS.
   ```
 
-  A first-start test sets `init` and `navigated` both (the framework answers
-  both with true on a fresh instance) and asserts on `t_view[ 1 ]`; a
-  navigated test sets `navigated` alone.
+  What else it does: `event( val t_arg )` with event arguments, `leave( )`
+  (a press wired with `_event_nav_app_leave( )`), `timer( )` (the tick of a timer
+  declared with `timer_set( )` or armed with `cs_event-start_timer`), `restore( )` (a reload from the last draft:
+  `check_on_navigated( )` without `check_on_init( )`), and
+  `start_called( app )` - the app as the target of a `nav_app_call( )`, the
+  way a popup app or a value help is reached, so its `nav_app_leave( )` goes
+  back and `nav_left( )` hands you the instance that left, to read its
+  result. Readers: `view_xml( )`, `nest_xml( )`, `nest2_xml( )`,
+  `popup_xml( )`, `popover_xml( )` (what each slot shows NOW - a slot keeps its
+  view until a roundtrip replaces or destroys it), `model( path )` (the
+  browser's model, your edits included), `actions( )` and `messages( )` (what
+  the LAST roundtrip asked the browser to do), `nav_called( )`, `app( )`,
+  `response( )` (the raw JSON). Model paths are written as in a binding, table
+  rows from 0: `/MT_TAB/0/NAME` is the first row.
+
+  Two things follow from the draft and are worth knowing: every event
+  restores the app from the draft the previous roundtrip saved, so **read
+  `app( )` again after every step** (an older reference is a dead instance)
+  and change a bound value with `set_model( )`, not on the instance; and an
+  attribute the draft cannot carry fails in the test as it fails in the
+  browser. The drafts are kept in memory - no row reaches `Z2UI5_T_01` - and
+  an app that calls `set_session_stateful( )` keeps its instance, as on a
+  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the
+  transpiled backend (`run_unit_tests` of the MCP server, `npm run test:unit`
+  in an app-template project). It ships with the release after 1.150.0; on an older
+  installation a hand-written `ltd_client` with `INTERFACES z2ui5_if_client
+  PARTIALLY IMPLEMENTED.` is the fallback. What only the browser does - a
+  frontend event, rendering - is not covered; that is the linter's render check.
 - **Getting the class into a system.** An app is delivered as abapGit files —
   `zcl_my_app.clas.abap` and its `zcl_my_app.clas.xml` sidecar, in a
   repository the system pulls with abapGit — or its source is pasted into the
@@ -848,7 +954,7 @@ reasoning:
 Every abap2UI5 page carries its own developer tools: a dialog over the running
 app that shows the roundtrips, the view XML and the model, the log and the
 environment, without the browser's devtools. They are part of the frontend
-(`app/webapp/devtools/`), so they are there on every system and in every
+(`bundle/webapp/devtools/`), so they are there on every system and in every
 app, with nothing to install and nothing to configure.
 
 ### Starting them

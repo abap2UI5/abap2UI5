@@ -32,8 +32,10 @@ fix.
   gated by abaplint's `loop_target_misuse` from 2.120.112.
 - **Implicit conversions.** A character field compared with a number, a d/t
   field with a formatted literal (`'2024-01-01'`); a literal or constant longer
-  than its target; TIMESTAMPL assigned to TIMESTAMP (the fraction is cut); a
-  constant offset/length on a string without a length check.
+  than its target; a character variable assigned to a shorter one (cut
+  without a message - the code inspector's "Truncate in Conversion"); TIMESTAMPL
+  assigned to TIMESTAMP (the fraction is cut); a constant offset/length on a
+  string without a length check.
 - **References.** A data reference dereferenced on a path where it can be
   initial.
 - **VALUE for a unique-key table** with two literal rows of the same key — a
@@ -73,7 +75,7 @@ fix.
   ASSERT in a test class are gated by abaplint's `unit_test_assertions` from
   2.120.109 (abaplint/abaplint#4583).
 
-**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-loop-target-misuse, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
+**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-loop-target-misuse, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production, abaplint-truncating-char-assignment
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 
@@ -126,13 +128,15 @@ These are Clean ABAP clean-ups, not defects. AGENTS.md
 | SORT … BY with ASCENDING/DESCENDING stated | optional |
 | CLEAR right after DATA, a needless `me->` | yes |
 | Classes of only static methods, interfaces of only constants, public methods outside an interface | judge per case |
+| A public method only its own class calls (abapOpenChecks 058) | make it private, unless the class is API |
+| CONTINUE as the last statement of a loop body (abapOpenChecks 062) | remove |
 | Class size (methods, attributes per class), statements per WHEN | the method limits in AGENTS.md apply; the rest is a smell |
 | Magic numbers, sy-uname/sy-sysid compared with a literal, `'@00@'` icon literals | name them as constants |
 | MESSAGE TYPE E/A/X or WRITE in a global class; MESSAGE ID sy-msgid … TYPE sy-msgty | no dialog in classes — raise an exception |
 | COLLECT; a table with the implicit default key | avoid (AGENTS.md: no default key) |
 | `"#EC CI_SUBRC` where sy-subrc is checked; an OPTIONAL parameter no caller supplies; a message nothing uses | remove |
 
-**Backlog:** abaplint · abaplint-comment-style, abaplint-guard-clauses, abaplint-method-signature-style, abaplint-class-design, abaplint-size-metrics, abaplint-modern-statements, abaplint-needless-code, abaplint-prefer-final, abaplint-read-table-to-expression, abaplint-sort-explicit-order, abaplint-magic-number, abaplint-hardcoded-values, abaplint-message-usage, abaplint-avoid-use-extensions, abaplint-unnecessary-ec-ci-subrc, abaplint-unused-method-parameter-global, abaplint-unused-message
+**Backlog:** abaplint · abaplint-comment-style, abaplint-guard-clauses, abaplint-method-signature-style, abaplint-class-design, abaplint-size-metrics, abaplint-modern-statements, abaplint-needless-code, abaplint-prefer-final, abaplint-read-table-to-expression, abaplint-sort-explicit-order, abaplint-magic-number, abaplint-hardcoded-values, abaplint-message-usage, abaplint-avoid-use-extensions, abaplint-unnecessary-ec-ci-subrc, abaplint-unused-method-parameter-global, abaplint-unused-message, abaplint-public-method-only-local, abaplint-continue-last-in-loop
 
 ### Objects and files
 

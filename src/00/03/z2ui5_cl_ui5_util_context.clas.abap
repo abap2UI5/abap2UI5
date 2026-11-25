@@ -16,12 +16,14 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     "
     " The trim is NOT driven by the core engine alone. The symbols marked
     " `FROZEN-ONLY` below have no caller in src/00 - src/02; they survive
-    " purely because the frozen src/99 package (z2ui5_cl_xml_view, the built-in
-    " popups) still calls them. They are
-    " not dead code and must not be trimmed away while src/99 ships, but they
-    " are also not part of the framework's own utility surface: when src/99 is
-    " finally removed, every FROZEN-ONLY symbol goes with it. Do not build new
-    " callers on them.
+    " purely because the frozen legacy classes (z2ui5_cl_xml_view, the
+    " built-in popups) still call them - this repository's src/99 until
+    " 2026-11-17, the extension repository's since, compiled against this
+    " class. They are not dead code and must not be trimmed away while an
+    " installation can have those classes next to a release, but they are
+    " also not part of the framework's own utility surface: when the
+    " extension stops calling them, every FROZEN-ONLY symbol goes. Do not
+    " build new callers on them.
     CONSTANTS:
       BEGIN OF cs_ui5_msg_type,
         e TYPE string VALUE `Error` ##NO_TEXT,
@@ -41,7 +43,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     CLASS-DATA cv_char_util_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-DATA cv_format_e_xml_attr        TYPE i          READ-ONLY.
 
     " RTTI type-kind / kind / visibility constants, so callers can branch on
@@ -207,7 +209,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_msg.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_data_element_text_l
       IMPORTING
         !val          TYPE any
@@ -217,7 +219,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " Extracts the DDIC data element name (`\TYPE=...` part of the absolute
     " name) from a component's elementary type, so callers do not reference
     " cl_abap_elemdescr directly.
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_ddic_type_name
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
@@ -254,11 +256,11 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " (every numeric kind), S for a string (character, numeric text, string
     " and binary - all of which |{ }| renders as ajson does), D for a date
     " and T for a time (which ajson writes as ISO text, YYYY-MM-DD and
-    " HH:MM:SS, and empty when initial), and empty for a kind no such
-    " writer should take on - utclong, an enumeration, and a packed field
-    " TYPED timestamp or timestampl, which ajson converts through the time
-    " zone (rare in a bound row, and ajson's own rendering stays the
-    " reference for them)
+    " HH:MM:SS, and empty when initial), U for a packed field TYPED
+    " timestamp and L for one typed timestampl (by type name as well -
+    " ajson writes both as an ISO instant in UTC, time_get_iso_by_stamp
+    " and time_get_iso_by_stampl), and empty for a kind no such writer
+    " should take on - utclong and an enumeration
     TYPES:
       BEGIN OF ty_s_flat_comp,
         name      TYPE string,
@@ -268,19 +270,33 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     "! The components of the FLAT structure behind a data reference - the
     "! structure itself, or the line of the STANDARD table it points to -
-    "! each with its json_kind (see the type). Empty when the reference
-    "! points to anything else (a scalar, a sorted or hashed table, a table
-    "! of scalars), when any component is no elementary one (a nested
-    "! structure, a table, a reference), when the structure has an include
-    "! (whose components are a question of their own), or when a component
-    "! has no json_kind - so a caller that gets rows can write every cell
-    "! of every row as a scalar, and one that gets none takes the general
-    "! road
+    "! each with its json_kind (see the type). The components of an include
+    "! are listed in its place, under the names the structure addresses
+    "! them by (a RENAMING WITH SUFFIX applied, an include of an include
+    "! resolved): the included view of the structure, which is what ajson
+    "! walks. Empty when the reference points to anything else (a scalar, a
+    "! sorted or hashed table, a table of scalars), when any component - an
+    "! included one too - is no elementary one (a nested structure, a
+    "! table, a reference), or when a component has no json_kind - so a
+    "! caller that gets rows can write every cell of every row as a scalar,
+    "! and one that gets none takes the general road
     CLASS-METHODS rtti_get_flat_components
       IMPORTING
         val           TYPE REF TO data
       RETURNING
         VALUE(result) TYPE ty_t_flat_comp.
+
+    "! Whether the type of the data object behind a data reference names a
+    "! component with a namespace (`/ABC/FIELD`) - in the structure itself,
+    "! in the line of the table it is, and in every structure and table line
+    "! below them (an include's components count, under the names the
+    "! structure addresses them by). References are not followed, and a
+    "! reference RTTI cannot describe answers false
+    CLASS-METHODS rtti_check_namespaced
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     TYPES:
       BEGIN OF ty_s_sel_tab_type,
@@ -295,12 +311,12 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " flag column named sel_field_name (default `ZZSELKZ`) is inserted.
     " Keeps the dynamic RTTI type construction (describe_by_data / create) in
     " one place so it can be ported once for non-ABAP runtimes.
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     " `ir_tab` keeps its Hungarian name against the `val` convention used by
-    " the rest of this class: z2ui5_cl_pop_to_select (src/99/02) passes it as
-    " a NAMED argument, and src/99 is frozen, so renaming the parameter would
-    " break a package this repository is not allowed to edit. Rename it only
-    " together with the removal of src/99.
+    " the rest of this class: z2ui5_cl_pop_to_select (the extension
+    " repository, src/99/02 here until 2026-11-17) passes it as a NAMED
+    " argument, and that class is frozen, so renaming the parameter would
+    " break code this repository does not hold. It goes with the symbol.
     CLASS-METHODS rtti_create_sel_tab_type
       IMPORTING
         ir_tab         TYPE REF TO data
@@ -403,14 +419,14 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RAISING
         cx_xslt_serialization_error.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS boolean_check_by_data
       IMPORTING
         val           TYPE any
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS boolean_abap_2_json
       IMPORTING
         val           TYPE any
@@ -474,6 +490,28 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         !seconds      TYPE i
       RETURNING
         VALUE(result) TYPE timestampl.
+
+    "! A UTC time stamp as an ISO 8601 instant, `YYYY-MM-DDTHH:MM:SSZ` -
+    "! `0000-00-00T00:00:00Z` for an initial one and for one that is no
+    "! valid point in time. Statement for statement what
+    "! z2ui5_cl_ajson's lcl_abap_to_json=>format_timestamp does, because a
+    "! caller writes it into a document next to what ajson wrote
+    "! (z2ui5_cl_ui5_srv_model=>json_row): the two must not differ in a
+    "! single character, whatever the platform makes of an odd value
+    CLASS-METHODS time_get_iso_by_stamp
+      IMPORTING
+        val           TYPE timestamp
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! The same for a long time stamp, with its fraction -
+    "! `YYYY-MM-DDTHH:MM:SS.fZ`, the trailing zeros of the fraction dropped
+    "! and a single 0 left of an empty one (format_timestampl of ajson)
+    CLASS-METHODS time_get_iso_by_stampl
+      IMPORTING
+        val           TYPE timestampl
+      RETURNING
+        VALUE(result) TYPE string.
 
     "! Milliseconds from time_from to time_to - two time_get_timestampl( )
     "! readings - negative when time_to lies before time_from, 0 when either
@@ -560,15 +598,6 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    "! val up to the first occurrence of sub - val itself when sub does
-    "! not occur (unlike substring_before( ), which answers empty then).
-    CLASS-METHODS c_cut_at
-      IMPORTING
-        val           TYPE clike
-        sub           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS url_param_get_tab
       IMPORTING
         val           TYPE clike
@@ -639,6 +668,18 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    " why a class cannot be described - the exception describe_by_name
+    " raised for a class that exists but cannot be loaded (a syntax error in
+    " it, a missing dependency); unbound when the class describes fine or
+    " does not exist at all. The follow-up question to a "no" of
+    " rtti_check_class_impl_intf, so a caller can say "broken" instead of
+    " "does not exist". Not cached: it is asked once, after a failure
+    CLASS-METHODS rtti_get_class_load_error
+      IMPORTING
+        class         TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO cx_root.
+
     CLASS-METHODS rtti_get_type_kind
       IMPORTING
         val           TYPE any
@@ -651,33 +692,33 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS boolean_check_by_name
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS filter_get_token_t_by_range_t
       IMPORTING
         val           TYPE ANY TABLE
       RETURNING
         VALUE(result) TYPE ty_t_token ##NEEDED.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS filter_get_token_range_mapping
       RETURNING
         VALUE(result) TYPE ty_t_name_value.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_corresponding
       IMPORTING
         val  TYPE STANDARD TABLE
       CHANGING
         !tab TYPE STANDARD TABLE.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_filter_by_val
       IMPORTING
         val         TYPE clike
@@ -686,7 +727,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       CHANGING
         !tab        TYPE STANDARD TABLE.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_get_by_struc
       IMPORTING
         val           TYPE any
@@ -699,7 +740,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO data.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS conv_get_xstring_by_data_uri
       IMPORTING
         val           TYPE clike
@@ -712,14 +753,14 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_check_table
       IMPORTING
         val           TYPE any
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_check_structure
       IMPORTING
         val           TYPE any
@@ -783,21 +824,21 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_data_element_texts
       IMPORTING
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE ty_s_data_element_text.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS conv_decode_x_base64
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS conv_encode_x_base64
       IMPORTING
         val           TYPE xstring
@@ -846,7 +887,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " abap_true when one component of a row holds the search text - the
     " per-field half of itab_filter_by_val. A component that is not printable
     " (a table of children, a reference) holds no text and answers false
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_filter_check_field
       IMPORTING
         field         TYPE any
@@ -915,7 +956,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         is_bool   TYPE abap_bool,
       END OF ty_s_bool_cache.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-DATA mt_bool_cache TYPE HASHED TABLE OF ty_s_bool_cache WITH UNIQUE KEY typedescr.
 
     TYPES:
@@ -948,6 +989,15 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " class down with it
     CLASS-DATA gv_xml_escape_specials TYPE string.
     CLASS-DATA gv_xml_escape_controls TYPE string.
+
+    " the type half of rtti_check_namespaced: a structure, the line of a
+    " table, and what is below them - depth-bounded like expand_components
+    CLASS-METHODS rtti_check_namespaced_type
+      IMPORTING
+        type          TYPE REF TO cl_abap_typedescr
+        depth         TYPE i DEFAULT 0
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     " the json_kind of one elementary type (see ty_s_flat_comp)
     CLASS-METHODS rtti_get_json_kind
@@ -987,7 +1037,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result)    TYPE ty_t_classes.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_dtel_texts_by_ddic
       IMPORTING
         name        TYPE string
@@ -995,7 +1045,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         texts       TYPE ty_s_data_element_text
         do_fallback TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_dtel_texts_by_xco
       IMPORTING
         name        TYPE string
@@ -1476,8 +1526,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       DATA(lv_index) = 0.
       LOOP AT <lt_source> ASSIGNING FIELD-SYMBOL(<ls_source>).
         lv_index = lv_index + 1.
-        READ TABLE lt_tab INDEX lv_index ASSIGNING <ls_range>.
-        IF sy-subrc <> 0.
+        UNASSIGN <ls_range>.
+        ASSIGN lt_tab[ lv_index ] TO <ls_range>.
+        IF <ls_range> IS NOT ASSIGNED.
           EXIT.
         ENDIF.
         UNASSIGN <lv_part>.
@@ -1687,12 +1738,34 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           result = xsdbool( line_exists( lo_classdescr->interfaces[ name = lv_intf ] ) ). "#EC CI_SORTSEQ
         ENDIF.
 
-      CATCH cx_root ##NO_HANDLER.
+      CATCH cx_sy_move_cast_error ##NO_HANDLER.
+        " an interface or a data type - no class, a plain abap_false
+      CATCH cx_root.
+        " the descriptor failed - not cached, so a class fixed meanwhile is
+        " checked anew; rtti_get_class_load_error( ) says why
+        RETURN.
     ENDTRY.
 
     INSERT VALUE #( name   = lv_class
                     intf   = lv_intf
                     result = result ) INTO TABLE gt_class_impl_intf.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_class_load_error.
+
+    DATA lo_typedescr TYPE REF TO cl_abap_typedescr.
+
+    TRY.
+        cl_abap_classdescr=>describe_by_name( EXPORTING p_name          = to_upper( class )
+                                              RECEIVING p_descr_ref     = lo_typedescr
+                                              EXCEPTIONS type_not_found = 1 ).
+        IF sy-subrc <> 0.
+          " no such type at all - that is no load error
+          CLEAR result.
+        ENDIF.
+      CATCH cx_root INTO result ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -1902,6 +1975,58 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     result = cl_abap_tstmp=>subtractsecs( tstmp = time
                                           secs  = seconds ).
+
+  ENDMETHOD.
+
+  METHOD time_get_iso_by_stamp.
+
+    " the statements of ajson's format_timestamp, unchanged - the zone as
+    " a C(6) constant, the date and the time initial before the
+    " conversion, which leaves them alone for a time stamp it refuses
+    CONSTANTS lc_utc TYPE c LENGTH 6 VALUE 'UTC'.
+
+    DATA lv_date TYPE d.
+    DATA lv_time TYPE t.
+
+    CONVERT TIME STAMP val TIME ZONE lc_utc
+      INTO DATE lv_date TIME lv_time.
+
+    result = lv_date+0(4) && `-` && lv_date+4(2) && `-` && lv_date+6(2) &&
+             `T` &&
+             lv_time+0(2) && `:` && lv_time+2(2) && `:` && lv_time+4(2) &&
+             `Z`.
+
+  ENDMETHOD.
+
+  METHOD time_get_iso_by_stampl.
+
+    " the statements of ajson's format_timestampl, unchanged - see
+    " time_get_iso_by_stamp; the fraction is taken from the rendered
+    " number, not computed
+    CONSTANTS lc_utc TYPE c LENGTH 6 VALUE 'UTC'.
+
+    DATA lv_date TYPE d.
+    DATA lv_time TYPE t.
+    DATA lv_frac TYPE string.
+    DATA lv_int  TYPE string.
+
+    CONVERT TIME STAMP val TIME ZONE lc_utc
+      INTO DATE lv_date TIME lv_time.
+
+    SPLIT |{ val }| AT `.` INTO lv_int lv_frac.
+    lv_frac = shift_right( val = lv_frac
+                           sub = `0` ).
+    lv_frac = shift_left( val = lv_frac
+                          sub = ` ` ).
+    IF lv_frac IS INITIAL.
+      lv_frac = `0`.
+    ENDIF.
+
+    result = lv_date+0(4) && `-` && lv_date+4(2) && `-` && lv_date+6(2) &&
+             `T` &&
+             lv_time+0(2) && `:` && lv_time+2(2) && `:` && lv_time+4(2) &&
+             `.` && lv_frac &&
+             `Z`.
 
   ENDMETHOD.
 
@@ -2186,7 +2311,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     FIELD-SYMBOLS <row_out> TYPE any.
 
     LOOP AT val ASSIGNING <row_in>.
-      APPEND INITIAL LINE TO tab ASSIGNING <row_out>.
+      INSERT INITIAL LINE INTO TABLE tab ASSIGNING <row_out>.
       MOVE-CORRESPONDING <row_in> TO <row_out>.
     ENDLOOP.
 
@@ -2462,14 +2587,28 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     IF result NA `\'` AND result NA cv_char_util_cr_lf.
       RETURN.
     ENDIF.
-    REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
-    REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
-    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf IN result WITH `\n`.
-    REPLACE ALL OCCURRENCES OF cv_char_util_newline IN result WITH `\n`.
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `\'`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = cv_char_util_cr_lf
+                      with = `\n`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = cv_char_util_newline
+                      with = `\n`
+                      occ  = 0 ).
     " a standalone CR (not part of CR+LF, already collapsed above) is a JS
     " line terminator too and would break the '...' literal
-    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf(1)
-            IN result WITH `\r`.
+    result = replace( val  = result
+                      sub  = cv_char_util_cr_lf(1)
+                      with = `\r`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -2566,6 +2705,58 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD rtti_check_namespaced.
+
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    " REFERENCE_IS_INITIAL is a classic exception, the CATCH below cannot see it
+    cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
+                                             RECEIVING p_descr_ref           = lo_type
+                                             EXCEPTIONS reference_is_initial = 1
+                                                        OTHERS               = 2 ).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    TRY.
+        result = rtti_check_namespaced_type( lo_type ).
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_namespaced_type.
+
+    " no type nests deeper than this without a reference, which is not
+    " followed - the bound is a guard, not a limit an app meets
+    IF depth > 32.
+      RETURN.
+    ENDIF.
+    DATA(lo_type) = type.
+    IF lo_type->kind = cl_abap_typedescr=>kind_table.
+      lo_type = CAST cl_abap_tabledescr( lo_type )->get_table_line_type( ).
+    ENDIF.
+    IF lo_type->kind <> cl_abap_typedescr=>kind_struct.
+      RETURN.
+    ENDIF.
+    " the included view, as rtti_get_flat_components reads it: the name of
+    " an include's component is the one the structure addresses it by
+    DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_included_view( ).
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      IF strlen( lr_comp->name ) > 1 AND lr_comp->name(1) = `/`.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+      IF ( lr_comp->type->kind = cl_abap_typedescr=>kind_struct
+           OR lr_comp->type->kind = cl_abap_typedescr=>kind_table )
+          AND rtti_check_namespaced_type( type  = lr_comp->type
+                                          depth = depth + 1 ) = abap_true.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD rtti_get_flat_components.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
@@ -2588,10 +2779,20 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         IF lo_type->kind <> cl_abap_typedescr=>kind_struct.
           RETURN.
         ENDIF.
-        DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_components( ).
+        " the included view, not get_components( ): an include arrives
+        " there as ONE component (as_include) that no cell can be read
+        " by, and a row type with an include - an append, a reuse
+        " structure, a DDIC table's .INCLUDE - is what many bound tables
+        " are made of. The view lists every field under the name
+        " ASSIGN COMPONENT takes, suffix applied and nested includes
+        " resolved, and it is the very call ajson's convert_struc makes -
+        " so the names are ajson's on every release, by construction. A
+        " NESTED structure stays one component of a structure kind and
+        " ends the fast path below, as before
+        DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_included_view( ).
         LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
           DATA(ls_flat) = VALUE ty_s_flat_comp( name = lr_comp->name ).
-          IF lr_comp->as_include = abap_true OR lr_comp->type->kind <> cl_abap_typedescr=>kind_elem.
+          IF lr_comp->type->kind <> cl_abap_typedescr=>kind_elem.
             CLEAR result.
             RETURN.
           ENDIF.
@@ -2600,7 +2801,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             CLEAR result.
             RETURN.
           ENDIF.
-          APPEND ls_flat TO result.
+          INSERT ls_flat INTO TABLE result.
         ENDLOOP.
       CATCH cx_root.
         CLEAR result.
@@ -2618,7 +2819,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           OR `\TYPE=FLAG` OR `\TYPE=XFELD`.
         result = `B`.
         RETURN.
-      WHEN `\TYPE=TIMESTAMP` OR `\TYPE=TIMESTAMPL`.
+      WHEN `\TYPE=TIMESTAMP`.
+        result = `U`.
+        RETURN.
+      WHEN `\TYPE=TIMESTAMPL`.
+        result = `L`.
         RETURN.
     ENDCASE.
     CASE val->type_kind.
@@ -3059,11 +3264,26 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     IF result NA `&<>"'`.
       RETURN.
     ENDIF.
-    REPLACE ALL OCCURRENCES OF `&` IN result WITH `&amp;`.
-    REPLACE ALL OCCURRENCES OF `<` IN result WITH `&lt;`.
-    REPLACE ALL OCCURRENCES OF `>` IN result WITH `&gt;`.
-    REPLACE ALL OCCURRENCES OF `"` IN result WITH `&quot;`.
-    REPLACE ALL OCCURRENCES OF `'` IN result WITH `&#39;`.
+    result = replace( val  = result
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `>`
+                      with = `&gt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `&#39;`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -3273,18 +3493,6 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD c_cut_at.
-
-    result = val.
-    DATA(lv_off) = find( val = result
-                         sub = sub ).
-    IF lv_off >= 0.
-      result = substring( val = result
-                          len = lv_off ).
-    ENDIF.
-
-  ENDMETHOD.
-
   METHOD url_get_origin.
 
     " Only an absolute URL names a host: `https://host[:port]/...`, or the
@@ -3381,7 +3589,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
                                len = strlen( lv_etag ) - 1 ) && `-gzip"`.
     SPLIT lv_header AT `,` INTO TABLE DATA(lt_candidate).
     LOOP AT lt_candidate INTO DATA(lv_candidate).
-      CONDENSE lv_candidate.
+      lv_candidate = condense( lv_candidate ).
       IF strlen( lv_candidate ) > 2 AND substring( val = lv_candidate
                                                    len = 2 ) = `W/`.
         lv_candidate = substring( val = lv_candidate
@@ -3449,19 +3657,35 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " the remainder once per tag - quadratic over a long body, in the path
     " that renders an HTML message for the box
     result = val.
-    REPLACE ALL OCCURRENCES OF REGEX `<[^>]*>` IN result WITH ` ` ##REGEX_POSIX.
-    FIND `<` IN result MATCH OFFSET DATA(lv_open).
-    IF sy-subrc = 0.
+    result = replace( val   = result
+                      regex = `<[^>]*>`
+                      with  = ` `
+                      occ   = 0 ) ##REGEX_POSIX.
+    DATA(lv_open) = find( val = result
+                          sub = `<` ).
+    IF lv_open >= 0.
       result = substring( val = result
                           len = lv_open ) && ` `.
     ENDIF.
 
     " the entities the stripped text would otherwise show as written
-    REPLACE ALL OCCURRENCES OF `&nbsp;` IN result WITH ` `.
-    REPLACE ALL OCCURRENCES OF `&lt;` IN result WITH `<`.
-    REPLACE ALL OCCURRENCES OF `&gt;` IN result WITH `>`.
-    REPLACE ALL OCCURRENCES OF `&amp;` IN result WITH `&`.
-    CONDENSE result.
+    result = replace( val  = result
+                      sub  = `&nbsp;`
+                      with = ` `
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `&lt;`
+                      with = `<`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `&gt;`
+                      with = `>`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `&amp;`
+                      with = `&`
+                      occ  = 0 ).
+    result = condense( result ).
 
     IF strlen( result ) > cv_data_max_text.
       result = substring( val = result
@@ -4398,11 +4622,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     LOOP AT lt_attri REFERENCE INTO ls_attri.
       " the component's descriptor is already in the attribute table - no
       " ASSIGN and no describe_by_data per component
-      CHECK ls_attri->type->kind = cl_abap_typedescr=>kind_table.
+      IF ls_attri->type->kind <> cl_abap_typedescr=>kind_table.
+        CONTINUE.
+      ENDIF.
 
       TRY.
           DATA(lo_line) = CAST cl_abap_tabledescr( ls_attri->type )->get_table_line_type( ).
-          CHECK lo_line->kind = cl_abap_typedescr=>kind_struct.
+          IF lo_line->kind <> cl_abap_typedescr=>kind_struct.
+            CONTINUE.
+          ENDIF.
           DATA(lt_comps) = CAST cl_abap_structdescr( lo_line )->get_components( ).
           LOOP AT lt_comps REFERENCE INTO DATA(ls_comp).
             IF ls_comp->name = `%MSG` OR ls_comp->name = `%FAIL`.
@@ -4435,8 +4663,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<tab>).
-      CHECK sy-subrc = 0.
-      CHECK rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      IF rtti_get_type_kind( <tab> ) <> cl_abap_datadescr=>typekind_table.
+        CONTINUE.
+      ENDIF.
 
       " guarded like data_render_tab, msg_get_internal and
       " data_get_headline - and here the symbol is LOOP-CARRIED, so an
@@ -4445,7 +4677,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
       UNASSIGN <ftab>.
       ASSIGN <tab> TO <ftab>.
-      CHECK <ftab> IS ASSIGNED.
+      IF <ftab> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
 
       " the row kind is a property of the table TYPE - decided once per
       " table, not asked of every row (same idea as msg_get_internal_tab)
@@ -4570,8 +4804,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " two RAP prefixes never matched, and no message ever carried its
     " element or action
     DATA(lv_prefix) = CONV string( prefix ).
-    FIND FIRST OCCURRENCE OF `-` IN lv_prefix MATCH OFFSET DATA(lv_off).
-    IF sy-subrc = 0.
+    DATA(lv_off) = find( val = lv_prefix
+                         sub = `-` ).
+    IF lv_off >= 0.
       ASSIGN COMPONENT lv_prefix(lv_off) OF STRUCTURE val TO FIELD-SYMBOL(<sub>).
       IF sy-subrc <> 0.
         RETURN.
@@ -4585,12 +4820,17 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lv_len) = strlen( lv_prefix ).
     DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-      CHECK strlen( ls_attri->name ) > lv_len.
-      CHECK lv_len = 0 OR ls_attri->name(lv_len) = lv_prefix.
+      IF strlen( ls_attri->name ) <= lv_len.
+        CONTINUE.
+      ENDIF.
+      IF NOT ( lv_len = 0 OR ls_attri->name(lv_len) = lv_prefix ).
+        CONTINUE.
+      ENDIF.
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
-      CHECK sy-subrc = 0.
-      CHECK <flag> IS NOT INITIAL.
-      APPEND ls_attri->name+lv_len TO result.
+      IF sy-subrc <> 0 OR <flag> IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      INSERT ls_attri->name+lv_len INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.
@@ -4647,14 +4887,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
-      CHECK sy-subrc = 0.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
 
       DATA(lv_sub_kind) = rtti_get_type_kind( <comp> ).
       IF lv_sub_kind = cl_abap_datadescr=>typekind_struct1
           OR lv_sub_kind = cl_abap_datadescr=>typekind_struct2.
         DATA(lv_sub) = msg_get_rap_flatten( <comp> ).
         IF lv_sub IS NOT INITIAL.
-          APPEND lv_sub TO lt_part.
+          INSERT lv_sub INTO TABLE lt_part.
         ENDIF.
       ELSEIF <comp> IS NOT INITIAL AND rtti_check_printable( <comp> ) = abap_true.
         " the printable test does what the TRY around this could not: a
@@ -4665,7 +4907,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         TRY.
             DATA lv_str TYPE string.
             lv_str = <comp>.
-            APPEND |{ ls_attri->name }={ lv_str }| TO lt_part.
+            INSERT |{ ls_attri->name }={ lv_str }| INTO TABLE lt_part.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
       ENDIF.

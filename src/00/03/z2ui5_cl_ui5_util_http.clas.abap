@@ -692,7 +692,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     result-url = url.
     DATA(lv_query) = CONV string( query ).
-    SHIFT lv_query LEFT DELETING LEADING `?`.
+    lv_query = shift_left( val = lv_query
+                           sub = `?` ).
 
     " by destination the url is the path below it (client_request; client_call
     " passes none), and the query follows that path
@@ -789,10 +790,22 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         OR lv_v CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
       DATA(lv_cr) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1) ).
       DATA(lv_lf) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf+1(1) ).
-      REPLACE ALL OCCURRENCES OF lv_cr IN lv_n WITH ``.
-      REPLACE ALL OCCURRENCES OF lv_lf IN lv_n WITH ``.
-      REPLACE ALL OCCURRENCES OF lv_cr IN lv_v WITH ``.
-      REPLACE ALL OCCURRENCES OF lv_lf IN lv_v WITH ``.
+      lv_n = replace( val  = lv_n
+                      sub  = lv_cr
+                      with = ``
+                      occ  = 0 ).
+      lv_n = replace( val  = lv_n
+                      sub  = lv_lf
+                      with = ``
+                      occ  = 0 ).
+      lv_v = replace( val  = lv_v
+                      sub  = lv_cr
+                      with = ``
+                      occ  = 0 ).
+      lv_v = replace( val  = lv_v
+                      sub  = lv_lf
+                      with = ``
+                      occ  = 0 ).
     ENDIF.
 
     IF mo_server_onprem IS BOUND.
@@ -989,11 +1002,20 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD get_req_info.
 
+    " ~request_uri is read ONCE for the two fields taken from it: every
+    " header read is a dynamic call into the request object, and this
+    " method runs on every request. get_query( ) reads the header itself
+    " and stays for a caller that wants the query alone
+    DATA(lv_uri) = get_header_field( `~request_uri` ).
+
     result-body     = get_cdata( ).
     result-method   = get_method( ).
     result-path     = get_header_field( `~path` ).
-    result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
-    result-query    = get_query( ).
+    result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( lv_uri ).
+    IF lv_uri CS `?`.
+      result-query = substring_after( val = lv_uri
+                                      sub = `?` ).
+    ENDIF.
 
   ENDMETHOD.
 

@@ -48,6 +48,12 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       IMPORTING
         val TYPE REF TO data.
 
+    " the row of the attribute this bind works on - a reference INTO the
+    " attribute table, valid only as long as the table is not rebuilt.
+    " get_model( )->main_attri_search may rebuild it (main_attri_refresh
+    " clears the table and dissolves anew), so between attri_resolve and
+    " the end of bind_attri nothing calls it; a lookup that may miss uses
+    " main_attri_find (window_adopt)
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
     " one model service for the life of this bind service - the client
@@ -206,7 +212,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       CLEAR mt_cell_names.
       DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
       LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
-        APPEND <comp>-name TO mt_cell_names.
+        INSERT <comp>-name INTO TABLE mt_cell_names.
       ENDLOOP.
       mr_cell_tab = ms_config-tab.
     ENDIF.
@@ -221,7 +227,11 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       lr_ref_in = REF #( <ele> ).
 
       IF iv_val = lr_ref_in.
-        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ lv_comp_name }|.
+        " a namespaced column (`/CWM/XCWMAT`) sits below an object of its
+        " namespace in the row (z2ui5_cl_ui5_srv_model=>json_ns_text): its
+        " leading slash goes, the namespace is a level of the path
+        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ shift_left( val   = lv_comp_name
+                                                                          sub = `/` ) }|.
         RETURN.
       ENDIF.
 
@@ -403,6 +413,27 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
                       occ  = 0 ).
     result = |/{ result }|.
 
+    " a component name with a namespace (`/ABC/FIELD` - the fields an
+    " industry solution or a customer appends to a DDIC table, MARA has a
+    " dozen of them) brings its leading slash along: `MS_ROW->/ABC/FIELD`
+    " was `/MS_ROW//ABC/FIELD`. Nothing could resolve that empty segment -
+    " UI5's JSONModel stops walking at it (the binding read MS_ROW itself),
+    " and ajson files the node under a path no parent walks, so the value
+    " never reached the document (and a bound table raised
+    " MODEL_FAST_PATH_TOKEN_LOST, z2ui5_cl_ui5_srv_model=>json_fast_set).
+    " The namespace becomes a segment of its own - `/MS_ROW/ABC/FIELD`,
+    " one path the frontend, ajson and the delta read all resolve alike
+    DO.
+      IF find( val = result
+               sub = `//` ) < 0.
+        EXIT.
+      ENDIF.
+      result = replace( val  = result
+                        sub  = `//`
+                        with = `/`
+                        occ  = 0 ).
+    ENDDO.
+
   ENDMETHOD.
 
   METHOD main.
@@ -566,14 +597,21 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " the total as an attribute of the app (`total = mv_total`): the
     " response reads it anew, so a window event that loads, sorts or
     " filters only sets it - no view rendered again. A value that is no
-    " attribute (`total = lines( lt_all )`) stays the value of this render
+    " attribute (`total = lines( lt_all )`) stays the value of this render.
+    " Asked with main_attri_find, NOT main_attri_search: the client hands
+    " over a reference to whatever the app passed, so a value that is no
+    " attribute is the ordinary case, on every render - and the binding
+    " search answers a miss with a dissolve and a main_attri_refresh before
+    " it raises. That rebuilt the whole attribute table per call for an
+    " answer that was thrown away, and it took the row mr_attri points at
+    " with it: the refresh clears the table, so bind_attri went on reading
+    " its path from a row that was no longer one (see mr_attri)
     CLEAR mr_attri->window_total_name.
     IF ms_config-window_total_ref IS BOUND.
-      TRY.
-          DATA(lr_total) = get_model( )->main_attri_search( ms_config-window_total_ref ).
-          mr_attri->window_total_name = lr_total->name.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
+      DATA(lr_total) = get_model( )->main_attri_find( ms_config-window_total_ref ).
+      IF lr_total IS BOUND.
+        mr_attri->window_total_name = lr_total->name.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
