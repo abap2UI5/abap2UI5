@@ -86,8 +86,8 @@ INTERFACE z2ui5_if_ui5_draft_store
   METHODS cleanup.
 
   "! Delete the one draft that just fell out of the window of the chain
-  "! being saved - opt-in, z2ui5_if_ui5_exit=>ty_s_http_config_post-
-  "! draft_keep_per_chain. The chain is the id_prev links of the CALLING
+  "! being saved - 2 by default, 0 switches it off (z2ui5_if_ui5_exit=>
+  "! ty_s_http_config_post-draft_keep_per_chain). The chain is the id_prev links of the CALLING
   "! user's drafts: the draft just saved is depth 1, keep of them survive,
   "! and the one at depth keep + 1 is deleted - one draft per save, so the
   "! cost is keep - 1 keyed reads, whatever the length of the chain. Never

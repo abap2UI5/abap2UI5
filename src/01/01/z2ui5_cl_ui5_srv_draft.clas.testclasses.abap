@@ -429,7 +429,7 @@ CLASS ltcl_test IMPLEMENTATION.
 ENDCLASS.
 
 
-" prune_chain( ): the opt-in that keeps a chain at N drafts
+" prune_chain( ): the pruning that keeps a chain at N drafts
 " (z2ui5_if_ui5_exit=>ty_s_http_config_post-draft_keep_per_chain). Every
 " test writes its own chain under fresh ids, so a run on a system that
 " kept rows of an earlier run reads only its own
