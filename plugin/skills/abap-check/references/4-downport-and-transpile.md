@@ -428,7 +428,10 @@ break one of those four.
   aborts on 7.02 where the source returns an initial reference. Write
   `ASSIGN itab[ ... ] TO <fs>` and test `IS ASSIGNED` (`UNASSIGN` first in a
   loop), or `line_exists( )` before `REF #( itab[ ... ] )`. `VALUE #( itab[
-  ... ] OPTIONAL )` is lowered correctly. (2) `itab[ KEY primary_key
+  ... ] OPTIONAL )` is lowered correctly. The same gap hits a bare
+  `x = line_index( itab[ ... ] )`: it becomes `READ TABLE ...` + `x = sy-tabix`
+  without a `sy-subrc` check, so a missing row gives a stale index instead
+  of 0 - call it only after `line_exists( )`. (2) `itab[ KEY primary_key
   COMPONENTS ... ]` comes out as `READ TABLE ... WITH KEY KEY primary_key
   ...`, which does not compile - name the components without the key name
   (they cover the unique key, the read is the same) or keep `READ TABLE ...

@@ -171,6 +171,31 @@
     "fm_global_parameters_obsolete": true,
     "forbidden_identifier": true,
     "forbidden_pseudo_and_pragma": true,
+    "forbidden_statement": {
+      "statements": [
+        "Describe",
+        "Refresh",
+        "Ranges",
+        "SelectLoop",
+        "Collect",
+        "Overlay",
+        "Leave",
+        "TypePools",
+        "Perform",
+        "Form",
+        "Write",
+        "ReadTable",
+        "Append",
+        "GetReference",
+        "Concatenate",
+        "Condense",
+        "Translate",
+        "Replace",
+        "Find",
+        "Shift",
+        "Check"
+      ]
+    },
     "forbidden_void_type": true,
     "form_tables_obsolete": true,
     "fully_type_constants": {
