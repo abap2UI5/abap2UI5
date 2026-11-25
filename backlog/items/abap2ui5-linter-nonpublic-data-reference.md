@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a REF TO data attribute of an app that is not PUBLIC'
 summary: 'a protected or private `TYPE REF TO data` attribute of a z2ui5_if_app class whose target has a type built at runtime makes the draft fail on a system (APP_SERIALIZATION_ERROR, CX_REFERENCE_NOT_SERIALIZABLE) - and private-app-attribute recommends PROTECTED for exactly this case'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/197
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 evidence:
