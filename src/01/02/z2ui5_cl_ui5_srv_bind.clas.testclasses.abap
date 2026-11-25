@@ -906,10 +906,10 @@ CLASS ltcl_03_options IMPLEMENTATION.
           is_config = VALUE #( custom_filter = lo_third ) ).
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( mo_bind->mt_impl_names ) ).
-    READ TABLE mo_bind->mt_impl_names INTO DATA(ls_memo) WITH TABLE KEY ref = lo_stored.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN mo_bind->mt_impl_names[ ref = lo_stored ] TO FIELD-SYMBOL(<memo>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <memo> IS ASSIGNED ) ).
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_stored )
-                                        act = ls_memo-name ).
+                                        act = <memo>-name ).
     cl_abap_unit_assert=>assert_equals( exp = lo_stored
                                         act = mo_bind->mr_attri->custom_filter ).
 
@@ -1135,8 +1135,10 @@ CLASS ltcl_04_window IMPLEMENTATION.
 
   METHOD tab_row.
 
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO result WITH TABLE KEY name = `MT_TAB`.
-    cl_abap_unit_assert=>assert_subrc( msg = `MT_TAB has no row in the attribute table` ).
+    ASSIGN mo_cont->mt_attri->*[ name = `MT_TAB` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <attri> IS ASSIGNED )
+                                      msg = `MT_TAB has no row in the attribute table` ).
+    result = REF #( <attri> ).
 
   ENDMETHOD.
 
@@ -1149,8 +1151,9 @@ CLASS ltcl_04_window IMPLEMENTATION.
     " a first bind of another attribute builds the attribute table; a mark
     " on a row that is NOT bound shows whether the table is built anew
     bind( REF #( mo_app->mv_value ) ).
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO DATA(lr_mark) WITH TABLE KEY name = `MV_OTHER`.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN mo_cont->mt_attri->*[ name = `MV_OTHER` ] TO FIELD-SYMBOL(<mark>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <mark> IS ASSIGNED ) ).
+    DATA(lr_mark) = REF #( <mark> ).
     lr_mark->name_client = `MARK`.
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
@@ -1176,8 +1179,10 @@ CLASS ltcl_04_window IMPLEMENTATION.
     " on is still the row of the table, and no row was created anew
     cl_abap_unit_assert=>assert_true( act = xsdbool( mo_bind->mr_attri = lr_row )
                                       msg = `the bind service holds a row that is no longer in the attribute table` ).
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO lr_mark WITH TABLE KEY name = `MV_OTHER`.
-    cl_abap_unit_assert=>assert_subrc( ).
+    UNASSIGN <mark>.
+    ASSIGN mo_cont->mt_attri->*[ name = `MV_OTHER` ] TO <mark>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <mark> IS ASSIGNED ) ).
+    lr_mark = REF #( <mark> ).
     cl_abap_unit_assert=>assert_equals( exp = `MARK`
                                         act = lr_mark->name_client
                                         msg = `looking up a total that is no attribute rebuilt the attribute table` ).
@@ -1229,8 +1234,9 @@ CLASS ltcl_04_window IMPLEMENTATION.
                                         act = lr_row->window_total_name ).
     cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_attri = lr_row ) ).
     " the total is read by its name - it is not bound itself
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO DATA(lr_total) WITH TABLE KEY name = `MV_TOTAL`.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN mo_cont->mt_attri->*[ name = `MV_TOTAL` ] TO FIELD-SYMBOL(<total>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <total> IS ASSIGNED ) ).
+    DATA(lr_total) = REF #( <total> ).
     cl_abap_unit_assert=>assert_false( lr_total->bind ).
 
   ENDMETHOD.

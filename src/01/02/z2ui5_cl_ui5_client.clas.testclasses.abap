@@ -1680,8 +1680,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                                                           event  = `ROWS`
                                                                           window = 2 ) ).
 
-    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = `MT_EMP`.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN mo_action->mo_app->mt_attri->*[ name = `MT_EMP` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <attri> IS ASSIGNED ) ).
+    DATA(lr_attri) = REF #( <attri> ).
     cl_abap_unit_assert=>assert_true( lr_attri->bind ).
     cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
                                         act = lr_attri->name_client ).
@@ -1699,8 +1700,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                                                           total  = lines( lt_all ) + 1
                                                                           event  = `ROWS`
                                                                           window = 2 ) ).
-    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO lr_attri WITH TABLE KEY name = `MT_EMP`.
-    cl_abap_unit_assert=>assert_subrc( ).
+    UNASSIGN <attri>.
+    ASSIGN mo_action->mo_app->mt_attri->*[ name = `MT_EMP` ] TO <attri>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <attri> IS ASSIGNED ) ).
+    lr_attri = REF #( <attri> ).
     cl_abap_unit_assert=>assert_equals( exp = 4
                                         act = lr_attri->window_total ).
     cl_abap_unit_assert=>assert_initial( lr_attri->window_total_name ).
@@ -1723,8 +1726,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                                                           total = mo_test_app->mv_total
                                                                           event = `ROWS` ) ).
 
-    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = `MT_EMP`.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN mo_action->mo_app->mt_attri->*[ name = `MT_EMP` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <attri> IS ASSIGNED ) ).
+    DATA(lr_attri) = REF #( <attri> ).
     cl_abap_unit_assert=>assert_true( lr_attri->bind ).
     cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
                                         act = lr_attri->name_client ).
@@ -1922,7 +1926,7 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    DATA ls_row TYPE ty_s_product.
+    FIELD-SYMBOLS <row> TYPE ty_s_product.
 
     DATA(ls_get) = client->get( ).
 
@@ -1934,13 +1938,14 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
     LOOP AT ls_get-t_model_skipped INTO DATA(ls_skip).
 
       IF ls_skip-name = `MT_PRODUCT`.
-        " the row index is an ABAP table index, so the app's own READ TABLE
-        " reaches the same row with no translation
-        READ TABLE mt_product INDEX ls_skip-row INTO ls_row.
-        IF sy-subrc <> 0.
+        " the row index is an ABAP table index, so the app's own table
+        " expression reaches the same row with no translation
+        UNASSIGN <row>.
+        ASSIGN mt_product[ ls_skip-row ] TO <row>.
+        IF <row> IS NOT ASSIGNED.
           CONTINUE.
         ENDIF.
-        message_add( |{ label_of( ls_skip-field ) } of '{ ls_row-name }' was not accepted| ).
+        message_add( |{ label_of( ls_skip-field ) } of '{ <row>-name }' was not accepted| ).
         CONTINUE.
       ENDIF.
 

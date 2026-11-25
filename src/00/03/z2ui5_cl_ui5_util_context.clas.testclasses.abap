@@ -868,10 +868,8 @@ CLASS ltcl_rtti IMPLEMENTATION.
                                         act = lt_comp[ 2 ]-name ).
     cl_abap_unit_assert=>assert_equals( exp = `ZIP`
                                         act = lt_comp[ 3 ]-name ).
-    " no include entry survives the expansion (a plain READ: the downport
-    " does not rewrite a line_exists( ) inside a method call argument)
-    READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_subrc( exp = 4 ).
+    " no include entry survives the expansion
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_comp[ as_include = abap_true ] ) ) ).
 
   ENDMETHOD.
 
@@ -1937,9 +1935,9 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
   METHOD meta_of.
 
-    READ TABLE msg-t_meta INTO DATA(ls_meta) WITH KEY n = n.
-    IF sy-subrc = 0.
-      result = ls_meta-v.
+    ASSIGN msg-t_meta[ n = n ] TO FIELD-SYMBOL(<meta>).
+    IF <meta> IS ASSIGNED.
+      result = <meta>-v.
     ENDIF.
 
   ENDMETHOD.
@@ -3194,8 +3192,7 @@ CLASS ltcl_coverage IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_comp ) ).
-    READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_subrc( exp = 4 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_comp[ as_include = abap_true ] ) ) ).
 
     " the recursion guard: past 16 levels the expansion refuses
     TRY.
@@ -3277,8 +3274,7 @@ CLASS ltcl_coverage IMPLEMENTATION.
 
     DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_oref( lo_probe ).
 
-    READ TABLE lt_attri WITH KEY name = `MV_TEXT` TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_subrc( exp = 0 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_attri[ name = `MV_TEXT` ] ) ) ).
 
   ENDMETHOD.
 
@@ -3323,10 +3319,8 @@ CLASS ltcl_coverage IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    READ TABLE lt_classes WITH KEY classname = `Z2UI5_CL_UI5_USER_EXIT` TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_subrc( exp = 0 ).
-    READ TABLE lt_classes WITH KEY classname = `` TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_subrc( exp = 4 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_classes[ classname = `Z2UI5_CL_UI5_USER_EXIT` ] ) ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_classes[ classname = `` ] ) ) ).
 
   ENDMETHOD.
 

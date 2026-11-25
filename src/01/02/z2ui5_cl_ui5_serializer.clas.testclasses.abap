@@ -421,8 +421,8 @@ CLASS ltcl_test IMPLEMENTATION.
     ASSIGN lo_app->mr_tab->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( <tab> ) ).
-    READ TABLE <tab> INDEX 1 ASSIGNING <row>.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 1 ] TO <row>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO <col>.
     cl_abap_unit_assert=>assert_subrc( ).
     cl_abap_unit_assert=>assert_equals( exp = `handle`
@@ -524,9 +524,10 @@ CLASS ltcl_test IMPLEMENTATION.
     " window_bind_tab( ) leaves on the row
     NEW z2ui5_cl_ui5_srv_model( attri = result->mt_attri
                                 app   = result->mo_app )->main_attri_refresh( ).
-    READ TABLE result->mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WITH TABLE KEY name = `MT_ROWS`.
-    cl_abap_unit_assert=>assert_subrc( msg = `no row for MT_ROWS` ).
+    ASSIGN result->mt_attri->*[ name = `MT_ROWS` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <attri> IS ASSIGNED )
+                                      msg = `no row for MT_ROWS` ).
+    DATA(lr_attri) = REF #( <attri> ).
     lr_attri->bind         = abap_true.
     lr_attri->window_size  = 2.
     lr_attri->window_total = 5000.
@@ -552,14 +553,15 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_back->mt_rows ).
     cl_abap_unit_assert=>assert_equals( exp = `text`
                                         act = lo_back->mv_text ).
-    READ TABLE lo_parsed->mt_attri->* INTO DATA(ls_attri) WITH TABLE KEY name = `MT_ROWS`.
-    cl_abap_unit_assert=>assert_subrc( msg = `no row for MT_ROWS after the parse` ).
+    ASSIGN lo_parsed->mt_attri->*[ name = `MT_ROWS` ] TO FIELD-SYMBOL(<attri>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <attri> IS ASSIGNED )
+                                      msg = `no row for MT_ROWS after the parse` ).
     cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = ls_attri-window_size ).
+                                        act = <attri>-window_size ).
     cl_abap_unit_assert=>assert_equals( exp = 5000
-                                        act = ls_attri-window_total ).
+                                        act = <attri>-window_total ).
     cl_abap_unit_assert=>assert_equals( exp = `ROWS`
-                                        act = ls_attri-window_event ).
+                                        act = <attri>-window_event ).
 
   ENDMETHOD.
 

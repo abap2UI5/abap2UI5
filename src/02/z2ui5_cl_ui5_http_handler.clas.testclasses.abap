@@ -718,9 +718,9 @@ CLASS ltcl_http_mock IMPLEMENTATION.
 
   METHOD get_header_field.
     DATA(lv_name) = to_lower( val ).
-    READ TABLE mt_req_header INTO DATA(ls_header) WITH KEY n = lv_name.
-    IF sy-subrc = 0.
-      result = ls_header-v.
+    ASSIGN mt_req_header[ n = lv_name ] TO FIELD-SYMBOL(<header>).
+    IF <header> IS ASSIGNED.
+      result = <header>-v.
     ENDIF.
   ENDMETHOD.
 
@@ -1005,9 +1005,9 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD header_value.
-    READ TABLE mo_mock->mt_res_header INTO DATA(ls_header) WITH KEY n = name.
-    IF sy-subrc = 0.
-      result = ls_header-v.
+    ASSIGN mo_mock->mt_res_header[ n = name ] TO FIELD-SYMBOL(<header>).
+    IF <header> IS ASSIGNED.
+      result = <header>-v.
     ENDIF.
   ENDMETHOD.
 

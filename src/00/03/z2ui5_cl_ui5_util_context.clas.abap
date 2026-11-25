@@ -1526,8 +1526,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       DATA(lv_index) = 0.
       LOOP AT <lt_source> ASSIGNING FIELD-SYMBOL(<ls_source>).
         lv_index = lv_index + 1.
-        READ TABLE lt_tab INDEX lv_index ASSIGNING <ls_range>.
-        IF sy-subrc <> 0.
+        UNASSIGN <ls_range>.
+        ASSIGN lt_tab[ lv_index ] TO <ls_range>.
+        IF <ls_range> IS NOT ASSIGNED.
           EXIT.
         ENDIF.
         UNASSIGN <lv_part>.

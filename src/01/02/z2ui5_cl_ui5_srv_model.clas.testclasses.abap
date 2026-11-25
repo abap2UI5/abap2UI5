@@ -945,10 +945,12 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD row_ref.
 
-    READ TABLE mr_attri->* REFERENCE INTO result WITH TABLE KEY name = iv_name.
-    IF sy-subrc <> 0.
+    ASSIGN mr_attri->*[ name = iv_name ] TO FIELD-SYMBOL(<attri>).
+    IF <attri> IS NOT ASSIGNED.
       cl_abap_unit_assert=>fail( |no row { iv_name }| ).
+      RETURN.
     ENDIF.
+    result = REF #( <attri> ).
 
   ENDMETHOD.
 
@@ -1456,11 +1458,11 @@ CLASS ltcl_02_search IMPLEMENTATION.
     " not k*k/2 - and the hit is still confirmed by a fresh ASSIGN
     DATA(lr_row) = bind( REF #( mo_app->mv_string ) ).
 
-    READ TABLE mo_model->mt_ref_idx REFERENCE INTO DATA(lr_idx)
-         WITH TABLE KEY name = `MV_STRING`.
-    cl_abap_unit_assert=>assert_subrc( msg = `the resolved row was not indexed` ).
+    ASSIGN mo_model->mt_ref_idx[ name = `MV_STRING` ] TO FIELD-SYMBOL(<idx>).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( <idx> IS ASSIGNED )
+                                      msg = `the resolved row was not indexed` ).
     DATA(lr_val) = REF #( mo_app->mv_string ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lr_idx->ref = lr_val ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( <idx>-ref = lr_val ) ).
 
     " the second search lands on the same row
     DATA(lr_again) = mo_model->main_attri_search( REF #( mo_app->mv_string ) ).
@@ -2411,8 +2413,8 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     mo_model->main_json_to_attri( delta( |\{"{ lv_key }":\{"__delta":\{"1":\{"COL1":"edited"\}\}\}\}| ) ).
 
     ASSIGN mo_app->mr_handle_tab->* TO <tab>.
-    READ TABLE <tab> INDEX 2 ASSIGNING <row>.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 2 ] TO <row>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO <col>.
     cl_abap_unit_assert=>assert_subrc( ).
     cl_abap_unit_assert=>assert_equals( exp = `edited`
@@ -3775,8 +3777,8 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
     ASSIGN mo_app->mr_handle_tab->* TO <tab>.
-    READ TABLE <tab> INDEX 2 ASSIGNING <row>.
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 2 ] TO <row>.
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
     cl_abap_unit_assert=>assert_subrc( ).
     lv_path = lo_bind->main( val    = REF #( <cell> )
@@ -5914,10 +5916,10 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_tab->* TO <tab>.
     DELETE <tab> FROM 2.
-    " a READ first: the transpiled runtime assigns the ROW for a component
+    " the row first: the transpiled runtime assigns the ROW for a component
     " of a table expression (ASSIGN COMPONENT ... OF STRUCTURE <tab>[ 1 ])
-    READ TABLE <tab> INDEX 1 ASSIGNING FIELD-SYMBOL(<row>).
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 1 ] TO FIELD-SYMBOL(<row>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
     cl_abap_unit_assert=>assert_subrc( ).
     CLEAR <cell>.
@@ -6052,8 +6054,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `note2`
                                         act = ltcl_app_ns=>cell( is_row  = <deep>[ 1 ]
                                                                  iv_name = `/ABC/NOTE` ) ).
-    READ TABLE <deep> INDEX 1 ASSIGNING FIELD-SYMBOL(<deep_row>).
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <deep>[ 1 ] TO FIELD-SYMBOL(<deep_row>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <deep_row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `/ABC/ITEMS` OF STRUCTURE <deep_row> TO <items>.
     cl_abap_unit_assert=>assert_subrc( ).
     cl_abap_unit_assert=>assert_equals( exp = 2
@@ -6081,8 +6083,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     lo_cont->mo_app = lo_app.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_tab->* TO <tab>.
-    READ TABLE <tab> INDEX 2 ASSIGNING FIELD-SYMBOL(<row>).
-    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab>[ 2 ] TO FIELD-SYMBOL(<row>).
+    cl_abap_unit_assert=>assert_true( xsdbool( <row> IS ASSIGNED ) ).
     ASSIGN COMPONENT `/CWM/XCWMAT` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
     cl_abap_unit_assert=>assert_subrc( ).
     DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).

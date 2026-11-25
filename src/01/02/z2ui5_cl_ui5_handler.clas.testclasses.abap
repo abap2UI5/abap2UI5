@@ -345,13 +345,13 @@ CLASS ltcl_00_base IMPLEMENTATION.
     " main_attri_refresh runs the (private) dissolve pass - on this fresh,
     " unbound model it is a pure dissolve, which is all the test needs
     lo_model->main_attri_refresh( ).
-    READ TABLE result->mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WITH KEY name = `CHECK_INIT`.
-    IF sy-subrc <> 0.
+    ASSIGN result->mo_action->mo_app->mt_attri->*[ name = `CHECK_INIT` ] TO FIELD-SYMBOL(<attri>).
+    IF <attri> IS NOT ASSIGNED.
       cl_abap_unit_assert=>abort( ).
+      RETURN.
     ENDIF.
-    lr_attri->bind        = abap_true.
-    lr_attri->name_client = `/CHECK_INIT`.
+    <attri>-bind        = abap_true.
+    <attri>-name_client = `/CHECK_INIT`.
 
   ENDMETHOD.
 

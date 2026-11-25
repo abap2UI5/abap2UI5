@@ -1093,10 +1093,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD json_custom_set.
 
     IF ir_attri->custom_mapper IS BOUND.
-      READ TABLE ct_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
-           WITH KEY mapper = ir_attri->custom_mapper. "#EC CI_SORTSEQ
-      IF sy-subrc = 0.
-        DATA(ajson) = lr_mapper_cache->ajson.
+      ASSIGN ct_mapper_cache[ mapper = ir_attri->custom_mapper ] TO FIELD-SYMBOL(<mapper_cache>). "#EC CI_SORTSEQ
+      IF <mapper_cache> IS ASSIGNED.
+        DATA(ajson) = <mapper_cache>-ajson.
       ELSE.
         ajson = z2ui5_cl_ajson=>create_empty(
                     ii_custom_mapping = ir_attri->custom_mapper ).
@@ -1432,6 +1431,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     DATA lt_piece TYPE string_table.
+    FIELD-SYMBOLS <fast> TYPE ty_s_fast.
     DATA lt_used  TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
     DATA lv_index TYPE i.
     DATA(lv_start) = |"z2ui5-fast-{ is_fast-uuid }-|.
@@ -1459,13 +1459,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       lv_index = substring( val = cv_json
                             off = lv_num_off
                             len = lv_end - lv_num_off ).
-      READ TABLE is_fast-t_token REFERENCE INTO DATA(lr_fast) INDEX lv_index.
-      IF sy-subrc <> 0.
+      UNASSIGN <fast>.
+      ASSIGN is_fast-t_token[ lv_index ] TO <fast>.
+      IF <fast> IS NOT ASSIGNED.
         EXIT.
       ENDIF.
       " a token json_fast_check found unreachable, in the document after
       " all - the check and the tree disagree, counted as lost below
-      IF lr_fast->lost = abap_true.
+      IF <fast>-lost = abap_true.
         lv_found = -1.
         EXIT.
       ENDIF.
@@ -1480,7 +1481,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       APPEND substring( val = cv_json
                         off = lv_pos
                         len = lv_off - lv_pos ) TO lt_piece.
-      APPEND lr_fast->json TO lt_piece.
+      APPEND <fast>-json TO lt_piece.
       lv_pos = lv_end + 1.
       lv_found = lv_found + 1.
     ENDDO.
@@ -3035,8 +3036,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " keyed reads on the sorted node table, so the row is addressed by
       " its full path instead
       DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
-      READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
-      IF sy-subrc <> 0.
+      UNASSIGN <delta_row>.
+      ASSIGN ct_tab[ lv_tabix ] TO <delta_row>.
+      IF <delta_row> IS NOT ASSIGNED.
         " an index past the table's end - the client edited a row the
         " backend no longer has (the app shrank the table without the model
         " going out again). Traced like a sorted-table row: a bare CONTINUE

@@ -36,11 +36,28 @@
   "rules": {
     // statements with a successor that this repository no longer uses -
     // listed so they do not come back (abaplint 2.120.116+). The successors
-    // are the "Style Rules" of AGENTS.md: CHECK -> IF ... RETURN/CONTINUE,
+    // are the "Style Rules" of AGENTS.md: READ TABLE -> line_exists( ),
+    // ASSIGN itab[ ... ] / VALUE #( itab[ ... ] OPTIONAL ),
+    // CHECK -> IF ... RETURN/CONTINUE,
     // the string statements -> their functions (condense( ), find( ),
     // replace( ), shift_left( ), to_upper( ), &&, ...), GET REFERENCE ->
     // REF #( )
     "forbidden_statement": {
+      // the keyed lookups of the hot path stay READ TABLE ... WITH TABLE KEY
+      // (maintainer's decision, 2026-11): not-found is the normal case there,
+      // so a raising itab[ ... ] is out, and the non-raising forms are no
+      // keyed read either - a free-key ASSIGN itab[ ... ] is a sequential
+      // read for the extended check (check:atc, sortseq), and
+      // itab[ KEY primary_key COMPONENTS ... ] is downported to an invalid
+      // "WITH KEY KEY primary_key". The main sources only - their test
+      // classes are linted like everything else. A file listed here is
+      // exempt from every statement below, so the list stays these four
+      "exclude": [
+        "/src/00/03/z2ui5_cl_ui5_util_context\\.clas\\.abap$",
+        "/src/01/02/z2ui5_cl_ui5_srv_model\\.clas\\.abap$",
+        "/src/01/02/z2ui5_cl_ui5_app_cont\\.clas\\.abap$",
+        "/src/01/02/z2ui5_cl_ui5_srv_bind\\.clas\\.abap$"
+      ],
       "statements": [
         "Describe",
         "Refresh",
@@ -60,7 +77,8 @@
         "Translate",
         "Replace",
         "Find",
-        "Shift"
+        "Shift",
+        "ReadTable"
       ]
     },
     "7bit_ascii": true,
