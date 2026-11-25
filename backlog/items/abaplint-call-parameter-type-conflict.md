@@ -9,6 +9,7 @@ checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit 7ecea07 (#5906, 702), 68ec17a (#3686), 9a85ff4 (#6272), 18cf907 (#7162); abap2UI5/abap2UI5 04958e0 (#1083)'
+  - 'abap2UI5-addons/table-maintenance 2f6d2e3 (2026-11-25): ENQUEUE_E_TABLE called by name with VARKEY as a C250 field failed on S/4 816 - the formal is RSTABLE-VARKEY; abaplint was green. abap2UI5-addons/popups z2ui5_cl_popup_context passes a local rebuild of SHLP_DESCR (ty_shlp_descr) to F4IF_EXPAND_SEARCHHELP - the same shape, not yet seen failing'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
 ---
 
