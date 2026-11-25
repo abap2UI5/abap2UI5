@@ -15,22 +15,7 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`abap2ui5-linter-draft-id-as-link`](items/abap2ui5-linter-draft-id-as-link.md) | 'an app that builds its own share link or bookmark from get( )-s_draft-id points at a draft the default pruning deletes after two roundtrips, or one an unchanged timer tick never wrote - app_state_get_href( ) is the link the framework keeps alive'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | high | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-framework-table-access`](items/abap2ui5-linter-framework-table-access.md) | 'an app that reads or deletes z2ui5_t_01 (drafts) or z2ui5_t_11 (layouts) directly bypasses the owner check, the draft store and the authority checks the APIs apply, and breaks when the internal table changes'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | high | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-namespaced-row-binding`](items/abap2ui5-linter-namespaced-row-binding.md) | 'a row template that binds a column like /CWM/XCWMAT as {/CWM/XCWMAT}, or builds the braces around a column name only known at run time without component_path( ), binds an absolute path - the cell is empty and an edit is lost, with no error anywhere'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | high | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-enum-binding-no-fallback`](items/abap2ui5-linter-enum-binding-no-fallback.md) | 'type, design or valueColor bound straight to a STRING column of a bound table - an initial value is no member of the enum, UI5 throws in validateProperty and the view does not render'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | medium | 2026-11-25 | abap2UI5/linter |
-| [`abap2ui5-linter-message-before-navigation`](items/abap2ui5-linter-message-before-navigation.md) | 'a message_toast_display( ) or message_box_display( ) followed in the same flow by nav_app_leave( ) or nav_app_call( ) is dropped with the screen it was queued on - the "Saved." of a detail page that returns to its list never shows; keep_messages = abap_true carries it'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | medium | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-nonserializable-attribute`](items/abap2ui5-linter-nonserializable-attribute.md) | 'an object reference an app keeps in an attribute is dropped without a word when the draft is written if its class is not serializable, and is initial on the next roundtrip - the view builder is the usual one'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | medium | 2026-11-23 | abap2UI5/linter |
-| [`abap2ui5-linter-stateful-without-release`](items/abap2ui5-linter-stateful-without-release.md) | 'an app that turns the session stateful (usually for an ENQUEUE lock) and has a navigation or leave path that neither calls set_session_stateful( abap_false ) nor dequeues keeps a work process and the lock until the ICF timeout'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | medium | 2026-11-25 | abap2UI5/linter |
-| [`abap2ui5-linter-start-param-by-hand`](items/abap2ui5-linter-start-param-by-hand.md) | 'an app that reads its start parameter from url_param_get( ) or t_comp_params itself covers one way of being started and misses the others (URL, launchpad tile, launchpad intent); client->get_start_param( ) reads all three'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | low | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-style-block-per-view`](items/abap2ui5-linter-style-block-per-view.md) | 'an app that puts its stylesheet into a core:HTML <style> of the view sends it with every view_display( ) - kilobytes per roundtrip for CSS that never changes; the installation''s styles_css writes it into the page once'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | low | 2026-11-24 | abap2UI5/linter |
-| [`abap2ui5-linter-timer-tick-changes-state`](items/abap2ui5-linter-timer-tick-changes-state.md) | 'an unchanged timer tick writes no draft (abap2UI5 cdd2fb25), but only when main( ) leaves the app byte for byte as it was - a handler that stamps a time or bumps a counter on every tick writes a draft per tick for as long as the page is open'<br><sub>https://github.com/abap2UI5/linter/pull/204</sub> | low | 2026-11-24 | abap2UI5/linter |
+_Empty. Nothing is waiting to be filed against this one._
 
 ---
 
