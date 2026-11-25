@@ -3,7 +3,8 @@ target: abaplint
 title: 'inline_packed_computation: a parenthesised right-hand side and a VALUE operand are not reported'
 summary: 'DATA(x) = ( a + b ). and DATA(t) = a + VALUE #( lt[ 1 ]-quan OPTIONAL ). get type P(8,0) on the system and lose their decimals - the rule reports a - b, a * b, a + b and meth( ) + b, not these'
 priority: high
-state: open
+state: filed
+filed: https://github.com/oblomov-dev/fork-abaplint/pull/6
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint

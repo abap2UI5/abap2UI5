@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report a dynamic WHERE (lv_where) whose string can be empty'
 summary: 'SELECT … WHERE (lv_where) with an empty lv_where reads the whole table, and DELETE/UPDATE … WHERE (lv_where) changes every row - a WHERE string assembled from optional filters is empty exactly when the user set none'
 priority: high
-state: open
+state: filed
+filed: https://github.com/oblomov-dev/fork-abaplint/pull/8
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint

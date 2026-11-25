@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report an actual parameter that is not compatible with a by-reference IMPORTING parameter'
 summary: 'a P(15,2) for a by-reference parameter TYPE decfloat34, an N(6) for the view builder''s v TYPE string - green in abaplint, "The type ... is not compatible with the type ... of ..." on the system'
 priority: high
-state: open
+state: filed
+filed: https://github.com/oblomov-dev/fork-abaplint/pull/7
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
