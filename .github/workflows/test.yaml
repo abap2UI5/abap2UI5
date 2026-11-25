@@ -333,7 +333,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: 501bb21150ba26d568f3f7941b328b162f44b4d1   # DEV, protocol 3 (VIEWS / NAV / ACTIONS, ROUTE)
+        ref: 789bbd254c3a80459fcf363e1fe614b099943af5   # main, protocol 3 revision 0.9 (S_FRONT.TIMER, repeating timer, STOP_TIMER)
         path: protocol
         persist-credentials: false
     - name: The protocol package, with the runtime packed here
@@ -382,7 +382,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: 501bb21150ba26d568f3f7941b328b162f44b4d1   # DEV, protocol 3 (VIEWS / NAV / ACTIONS, ROUTE) - keep equal to conformance_backend
+        ref: 789bbd254c3a80459fcf363e1fe614b099943af5   # main, protocol 3 revision 0.9 (S_FRONT.TIMER, repeating timer, STOP_TIMER) - keep equal to conformance_backend
         path: protocol
         persist-credentials: false
     - uses: ./.github/actions/setup
