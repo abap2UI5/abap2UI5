@@ -671,7 +671,9 @@ INTERFACE z2ui5_if_client
   "!                  are shown after the target has rendered, ahead of the
   "!                  target's own - `Saved.` survives the return to the
   "!                  list. Not supplied, everything this app queued is
-  "!                  dropped with its screen, as always. Appended at the END
+  "!                  dropped with its screen, as always. A box carried
+  "!                  over keeps its onclose: that event is raised in the
+  "!                  target app, which has to know it. Appended at the END
   "!                  of the list (rule 5).
   METHODS nav_app_leave
     IMPORTING
