@@ -493,6 +493,10 @@ and points here, so a new trap is added here and nowhere else.
     `zif~count` implemented as `METHOD count.` via the superclass alias;
     abaplint reports a missing implementation instead. Fix:
     `METHOD zif~count.`
+    The same warning for an attribute: one method that reads
+    `mo_app->mv_shared` (an alias) and `mo_app->lif~mv_shared` (2026-11-25,
+    a unit test of z2ui5_cl_ui5_srv_model); abaplint reports nothing. Fix:
+    one spelling per method.
   - *"The fixed type STRING is used for the generic type CLIKE"* -
     `CONV #( lv_quan )` (packed) into `v1 TYPE clike`. Fix: `CONV string( )`.
   - *"The table MARD has a replacement object and hence should no longer be

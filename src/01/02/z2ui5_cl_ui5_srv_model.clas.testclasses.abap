@@ -6181,6 +6181,12 @@ CLASS ltcl_07_intf_attr DEFINITION FINAL
     METHODS intf_model_out_and_back FOR TESTING RAISING cx_static_check.
     METHODS intf_namespaced_level FOR TESTING RAISING cx_static_check.
     METHODS alias_and_intf_one_row FOR TESTING RAISING cx_static_check.
+    " the alias spelling of MV_SHARED, in a method of its own: a method that
+    " names one component both ways draws the extended check's "accessed in
+    " the current context under a different name"
+    METHODS alias_ref
+      RETURNING
+        VALUE(result) TYPE REF TO string.
     METHODS alias_dedupe_by_reference FOR TESTING RAISING cx_static_check.
     METHODS intf_survives_refresh FOR TESTING RAISING cx_static_check.
     METHODS intf_dref_save_load FOR TESTING RAISING cx_static_check.
@@ -6331,21 +6337,22 @@ CLASS ltcl_07_intf_attr IMPLEMENTATION.
     " runtime lists no ALIASES at all, so there it is the interface row
     DATA(lv_path) = bind( REF #( mo_app->lif_intf_alias~mv_shared ) ).
     cl_abap_unit_assert=>assert_equals( exp = lv_path
-                                        act = bind( REF #( mo_app->mv_shared ) ) ).
+                                        act = bind( alias_ref( ) ) ).
     " with the interface rows on (another interface attribute was looked
     " for), still the same row
     bind( REF #( mo_app->lif_intf_attr~mv_intf ) ).
     cl_abap_unit_assert=>assert_equals( exp = lv_path
                                         act = bind( REF #( mo_app->lif_intf_alias~mv_shared ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = lv_path
-                                        act = bind( REF #( mo_app->mv_shared ) ) ).
+                                        act = bind( alias_ref( ) ) ).
     DATA(lv_alias_row) = xsdbool( line_exists( mo_cont->mt_attri->*[ name = `MV_SHARED` ] ) ).
     DATA(lv_intf_row) = xsdbool( line_exists( mo_cont->mt_attri->*[ name = `LIF_INTF_ALIAS~MV_SHARED` ] ) ).
     cl_abap_unit_assert=>assert_differs( exp = lv_alias_row
                                          act = lv_intf_row ).
 
     " written once, out and back
-    mo_app->mv_shared = `out`.
+    DATA(lr_alias) = alias_ref( ).
+    lr_alias->* = `out`.
     DATA(lv_member) = substring( val = lv_path
                                  off = 1 ).
     DATA(li_doc) = z2ui5_cl_ajson=>parse( model( )->main_json_stringify( ) ).
@@ -6357,6 +6364,10 @@ CLASS ltcl_07_intf_attr IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `in`
                                         act = mo_app->lif_intf_alias~mv_shared ).
 
+  ENDMETHOD.
+
+  METHOD alias_ref.
+    result = REF #( mo_app->mv_shared ).
   ENDMETHOD.
 
   METHOD alias_dedupe_by_reference.
