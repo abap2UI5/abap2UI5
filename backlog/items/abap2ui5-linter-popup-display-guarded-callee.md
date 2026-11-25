@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'unconditional-popup-display: respect early RETURN guards and CASE/IF branches in called methods'
 summary: 'unconditional-popup-display follows main( ) into a called method and reports a popup_display( ) there as top level, although the call sits behind an early RETURN guard or inside a WHEN/IF branch of the callee'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/201
 first_seen: 2026-11-25
 checked_upstream: 2026-11-25
 evidence:
