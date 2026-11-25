@@ -296,6 +296,11 @@
     }
   },
   "frozenBuilderHelpers": null,
+  "builderStatics": [
+    "factory",
+    "escape_literal",
+    "component_path"
+  ],
   "objects": {
     "src/00/01": [
       "z2ui5_cl_ajson",
