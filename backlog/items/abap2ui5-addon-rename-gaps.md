@@ -70,7 +70,11 @@ to 1.151.0 when it is tagged (or `main`), then add `rename.mjs`,
 
 - Not-renameable object types: a text replacement in the workflow, the way
   abap2UI5 builds its renamed BSP (`tools/bsp_rename`), or an upstream
-  renamer in abaplint for the type (WAPA, FUGR, DDLS, AUTH).
+  renamer in abaplint for the type (WAPA, FUGR, DDLS, AUTH) - one abaplint
+  item per type family: `abaplint-rename-wapa`, `abaplint-rename-function-groups`,
+  `abaplint-rename-cds-rap`, `abaplint-rename-authorization-objects`,
+  `abaplint-rename-gateway-objects`; names over 30 characters
+  `abaplint-rename-name-over-30`, literals `abaplint-rename-string-literals`.
 - Names over 25 characters: shortened, with a README note which old objects to
   delete after the pull - or a lower `config.renameMaxLength` in package.json
   (rename.mjs reads it), which limits the name the whole installation can be
