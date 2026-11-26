@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Sample corpora must be renameable: the work list for samples, samples-controls and samples-stack'
-summary: decided 2026-11-26 - every sample corpus must be renameable together with the framework; work list - samples (check-rename against an unrenamed framework, 140 class-name literals), samples-controls (no rename, 676 literals in the overview), samples-stack (object types abaplint cannot rename) - via abaplint #4719 or derived class names, and the new abaplint renamer items
+summary: decided 2026-11-26 - every sample corpus must be renameable together with the framework; work list - samples (check-rename against an unrenamed framework, 140 class-name literals), samples-controls (no rename, 676 literals in the overview), samples-stack (object types abaplint cannot rename; its two tables over 11 characters shortened 2026-11-26) - via abaplint #4719 or derived class names, and the new abaplint renamer items
 priority: high
 state: open
 first_seen: 2026-11-26
@@ -13,6 +13,7 @@ evidence:
   - 'samples-stack origin/main 7538290: BDEF, DDLS, SRVD, SRVB, SAPC, SAMC, SUSH, G4BA, SMIM objects and the SICF z2ui5_apc_smp_202689da8c04c25e7370ed1ba2 (40); 58 class-name literals'
   - 'DEV of the three corpora, 2026-11-26 - the work list done as far as abaplint carries it: samples (npm run rename is the shared scripts/rename.mjs, 294 files, 0 issues, 7 literals of z2ui5_cl_smp_app_104/105 kept and listed), samples-controls (check-rename / build-rename, 1395 files, 0 issues - the generator writes derived names), samples-stack (check-rename / build-rename, 47 files, 0 issues, 10 packages left out by config.renameSkip, each with its reason)'
   - 'samples-stack, new in that run: src/06 and src/10 cannot be renamed for a reason that is not abaplint''s - their tables z2ui5_t_smps_01 (15 characters) and z2ui5_t_smps_llm (16) leave no room under the 16 of a transparent table ("a new name is too long for its object type: TABL Z2UI5_T_SMPS_LLM -> zxxxxxxxxx_T_SMPS_LLM"); with a 5-character name the run reaches the next gap - three literals naming Z2UI5_T_SMPS_01 in the lock samples and three class names in z2ui5_cl_smps_llm_factory. Shortening a table is breaking (data); the decision is open'
+  - 'samples-stack DEV 2026-11-26, maintainer decision: the two tables shortened (breaking) - Z2UI5_T_SMPS_01 -> Z2UI5_T_SLK, Z2UI5_T_SMPS_LLM -> Z2UI5_T_SAI (11 characters, the most a transparent table the rename takes may have); the lock samples read the table name from a typed row, z2ui5_cl_smps_llm_factory=>class_name( ) completes its transport names; src/06 and src/10 out of config.renameSkip - npm run rename 90 files, 0 issues, 8 packages left out; the README says how to copy the configuration row and to delete the old tables'
 ---
 
 # Sample corpora and the rename
@@ -65,9 +66,9 @@ installation nobody can try. The work list:
    name - that is its lesson). #4719 would take them.
 2. **samples-controls** - done.
 3. **samples-stack** - renamed: the overview, `src/00`, `01`, `02`, `09`,
-   `14`. Left out (`config.renameSkip`): `03`-`05`, `11`-`13` (CDS/RAP, G4BA,
-   EML), `07` (APC/AMC, SUSH), `08` (SMIM), `06` and `10` (tables of 15 and
-   16 characters - a decision, not an abaplint gap).
+   `14`, and since its tables were shortened `06` and `10` (`Z2UI5_T_SLK`,
+   `Z2UI5_T_SAI`; breaking). Left out (`config.renameSkip`): `03`-`05`,
+   `11`-`13` (CDS/RAP, G4BA, EML), `07` (APC/AMC, SUSH), `08` (SMIM).
 4. AGENTS.md of each says so; docs `advanced/renaming.md` is still open.
 
 ## Reproduce
