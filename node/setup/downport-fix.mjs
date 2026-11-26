@@ -159,6 +159,9 @@ const MODES = {
       ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.\n  DATA temp1 LIKE REF TO <tab>.", 1],
       ["METHOD m.\n  FIELD-SYMBOLS <row> TYPE any.\n  DATA temp1 LIKE <row>.", 1],
       ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE ANY TABLE.\n  DATA temp1 LIKE LINE OF <tab>.", 1],
+      // the row of a table expression, the shape a 7.02 test include failed on
+      ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.\n  FIELD-SYMBOLS <temp1> LIKE LINE OF <tab>.", 1],
+      ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE STANDARD TABLE OF ty_s_row.\n  FIELD-SYMBOLS <temp1> LIKE LINE OF <tab>.", 0],
       // a concrete type is what LIKE needs, and a component is never generic here
       ["METHOD m.\n  FIELD-SYMBOLS <row> TYPE ty_s_row.\n  DATA temp1 LIKE REF TO <row>.", 0],
       ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE STANDARD TABLE OF ty_s_row.\n  DATA temp1 LIKE <tab>.", 0],
@@ -281,9 +284,11 @@ const MODES = {
 const GENERIC_FS =
   /^TYPE\s+(?:any(?:\s+table)?|data|simple|clike|csequence|xsequence|numeric|c|n|x|p|decfloat|table|(?:standard|index|sorted|hashed)\s+table)\s*\.?$/i;
 const FS_DECL = /^\s*FIELD-SYMBOLS\s+(<\w+>)\s+(.*?)\s*$/i;
-const DATA_LIKE_FS = /^\s*DATA\s+\w+\s+LIKE\s+(?:REF\s+TO\s+|LINE\s+OF\s+)?(<\w+>)\s*\./i;
+// DATA x and FIELD-SYMBOLS <x> alike: the downport of a table expression declares
+// `FIELD-SYMBOLS <temp1> LIKE LINE OF <tab>` for the row it reads
+const DATA_LIKE_FS = /^\s*(?:DATA\s+\w+|FIELD-SYMBOLS\s+<\w+>)\s+LIKE\s+(?:REF\s+TO\s+|LINE\s+OF\s+)?(<\w+>)\s*\./i;
 
-/* Every `DATA x LIKE [REF TO | LINE OF] <fs>` whose <fs> the same method
+/* Every `DATA x` or `FIELD-SYMBOLS <x>` `LIKE [REF TO | LINE OF] <fs>` whose <fs> the same method
  * declares generically. Scoped per METHOD because the same name is `TYPE
  * any` in one test method and a concrete row type in the next. */
 function genericLikeFindings(text) {

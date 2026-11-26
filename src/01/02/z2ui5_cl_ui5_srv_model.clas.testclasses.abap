@@ -4969,7 +4969,8 @@ CLASS ltcl_app_ns IMPLEMENTATION.
       <cell> = |A{ sy-index }|.
     ENDDO.
     ASSIGN mr_row->* TO <cell>.
-    <cell> = <tab>[ 1 ].
+    ASSIGN <tab>[ 1 ] TO FIELD-SYMBOL(<first>).
+    <cell> = <first>.
 
     " the deep rows: a key, a namespaced column and a namespaced table of
     " the flat rows above
@@ -5961,20 +5962,22 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_tab->* TO <tab>.
+    ASSIGN <tab>[ 1 ] TO FIELD-SYMBOL(<row_1>).
+    ASSIGN <tab>[ 2 ] TO FIELD-SYMBOL(<row_2>).
     cl_abap_unit_assert=>assert_equals( exp = `edited`
-                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <row_2>
                                                                  iv_name = `/CWM/XCWMAT` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `M-edited`
-                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <row_2>
                                                                  iv_name = `MATNR` ) ).
     " row 1 untouched
     cl_abap_unit_assert=>assert_equals( exp = `X1`
-                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <row_1>
                                                                  iv_name = `/CWM/XCWMAT` ) ).
     " a refused cell is traced under the component's own name, its old
     " value kept
     cl_abap_unit_assert=>assert_equals( exp = `20`
-                                        act = condense( ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                        act = condense( ltcl_app_ns=>cell( is_row  = <row_2>
                                                                            iv_name = `/CWM/VALUM` ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lo_model->mt_skipped ) ).
@@ -6007,22 +6010,24 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_tab->* TO <tab>.
+    ASSIGN <tab>[ 1 ] TO FIELD-SYMBOL(<row_1>).
+    ASSIGN <tab>[ 2 ] TO FIELD-SYMBOL(<row_2>).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( <tab> ) ).
     cl_abap_unit_assert=>assert_equals( exp = `whole`
-                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <row_1>
                                                                  iv_name = `/CWM/XCWMAT` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `tilt`
-                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <row_2>
                                                                  iv_name = `/VSO/R_TILT` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `T1`
-                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 1 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <row_1>
                                                                  iv_name = `/VSO/R_TILT` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `20`
-                                        act = condense( ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                        act = condense( ltcl_app_ns=>cell( is_row  = <row_2>
                                                                            iv_name = `/CWM/VALUM` ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = `M2`
-                                        act = ltcl_app_ns=>cell( is_row  = <tab>[ 2 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <row_2>
                                                                  iv_name = `MATNR` ) ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
@@ -6051,23 +6056,25 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     FIELD-SYMBOLS <deep>  TYPE STANDARD TABLE.
     FIELD-SYMBOLS <items> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_deep->* TO <deep>.
-    cl_abap_unit_assert=>assert_equals( exp = `note2`
-                                        act = ltcl_app_ns=>cell( is_row  = <deep>[ 1 ]
-                                                                 iv_name = `/ABC/NOTE` ) ).
     ASSIGN <deep>[ 1 ] TO FIELD-SYMBOL(<deep_row>).
     cl_abap_unit_assert=>assert_true( xsdbool( <deep_row> IS ASSIGNED ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `note2`
+                                        act = ltcl_app_ns=>cell( is_row  = <deep_row>
+                                                                 iv_name = `/ABC/NOTE` ) ).
     ASSIGN COMPONENT `/ABC/ITEMS` OF STRUCTURE <deep_row> TO <items>.
     cl_abap_unit_assert=>assert_subrc( ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( <items> ) ).
+    ASSIGN <items>[ 1 ] TO FIELD-SYMBOL(<item_1>).
+    ASSIGN <items>[ 2 ] TO FIELD-SYMBOL(<item_2>).
     cl_abap_unit_assert=>assert_equals( exp = `deep`
-                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 2 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <item_2>
                                                                  iv_name = `/CWM/XCWMAT` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `X1`
-                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 1 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <item_1>
                                                                  iv_name = `/CWM/XCWMAT` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `T1`
-                                        act = ltcl_app_ns=>cell( is_row  = <items>[ 1 ]
+                                        act = ltcl_app_ns=>cell( is_row  = <item_1>
                                                                  iv_name = `/VSO/R_TILT` ) ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
