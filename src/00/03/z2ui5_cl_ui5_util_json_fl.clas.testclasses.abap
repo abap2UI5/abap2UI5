@@ -16,13 +16,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " every spelling of zero is initial, anything with a non-zero digit is
     " not - the predicate the client's local filters share
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0` ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.00` ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.0E+00` ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `-0` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.01` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `-1` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `1.0E+02` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.00` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.0E+00` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = z2ui5_cl_ui5_util_json_fl=>check_number_initial( `-0` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false act = z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.01` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false act = z2ui5_cl_ui5_util_json_fl=>check_number_initial( `-1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false act = z2ui5_cl_ui5_util_json_fl=>check_number_initial( `1.0E+02` ) ).
 
   ENDMETHOD.
 
@@ -35,11 +35,31 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_name_act TYPE z2ui5_if_ajson_types=>ty_node-name.
     DATA lv_name_exp TYPE z2ui5_if_ajson_types=>ty_node-name.
 
-    DATA(li_act) = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ).
-    DATA(li_exp) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
-    DATA(lt_names) = VALUE string_table( ( `name` ) ( `price_net` ) ( `1` ) ( `ALREADY` ) ( `` ) ( `MiXeD_09` ) ).
+    DATA li_act TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA li_exp TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA temp1 TYPE string_table.
+    DATA lt_names LIKE temp1.
+    DATA lv_name LIKE LINE OF lt_names.
+      DATA temp3 TYPE z2ui5_if_ajson_types=>ty_node.
+      DATA temp4 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA li_again TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA temp2 TYPE xsdboolean.
+    li_act = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ).
 
-    LOOP AT lt_names INTO DATA(lv_name).
+    li_exp = z2ui5_cl_ajson_mapping=>create_upper_case( ).
+
+    CLEAR temp1.
+    INSERT `name` INTO TABLE temp1.
+    INSERT `price_net` INTO TABLE temp1.
+    INSERT `1` INTO TABLE temp1.
+    INSERT `ALREADY` INTO TABLE temp1.
+    INSERT `` INTO TABLE temp1.
+    INSERT `MiXeD_09` INTO TABLE temp1.
+
+    lt_names = temp1.
+
+
+    LOOP AT lt_names INTO lv_name.
       cl_abap_unit_assert=>assert_equals( exp = li_exp->to_json( iv_path = `/T/1/`
                                                                 iv_name  = lv_name )
                                           act = li_act->to_json( iv_path = `/T/1/`
@@ -54,9 +74,13 @@ CLASS ltcl_test IMPLEMENTATION.
                                                             iv_name = lv_name ) ).
       lv_name_act = lv_name.
       lv_name_exp = lv_name.
-      li_act->rename_node( EXPORTING is_node = VALUE #( )
+
+      CLEAR temp3.
+      li_act->rename_node( EXPORTING is_node = temp3
                            CHANGING  cv_name = lv_name_act ).
-      li_exp->rename_node( EXPORTING is_node = VALUE #( )
+
+      CLEAR temp4.
+      li_exp->rename_node( EXPORTING is_node = temp4
                            CHANGING  cv_name = lv_name_exp ).
       cl_abap_unit_assert=>assert_equals( exp = lv_name_exp
                                           act = lv_name_act ).
@@ -64,8 +88,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " one shared instance, as before
     cl_abap_unit_assert=>assert_bound( li_act ).
-    DATA(li_again) = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( li_again = li_act ) ).
+
+    li_again = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ).
+
+    temp2 = boolc( li_again = li_act ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp2 ).
 
   ENDMETHOD.
 
@@ -80,27 +107,58 @@ CLASS ltcl_test IMPLEMENTATION.
              active    TYPE abap_bool,
            END OF ty_s_row.
     TYPES: BEGIN OF ty_s_model,
-             t_rows  TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY,
+             t_rows  TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY,
              s_head  TYPE ty_s_row,
              v_title TYPE string,
            END OF ty_s_model.
 
-    DATA(ls_model) = VALUE ty_s_model( t_rows  = VALUE #( ( id = 1 name = `a` price_net = '1.50' active = abap_true )
-                                                          ( id = 2 name = `b` ) )
-                                       s_head  = VALUE #( id = 3 name = `h` )
-                                       v_title = `t` ).
+    DATA temp5 TYPE ty_s_model.
+    DATA temp1 TYPE ty_s_model-t_rows.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA ls_model LIKE temp5.
+    DATA lv_act TYPE string.
+    DATA lv_exp TYPE string.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
+    CLEAR temp5.
 
-    DATA(lv_act) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
+    CLEAR temp1.
+
+    CLEAR temp2.
+    temp2-id = 1.
+    temp2-name = `a`.
+    temp2-price_net = '1.50'.
+    temp2-active = abap_true.
+    INSERT temp2 INTO TABLE temp1.
+    CLEAR temp2.
+    temp2-id = 2.
+    temp2-name = `b`.
+    INSERT temp2 INTO TABLE temp1.
+    temp5-t_rows = temp1.
+    CLEAR temp5-s_head.
+    temp5-s_head-id = 3.
+    temp5-s_head-name = `h`.
+    temp5-v_title = `t`.
+
+    ls_model = temp5.
+
+
+    lv_act = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
                      )->set( iv_path = `/`
                              iv_val  = ls_model )->stringify( ).
-    DATA(lv_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( )
+
+    lv_exp = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( )
                      )->set( iv_path = `/`
                              iv_val  = ls_model )->stringify( ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_exp
                                         act = lv_act ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"PRICE_NET":1.50` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_TITLE":"t"` ) ).
+
+    temp3 = boolc( lv_act CS `"PRICE_NET":1.50` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp3 ).
+
+    temp4 = boolc( lv_act CS `"V_TITLE":"t"` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp4 ).
 
   ENDMETHOD.
 
@@ -110,14 +168,25 @@ CLASS ltcl_test IMPLEMENTATION.
     " JSON.parse refuses. Built by hand, not through ajson: ajson escapes
     " control characters itself since the 2026-11 mirror update, and this
     " method is the guard for every serializer that does not
-    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `010C1F` ) ).
-    DATA(lv_json) = `{"NAME":"a` && lv_ctrl && `b"}`.
+    DATA temp6 TYPE xstring.
+    DATA lv_ctrl TYPE string.
+    DATA lv_json TYPE string.
+    DATA lv_act TYPE string.
+    DATA temp5 TYPE xsdboolean.
+    temp6 = `010C1F`.
 
-    DATA(lv_act) = z2ui5_cl_ui5_util_json_fl=>escape_controls( lv_json ).
+    lv_ctrl = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( temp6 ).
+
+    lv_json = `{"NAME":"a` && lv_ctrl && `b"}`.
+
+
+    lv_act = z2ui5_cl_ui5_util_json_fl=>escape_controls( lv_json ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{"NAME":"a\u0001\u000C\u001Fb"}`
                                         act = lv_act ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CA lv_ctrl ) ).
+
+    temp5 = boolc( lv_act CA lv_ctrl ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false act = temp5 ).
 
     " tab, LF, CR and an escaped backslash are ajson's own and stay as they are
     lv_json = z2ui5_cl_ajson=>create_empty( )->set(

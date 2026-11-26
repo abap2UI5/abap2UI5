@@ -47,12 +47,16 @@ ENDCLASS.
 CLASS ltcl_exit_counting IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_get.
+    DATA temp1 TYPE z2ui5_if_client=>ty_s_name_value.
 
     mv_calls_get = mv_calls_get + 1.
     " a header derived from a default the shipped exit seeded first - what
     " an exit is free to do, and why it gets the whole config
-    INSERT VALUE #( n = `X-Seeded-Theme`
-                    v = cs_config-theme ) INTO TABLE cs_config-t_security_header.
+
+    CLEAR temp1.
+    temp1-n = `X-Seeded-Theme`.
+    temp1-v = cs_config-theme.
+    INSERT temp1 INTO TABLE cs_config-t_security_header.
 
   ENDMETHOD.
 
@@ -184,11 +188,18 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_first  TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
     DATA ls_second TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(lo_exit) = NEW ltcl_exit_counting( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_counting.
+    DATA temp2 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA lo_other TYPE REF TO ltcl_exit_counting.
+    DATA temp3 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_counting.
     lo_exit->mv_monitor = abap_true.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_exit ).
 
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( method = `POST` ) ).
+
+    CLEAR temp2.
+    temp2-method = `POST`.
+    z2ui5_cl_ui5_user_exit=>init_context( temp2 ).
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_first ).
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_second ).
 
@@ -205,7 +216,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
                                         act = ls_second-draft_exp_time_in_hours ).
 
     " another exit installed mid-request answers for itself
-    DATA(lo_other) = NEW ltcl_exit_counting( ).
+
+    CREATE OBJECT lo_other TYPE ltcl_exit_counting.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_other ).
     CLEAR ls_second.
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_second ).
@@ -214,7 +226,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = ls_second-check_monitor_active ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp3.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp3 ).
 
   ENDMETHOD.
 
@@ -225,18 +239,29 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " - whether or not the previous request was ever closed
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(lo_exit) = NEW ltcl_exit_counting( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_counting.
+    DATA temp4 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp5 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp6 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp7 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_counting.
     lo_exit->mv_monitor = abap_true.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_exit ).
 
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( method = `POST` ) ).
+
+    CLEAR temp4.
+    temp4-method = `POST`.
+    z2ui5_cl_ui5_user_exit=>init_context( temp4 ).
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = ls_config-check_monitor_active ).
 
     " the next request, the previous one not closed
     lo_exit->mv_monitor = abap_false.
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( method = `POST` ) ).
+
+    CLEAR temp5.
+    temp5-method = `POST`.
+    z2ui5_cl_ui5_user_exit=>init_context( temp5 ).
     CLEAR ls_config.
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -247,7 +272,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " ... and one that was closed
     z2ui5_cl_ui5_user_exit=>close_context( ).
     lo_exit->mv_monitor = abap_true.
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( method = `POST` ) ).
+
+    CLEAR temp6.
+    temp6-method = `POST`.
+    z2ui5_cl_ui5_user_exit=>init_context( temp6 ).
     CLEAR ls_config.
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -255,7 +283,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lo_exit->mv_calls_post ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp7.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp7 ).
 
   ENDMETHOD.
 
@@ -265,7 +295,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " comes after the request was closed: nothing is kept, every read asks
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(lo_exit) = NEW ltcl_exit_counting( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_counting.
+    DATA temp8 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp9 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_counting.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_exit ).
     z2ui5_cl_ui5_user_exit=>close_context( ).
 
@@ -284,7 +317,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     " a request that was opened and closed leaves nothing behind either
     lo_exit->mv_monitor = abap_true.
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( method = `POST` ) ).
+
+    CLEAR temp8.
+    temp8-method = `POST`.
+    z2ui5_cl_ui5_user_exit=>init_context( temp8 ).
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
     z2ui5_cl_ui5_user_exit=>close_context( ).
     lo_exit->mv_monitor = abap_false.
@@ -295,7 +331,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 4
                                         act = lo_exit->mv_calls_post ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp9.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp9 ).
 
   ENDMETHOD.
 
@@ -309,10 +347,16 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
     DATA lv_raised TYPE abap_bool.
 
-    DATA(lo_exit) = NEW ltcl_exit_counting( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_counting.
+    DATA temp10 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp11 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_counting.
     lo_exit->mv_raise = abap_true.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_exit ).
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( method = `POST` ) ).
+
+    CLEAR temp10.
+    temp10-method = `POST`.
+    z2ui5_cl_ui5_user_exit=>init_context( temp10 ).
 
     TRY.
         z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
@@ -332,7 +376,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = ls_config-check_csrf_active ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp11.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp11 ).
 
   ENDMETHOD.
 
@@ -343,7 +389,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " the config around it
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA li_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp12 TYPE REF TO z2ui5_cl_ui5_user_exit.
+    DATA temp13 TYPE REF TO z2ui5_if_ui5_exit.
+    li_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
@@ -351,12 +400,16 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
                                         act = z2ui5_cl_ui5_user_exit=>security_headers( ) ).
 
     " the shipped exit a host installs itself is the same case
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW z2ui5_cl_ui5_user_exit( ) ).
+
+    CREATE OBJECT temp12 TYPE z2ui5_cl_ui5_user_exit.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp12 ).
     cl_abap_unit_assert=>assert_bound( z2ui5_cl_ui5_user_exit=>go_shipped ).
     cl_abap_unit_assert=>assert_equals( exp = ls_config-t_security_header
                                         act = z2ui5_cl_ui5_user_exit=>security_headers( ) ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp13.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp13 ).
 
   ENDMETHOD.
 
@@ -365,25 +418,46 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " an installed exit is asked through set_config_http_get exactly as
     " before - with the full defaults seeded, because it may derive a
     " header from any of them
-    DATA(lo_exit) = NEW ltcl_exit_counting( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_counting.
+    DATA lt_header TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp3 LIKE sy-subrc.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp4 LIKE sy-subrc.
+    DATA lo_sub TYPE REF TO ltcl_exit_subclass.
+    DATA temp14 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_counting.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_exit ).
 
-    DATA(lt_header) = z2ui5_cl_ui5_user_exit=>security_headers( ).
+
+    lt_header = z2ui5_cl_ui5_user_exit=>security_headers( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lo_exit->mv_calls_get ).
-    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_header[ n = `X-Seeded-Theme`
-                                                                       v = `sap_horizon` ] ) ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_header[ n = `X-Content-Type-Options` ] ) ) ).
+
+
+    READ TABLE lt_header WITH KEY n = `X-Seeded-Theme` v = `sap_horizon` TRANSPORTING NO FIELDS.
+    temp3 = sy-subrc.
+    temp1 = boolc( temp3 = 0 ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp1 ).
+
+
+    READ TABLE lt_header WITH KEY n = `X-Content-Type-Options` TRANSPORTING NO FIELDS.
+    temp4 = sy-subrc.
+    temp2 = boolc( temp4 = 0 ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp2 ).
 
     " a subclass of the shipped exit may redefine the method: asked too,
     " never short-cut (go_shipped is the instance this class created)
-    DATA(lo_sub) = NEW ltcl_exit_subclass( ).
+
+    CREATE OBJECT lo_sub TYPE ltcl_exit_subclass.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_sub ).
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>go_shipped ).
     cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_ui5_user_exit=>security_headers( ) ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp14.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp14 ).
 
   ENDMETHOD.
 
@@ -392,7 +466,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA lo_user_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp3 TYPE xsdboolean.
+    lo_user_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
@@ -410,7 +486,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
           act = ls_config-src ).
     ENDIF.
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ) ).
+
+    temp3 = boolc( ls_config-content_security_policy CS `Content-Security-Policy` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp3 ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
 
@@ -423,19 +501,26 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " 1.82 puts it into script-src, the one directive that needs it
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA lo_user_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+    lo_user_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     " with its quotes: 'wasm-unsafe-eval' contains the bare word, and is not
     " the keyword this test is about (see test_csp_wasm_unsafe_eval)
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_config-content_security_policy CS `'unsafe-eval'` ) ).
+
+    temp4 = boolc( ls_config-content_security_policy CS `'unsafe-eval'` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false act = temp4 ).
 
     ls_config-content_security_policy = replace( val  = ls_config-content_security_policy
                                                  sub  = `script-src 'self'`
                                                  with = `script-src 'self' 'unsafe-eval'` ).
 
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' ui5.sap.com` ) ).
+
+    temp5 = boolc( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' ui5.sap.com` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act =
+        temp5 ).
 
   ENDMETHOD.
 
@@ -446,11 +531,15 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " and no other directive carries the keyword
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA lo_user_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp6 TYPE xsdboolean.
+    lo_user_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'wasm-unsafe-eval' ui5.sap.com` ) ).
+
+    temp6 = boolc( ls_config-content_security_policy CS `script-src 'self' 'wasm-unsafe-eval' ui5.sap.com` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act =
+        temp6 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = count( val = ls_config-content_security_policy
@@ -468,16 +557,25 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA lt_directive TYPE string_table.
     DATA lv_checked TYPE i.
 
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA lo_user_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA lv_directive LIKE LINE OF lt_directive.
+        DATA temp7 TYPE xsdboolean.
+        DATA temp8 TYPE xsdboolean.
+    lo_user_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     SPLIT ls_config-content_security_policy AT `;` INTO TABLE lt_directive.
-    LOOP AT lt_directive INTO DATA(lv_directive).
+
+    LOOP AT lt_directive INTO lv_directive.
       IF lv_directive CS `script-src`.
-        cl_abap_unit_assert=>assert_false( xsdbool( lv_directive CS `'unsafe-inline'` ) ).
+
+        temp7 = boolc( lv_directive CS `'unsafe-inline'` ).
+        cl_abap_unit_assert=>assert_equals( exp = abap_false act = temp7 ).
         lv_checked = lv_checked + 1.
       ELSEIF lv_directive CS `style-src`.
-        cl_abap_unit_assert=>assert_true( xsdbool( lv_directive CS `'unsafe-inline'` ) ).
+
+        temp8 = boolc( lv_directive CS `'unsafe-inline'` ).
+        cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp8 ).
         lv_checked = lv_checked + 1.
       ENDIF.
     ENDLOOP.
@@ -493,17 +591,32 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA lo_user_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp9 TYPE xsdboolean.
+    DATA temp5 LIKE sy-subrc.
+    DATA temp10 TYPE xsdboolean.
+    DATA temp6 LIKE sy-subrc.
+    lo_user_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     " a secure-context-only header must not be in the shipped defaults: the
     " plain-HTTP on-premise system ignores it and logs a console error on
     " every app start (reasoning at set_config_http_get). HTTPS installations
     " add it in their own exit
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( ls_config-t_security_header[ n = `Cross-Origin-Opener-Policy` ] ) ) ). "#EC CI_SORTSEQ
+
+
+    READ TABLE ls_config-t_security_header WITH KEY n = `Cross-Origin-Opener-Policy` TRANSPORTING NO FIELDS.
+    temp5 = sy-subrc.
+    temp9 = boolc( temp5 = 0 ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false act = temp9 ). "#EC CI_SORTSEQ
 
     " ... while the one that IS honoured over plain HTTP stays
-    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( ls_config-t_security_header[ n = `Cross-Origin-Resource-Policy` ] ) ) ). "#EC CI_SORTSEQ
+
+
+    READ TABLE ls_config-t_security_header WITH KEY n = `Cross-Origin-Resource-Policy` TRANSPORTING NO FIELDS.
+    temp6 = sy-subrc.
+    temp10 = boolc( temp6 = 0 ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp10 ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
@@ -511,7 +624,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA lo_user_exit TYPE REF TO z2ui5_if_ui5_exit.
+    lo_user_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
 
     " CSRF on unless an exit opts out, and a positive default expiry
@@ -531,12 +645,16 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
   METHOD test_expiry_clamped.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    DATA lo_user_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp15 TYPE REF TO ltcl_exit_long_expiry.
+    DATA temp1 TYPE REF TO z2ui5_if_ui5_exit.
 
     " an exit that hands back 0 (or a negative) would expire every draft
     " immediately - the shipped exit clamps it back to its default
     ls_config-draft_exp_time_in_hours = -1.
 
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+
+    lo_user_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
 
     cl_abap_unit_assert=>assert_equals( exp = 4
@@ -544,9 +662,13 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     " and from above: hours the cleanup cannot turn into integer seconds
     " come back as the longest expiry the framework accepts
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_long_expiry( ) ).
+
+    CREATE OBJECT temp15 TYPE ltcl_exit_long_expiry.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp15 ).
     CLEAR ls_config.
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+
+    temp1 = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    temp1->set_config_http_post( CHANGING cs_config = ls_config ).
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours
                                         act = ls_config-draft_exp_time_in_hours ).
 
@@ -556,28 +678,63 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     " the exit sees the app the way the handler resolves it: a case change
     " or an encoded namespace used to bypass an exit keyed on the name
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        path     = `/sap/bc/z2ui5`
-        t_params = VALUE #( ( n = `app_start` v = ` zcl_my_app ` ) ) ) ).
+    DATA temp16 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp1 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA temp17 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp3 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp4 LIKE LINE OF temp3.
+    DATA temp18 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp5 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp6 LIKE LINE OF temp5.
+    DATA temp19 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    CLEAR temp16.
+    temp16-path = `/sap/bc/z2ui5`.
+
+    CLEAR temp1.
+
+    temp2-n = `app_start`.
+    temp2-v = ` zcl_my_app `.
+    INSERT temp2 INTO TABLE temp1.
+    temp16-t_params = temp1.
+    z2ui5_cl_ui5_user_exit=>init_context( temp16 ).
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
     cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-path ).
 
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        t_params = VALUE #( ( n = `app_start` v = `%2Fns%2Fzcl_my_app` ) ) ) ).
+
+    CLEAR temp17.
+
+    CLEAR temp3.
+
+    temp4-n = `app_start`.
+    temp4-v = `%2Fns%2Fzcl_my_app`.
+    INSERT temp4 INTO TABLE temp3.
+    temp17-t_params = temp3.
+    z2ui5_cl_ui5_user_exit=>init_context( temp17 ).
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
     " the launchpad spelling of a namespace - the handler's own
     " normalisation, so the two cannot drift apart again
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        t_params = VALUE #( ( n = `app_start` v = `-ns-zcl_my_app` ) ) ) ).
+
+    CLEAR temp18.
+
+    CLEAR temp5.
+
+    temp6-n = `app_start`.
+    temp6-v = `-ns-zcl_my_app`.
+    INSERT temp6 INTO TABLE temp5.
+    temp18-t_params = temp5.
+    z2ui5_cl_ui5_user_exit=>init_context( temp18 ).
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
     " a POST carries no app_start - the context says so instead of guessing
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( ) ).
+
+    CLEAR temp19.
+    z2ui5_cl_ui5_user_exit=>init_context( temp19 ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
   ENDMETHOD.
@@ -604,7 +761,14 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " later get_instance( ) asks the repository the runtime does not have
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW z2ui5_cl_ui5_user_exit( ) ).
+    DATA temp20 TYPE REF TO z2ui5_cl_ui5_user_exit.
+    DATA li_first TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp11 TYPE xsdboolean.
+    DATA li_again TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp12 TYPE xsdboolean.
+    DATA temp21 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT temp20 TYPE z2ui5_cl_ui5_user_exit.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp20 ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
@@ -613,16 +777,24 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
 
     " the one instance, on every call - the early return of get_instance( )
-    DATA(li_first) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( li_first = z2ui5_cl_ui5_user_exit=>gi_me ) ).
-    DATA(li_again) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( li_again = li_first ) ).
+
+    li_first = z2ui5_cl_ui5_user_exit=>get_instance( ).
+
+    temp11 = boolc( li_first = z2ui5_cl_ui5_user_exit=>gi_me ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp11 ).
+
+    li_again = z2ui5_cl_ui5_user_exit=>get_instance( ).
+
+    temp12 = boolc( li_again = li_first ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp12 ).
 
     li_first->set_config_http_get( CHANGING cs_config = ls_config ).
     cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
                                         act = ls_config-theme ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp21.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp21 ).
 
   ENDMETHOD.
 
@@ -635,30 +807,45 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(lo_host) = NEW ltcl_exit_host( ).
+    DATA lo_host TYPE REF TO ltcl_exit_host.
+    DATA temp13 TYPE xsdboolean.
+    DATA temp14 TYPE xsdboolean.
+    DATA li_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp15 TYPE xsdboolean.
+    DATA temp22 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT lo_host TYPE ltcl_exit_host.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_host ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_host )
                                         act = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_user_exit=>gi_user_exit = lo_host ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( z2ui5_cl_ui5_user_exit=>gi_me = lo_host ) ).
 
-    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    temp13 = boolc( z2ui5_cl_ui5_user_exit=>gi_user_exit = lo_host ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp13 ).
+
+    temp14 = boolc( z2ui5_cl_ui5_user_exit=>gi_me = lo_host ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false act = temp14 ).
+
+
+    li_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
     li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
 
     cl_abap_unit_assert=>assert_equals( exp = `sap_fiori_3`
                                         act = ls_config-theme ).
     " ... on top of the shipped defaults, not instead of them
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ) ).
+
+    temp15 = boolc( ls_config-content_security_policy CS `Content-Security-Policy` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp15 ).
     cl_abap_unit_assert=>assert_equals( exp = 7
                                         act = ls_post-draft_exp_time_in_hours ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = ls_post-check_csrf_active ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp22.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp22 ).
 
   ENDMETHOD.
 
@@ -670,15 +857,22 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(lo_sub) = NEW ltcl_exit_subclass( ).
+    DATA lo_sub TYPE REF TO ltcl_exit_subclass.
+    DATA temp16 TYPE xsdboolean.
+    DATA li_exit TYPE REF TO z2ui5_if_ui5_exit.
+    DATA temp23 TYPE REF TO z2ui5_if_ui5_exit.
+    CREATE OBJECT lo_sub TYPE ltcl_exit_subclass.
     z2ui5_cl_ui5_user_exit=>set_instance( lo_sub ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_user_exit=>gi_me = lo_sub ) ).
+
+    temp16 = boolc( z2ui5_cl_ui5_user_exit=>gi_me = lo_sub ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp16 ).
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
 
     " returns with the defaults - the recursion would never get here
-    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+
+    li_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
     li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
     cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
@@ -686,7 +880,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 4
                                         act = ls_post-draft_exp_time_in_hours ).
 
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp23.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp23 ).
 
   ENDMETHOD.
 
@@ -694,8 +890,14 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     " an unbound reference restores the lookup: nothing latched, nothing
     " bound, and the next get_instance( ) asks the repository again
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_host( ) ).
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+    DATA temp24 TYPE REF TO ltcl_exit_host.
+    DATA temp25 TYPE REF TO z2ui5_if_ui5_exit.
+    DATA lv_answered TYPE abap_bool.
+    CREATE OBJECT temp24 TYPE ltcl_exit_host.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp24 ).
+
+    CLEAR temp25.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp25 ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
@@ -705,7 +907,7 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     " the same contract test_lookup_fail_no_latch pins: latched only when
     " the lookup answered
-    DATA lv_answered TYPE abap_bool.
+
     TRY.
         z2ui5_cl_ui5_user_exit=>exit_class_lookup( ).
         lv_answered = abap_true.
@@ -730,6 +932,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " branches this runtime takes is asked of the lookup itself first;
     " both are the contract, and one of them runs on every target
     DATA lv_answered TYPE abap_bool.
+    DATA li_first LIKE z2ui5_cl_ui5_user_exit=>gi_me.
+    DATA temp17 TYPE xsdboolean.
     TRY.
         z2ui5_cl_ui5_user_exit=>exit_class_lookup( ).
         lv_answered = abap_true.
@@ -753,9 +957,12 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " the next get_instance( ) asks again while nothing is latched - it
     " used to return the bound instance without a lookup - and keeps the
     " one instance either way
-    DATA(li_first) = z2ui5_cl_ui5_user_exit=>gi_me.
+
+    li_first = z2ui5_cl_ui5_user_exit=>gi_me.
     z2ui5_cl_ui5_user_exit=>get_instance( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_user_exit=>gi_me = li_first ) ).
+
+    temp17 = boolc( z2ui5_cl_ui5_user_exit=>gi_me = li_first ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp17 ).
     cl_abap_unit_assert=>assert_equals( exp = lv_answered
                                         act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
 

@@ -12,7 +12,7 @@ CLASS lcl_store DEFINITION FINAL.
 
     " every draft written, in the order of the writes - a write of an id
     " that is there already replaces its row in place
-    DATA mt_db TYPE STANDARD TABLE OF z2ui5_if_ui5_draft_store=>ty_s_db WITH EMPTY KEY.
+    DATA mt_db TYPE STANDARD TABLE OF z2ui5_if_ui5_draft_store=>ty_s_db WITH DEFAULT KEY.
 
     " whether the draft id was written after the first `count` rows - the
     " harness asks it to tell a draft saved during a roundtrip (the caller
@@ -33,7 +33,9 @@ CLASS lcl_store IMPLEMENTATION.
 
   METHOD check_written_since.
 
-    LOOP AT mt_db REFERENCE INTO DATA(lr_db) FROM count + 1.
+    DATA temp1 LIKE LINE OF mt_db.
+    DATA lr_db LIKE REF TO temp1.
+    LOOP AT mt_db REFERENCE INTO lr_db FROM count + 1.
       IF lr_db->id = id.
         result = abap_true.
         RETURN.
@@ -55,22 +57,31 @@ CLASS lcl_store IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_draft_store~create.
+    DATA temp2 TYPE z2ui5_if_ui5_draft_store=>ty_s_db.
+    DATA ls_db LIKE temp2.
+    DATA temp3 LIKE LINE OF mt_db.
+    DATA lr_db LIKE REF TO temp3.
 
     IF draft-id IS INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `Internal error - cannot persist a draft without an id`.
     ENDIF.
 
-    DATA(ls_db) = VALUE z2ui5_if_ui5_draft_store=>ty_s_db(
-                            id                = draft-id
-                            id_prev           = draft-id_prev
-                            id_prev_app       = draft-id_prev_app
-                            id_prev_app_stack = draft-id_prev_app_stack
-                            uname             = z2ui5_cl_ui5_util_context=>sy_get( )-uname
-                            timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
-                            data              = model_xml ).
 
-    LOOP AT mt_db REFERENCE INTO DATA(lr_db) WHERE id = draft-id. "#EC CI_SORTSEQ
+    CLEAR temp2.
+    temp2-id = draft-id.
+    temp2-id_prev = draft-id_prev.
+    temp2-id_prev_app = draft-id_prev_app.
+    temp2-id_prev_app_stack = draft-id_prev_app_stack.
+    temp2-uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+    temp2-timestampl = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
+    temp2-data = model_xml.
+
+    ls_db = temp2.
+
+
+
+    LOOP AT mt_db REFERENCE INTO lr_db WHERE id = draft-id. "#EC CI_SORTSEQ
       lr_db->* = ls_db.
       RETURN.
     ENDLOOP.
@@ -80,7 +91,9 @@ CLASS lcl_store IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_draft_store~read_draft.
 
-    LOOP AT mt_db REFERENCE INTO DATA(lr_db) WHERE id = id. "#EC CI_SORTSEQ
+    DATA temp4 LIKE LINE OF mt_db.
+    DATA lr_db LIKE REF TO temp4.
+    LOOP AT mt_db REFERENCE INTO lr_db WHERE id = id. "#EC CI_SORTSEQ
       result = lr_db->*.
       RETURN.
     ENDLOOP.
@@ -92,11 +105,13 @@ CLASS lcl_store IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_draft_store~read_info.
 
-    DATA(ls_db) = z2ui5_if_ui5_draft_store~read_draft( id ).
-    result = VALUE #( id                = ls_db-id
-                      id_prev           = ls_db-id_prev
-                      id_prev_app       = ls_db-id_prev_app
-                      id_prev_app_stack = ls_db-id_prev_app_stack ).
+    DATA ls_db TYPE z2ui5_if_ui5_draft_store=>ty_s_db.
+    ls_db = z2ui5_if_ui5_draft_store~read_draft( id ).
+    CLEAR result.
+    result-id = ls_db-id.
+    result-id_prev = ls_db-id_prev.
+    result-id_prev_app = ls_db-id_prev_app.
+    result-id_prev_app_stack = ls_db-id_prev_app_stack.
 
   ENDMETHOD.
 
@@ -156,7 +171,7 @@ CLASS lcl_caller IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       client->nav_app_call( mo_app ).
       " the called app is saved in its own draft - this one need not carry it
       CLEAR mo_app.

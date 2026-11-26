@@ -91,7 +91,13 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " after a few hours), and every write path (one INSERT per roundtrip)
     " would pay for an index on TIMESTAMPL/UNAME on every click. Do not add
     " one, and do not "optimize" these statements around the missing index.
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+    DATA temp54 TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    DATA ls_config LIKE temp54.
+    DATA lv_hours TYPE i.
+    DATA lv_n_hours_ago TYPE timestampl.
+    CLEAR temp54.
+
+    ls_config = temp54.
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_ui5_user_exit=>set_config_http_post clamps the expiry into
@@ -99,34 +105,45 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " set_instance( ) may redefine that method, and an overflow here is a 500
     " on every first start, so the product is taken in a range that cannot
     " overflow whatever the exit did
-    DATA(lv_hours) = nmax( val1 = 1
+
+    lv_hours = nmax( val1 = 1
                            val2 = nmin( val1 = ls_config-draft_exp_time_in_hours
                                         val2 = c_max_exp_time_in_hours ) ).
-    DATA(lv_n_hours_ago) = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
+
+    lv_n_hours_ago = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
                                time    = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                seconds = c_seconds_per_hour * lv_hours ).
 
-    DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
+    DELETE FROM z2ui5_t_01 WHERE timestampl < lv_n_hours_ago ##SUBRC_OK.
     COMMIT WORK.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_draft_store~create.
+    DATA lv_uname TYPE z2ui5_cl_ui5_util_context=>ty_s_sy-uname.
+    DATA temp55 TYPE ty_s_db.
+    DATA ls_db LIKE temp55.
+      DATA lv_owner TYPE z2ui5_t_01-uname.
 
     IF draft-id IS INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `Internal error - cannot persist a draft without an id`.
     ENDIF.
 
-    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
 
-    DATA(ls_db) = VALUE ty_s_db( id                = draft-id
-                                 id_prev           = draft-id_prev
-                                 id_prev_app       = draft-id_prev_app
-                                 id_prev_app_stack = draft-id_prev_app_stack
-                                 uname             = lv_uname
-                                 timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
-                                 data              = model_xml ).
+    lv_uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+
+
+    CLEAR temp55.
+    temp55-id = draft-id.
+    temp55-id_prev = draft-id_prev.
+    temp55-id_prev_app = draft-id_prev_app.
+    temp55-id_prev_app_stack = draft-id_prev_app_stack.
+    temp55-uname = lv_uname.
+    temp55-timestampl = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
+    temp55-data = model_xml.
+
+    ls_db = temp55.
 
     " INSERT first; only a key that already exists asks who owns it. The
     " write used to be a MODIFY guarded by a SELECT on every save - and on
@@ -137,16 +154,17 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " by re-using its id) - it runs on the collision path now. A duplicate
     " key answers sy-subrc 4 on every target, the transpiled runtime
     " included (a UNIQUE constraint failure is 4 there).
-    INSERT z2ui5_t_01 FROM @ls_db.
+    INSERT z2ui5_t_01 FROM ls_db.
     IF sy-subrc <> 0.
-      SELECT SINGLE uname FROM z2ui5_t_01
-        WHERE id = @ls_db-id
-        INTO @DATA(lv_owner).
+
+      SELECT SINGLE uname FROM z2ui5_t_01 INTO lv_owner
+        WHERE id = ls_db-id
+        .
       IF sy-subrc = 0 AND lv_owner <> lv_uname.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
       ENDIF.
-      UPDATE z2ui5_t_01 FROM @ls_db.
+      UPDATE z2ui5_t_01 FROM ls_db.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = |CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED - draft { ls_db-id }|.
@@ -157,20 +175,21 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD read.
+    DATA lv_uname TYPE z2ui5_cl_ui5_util_context=>ty_s_sy-uname.
 
     IF check_load_app = abap_true.
 
       " sy-subrc is checked after ENDIF, the pragma silences check_subrc here
-      SELECT SINGLE * FROM z2ui5_t_01
-        WHERE id = @id
-        INTO @result ##SUBRC_OK.
+      SELECT SINGLE * FROM z2ui5_t_01 INTO result
+        WHERE id = id
+         ##SUBRC_OK.
 
     ELSE.
 
-      SELECT SINGLE id, id_prev, id_prev_app, id_prev_app_stack, uname
-        FROM z2ui5_t_01
-        WHERE id = @id
-        INTO CORRESPONDING FIELDS OF @result ##SUBRC_OK.
+      SELECT SINGLE id id_prev id_prev_app id_prev_app_stack uname
+        FROM z2ui5_t_01 INTO CORRESPONDING FIELDS OF result
+        WHERE id = id
+         ##SUBRC_OK.
 
     ENDIF.
 
@@ -179,7 +198,8 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 
-    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+
+    lv_uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
     " Owner binding: a draft belongs to the user that created it and may only
     " be restored by that same user, so a leaked or guessed draft id cannot
     " load another user's serialized app state. Fail closed with the same
@@ -203,10 +223,11 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_draft_store~read_info.
 
-    DATA(ls_db) = read( id             = id
+    DATA ls_db TYPE z2ui5_cl_ui5_srv_draft=>ty_s_db.
+    ls_db = read( id             = id
                         check_load_app = abap_false ).
 
-    result = CORRESPONDING #( ls_db ).
+    MOVE-CORRESPONDING ls_db TO result.
 
   ENDMETHOD.
 
@@ -214,35 +235,52 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
     " read before the SELECT: sy-subrc below is the SELECT's, and a method
     " call between the two would stand in its way
-    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+    DATA lv_uname TYPE z2ui5_cl_ui5_util_context=>ty_s_sy-uname.
+DATA BEGIN OF ls_row.
+DATA id TYPE z2ui5_t_01-id.
+DATA uname TYPE z2ui5_t_01-uname.
+DATA END OF ls_row.
+    DATA temp1 TYPE xsdboolean.
+    lv_uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
 
-    SELECT SINGLE id, uname FROM z2ui5_t_01
-      WHERE id = @id
-      INTO @DATA(ls_row).
+
+    SELECT SINGLE id uname FROM z2ui5_t_01 INTO ls_row
+      WHERE id = id
+      .
 
     " existence is owner-scoped (see read( )): a draft owned by another user
     " counts as non-existent here.
-    result = xsdbool( sy-subrc = 0
-                      AND ls_row-uname = lv_uname ).
+
+    temp1 = boolc( sy-subrc = 0 AND ls_row-uname = lv_uname ).
+    result = temp1.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_draft_store~count_entries.
 
-    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+    DATA lv_uname TYPE z2ui5_cl_ui5_util_context=>ty_s_sy-uname.
+    lv_uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
     " owner-scoped like read/check_exists
-    SELECT COUNT( * ) FROM z2ui5_t_01
-      WHERE uname = @lv_uname
-      INTO @result.
+    SELECT COUNT( * ) FROM z2ui5_t_01 INTO result
+      WHERE uname = lv_uname
+      .
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_draft_store~prune_chain.
+    DATA lv_keep TYPE i.
+    DATA lt_stop LIKE t_protect.
+    DATA temp56 TYPE string_table.
+    DATA lt_seen LIKE temp56.
+    DATA lv_id LIKE draft-id_prev.
+    DATA lv_uname TYPE z2ui5_cl_ui5_util_context=>ty_s_sy-uname.
+    DATA lv_ref TYPE z2ui5_t_01-id.
 
     IF keep <= 0.
       RETURN.
     ENDIF.
-    DATA(lv_keep) = nmax( val1 = c_min_keep_per_chain
+
+    lv_keep = nmax( val1 = c_min_keep_per_chain
                           val2 = nmin( val1 = keep
                                        val2 = c_max_keep_per_chain ) ).
 
@@ -251,15 +289,21 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " load them, and the first draft after a hop has the caller's hop
     " draft as its id_prev too, so the walk never crosses into the app it
     " came from
-    DATA(lt_stop) = t_protect.
+
+    lt_stop = t_protect.
     INSERT draft-id_prev_app INTO TABLE lt_stop.
     INSERT draft-id_prev_app_stack INTO TABLE lt_stop.
     " what the walk passed is kept as well - a chain that a leave closed
     " into a circle (the caller resumes under its hop-time id) must not
     " lead back to a draft inside the window
-    DATA(lt_seen) = VALUE string_table( ( draft-id ) ).
 
-    DATA(lv_id) = draft-id_prev.
+    CLEAR temp56.
+    INSERT draft-id INTO TABLE temp56.
+
+    lt_seen = temp56.
+
+
+    lv_id = draft-id_prev.
     DO lv_keep - 1 TIMES.
       IF prune_check_stop( id     = lv_id
                            t_stop = lt_stop
@@ -285,7 +329,8 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+
+    lv_uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
 
     " a draft another one goes back to stays: a caller on an app stack, the
     " app a popup returns to - also when the draft naming it is not on this
@@ -293,15 +338,16 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " still name it). No index on the two columns (see cleanup( )): the
     " table this reads is the one prune_chain( ) keeps small
     " any one of them is enough, hence SINGLE without the key
-    SELECT SINGLE id FROM z2ui5_t_01
-      WHERE uname = @lv_uname
-        AND ( id_prev_app = @lv_id OR id_prev_app_stack = @lv_id )
-      INTO @DATA(lv_ref) ##NEEDED.                       "#EC CI_NOORDER
+
+    SELECT SINGLE id FROM z2ui5_t_01 INTO lv_ref
+      WHERE uname = lv_uname
+        AND ( id_prev_app = lv_id OR id_prev_app_stack = lv_id )
+       ##NEEDED.                       "#EC CI_NOORDER
     IF sy-subrc = 0.
       RETURN.
     ENDIF.
 
-    DELETE FROM z2ui5_t_01 WHERE id = @lv_id AND uname = @lv_uname.
+    DELETE FROM z2ui5_t_01 WHERE id = lv_id AND uname = lv_uname.
     IF sy-subrc = 0.
       COMMIT WORK AND WAIT.
     ENDIF.
@@ -309,27 +355,44 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD prune_check_stop.
+    DATA temp58 LIKE sy-subrc.
+    DATA temp2 TYPE xsdboolean.
+      DATA temp59 LIKE sy-subrc.
+      DATA temp3 TYPE xsdboolean.
 
     IF id IS INITIAL.
       result = abap_true.
       RETURN.
     ENDIF.
     " a handful of ids each - a sequential read is the cheap one here
-    result = xsdbool( line_exists( t_stop[ table_line = id ] ) ). "#EC CI_SORTSEQ
+
+    READ TABLE t_stop WITH KEY table_line = id TRANSPORTING NO FIELDS.
+    temp58 = sy-subrc.
+
+    temp2 = boolc( temp58 = 0 ).
+    result = temp2. "#EC CI_SORTSEQ
     IF result = abap_false.
-      result = xsdbool( line_exists( t_seen[ table_line = id ] ) ). "#EC CI_SORTSEQ
+
+      READ TABLE t_seen WITH KEY table_line = id TRANSPORTING NO FIELDS.
+      temp59 = sy-subrc.
+
+      temp3 = boolc( temp59 = 0 ).
+      result = temp3. "#EC CI_SORTSEQ
     ENDIF.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_draft_store~touch.
 
-    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
-    DATA(lv_now) = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
+    DATA lv_uname TYPE z2ui5_cl_ui5_util_context=>ty_s_sy-uname.
+    DATA lv_now TYPE timestampl.
+    lv_uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+
+    lv_now = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
 
     " owner-scoped like every read: another user's draft keeps its age
-    UPDATE z2ui5_t_01 SET timestampl = @lv_now
-      WHERE id = @id AND uname = @lv_uname.
+    UPDATE z2ui5_t_01 SET timestampl = lv_now
+      WHERE id = id AND uname = lv_uname.
     IF sy-subrc = 0.
       COMMIT WORK AND WAIT.
     ENDIF.
@@ -342,7 +405,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
       result = gi_me.
       RETURN.
     ENDIF.
-    result = NEW z2ui5_cl_ui5_srv_draft( ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_srv_draft.
 
   ENDMETHOD.
 
@@ -359,7 +422,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " keeping up. Deliberately NOT owner-scoped, and deliberately only a count:
     " everything that reads draft CONTENT stays owner-bound ( see read( ) )
     SELECT COUNT( * ) FROM z2ui5_t_01                     "#EC CI_NOWHERE
-      INTO @result.
+      INTO result.
 
   ENDMETHOD.
 

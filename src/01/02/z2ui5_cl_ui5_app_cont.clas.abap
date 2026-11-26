@@ -257,7 +257,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       result = gi_serializer.
       RETURN.
     ENDIF.
-    result = NEW z2ui5_cl_ui5_serializer( ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_serializer.
 
   ENDMETHOD.
 
@@ -281,26 +281,40 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA(lv_id) = CONV string( id ).
+    DATA temp29 TYPE string.
+    DATA lv_id LIKE temp29.
+    DATA lr_buf TYPE REF TO z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    DATA ls_db TYPE z2ui5_if_ui5_draft_store=>ty_s_db.
+    DATA ls_draft LIKE result->ms_draft.
+    DATA temp30 TYPE z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    temp29 = id.
 
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf) WITH TABLE KEY id = lv_id.
+    lv_id = temp29.
+
+
+    READ TABLE mt_buffer REFERENCE INTO lr_buf WITH TABLE KEY id = lv_id.
     IF sy-subrc = 0.
       result = lr_buf->app.
       RETURN.
     ENDIF.
 
-    DATA(ls_db) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( id ).
+
+    ls_db = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
     " the ids before anybody changed them - factory_by_frontend mints the
     " next ones right after
-    DATA(ls_draft) = result->ms_draft.
+
+    ls_draft = result->ms_draft.
     result->create_model( )->main_attri_db_load( ).
 
-    INSERT VALUE #( id         = lv_id
-                    app        = result
-                    data       = ls_db-data
-                    timestampl = ls_db-timestampl
-                    s_draft    = ls_draft ) INTO TABLE mt_buffer.
+
+    CLEAR temp30.
+    temp30-id = lv_id.
+    temp30-app = result.
+    temp30-data = ls_db-data.
+    temp30-timestampl = ls_db-timestampl.
+    temp30-s_draft = ls_draft.
+    INSERT temp30 INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
@@ -322,7 +336,9 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " `app`, because `app` is the instance it deserialized. A buffered
     " container around a DIFFERENT instance of the same id stays unusable
     " here, as before
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf)
+    DATA lr_buf TYPE REF TO z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    DATA temp31 TYPE z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    READ TABLE mt_buffer REFERENCE INTO lr_buf
          WITH TABLE KEY id = app->id_draft.
     IF sy-subrc = 0 AND lr_buf->app->mo_app = app.
       result = lr_buf->app.
@@ -353,29 +369,39 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " parsing the draft again. A plain INSERT used to fail on the unique key
     " with sy-subrc 4 and nobody noticed - the stale container stayed
     DELETE TABLE mt_buffer WITH TABLE KEY id = app->id_draft.
-    INSERT VALUE #( id  = app->id_draft
-                    app = result ) INTO TABLE mt_buffer.
+
+    CLEAR temp31.
+    temp31-id = app->id_draft.
+    temp31-app = result.
+    INSERT temp31 INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
   METHOD app_refresh_draft_id.
+    DATA temp32 TYPE REF TO z2ui5_if_app.
 
     IF mo_app IS NOT BOUND.
       RETURN.
     ENDIF.
 
-    CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
+
+    temp32 ?= mo_app.
+    temp32->id_draft = ms_draft-id.
 
   ENDMETHOD.
 
   METHOD db_save.
+    DATA li_store TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA temp33 TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    DATA ls_config LIKE temp33.
 
     IF mo_app IS BOUND.
       mv_check_initialized = abap_true.
       app_refresh_draft_id( ).
     ENDIF.
 
-    DATA(li_store) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
+
+    li_store = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     li_store->create( draft     = ms_draft
                       model_xml = all_xml_stringify( ) ).
 
@@ -385,7 +411,10 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " bookmark of any of them must last until the expiry. A failure here
     " costs nothing but the draft's earlier end: the save above is done
     " and committed, and cleanup( ) still takes the draft by age
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+
+    CLEAR temp33.
+
+    ls_config = temp33.
     z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
     IF ls_config-draft_keep_per_chain <= 0 OR mv_app_state_active = abap_true.
       RETURN.
@@ -401,7 +430,11 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load_buffered.
 
-    DATA(lv_id) = CONV string( id ).
+    DATA temp34 TYPE string.
+    DATA lv_id LIKE temp34.
+    temp34 = id.
+
+    lv_id = temp34.
     READ TABLE mt_buffer INTO result WITH TABLE KEY id = lv_id.
     IF sy-subrc <> 0.
       CLEAR result.
@@ -410,6 +443,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD db_check_unchanged.
+    DATA ls_draft LIKE ms_draft.
+    DATA lv_initialized LIKE mv_check_initialized.
 
     " Only the shipped serializer, whose text IS the state. A host's own
     " need not answer the same text for the same state - the Node host's
@@ -423,8 +458,10 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " exactly what db_save( ) would write, under the loaded ids: the two
     " fields db_save( ) sets before it serializes, and the ids the draft
     " carried - every other byte is the app's state after main( )
-    DATA(ls_draft) = ms_draft.
-    DATA(lv_initialized) = mv_check_initialized.
+
+    ls_draft = ms_draft.
+
+    lv_initialized = mv_check_initialized.
     ms_draft = is_loaded-s_draft.
     mv_check_initialized = abap_true.
     app_refresh_draft_id( ).
@@ -442,8 +479,16 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD draft_keep.
 
-    DATA(lv_id) = CONV string( id ).
-    IF lv_id IS INITIAL OR line_exists( mt_draft_keep[ table_line = lv_id ] ). "#EC CI_SORTSEQ
+    DATA temp35 TYPE string.
+    DATA lv_id LIKE temp35.
+    DATA temp36 LIKE sy-subrc.
+    temp35 = id.
+
+    lv_id = temp35.
+
+    READ TABLE mt_draft_keep WITH KEY table_line = lv_id TRANSPORTING NO FIELDS.
+    temp36 = sy-subrc.
+    IF lv_id IS INITIAL OR temp36 = 0. "#EC CI_SORTSEQ
       RETURN.
     ENDIF.
     INSERT lv_id INTO TABLE mt_draft_keep.
@@ -455,7 +500,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    DATA(lo_model) = create_model( ).
+    DATA lo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
+    lo_model = create_model( ).
     lo_model->main_json_to_attri( model     = io_model
                                   iv_prefix = iv_path ).
     result = lo_model->mt_skipped.
@@ -482,15 +528,15 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD draft_parse.
 
-    DATA(ls_db) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( iv_id ).
+    DATA ls_db TYPE z2ui5_if_ui5_draft_store=>ty_s_db.
+    ls_db = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( iv_id ).
     result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
 
   METHOD create_model.
 
-    result = NEW z2ui5_cl_ui5_srv_model( attri = mt_attri
-                                         app   = mo_app ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_srv_model EXPORTING attri = mt_attri app = mo_app.
 
   ENDMETHOD.
 ENDCLASS.
