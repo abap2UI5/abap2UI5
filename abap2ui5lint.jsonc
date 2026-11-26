@@ -29,7 +29,12 @@
   // And the BSP of src/03/02: the minimal app of app_source/webapp as pages,
   // generated - its view names the embed control, a dependency of that app
   // the render gate cannot load.
-  "ignore": ["/src/01/05/z2ui5_cl_ui5_llm_guide.", "/src/03/02/"],
+  // And the view builder itself: it builds no view, and since linter 0.12.0
+  // the class index reads every class under `paths`, so its static
+  // `factory( )` became a "builder helper of another class" whose body is
+  // replayed - every app class here then reconstructed no view at all
+  // (0 documents instead of 28). Kept out until the linter skips the builder.
+  "ignore": ["/src/01/05/z2ui5_cl_ui5_llm_guide.", "/src/03/02/", "/src/02/z2ui5_cl_ui5_view_builder."],
 
   // The oldest release abap2UI5 supports — the same floor the samples are held
   // to, and the reason it matters here is that a shipped app demonstrating a

@@ -20,6 +20,7 @@ CLASS zcl_tst_sub_b DEFINITION PUBLIC.
     " attribute
     " abap2ui5lint-disable-next-line unbound-public-attribute -- zcl_tst_host reaches it through ASSIGN mo_app->(...)
     DATA mv_view_display TYPE abap_bool.
+    " abap2ui5lint-disable-next-line nonserializable-attribute -- the host's page, handed over through ASSIGN mo_app->(...) every roundtrip before main( ), never read from the draft
     DATA mo_parent_page  TYPE REF TO z2ui5_cl_ui5_view_builder.
 
     DATA mt_data     TYPE REF TO data.
@@ -141,7 +142,7 @@ CLASS zcl_tst_sub_b IMPLEMENTATION.
             )->ele( `cells` ).
     LOOP AT mo_lay->ms_data-t_layout REFERENCE INTO layout.
       cells->tag( `Text`
-          )->a( n = `text` v = |\{{ layout->name }\}| ).
+          )->a( n = `text` v = |\{{ z2ui5_cl_ui5_view_builder=>component_path( layout->name ) }\}| ).
     ENDLOOP.
 
     IF mo_parent_page IS INITIAL.
