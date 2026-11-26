@@ -33,7 +33,8 @@
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename.jsonc` (namespace rename, used by both the `build-rename` workflow and the `abaplint` PR gate; placeholder prefix `znamespace_`, replaced by `<name>_` or `/<namespace>/`) |
 | `.github/shared/` | Files this repository is the SOURCE of for the whole ecosystem — `agents-metadata.md`, the metadata convention `samples`, `samples-controls` and `samples-stack` each carry inside their `AGENTS.md` (a shared file needs one owner and this is the repository the others already depend on; `shared-file-gate.mjs` is what notices when a copy stops matching), and `CONVENTIONS.md`, the rules every repository follows — repository roles, workflow and npm-script naming, toolchain versions, which documentation files exist, commit style and the ABAP naming segments. Unlike the rest of this folder, `CONVENTIONS.md` binds this repository too; it exists because the same job carried three names across sibling repositories and `npm run check` ran a different set of steps than CI in three of them Also here: `linter-manifest.json`, **generated** (`npm run linter-manifest`, gated by `check:linter-manifest`) — the closed sets `@abap2ui5/linter` mirrors, read from their sources by `.github/scripts/generate-linter-manifest.mjs` so the linter reads a file instead of parsing this repository; change a whitelist in `core/actions/`, a formatter, a companion control's metadata, `cs_event` or the object layout and the file changes with it |
 | `tools/app2abap/` | `trans2abap.js` — turns `bundle/webapp/*` and `app_source/webapp/*` into the five generated classes of `src/01/03/`: one per text the node serves (`z2ui5_cl_ui5f_bundle` the frontend bundle, `_devtools` the devtools bundle, `_cc` the custom controls bundle, `_page` the page's inline script) and the facade `z2ui5_cl_ui5f_preload` the handler asks, with the hashes taken over those texts. Each text is cut into literals of at most 200 characters and into part methods of 2000 lines, so neither a long source line nor the size of the bundle reaches an ABAP limit. Until 2026-11-13 it wrote one class per file (about 140) |
-| `.github/actions/` | `setup` — composite action every job starts from: the Node version, the pinned `actions/setup-node` sha and the `npm ci` / `npm --prefix bundle ci` / `npm run deps` installs, in one place instead of copied into every workflow (inputs `npm-ci`, `app-npm-ci`, `deps`, `cache`; `deps` implies `npm-ci`). Checkout stays with the caller — a local action needs the repository on disk first. `report-scheduled-failure` — opens/updates an issue when a scheduled workflow fails (used by every scheduled workflow: `auto_abaplint_fix.yaml`, `check-v2-sdk.yaml`, `frontend_deploy.yaml`, `backlog-filed.yaml`, `coverage.yaml` and `removal-blockers.yaml`) |
+| `.github/actions/` | `setup` — composite action every job starts from: the Node version, the pinned `actions/setup-node` sha and the `npm ci` / `npm --prefix bundle ci` / `npm run deps` installs, in one place instead of copied into every workflow (inputs `npm-ci`, `app-npm-ci`, `deps`, `cache`; `deps` implies `npm-ci`). Checkout stays with the caller — a local action needs the repository on disk first. `report-scheduled-failure` — opens/updates an issue when a scheduled workflow fails (used by every scheduled workflow: `auto_abaplint_fix.yaml`, `check-v2-sdk.yaml`, `frontend_deploy.yaml`, `backlog-filed.yaml`, `coverage.yaml` and `removal-blockers.yaml`; `ecosystem-canary.yaml` keeps one issue of its own with the report as its body, the same find-by-title pattern) |
+| `.github/ecosystem.json` | The dependency map of the ecosystem (see "Related repositories") - data for `ecosystem-map.mjs`, `ecosystem-canary.mjs` and `release-ecosystem.mjs` under `.github/scripts/`, which share its reader `.github/scripts/lib/ecosystem-map.mjs` |
 | `.github/cleaner-profile.cfj` | ABAP Cleaner profile (SAP ABAP Cleaner tool configuration for automated code cleanup) |
 
 ## The frontend module inventory
@@ -115,6 +116,16 @@ control callbacks no roundtrip can answer (`core:require` of
 admission criteria by the same gate.
 
 ## Related repositories
+
+**The machine-readable version of this section is `.github/ecosystem.json`** - every
+repository of the ecosystem (the addons and the retired ones included) with its kind,
+default and published branches, whether it is released with the core version, what it
+depends on and the file and field that pins it, and its check command. Three programs
+read it: `npm run check:ecosystem` (its shape; `-- --live` holds every pin against
+GitHub and npm), the nightly `ecosystem-canary.yaml` (every consumer linted against
+this repository's `main`) and `npm run release:ecosystem` (the ecosystem release,
+dry-run by default). A repository that joins, moves a pin or changes its default branch
+is a change to that file; the table below is the prose for people.
 
 | Repository | Purpose |
 |---|---|

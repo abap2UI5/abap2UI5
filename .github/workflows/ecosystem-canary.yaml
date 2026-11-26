@@ -1,0 +1,170 @@
+name: ecosystem-canary
+
+# Does every consumer of the framework still lint against main? Nightly.
+#
+# The addons and corpora pin this repository in their abaplint configs - most
+# of them `main`, some a release tag - so a change here that breaks one of
+# them shows up over THERE, on a pull request nobody in that repository caused,
+# or (for a tag pin) weeks later on the day the pin moves. This run moves that
+# discovery to the night after the change, and into this repository's issue
+# tracker.
+#
+# Driven by .github/ecosystem.json: every active entry with a `canary` is one
+# matrix job. Each checks the consumer out at its default branch, points its
+# abaplint pins on abap2UI5 at main IN THE WORKSPACE (never committed), and
+# runs abaplint plus the consumer's own namespace rename where it has one -
+# .github/scripts/ecosystem-canary.mjs says exactly what. abaplint only: no
+# install of the consumer's dependencies, no unit run, no browser.
+#
+# On a failure it opens ONE issue ("Ecosystem canary: consumers break against
+# main"), or updates it and comments when it is already open - the pattern of
+# .github/actions/report-scheduled-failure, with the report as the body. A
+# green run comments on that issue that the consumers are green again; closing
+# it stays with a person.
+
+on:
+  schedule:
+    # 02:37 every night - off the hour, where every scheduled workflow queues
+    - cron: '37 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# No cancel-in-progress: the last job files an issue, and a cancelled run
+# files nothing. The group keeps a dispatch and the cron from filing twice.
+concurrency:
+  group: ecosystem-canary
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    # forks carry the map too, and their schedule would canary repositories
+    # they do not maintain - same guard as every scheduled workflow here
+    if: github.repository == 'abap2UI5/abap2UI5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      - id: matrix
+        run: echo "matrix=$(node .github/scripts/ecosystem-canary.mjs --matrix)" >> "$GITHUB_OUTPUT"
+
+  canary:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    name: canary (${{ matrix.name }})
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ matrix.repo }}
+          ref: ${{ matrix.branch }}
+          path: consumer
+          persist-credentials: false
+      # The abaplint this repository locks, alone - not `npm ci` of either
+      # side: the consumer's dependencies include the linter's renderer, and
+      # the canary asks only whether the ABAP still resolves
+      - name: Install abaplint
+        run: |
+          version=$(node -p "require('./package-lock.json').packages['node_modules/@abaplint/cli'].version")
+          npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/abaplint" "@abaplint/cli@$version"
+      - name: Lint ${{ matrix.repo }} against abap2UI5 main
+        env:
+          CONSUMER: ${{ matrix.repo }}
+          RESULT: canary-results/${{ matrix.name }}.json
+        run: |
+          mkdir -p canary-results
+          node .github/scripts/ecosystem-canary.mjs \
+            --repo "$CONSUMER" --dir consumer --ref main \
+            --abaplint "$RUNNER_TEMP/abaplint/node_modules/.bin/abaplint" \
+            --out "$RESULT"
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: canary-${{ matrix.name }}
+          path: canary-results/
+          retention-days: 14
+
+  report:
+    needs: canary
+    if: ${{ !cancelled() && github.repository == 'abap2UI5/abap2UI5' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write  # to open or update the one canary issue
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: canary-*
+          path: canary-results
+      - id: report
+        name: The matrix, into the job summary
+        run: |
+          node .github/scripts/ecosystem-canary.mjs --report canary-results > report.md
+          {
+            echo "## Ecosystem canary - the consumers against abap2UI5 main"
+            echo
+            cat report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Open or update the canary issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          FAILED: ${{ steps.report.outputs.failed }}
+        with:
+          script: |
+            const fs = require('fs');
+            const title = 'Ecosystem canary: consumers break against main';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const failed = Number(process.env.FAILED || 0);
+            const report = fs.readFileSync('report.md', 'utf8');
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100,
+            });
+            const existing = issues.find((issue) => issue.title === title);
+            const body = [
+              `${failed} consumer(s) of the framework do not lint against \`main\` any more (run: ${runUrl}).`,
+              '',
+              'Each is a repository from `.github/ecosystem.json`, checked out at its default branch with its abaplint pins on abap2UI5 pointed at `main` - which is what it will see once it moves its pin, or tonight when it already pins `main`. Fix the consumer, or the change here that broke it. The table is rewritten by every failing run.',
+              '',
+              report,
+            ].join('\n');
+            if (failed > 0) {
+              if (existing) {
+                await github.rest.issues.update({ owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body });
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number,
+                  body: `Still ${failed} broken: ${runUrl}`,
+                });
+              } else {
+                await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body });
+              }
+              core.setFailed(`${failed} consumer(s) break against main - see the issue "${title}"`);
+            } else if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number,
+                body: `Every consumer lints against main again: ${runUrl}`,
+              });
+            }

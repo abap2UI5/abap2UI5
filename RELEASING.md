@@ -172,8 +172,13 @@ tab: same gates, same notes, no tag and no release.
   for hash. The branch itself stays `auto_downport`'s; the release job never
   pushes it. A downport that fails or does not lint fails the step, and with
   it the `-702` release.
-- **The addons.** `abap2UI5-addons/*` and the sample repositories are versioned
-  on their own and are not touched here.
+- **The rest of the ecosystem.** This workflow tags this repository and
+  nothing else. The repositories `.github/ecosystem.json` marks `with-core`
+  (the corpora, the template, the docs, the protocol, the extension, the
+  addons layout-management, popups, table-maintenance, custom-controls and
+  custom-controls-customer, abap-util) get the same version from `npm run release:ecosystem`,
+  by hand, after this release - see "Release order" below. The others are
+  versioned on their own (`own`) or not at all (`none`).
 
 ## After a release
 
@@ -204,3 +209,47 @@ tab: same gates, same notes, no tag and no release.
   1.143.0 is the first one that does.
 - **`docs`** documents the version it describes; a release is the moment to
   check that what it teaches is in the tag.
+
+## Release order
+
+Three releases carry the abap2UI5 name, and they go in this order:
+
+1. **The core** - this repository, the tag push above. `release.yaml` cuts
+   `X.Y.Z` and `X.Y.Z-702`, `backend-prebuilt.yaml` follows with the backend
+   asset and `@abap2ui5/node-runtime`, and the docs changelog section is
+   opened (step 5). Everything below names this version, so it comes first.
+2. **The linter** - [abap2UI5/linter](https://github.com/abap2UI5/linter),
+   only when the core release changed a set the linter mirrors
+   (`npm run check:mirrors` here says when, `data/compat.json`
+   `framework.mirrored` over there records the version it mirrors). Its own
+   [RELEASING.md](https://github.com/abap2UI5/linter/blob/main/RELEASING.md)
+   is the checklist; its own version line (`vX.Y.Z`). After the core,
+   because it mirrors a released core; before the ecosystem, because the
+   corpora and addons lint with it.
+3. **The ecosystem** - every repository `.github/ecosystem.json` marks
+   `with-core` gets `X.Y.Z` on the head of its default branch, and
+   `X.Y.Z-702` / `X.Y.Z-cloud` on the head of those branches where it has
+   them:
+
+   ```sh
+   npm run release:ecosystem -- X.Y.Z            # the plan: what would be tagged, on which commit
+   npm run release:ecosystem -- X.Y.Z --apply    # do it (gh auth status: an account with write access)
+   ```
+
+   Existing tags are skipped, so a partial run is finished by running it
+   again; `--only <owner/name>` narrows it. `--apply` refuses while the
+   core's tag `X.Y.Z` does not exist. Tag heads that lint against the
+   release: the last `ecosystem-canary.yaml` run says which consumers do not
+   lint against `main`, and a head that does not is better fixed before it
+   carries the version than after. The plan also lists the consumers that
+   still pin an older core tag - the "ecosystem can pin again" step above.
+
+**Every release script has a dry run, and it is the default where it can be.**
+The core: dispatch `release.yaml` by hand from the Actions tab (same gates,
+same notes, no tag, no release). The linter: *Actions -> Publish to npm ->
+Run workflow* does everything except the publish. The ecosystem:
+`npm run release:ecosystem -- X.Y.Z` without `--apply` writes nothing. A
+release script added later follows the same rule - nothing is written
+without an explicit flag, and the dry run prints exactly what the real run
+would do.
+
