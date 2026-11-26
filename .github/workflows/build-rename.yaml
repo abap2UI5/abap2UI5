@@ -19,6 +19,14 @@ name: build-rename
 # rename-service.mjs). The node becomes /sap/bc/<name>, the BSP <NAME>, and
 # the handler calls <prefix>cl_ui5_http_handler. Until 2026-11 the BSP came
 # from a second repository, built by its own workflow run.
+# With 702 (default on) the same run also pushes rename_<name>_702: the
+# renamed tree put in place of src/ and run through `npm run auto_downport` -
+# the very pipeline auto_downport.yaml builds the branch 702 with (downport,
+# syfixes, the 7.02 checks, drop-bsp), so there is one way to downport, and
+# it does not care about the prefix as long as the 25+5 name budget holds -
+# then linted with the 702 config before it is pushed. There is no renamed
+# cloud variant: the service objects of cloud/src/03 (HTTP service, SCO2,
+# SIA*, SUSH) have no renamer (backlog/items/rename-variants-cloud.md).
 # Re-running with the same name updates the branch to the current main
 # state; without content changes nothing is pushed. The main commit is
 # carried as second parent so GitHub shows the branch as "ahead" instead
@@ -32,6 +40,11 @@ on:
         required: true
         type: string
         default: znamespace
+      with_702:
+        description: "Also build rename_<name>_702 (the renamed tree, downported to 7.02)"
+        required: false
+        type: boolean
+        default: true
 
 # read at the workflow level, write on the one job that pushes the branch -
 # the shape every other writing workflow here has. It was `contents: write`
@@ -46,7 +59,7 @@ concurrency:
 jobs:
   build_rename:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     permissions:
       contents: write
     env:
@@ -134,21 +147,43 @@ jobs:
         prefix_upper=$(printf '%s' "$PREFIX" | tr '[:lower:]' '[:upper:]')
         sed "s|Z2UI5_IF_APP|${prefix_upper}IF_APP|" .abapgit.xml > "$out/.abapgit.xml"
 
-    - name: Push renamed branch
+    # the 7.02 variant: the renamed src/ in place of the checkout's src/,
+    # then exactly what auto_downport.yaml runs - `npm run auto_downport`
+    # (it rewrites src/ in place and puts the 702 config at abaplint.jsonc)
+    # and a plain `npx abaplint`, the 702 lint of the tree about to be pushed
+    - name: Downport the renamed tree to 7.02
+      if: ${{ inputs.with_702 }}
       run: |
-        b="$BRANCH"
+        rm -rf src
+        cp -r ".github/out/$BRANCH/src" src
+        npm run auto_downport
+        npx abaplint
+        node .github/scripts/rename-literal-gate.mjs --renamed src
+        out=".github/out/${BRANCH}_702"
+        rm -rf "$out"
+        mkdir -p "$out"
+        cp -r src "$out/src"
+        cp LICENSE "$out/"
+        cp ".github/out/$BRANCH/.abapgit.xml" "$out/"
+
+    - name: Push renamed branches
+      run: |
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
-        git fetch origin "$b" --depth 1 2>/dev/null || true
-        parent=$(git rev-parse -q --verify "refs/remotes/origin/$b" || true)
-        index="$RUNNER_TEMP/index-$b"
-        rm -f "$index"
-        (cd ".github/out/$b" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
-        tree=$(GIT_INDEX_FILE="$index" git write-tree)
-        if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
-          echo "$b: no changes"
-          exit 0
-        fi
-        commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -p "$GITHUB_SHA" -m "build: $b from $GITHUB_SHA")
-        git push origin "$commit:refs/heads/$b"
-        echo "$b: pushed $commit"
+        branches="$BRANCH"
+        if [ -d ".github/out/${BRANCH}_702" ]; then branches="$branches ${BRANCH}_702"; fi
+        for b in $branches; do
+          git fetch origin "$b" --depth 1 2>/dev/null || true
+          parent=$(git rev-parse -q --verify "refs/remotes/origin/$b" || true)
+          index="$RUNNER_TEMP/index-$b"
+          rm -f "$index"
+          (cd ".github/out/$b" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
+          tree=$(GIT_INDEX_FILE="$index" git write-tree)
+          if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
+            echo "$b: no changes"
+            continue
+          fi
+          commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -p "$GITHUB_SHA" -m "build: $b from $GITHUB_SHA")
+          git push origin "$commit:refs/heads/$b"
+          echo "$b: pushed $commit"
+        done
