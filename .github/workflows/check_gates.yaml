@@ -212,6 +212,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/toolchain-gate.mjs # npm run check:toolchain
 
+      # .github/ecosystem.json drives the nightly ecosystem canary and the
+      # ecosystem release - a malformed entry is a failed night or a wrong tag.
+      # Offline: the shape, and the core's own pins against this tree
+      - name: the ecosystem map is well-formed
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/ecosystem-map.mjs # npm run check:ecosystem
+
       # the row format of the three generated SAMPLES.md catalogues is parsed by
       # abap2UI5/mcp-server and abap2UI5/docs - three generators, two readers, none
       # of them in the same repository, and a reader that stops matching answers

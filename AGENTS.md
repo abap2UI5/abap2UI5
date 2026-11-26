@@ -38,6 +38,7 @@ Where the rest is:
 | `docs/agents/ci-workflows.md` | a check went red, or you touch a workflow |
 | `docs/agents/architecture-seams.md` | touching the draft store, the serializer, the monitor, the language model seam or the exit lookup |
 | `docs/agents/decisions.md` | you want to argue with a decision below, or need the history behind one |
+| `RELEASING.md` | cutting a release (core, linter, ecosystem - in that order, each with a dry run), or removing anything public - **deprecate first, remove in a later release** (its "Deprecation policy") |
 | `docs/agents/client-api.md` | you need a signature of `z2ui5_if_client` — the generated index (`npm run client-api`), never edited |
 | `docs/agents/api-snapshot-exceptions.md` | rule 5 — the recorded exceptions to the public-API snapshot |
 | `docs/agents/test-inventory.md` | which spec covers which module |
@@ -54,7 +55,8 @@ to ABAP Cloud, on-premise and cloud.
 - **Version:** the `version` constant in `src/02/z2ui5_if_app.intf.abap` — read it there, never repeat it here
 - **License:** MIT · **Homepage:** https://abap2UI5.org
 - **Language:** English — all code, comments, commit messages, PRs, issues, documentation, and communication
-- **Related repositories** (samples, linter, mcp-server, the extension, abap-util, …): `docs/agents/repository-map.md`
+- **Related repositories** (samples, linter, mcp-server, the extension, abap-util, …): `docs/agents/repository-map.md`; which one pins
+  what, how, and which are released with the core: `.github/ecosystem.json` (`npm run check:ecosystem`)
 
 ## Architecture
 
