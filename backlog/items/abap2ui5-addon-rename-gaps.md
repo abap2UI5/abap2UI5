@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Namespace rename: the addons that do not have it yet, and why'
-summary: thirteen addons have abap2UI5's namespace rename (rename.mjs, build-rename); eight do not - BSP applications, function groups, authorization objects, Gateway projects and CDS views abaplint cannot rename, class names over 25 characters, a dependency without a rename - and abap2UI5-ext has none, which a renamed installation needs for every app on the legacy API; rename.mjs fits it unchanged once its pin is 1.151.0 or later
+summary: thirteen addons have abap2UI5's namespace rename (rename.mjs, build-rename), custom-controls and custom-controls-customer a partial one since 2026-11-26 (without their BSP; custom-controls at most 6 characters); six do not - BSP applications, function groups, authorization objects, Gateway projects and CDS views abaplint cannot rename, class names over 25 characters, a dependency without a rename - and abap2UI5-ext has none, which a renamed installation needs for every app on the legacy API; rename.mjs fits it unchanged once its pin is 1.151.0 or later
 priority: medium
 state: open
 first_seen: 2026-11-03
@@ -14,6 +14,9 @@ evidence:
   - 'audit 2026-11-26 - the shared rename.mjs copied into custom-controls: first IF_HTTP_EXTENSION unknown (its config takes abap2UI5 /src/**, see addon-rename-core-src03), with src/0[0-2] then "a new name is too long for its object type: CLAS Z2UI5_CL_CCI_SIGNATURE_PAD"; over 25 characters are z2ui5_cl_cci_network_status (27), _rich_text_editor (29), _signature_pad (26), _barcode_scanner (28)'
   - 'audit 2026-11-26 - the same in custom-controls-customer: with src/0[0-2] "zxxxxxxxxx_cl_ccc.clas.abap:25: the literal ''z2ui5_ccc'' names Z2UI5_CCC" - c_ns / c_ns_uri name the BSP''s resource root, and the BSP Z2UI5_CCC (WAPA) and its SICF nodes stay unrenamed'
   - 'audit 2026-11-26 - no addon on main references an object of abap2UI5-ext any more: z2ui5_cl_util appears only in a comment of each *_context class (layout-management, popups, table-maintenance, lock-manager, range-filter, table-content-loader); the shared rename.mjs copied into abap2UI5-ext renames it green against abap2UI5 main (90 files, z2ui5_t_91 -> 15 characters, within the 16 of a transparent table) and fails against its pin 1.149.0 and against 1.150.0 (11 issues, Z2UI5_IF_EXIT unknown in src/01/04/z2ui5_cl_ui5_user_exit - that release keeps the interface in its src/99)'
+  - 'custom-controls DEV 2026-11-26: npm run rename with the shared rename.mjs - package.json config.renameMaxLength 6 (the four classes over 25 characters are NOT shortened: a breaking change for every app using them, a maintainer decision still open), src/01 (the BSP) in config.renameSkip, c_ns and two demo texts in config.renameLiterals; its overview app (sample 00) derives its 15 demo class names from its own name; 70 files, 0 issues; check / rename on (template input rename: true), build-rename added'
+  - 'custom-controls-customer DEV 2026-11-26: npm run rename - src/01 (BSP Z2UI5_CCC, two ICF nodes) in config.renameSkip, c_ns in config.renameLiterals; 6 files, 0 issues'
+  - 'the shared rename.mjs gained optional package.json options on 2026-11-26 (renameSkip, renameLiterals, renameOwn, renameSource, renameLint, renameMaxLengthWhy; the root is the nearest folder with a package.json) and went out byte-identical to every repository that has it - additive, every existing npm run rename unchanged and green'
 ---
 
 # Namespace rename: the addons that do not have it yet, and why
@@ -35,8 +38,8 @@ that needs a decision or work beyond a mechanical rollout:
 
 | Addon | What stops it |
 |---|---|
-| custom-controls | a BSP application (WAPA) - abaplint cannot rename it; its resource path `z2ui5_cci` is reserved in abap2UI5's frontend, so a renamed path needs a core change too; four class names over 25 characters (`z2ui5_cl_cci_rich_text_editor` 29, `_barcode_scanner` 28, `_network_status` 27, `_signature_pad` 26) - the trial stops at `Z2UI5_CL_CCI_SIGNATURE_PAD` |
-| custom-controls-customer | the BSP `Z2UI5_CCC` and its SICF nodes; `z2ui5_cl_ccc` names its resource root in two literals (`c_ns`, `c_ns_uri`), which the rename's literal check reports; reserved path `z2ui5_ccc` as above. It is a template a customer copies into their own namespace - a rename may not be wanted at all |
+| custom-controls | **partial since 2026-11-26**: renamed without `src/01`, the BSP application (WAPA) - abaplint cannot rename it; its resource path `z2ui5_cci` is reserved in abap2UI5's frontend, so a renamed path needs a core change too. At most **6 characters**: four class names over 25 (`z2ui5_cl_cci_rich_text_editor` 29, `_barcode_scanner` 28, `_network_status` 27, `_signature_pad` 26) - shortening them is breaking and not done, a decision for the maintainer |
+| custom-controls-customer | **partial since 2026-11-26**: renamed without the BSP `Z2UI5_CCC` and its SICF nodes (`src/01`); `c_ns` (the resource root `z2ui5_ccc`) stays a literal, listed by the rename. Reserved path `z2ui5_ccc` as above |
 | embed-excel | a BSP application (WAPA) |
 | rfc-connector | a function group and SUSH objects (not renameable), and `z2ui5_cl_rfc_connector_handler` has 30 characters |
 | config-management | authorization object `Z2UI5_CONF` and field `Z2UI5_CTYP` - not renameable, and at most 10 characters, so no longer prefix fits at all |

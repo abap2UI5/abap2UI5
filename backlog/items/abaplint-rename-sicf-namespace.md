@@ -12,6 +12,7 @@ evidence:
   - 'gh search 2026-11-26: abaplint/abaplint#4717 "rename SICF: into a custom namespace" merged 2026-11-25 17:37 UTC; #4718 "rename SICF: the node of the namespace is created" merged 2026-11-26 09:50 UTC; #4715 (abapGit file name follows the new name) closed unmerged'
   - 'npm view @abaplint/cli: the newest release is 2.120.120, published 2026-11-25 13:57 UTC - before either merge, so neither is in a release abap2UI5 or an addon can pin'
   - 'abap2UI5 main: build-rename with /CA2UI5/ renames src/03 (the ICF node /sap/bc/z2ui5) with tools/bsp_rename, not with abaplint; abap-agent-runtime keeps the name of its ICF node at 9 characters for the same rename'
+  - 'abap2ui5-local DEV 2026-11-26: the shared rename.mjs with --name /CA2UI5/ on the standard branch (abaplint 2.120.120) writes the ICF node z2ui5_local as ICF_NAME /CA2UI5/LOCAL with the URL /sap/bc//ca2ui5/local/ - build_rename.yaml takes customer names only until a release carries #4717/#4718'
 ---
 
 # rename SICF: into a custom namespace, and the namespace node

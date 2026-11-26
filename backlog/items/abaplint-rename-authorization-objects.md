@@ -12,6 +12,7 @@ evidence:
   - 'audit 2026-11-26 (backlog item abap2ui5-addon-rename-gaps): config-management - authorization object Z2UI5_CONF and field Z2UI5_CTYP, at most 10 characters, so no longer prefix fits; rfc-connector - SUSH objects'
   - 'samples-stack origin/main 7538290: src/07/01/9914e9cf825a17215b92f08ac321afht.sush.xml (the APC service); abap2UI5 cloud/src/03/01/1782d97775fb5801cef397bb74b1dcht.sush.xml (the HTTP service)'
   - 'gh search 2026-11-26 (repo:abaplint/abaplint: "rename AUTH", "rename SUSO", "rename SUSH"): only #2934'
+  - 'samples-stack DEV 2026-11-26: src/07 left out of npm run rename (config.renameSkip), its SUSH among the reasons; abap2ui5-local DEV 2026-11-26: check_rename.yaml renames the branches standard and 702 only - the cloud branch carries 22f9b5d5b22bd68daedaf6608d5bb7ht.sush.xml next to its HTTP service'
 ---
 
 # rename: authorization objects, fields and default values

@@ -12,6 +12,7 @@ evidence:
   - 'audit 2026-11-26 (backlog item abap2ui5-addon-rename-gaps): rap-ext - two CDS views (DDLS), no namespace rename'
   - 'samples-stack origin/main 7538290: 14 ddls, 9 bdef, z2ui5_sd_smps_tck.srvd.xml, z2ui5_sb_smps_tck.srvb.xml (src/05/01); classes reference them in SELECT, EML (MODIFY/READ ENTITIES OF) and derived types - no rename (backlog item samples-rename-semantics)'
   - 'gh search 2026-11-26 (repo:abaplint/abaplint: "rename DDLS", "rename CDS"): nothing'
+  - 'samples-stack DEV 2026-11-26: npm run rename (the shared scripts/rename.mjs) leaves out src/03, 04, 05, 11, 12 (DDLS/BDEF and the EML naming them) and src/13 (EML on the business object of src/03) via package.json config.renameSkip - 47 files renamed, 0 issues, the six packages printed as not renamed on every run'
 ---
 
 # rename: CDS and RAP objects

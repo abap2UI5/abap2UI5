@@ -11,6 +11,7 @@ evidence:
   - 'abaplint 2.120.120 Renamer.factory: no SAPC, SAMC, SMIM'
   - 'samples-stack origin/main 7538290: src/07/01 z2ui5_apc_smp_2.sapc.xml, z2ui5_amc_smp_2.samc.xml and the SICF node of the APC application (file name 40 characters with its hash); src/08/01 two SMIM objects (MIME repository)'
   - 'gh search 2026-11-26: abaplint/abaplint#4722 "rename WAPA: the MIME folder of the application moves with it" merged - for the folder of a BSP only'
+  - 'samples-stack DEV 2026-11-26: config.renameSkip leaves out src/07 (SAPC, SAMC, SUSH and the ICF node naming the handler class and the channel) and src/08 (its class plays the two SMIM objects of src/08/01 by path) - printed on every npm run rename'
 ---
 
 # rename: APC/AMC applications and MIME objects

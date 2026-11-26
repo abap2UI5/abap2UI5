@@ -12,6 +12,7 @@ evidence:
   - 'samples-stack AGENTS.md: "No 7.02 downport. EML sets the floor at 1909" - against the requirement that every repository of the ecosystem downports to 7.02'
   - 'abap2UI5 main: node/setup/downport-fix.mjs drop-bsp removes src/03/02 from the 702 tree by hand, because nothing in the downport says a BSP with a UI5 > 7.02 app has no 7.02 form'
   - 'gh search 2026-11-26 (repo:abaplint/abaplint, open issues "downport"): #3503 downport EXACT, #3735 cx_sy_itab_line_not_found, #3505 SQL literals - nothing on EML or object types; #4517 (merged 2026-11-03) reports what cannot be downported inside a statement'
+  - 'samples-stack DEV 2026-11-26 (commit "7.02 downport and namespace rename, per package"): the 702 downport now exists, scripts/check-702.mjs + .github/abaplint/abap_702.jsonc, 671 findings before --fix and 0 after - with a HAND-KEPT exclude list: src/03, 04, 05, 11, 12, 13 (EML, CDS/BDEF), src/07 (cl_apc_wsp_ext_stateless_base: "Method definition if_apc_wsp_extension~on_close not found" at v702 - APC exists from 7.40) and src/10/02, 10/03 (cl_web_http_client_manager and the ABAP AI SDK: "Cannot downport, type of error is void", "Downport CONV, type of # not known") - exactly the list a downport_unavailable report would produce'
 ---
 
 # downport: report what has no 7.02 form

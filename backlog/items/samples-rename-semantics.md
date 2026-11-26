@@ -11,6 +11,8 @@ evidence:
   - 'samples origin/main a3b0c03, npm run rename (.github/abaplint/rename_test.jsonc) 2026-11-26: 0 issues, 294 files - pattern ^z2ui5(.*)$ -> zabap2ui5$1 over src/*.* only, abap2UI5 main a plain dependency (not renamed), no literal check; 140 literals of the form ''z2ui5_cl_smp_...'' in src (z2ui5_cl_smp_app_000 and others)'
   - 'samples-controls origin/main 415b255, the shared addon rename.mjs on a copy with the core narrowed to src/0[0-2]: "zxxxxxxxxx_cl_smpc_app_000.clas.abap:15184: the literal ''z2ui5_cl_smpc_app_599'' names Z2UI5_CL_SMPC_APP_599 - the rename does not rewrite a literal" ... "rename: 676 problem(s) in the renamed src/"; names fit (longest 24, all CLAS)'
   - 'samples-stack origin/main 7538290: BDEF, DDLS, SRVD, SRVB, SAPC, SAMC, SUSH, G4BA, SMIM objects and the SICF z2ui5_apc_smp_202689da8c04c25e7370ed1ba2 (40); 58 class-name literals'
+  - 'DEV of the three corpora, 2026-11-26 - the work list done as far as abaplint carries it: samples (npm run rename is the shared scripts/rename.mjs, 294 files, 0 issues, 7 literals of z2ui5_cl_smp_app_104/105 kept and listed), samples-controls (check-rename / build-rename, 1395 files, 0 issues - the generator writes derived names), samples-stack (check-rename / build-rename, 47 files, 0 issues, 10 packages left out by config.renameSkip, each with its reason)'
+  - 'samples-stack, new in that run: src/06 and src/10 cannot be renamed for a reason that is not abaplint''s - their tables z2ui5_t_smps_01 (15 characters) and z2ui5_t_smps_llm (16) leave no room under the 16 of a transparent table ("a new name is too long for its object type: TABL Z2UI5_T_SMPS_LLM -> zxxxxxxxxx_T_SMPS_LLM"); with a 5-character name the run reaches the next gap - three literals naming Z2UI5_T_SMPS_01 in the lock samples and three class names in z2ui5_cl_smps_llm_factory. Shortening a table is breaking (data); the decision is open'
 ---
 
 # Sample corpora and the rename
@@ -55,6 +57,18 @@ installation nobody can try. The work list:
    the rename of samples-stack covers the packages without them, and says so.
 4. Each repository's AGENTS.md and docs advanced/renaming.md state that the
    samples rename with the framework, and with which name.
+
+## State on DEV (2026-11-26)
+
+1. **samples** - done but for `z2ui5_cl_smp_app_104` / `105`: seven literals,
+   listed in `config.renameLiterals` (the sample instantiates its sub-apps by
+   name - that is its lesson). #4719 would take them.
+2. **samples-controls** - done.
+3. **samples-stack** - renamed: the overview, `src/00`, `01`, `02`, `09`,
+   `14`. Left out (`config.renameSkip`): `03`-`05`, `11`-`13` (CDS/RAP, G4BA,
+   EML), `07` (APC/AMC, SUSH), `08` (SMIM), `06` and `10` (tables of 15 and
+   16 characters - a decision, not an abaplint gap).
+4. AGENTS.md of each says so; docs `advanced/renaming.md` is still open.
 
 ## Reproduce
 

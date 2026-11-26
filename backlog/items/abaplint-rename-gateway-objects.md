@@ -12,6 +12,7 @@ evidence:
   - 'audit 2026-11-26 (backlog item abap2ui5-addon-rename-gaps): launchpad-kpi - the Gateway project and service (IWPR, IWSV, IWMO, IWOM, IWSG) are not renameable, and the service name is in the OData URL'
   - 'samples-stack origin/main 7538290: src/05/01/z2ui5_sb_smps_tck.g4ba.xml next to its service binding'
   - 'gh search 2026-11-26 (repo:abaplint/abaplint: "rename IWSV", "rename gateway"): nothing'
+  - 'samples-stack DEV 2026-11-26: src/05 left out of npm run rename (config.renameSkip) for its G4BA among the CDS/RAP objects'
 ---
 
 # rename: SAP Gateway objects
