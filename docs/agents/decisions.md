@@ -143,6 +143,24 @@ The following items may look like gaps but are intentional design choices:
   launchpad.
 - **Embedding abap2UI5 into other UI5 apps is built as far as demand asked, not further.** Running it as a reuse component (freestyle views, Fiori elements extensions), several instances per page, and a wrapping custom control were assessed on 2026-09-23 and deferred until there is real demand. Since then several instances per page (stage 2), the `?z2ui5-bundle` and a wrapping control (abap2UI5-addons/embed-ui5-control) exist, on 2026-09-28 the embedded flag that hands the URL to the host (`state.embedded`), which a Fiori elements custom section needed, on 2026-10-10 the opt-in that hands the hash back to a component that is the host's whole page (`state.ownsHash`, the abap2UI5/frontend branches `standard_new` and `cloud_new`), and on 2026-10-12, asked for by the maintainer, `state.ownsPage`: the same opt-in for everything page-wide - the hash, the title, the favicon, the global busy indicator, the "leave page?" prompt - which an embedded component without it now leaves to the host (`ownsHash` is its older name and hands back the same). The findings, the staged plan and why the other page-wide listeners stay page-wide are in `backlog/items/embed-as-reuse-component.md`. The framework's own ids are already component-prefixed (`ViewSlots.ownId`). Do not re-propose the rest as general cleanup.
 - **The `z2ui5_cl_xml_view` builder (src/99) is large because each method wraps one UI5 control for the fluent API.** It is **not** being extended or refactored here: the builder from [samples-controls](https://github.com/abap2UI5/samples-controls) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
+- **Deprecate first, remove in a later release (decided 2026-11-26).** The rule is
+  `RELEASING.md`, "Deprecation policy": anything an installation can use is marked
+  obsolete in the code, listed on the docs Deprecations page and in
+  `docs/removal-plan.md`, and announced in a GitHub issue that names the replacement
+  and says the previous release tag is where an installation can stay until it has
+  migrated; it is removed in a LATER release, under a `BREAKING:` changelog line that
+  links that issue (the changelog section is the release notes). Why it is written
+  down now: 1.151.0 removed `_bind_edit( )` and the five `*_model_update( )` no-ops
+  (#3036), moved the legacy objects to abap2UI5-ext (#3045) and merged
+  abap2UI5/frontend into the core (#3023). All three went through an issue naming the
+  replacement, and the deletion of the client methods carried a `BREAKING:` line - but #3036 was opened on 2026-11-22, the day the
+  methods were deleted, so the warning and the removal shipped in one release, and none of
+  the changelog lines linked its issue. The retrospective's answer was this rule, together
+  with the tags of every `with-core` repository (`npm run release:ecosystem`) that make
+  "stay on the previous release" something a user can actually do, and the nightly
+  `ecosystem-canary.yaml`, which shows which consumers a removal on `main` breaks
+  before a release carries it. Do not remove a public symbol in the release that
+  first announces it.
 
 ## History that used to sit in AGENTS.md
 

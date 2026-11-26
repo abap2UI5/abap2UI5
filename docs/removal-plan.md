@@ -28,6 +28,9 @@ use `z2ui5_cl_ui5_view_builder` and none use its predecessor. What is left is
 **Rule of thumb for the order:** documentation, then samples, then the code. A
 removal whose replacement is still undocumented turns every upgrader into a
 support case.
+The release rule around every removal - deprecate in one release, remove in a
+later one, the deprecation issue linked from the `BREAKING:` line - is
+`RELEASING.md`, "Deprecation policy".
 
 ---
 

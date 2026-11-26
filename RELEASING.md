@@ -253,3 +253,45 @@ release script added later follows the same rule - nothing is written
 without an explicit flag, and the dry run prints exactly what the real run
 would do.
 
+## Deprecation policy
+
+**Deprecate first, remove in a later release.** Anything an installation can
+use - a public method, type or constant of `src/02` (rule 5), an object, a
+frontend contract, a repository it installs from - goes through two releases:
+
+1. **The deprecating release** marks it obsolete in the code (the comment or
+   pragma at the declaration, naming the replacement), adds it to the
+   [Deprecations](https://abap2ui5.github.io/docs/resources/deprecations)
+   page of abap2UI5/docs and to `docs/removal-plan.md`, and opens a **GitHub
+   issue** that names the replacement and says that an installation can stay
+   on the previous release tag until it has migrated. The changelog line is a
+   `!` that links the issue. Nothing breaks yet.
+2. **A later release removes it.** Its changelog line starts with
+   `BREAKING:` (`- BREAKING: ...`), and the release notes - which are that
+   changelog section - link the deprecation issue, so whoever upgrades reads
+   what replaces it and that the previous tag is the way to defer the
+   migration. The API snapshot changes in the same commit
+   (`node .github/scripts/api-snapshot.mjs --write`, recorded in
+   `docs/agents/api-snapshot-exceptions.md` where rule 5 needs it).
+
+The tags are what makes "stay on the previous release" an answer: an
+abapGit installation can pull a tag, a consumer's abaplint config can pin one
+(`.github/ecosystem.json` lists who does), and the nightly canary shows which
+consumers a removal on `main` breaks before the release ships it.
+
+**1.151.0 is the worked example - of the parts that worked and of the part
+that this rule now fixes.** Its three removals each went through a GitHub
+issue that named the replacement:
+[#3036](https://github.com/abap2UI5/abap2UI5/issues/3036) (`_bind_edit( )`
+and the `*_model_update( )` methods of the client: `_bind( )`, and nothing
+at all for the no-ops), [#3045](https://github.com/abap2UI5/abap2UI5/issues/3045)
+(the legacy view builder and popups of the former `src/99` move to
+abap2UI5/abap2UI5-ext, a separate install with the same names) and
+[#3023](https://github.com/abap2UI5/abap2UI5/issues/3023) (abap2UI5/frontend
+merged into this repository: `src/03` and the branch `cloud`, one pull). The
+deletion of the client methods carried a `BREAKING:` line. What it did not do: #3036 was opened
+on 2026-11-22, the day the methods were deleted, so deprecation and removal
+landed in the same release, and no changelog line links its issue.
+From the next release on, the deprecation ships in one release and the removal in a
+later one, and the line links the issue. The history is in
+`docs/agents/decisions.md`.
