@@ -59,15 +59,6 @@ const LEVELS = new Set(["high", "critical"]);
  * entry needs the reason, so an entry cannot become a silent hole - and the
  * reason has to name why the fix is not simply taken. */
 const ACCEPTED = new Map([
-  ["GHSA-fc5q-39xc-vjpf", {
-    trees: ["", "bundle"],
-    reason: "picomatch: ReDoS through single-branch repeated extglobs. Reached only through "
-      + "@ui5/cli (@ui5/fs -> micromatch, @ui5/project -> pacote -> node-gyp -> tinyglobby), "
-      + "build-time, and the globs it matches come from the projects' own ui5.yaml and file "
-      + "names, never from user input. Every published picomatch is affected (<=4.0.7, "
-      + "2026-11-17) and npm's only fix is @ui5/cli 2.x; accepted by the maintainer "
-      + "2026-11-17 - drop this entry when a fixed picomatch is out",
-  }],
   ["GHSA-w4pp-8pjf-rmxw", {
     trees: ["", "bundle"],
     reason: "pacote: DoS via addGitSha. Reached only through @ui5/cli -> @ui5/project, "
