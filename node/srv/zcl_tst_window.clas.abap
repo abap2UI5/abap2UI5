@@ -15,7 +15,6 @@ CLASS zcl_tst_window DEFINITION PUBLIC.
     " the sap.m.Table, 50 rows at a time - event ROWS
     DATA mt_rows TYPE ty_t_row.
     " the sap.ui.table.Table, 30 rows at a time - event GRID, bound as REF #( mt_grid )
-    " abap2ui5lint-disable-next-line unbound-public-attribute -- bound through window_bind_tab( val = REF #( mt_grid ) ), which the linter does not follow yet
     DATA mt_grid TYPE ty_t_row.
     " a table behind a data reference: 40 rows, 10 at a time - event TAB
     DATA mr_tab TYPE REF TO data.
@@ -23,11 +22,8 @@ CLASS zcl_tst_window DEFINITION PUBLIC.
     DATA mv_result TYPE string.
     " the rows there are in all - passed as total = to window_bind_tab( ),
     " and read anew by every response: a window event only sets them
-    " abap2ui5lint-disable-next-line unbound-public-attribute -- the total of window_bind_tab( ), read by the framework
     DATA mv_rows_total TYPE i.
-    " abap2ui5lint-disable-next-line unbound-public-attribute -- the total of window_bind_tab( ), read by the framework
     DATA mv_grid_total TYPE i.
-    " abap2ui5lint-disable-next-line unbound-public-attribute -- the total of window_bind_tab( ), read by the framework
     DATA mv_tab_total TYPE i.
 
   PROTECTED SECTION.
@@ -322,7 +318,6 @@ CLASS zcl_tst_window IMPLEMENTATION.
             )->a( n = `press` v = client->_event( `CHECK` )
         )->tag( `Text`
             )->a( n = `id`   v = `total`
-            " abap2ui5lint-disable-next-line unknown-binding-path -- /__WINDOW is the window model window_bind_tab( ) writes, which the linter does not know
             )->a( n = `text` v = |\{/__WINDOW{ client->_bind_path( mt_rows ) }/TOTAL\} rows|
         )->tag( `Text`
             )->a( n = `id`   v = `result`

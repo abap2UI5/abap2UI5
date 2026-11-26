@@ -21,6 +21,7 @@ CLASS zcl_tst_host DEFINITION PUBLIC.
 
   PROTECTED SECTION.
     DATA client             TYPE REF TO z2ui5_if_client.
+    " abap2ui5lint-disable-next-line nonserializable-attribute -- rebuilt every roundtrip: render_sub_app( ) calls view_display( ) and hands the page over before the sub-app's main( ), never read from the draft
     DATA mo_main_page       TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA mv_selectedkey_tmp TYPE string.
     DATA mt_tab             TYPE ty_t_tab.

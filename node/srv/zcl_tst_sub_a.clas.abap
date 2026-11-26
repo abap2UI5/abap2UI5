@@ -16,6 +16,7 @@ CLASS zcl_tst_sub_a DEFINITION PUBLIC.
     " not report a TYPE REF TO attribute
     " abap2ui5lint-disable-next-line unbound-public-attribute -- zcl_tst_host reaches it through ASSIGN mo_app->(...)
     DATA mv_view_display TYPE abap_bool.
+    " abap2ui5lint-disable-next-line nonserializable-attribute -- the host's page, handed over through ASSIGN mo_app->(...) every roundtrip before main( ), never read from the draft
     DATA mo_parent_page  TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA mv_table        TYPE string.
 
@@ -162,7 +163,7 @@ CLASS zcl_tst_sub_a IMPLEMENTATION.
             )->ele( `cells` ).
     LOOP AT mo_layout->ms_data-t_layout REFERENCE INTO layout.
       cells->tag( `Text`
-          )->a( n = `text` v = |\{{ layout->name }\}| ).
+          )->a( n = `text` v = |\{{ z2ui5_cl_ui5_view_builder=>component_path( layout->name ) }\}| ).
     ENDLOOP.
 
     IF mo_parent_page IS INITIAL.
@@ -195,7 +196,6 @@ CLASS zcl_tst_sub_a IMPLEMENTATION.
       client->message_toast_display( `ERROR - sub-app a: references diverged` ).
     ENDIF.
 
-    " abap2ui5lint-disable-next-line unconditional-popup-display -- on_event( ) displays the popup from its ROW_POPUP branch only; the linter follows the call, not the CASE
     on_event( client ).
 
   ENDMETHOD.
