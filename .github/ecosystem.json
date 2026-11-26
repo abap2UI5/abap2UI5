@@ -56,13 +56,13 @@
       "branches": { "702": ".github/workflows/publish-702.yaml" },
       "release": { "mode": "with-core" },
       "dependsOn": [
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.149.0" },
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.149.0" },
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "1.149.0-702" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" }
       ],
       "check": "npm run check",
-      "canary": { "lint": ["abaplint.jsonc"], "rename": false }
+      "canary": { "lint": ["abaplint.jsonc"], "rename": true }
     },
     {
       "repo": "abap2UI5/samples",
@@ -75,7 +75,6 @@
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/rename_test.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/abap2UI5", "via": "pin-file", "file": "A2UI5_PIN", "field": null, "ref": "1dc0803378a451a88dc70716aec454c3945503f4", "note": "the commit the e2e job builds the framework at (e2e.yaml)" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" }
@@ -99,7 +98,7 @@
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" }
       ],
       "check": "npm run check",
-      "canary": { "lint": ["abaplint.jsonc"], "rename": false }
+      "canary": { "lint": ["abaplint.jsonc"], "rename": true }
     },
     {
       "repo": "abap2UI5/samples-stack",
@@ -121,15 +120,17 @@
         "11-rap-file-upload": ".github/workflows/create-package-branches.yaml",
         "12-rap-actions": ".github/workflows/create-package-branches.yaml",
         "13-excel-email": ".github/workflows/create-package-branches.yaml",
-        "14-adobe-forms": ".github/workflows/create-package-branches.yaml"
+        "14-adobe-forms": ".github/workflows/create-package-branches.yaml",
+        "702": ".github/workflows/publish-702.yaml"
       },
       "release": { "mode": "with-core" },
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" }
       ],
       "check": "npm run check",
-      "canary": { "lint": ["abaplint.jsonc"], "rename": false }
+      "canary": { "lint": ["abaplint.jsonc"], "rename": true }
     },
     {
       "repo": "abap2UI5/app-template",
@@ -140,7 +141,8 @@
       "branches": {},
       "release": { "mode": "with-core" },
       "dependsOn": [
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.150.0" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "1.151.0-702" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" }
       ],
       "check": "npm run check",
@@ -288,10 +290,10 @@
       "branches": { "702": ".github/workflows/publish-702.yaml" },
       "release": { "mode": "none" },
       "dependsOn": [
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": null },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.150.0" }
+        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.151.0" }
       ],
       "check": "npm run check",
       "canary": { "lint": ["abaplint.jsonc"], "rename": true }
@@ -383,7 +385,7 @@
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" }
       ],
       "check": "npm run check",
-      "canary": { "lint": ["abaplint.jsonc"], "rename": false }
+      "canary": { "lint": ["abaplint.jsonc"], "rename": true }
     },
     {
       "repo": "abap2UI5-addons/custom-controls-customer",
@@ -399,7 +401,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" }
       ],
       "check": "npm run check",
-      "canary": { "lint": ["abaplint.jsonc"], "rename": false }
+      "canary": { "lint": ["abaplint.jsonc"], "rename": true }
     },
     {
       "repo": "abap2UI5-addons/abap-agent-runtime",
@@ -419,7 +421,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/headless-frontend", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
         { "repo": "abap2UI5/headless-frontend", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/headless-frontend", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5/headless-frontend.sha", "ref": "5a3d9347a39b3a0d9bfbfc81b90239fbbd25da1e" },
+        { "repo": "abap2UI5/headless-frontend", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5/headless-frontend.sha", "ref": "1e96a82f69b40566093d0ef7a7282158f10e51e6" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.1" }
       ],
       "check": "npm run check",
@@ -434,9 +436,9 @@
       "branches": { "702": ".github/workflows/ci-702.yaml" },
       "release": { "mode": "own", "tags": "vX.Y.Z", "by": ".github/workflows/release.yaml" },
       "dependsOn": [
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.150.0" },
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.150.0" },
-        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "1.150.0-702" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
+        { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.2" }
       ],
       "check": "npm run check",

@@ -130,7 +130,7 @@ complete deliverable.
   system's stack - `z2ui5_cl_smps_llm_sm59` (Standard, SM59) or
   `z2ui5_cl_smps_llm_cloud` (ABAP Cloud, BTP destination and
   `SAP_COM_0276`) - and, where SAP ships the ABAP AI SDK, the provider
-  `z2ui5_cl_smps_llm_islm`; then the table `z2ui5_t_smps_llm` and the
+  `z2ui5_cl_smps_llm_islm`; then the table `z2ui5_t_sai` and the
   settings app `z2ui5_cl_smps_app_013`. Release
   floor: Cloud, or Standard 7.40 SP08. The transport of the other stack does
   not activate - expected. Prefer installing it as its own abapGit
@@ -168,7 +168,7 @@ complete deliverable.
   constant, PUBLIC attribute or commit. The endpoint is the destination; the
   key goes into a gateway in front of the provider (preferred) or the
   configuration row, which 013 treats as write-only. Tell the user to
-  restrict access to `z2ui5_t_smps_llm` and to who may start
+  restrict access to `z2ui5_t_sai` and to who may start
   `z2ui5_cl_smps_app_013`. Drop any artificial timer delay to `0`.
 
 ## 6. Validate and look
