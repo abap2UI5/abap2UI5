@@ -1,10 +1,9 @@
 ---
 target: abaplint
-title: 'Report the old dynamic ASSIGN (name) with a component path in ABAP Cloud'
-summary: '`ASSIGN (name) TO <fs>` where name holds a path such as `MO_APP->ATTR-COMP` is the old variant of the dynamic data object - ABAP for Cloud Development reports "The old variant of <dynamic-object> should not be used in the current ABAP language version" on every such statement'
+title: 'no_dynamic_stuff assignOldVariantCloud: also a variable whose path is built in the same method (a string template)'
+summary: 'abaplint#4826 (merged 2026-11-27) reports ASSIGN (name) with a path under Cloud when name is a literal or a constant; the abap2UI5 case - lv_path = |MO_APP->{ name }|. ASSIGN (lv_path) TO <fs>. - is a variable and needs data flow'
 priority: low
-state: filed
-filed: https://github.com/abaplint/abaplint/pull/4826
+state: open
 first_seen: 2026-11-11
 checked_upstream: 2026-11-27
 upstream: abaplint/abaplint
@@ -13,6 +12,7 @@ evidence:
   - 'probed 2026-11-11 against abaplint 2.120.92 with every default rule on (abaplint -d, v750 and Cloud): `ASSIGN (lv_path) TO <any>` and `ASSIGN mo_app->(iv_name) TO <any>` draw the same two findings, no_dynamic_stuff and check_subrc - nothing tells the old variant from the one the cloud accepts'
   - 'tracker search 2026-11-11 ("dynamic assign cloud", "ASSIGN dynamic obsolete"): no issue'
   - 'filed 2026-11-27 as abaplint/abaplint#4826 (syntax 4/4): option assignOldVariantCloud of no_dynamic_stuff, for a literal or a constant holding a path; a variable built from a string template - the abap2UI5 case - needs data flow and is not covered'
+  - 'abaplint/abaplint#4826 merged 2026-11-27: option assignOldVariantCloud of no_dynamic_stuff, a literal or a constant holding a path. Left open: a variable assigned once in the same method from a literal or a string template - the six statements of z2ui5_cl_ui5_srv_model, which this item started from'
 ---
 
 # Report the old dynamic ASSIGN (name) with a component path in ABAP Cloud
