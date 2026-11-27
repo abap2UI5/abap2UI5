@@ -283,12 +283,13 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `Data);const inputTokens=input.getTokens()||[];for(const[index,token]of inputTokens.entries()){const rangeItem=aRangeData[index];if(!rangeItem)continue;const{TOKENLONGKEY,TOKENTEXT}=rangeItem;token.dat` &&
              `a("longKey",TOKENLONGKEY);token.data("range",null);if(TOKENTEXT)token.setText(TOKENTEXT)}}catch(e){Lib.logError("SmartMultiInputExt.setRangeData failed",e)}},renderer:Lib.EMPTY_RENDERER,setControl(){i` &&
              `f(this.getProperty("checkInit"))return;const input=ViewSlots.byIdOfOwner(this,this.getProperty("multiInputId"));if(!Lib.claimOnce(this,input))return;try{this._target=input;this._onTokenUpdate=this.onT` &&
-             `okenUpdate.bind(this);this._onInnerControlsCreated=this.onInnerControlsCreated.bind(this);input.attachTokenUpdate(this._onTokenUpdate);input.attachInnerControlsCreated(this._onInnerControlsCreated)}ca` &&
-             `tch(e){Lib.logError(``SmartMultiInputExt.setControl: setup failed for multiInputId '${this.getProperty("multiInputId")}'``,e)}},_detach(){const input=this._target;this._target=null;if(!input||Lib.isDest` &&
-             `royed(input))return;if(this._onTokenUpdate){input.detachTokenUpdate?.(this._onTokenUpdate)}if(this._onInnerControlsCreated){input.detachInnerControlsCreated?.(this._onInnerControlsCreated)}this._onTok` &&
-             `enUpdate=null;this._onInnerControlsCreated=null},inputInitialized(){return new Promise(resolve=>{if(this._bInnerControlsCreated){resolve(this._oInput)}else{this._aPendingInnerControlsCreated.push(reso` &&
-             `lve)}})},onInnerControlsCreated(oEvent){this._oInput=oEvent.getSource();this._bInnerControlsCreated=true;for(const resolve of this._aPendingInnerControlsCreated){resolve(this._oInput)}this._aPendingIn` &&
-             `nerControlsCreated=[]}});return Env.ownClass(SmartMultiInputExt)});` && |\n| &&
+             `okenUpdate.bind(this);this._onInnerControlsCreated=this.onInnerControlsCreated.bind(this);input.attachTokenUpdate(this._onTokenUpdate);input.attachInnerControlsCreated(this._onInnerControlsCreated);if` &&
+             `(typeof input.getInnerControls==="function"&&(input.getInnerControls()||[]).length>0){this._innerControlsReady(input)}}catch(e){Lib.logError(``SmartMultiInputExt.setControl: setup failed for multiInput` &&
+             `Id '${this.getProperty("multiInputId")}'``,e)}},_detach(){const input=this._target;this._target=null;if(!input||Lib.isDestroyed(input))return;if(this._onTokenUpdate){input.detachTokenUpdate?.(this._onT` &&
+             `okenUpdate)}if(this._onInnerControlsCreated){input.detachInnerControlsCreated?.(this._onInnerControlsCreated)}this._onTokenUpdate=null;this._onInnerControlsCreated=null},inputInitialized(){return new ` &&
+             `Promise(resolve=>{if(this._bInnerControlsCreated){resolve(this._oInput)}else{this._aPendingInnerControlsCreated.push(resolve)}})},onInnerControlsCreated(oEvent){this._innerControlsReady(oEvent.getSour` &&
+             `ce())},_innerControlsReady(input){this._oInput=input;this._bInnerControlsCreated=true;for(const resolve of this._aPendingInnerControlsCreated){resolve(this._oInput)}this._aPendingInnerControlsCreated=` &&
+             `[]}});return Env.ownClass(SmartMultiInputExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/Storage.js": function(){sap.ui.define(["sap/ui/core/Control","sap/ui/util/Storage","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Storage,Lib,Env)=>{"use strict";function isSameValue(a,b)` &&
