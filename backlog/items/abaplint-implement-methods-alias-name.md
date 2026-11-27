@@ -4,7 +4,7 @@ title: 'implement_methods: a REDEFINITION implemented under the superclass alias
 summary: 'METHODS zif~count REDEFINITION. implemented as METHOD count. (an alias of the superclass) activates with a SLIN warning; abaplint reports "Implement method zif~count" instead'
 priority: medium
 state: filed
-filed: https://github.com/oblomov-dev/fork-abaplint/pull/2
+filed: https://github.com/abaplint/abaplint/pull/4788
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
