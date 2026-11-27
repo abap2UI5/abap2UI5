@@ -998,3 +998,52 @@ test.describe("byteLength (UTF-8 size of a string)", () => {
     expect(encodes).toBe(1);
   });
 });
+
+// The two roundtrip helpers core/Server.js and View1.controller.js each
+// carried a copy of: the busy overlay and the drop of the events kept back.
+test.describe("showBusy / hideBusy / dropQueuedEvents", () => {
+  test("the global indicator on an owned page, the component's area on a host's", () => {
+    const calls = [];
+    const busyIndicator = {
+      show: (delay) => calls.push(["show", delay]),
+      hide: () => calls.push(["hide"]),
+    };
+    const { Lib, ctx } = loadLib({ busyIndicator });
+    Lib.showBusy(ctx, 0);
+    Lib.hideBusy(ctx);
+    expect(calls).toEqual([["show", 0], ["hide"]]);
+
+    const root = { calls: [], isDestroyed: () => false };
+    root.setBusyIndicatorDelay = (d) => root.calls.push(["delay", d]);
+    root.setBusy = (b) => root.calls.push(["busy", b]);
+    ctx.state.ownsPage = false;
+    ctx.state.oApp = root;
+    Lib.showBusy(ctx, 0);
+    Lib.hideBusy(ctx);
+    expect(root.calls).toEqual([
+      ["delay", 0],
+      ["busy", true],
+      ["busy", false],
+    ]);
+    expect(calls).toHaveLength(2);
+  });
+
+  test("every kind of kept event goes", () => {
+    const { Lib, state } = loadLib({
+      state: {
+        oQueuedEvent: { args: [] },
+        oTickQueuedEvent: { args: [] },
+        oQueuedWindow: { "/T": {} },
+        aRenderEvents: [{ args: [] }],
+        timerRepeat: { event: "POLL" },
+      },
+    });
+    Lib.dropQueuedEvents(state);
+    expect(state.oQueuedEvent).toBeNull();
+    expect(state.oTickQueuedEvent).toBeNull();
+    expect(state.oQueuedWindow).toBeNull();
+    expect(state.aRenderEvents).toEqual([]);
+    // the timer is not an event: its callers decide on it
+    expect(state.timerRepeat).toEqual({ event: "POLL" });
+  });
+});

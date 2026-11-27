@@ -149,6 +149,11 @@
 //                     roundtrip, a check_no_busy wire included - that flag
 //                     hides the OVERLAY, it does not exempt the wire from
 //                     being the one request in flight
+//   terminated        the fatal-error overlay ended the app
+//                     (Server.responseError): eB, a route restore and an
+//                     app hash change send nothing until the overlay's
+//                     Retry clears it (readHttp's onRetry) or a restart
+//                     resets the state (resetApp) or reloads the page
 //   oQueuedEvent      { controller, args } of the LAST event a
 //                     check_queue_last wire fired while a roundtrip was in
 //                     flight (View1.eB keeps it instead of dropping it);
@@ -290,6 +295,7 @@ sap.ui.define([], () => {
       responseData: null,
       contextId: null,
       isBusy: false,
+      terminated: false,
       oQueuedEvent: null,
       tickInFlight: false,
       oTickQueuedEvent: null,

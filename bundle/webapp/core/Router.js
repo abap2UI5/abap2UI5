@@ -423,6 +423,10 @@ sap.ui.define(
     function dispatchAppHashChange(ctx, sNewHash) {
       const state = ctx.state;
       if (!state.hashEvent) return;
+      // Under the fatal overlay (Server.responseError) the app has ended:
+      // a hash change must not send its event into the broken session. Not
+      // parked either - the overlay's Retry / Restart decide what comes next
+      if (state.terminated) return;
       const appHash = appHashNormalized(sNewHash);
       if (appHash === state.appHash) return;
       const controller = state.oController;

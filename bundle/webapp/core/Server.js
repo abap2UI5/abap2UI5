@@ -1,6 +1,5 @@
 sap.ui.define(
   [
-    "sap/ui/core/BusyIndicator",
     "sap/ui/VersionInfo",
     "z2ui5/core/Lib",
     "z2ui5/core/Session",
@@ -8,15 +7,7 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
   ],
-  (
-    BusyIndicator,
-    VersionInfo,
-    Lib,
-    Session,
-    ScrollFocus,
-    ViewSlots,
-    ErrorView,
-  ) => {
+  (VersionInfo, Lib, Session, ScrollFocus, ViewSlots, ErrorView) => {
     "use strict";
 
     // Last-resort client-side timeout for backend roundtrips. Infrastructure
@@ -26,19 +17,12 @@ sap.ui.define(
     // forever.
     const REQUEST_TIMEOUT_MS = 600000;
 
-    // The busy overlay of a roundtrip: the global BusyIndicator on a page the
-    // component owns, the component's own area on a host's page
-    // (state.ownsPage, Component.init - Lib.setComponentBusy). The same pair
-    // sits in View1.controller.js, the other half of the busy protocol.
-    function showBusy(ctx, delay) {
-      if (ctx?.state?.ownsPage === false)
-        Lib.setComponentBusy(ctx, true, delay);
-      else BusyIndicator.show(delay);
-    }
-    function hideBusy(ctx) {
-      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);
-      else BusyIndicator.hide();
-    }
+    // The busy overlay of a roundtrip - the global BusyIndicator or the
+    // component's own area (Lib.showBusy, shared with View1.controller.js,
+    // the other half of the busy protocol). Resolved per call, not
+    // destructured at load: the specs hand this module a Lib of their own.
+    const showBusy = (ctx, delay) => Lib.showBusy(ctx, delay);
+    const hideBusy = (ctx) => Lib.hideBusy(ctx);
 
     // Roundtrip lifecycle (spans this file and View1.controller.js):
     //   1. View1.eB(...)              builds the request body with the model
@@ -206,10 +190,7 @@ sap.ui.define(
         // a keystroke a check_queue_last wire kept for the app being torn
         // down must never be dispatched into the next one - nor a window
         // request of its tables
-        ctx.state.oQueuedEvent = null;
-        ctx.state.oTickQueuedEvent = null;
-        ctx.state.oQueuedWindow = null;
-        ctx.state.aRenderEvents = [];
+        Lib.dropQueuedEvents(ctx.state);
         // ... nor a repeating timer of it (actions/ViewOps)
         ctx.state.timerRepeat = null;
         // the error overlay's record is the same kind of survivor - the
@@ -224,6 +205,11 @@ sap.ui.define(
       // with the target class + draft the request names as its ROUTE
       // (roundtrip below, Router.startRoute).
       restoreFromRoute(ctx) {
+        // Not under the fatal overlay: a Back/Forward (or a hash a host
+        // wrote) would send a roundtrip behind it and answer with a second
+        // overlay or a screen the user cannot reach - the overlay's own
+        // Retry / Restart are the way out (responseError, state.terminated)
+        if (ctx.state.terminated) return;
         // Participate in the normal busy protocol: without it the app looks
         // idle during the restore, and an ordinary click would dispatch a
         // request that aborts the Back/Forward navigation without any
@@ -246,10 +232,7 @@ sap.ui.define(
         // and dispatching it after the restore's response would send the
         // old app's event under the restored draft id (reset( ) and
         // responseError drop it for the same reason)
-        ctx.state.oQueuedEvent = null;
-        ctx.state.oTickQueuedEvent = null;
-        ctx.state.oQueuedWindow = null;
-        ctx.state.aRenderEvents = [];
+        Lib.dropQueuedEvents(ctx.state);
         this.roundtrip(ctx, {});
         // readHttp stamped the restore synchronously, before its first await
         ctx.server.restoreSeq = ctx.server.requestSeq;
@@ -400,6 +383,9 @@ sap.ui.define(
         // unguarded click during the retry would abort it silently.
         const oRetry = {
           onRetry: () => {
+            // the overlay's own way back: the app is live again
+            // (responseError set the flag)
+            ctx.state.terminated = false;
             ctx.state.isBusy = true;
             showBusy(ctx, 0);
             // the repeating timer the overlay ended (responseError) goes on
@@ -926,14 +912,18 @@ sap.ui.define(
         hideBusy(ctx);
         ctx.state.isBusy = false;
         // The overlay below ends the app: every further request is the
-        // overlay's own Retry / Restart. A keystroke a check_queue_last wire
-        // kept for the roundtrip that just failed is dropped, not dispatched -
-        // it would re-send the failing value under the overlay and answer
-        // with a second one.
-        ctx.state.oQueuedEvent = null;
-        ctx.state.oTickQueuedEvent = null;
-        ctx.state.oQueuedWindow = null;
-        ctx.state.aRenderEvents = [];
+        // overlay's own Retry / Restart. isBusy is false again (the overlay
+        // is modal, nothing should look stuck), so it is this flag that
+        // turns the other doors away - a keyboard shortcut, a Back/Forward,
+        // a control calling eB on its own (a timer, a websocket message):
+        // View1.eB, restoreFromRoute and Router.dispatchAppHashChange ask
+        // it. Cleared by the Retry (readHttp's onRetry) and by a restart,
+        // which resets the whole app state (AppState.resetApp) or reloads.
+        ctx.state.terminated = true;
+        // A keystroke a check_queue_last wire kept for the roundtrip that
+        // just failed is dropped, not dispatched - it would re-send the
+        // failing value under the overlay and answer with a second one.
+        Lib.dropQueuedEvents(ctx.state);
         // ... and a repeating timer ends: it would tick roundtrips under the
         // overlay. Only then is the slot cleared here - a one-shot timer is
         // left as it always was (the roundtrip that failed cancelled it when

@@ -702,6 +702,19 @@ test("a hash change during a roundtrip is parked and delivered when it lands", (
   expect(fired).toEqual([["HASH_CHANGED"]]);
 });
 
+test("a hash change under the fatal overlay sends nothing and parks nothing", () => {
+  // Server.responseError ended the app (state.terminated): the overlay's
+  // Retry / Restart decide what comes next, not a Back pressed behind it
+  const { Router, state } = loadRouter({ state: { navRouting: false } });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a) };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  state.terminated = true;
+  Router.onHashChanged("/Page2");
+  expect(fired).toEqual([]);
+  expect(state.pendingAppHash).toBe(null);
+});
+
 test("a hash listener keeps the per-response cleanup off the hash", () => {
   // with the app's value in hasher's cache, the trailing replaceHash("")
   // would count as a change and wipe the hash on the NEXT unrelated
