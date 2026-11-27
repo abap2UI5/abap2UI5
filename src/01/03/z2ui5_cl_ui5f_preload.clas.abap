@@ -30,7 +30,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the frontend bundle does not carry. The ETag of
     " that bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
-    CONSTANTS devtools_hash TYPE string VALUE '9ffb954b25fb8150'.
+    CONSTANTS devtools_hash TYPE string VALUE '8b2133851a70f24d'.
 
     " a digest of the custom controls bundle get_cc( ) returns. The
     " frontend bundle carries it too (the ccBundle of its z2ui5/embed
