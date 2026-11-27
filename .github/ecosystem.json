@@ -62,7 +62,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "1.151.0-702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" }
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" }
       ],
       "check": "npm run check",
       "canary": { "lint": ["abaplint.jsonc"], "rename": true }
@@ -326,7 +326,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "1.151.0-702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -348,7 +348,7 @@
         { "repo": "abap2UI5-addons/layout-management", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5-addons/layout-management", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5-addons/layout-management", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/layout-management.sha", "ref": "f6baf2a616d1490edfb24101e844bc708a37919c" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -370,7 +370,7 @@
         { "repo": "abap2UI5-addons/layout-management", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/layout-management.sha", "ref": "f6baf2a616d1490edfb24101e844bc708a37919c" },
         { "repo": "abap2UI5-addons/popups", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5-addons/popups", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/popups.sha", "ref": "7746a51c5475f225cdaf4a0a43acff80b34b7570" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -388,7 +388,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.3" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -430,7 +430,7 @@
         { "repo": "abap2UI5/headless-frontend", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
         { "repo": "abap2UI5/headless-frontend", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/headless-frontend", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5/headless-frontend.sha", "ref": "1e96a82f69b40566093d0ef7a7282158f10e51e6" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.1" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "d599eb227a476d120b473ae3b707fe983ab3e441", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -448,7 +448,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "1.151.0-702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.12.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -467,7 +467,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_standalone.jsonc", "field": "dependencies[].branch", "ref": "1.146.0" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.9.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -484,7 +484,7 @@
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.9.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -502,7 +502,7 @@
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.9.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -520,7 +520,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": null },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -542,7 +542,7 @@
         { "repo": "abap2UI5-addons/layout-management", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/layout-management.sha", "ref": "f6baf2a616d1490edfb24101e844bc708a37919c" },
         { "repo": "abap2UI5-addons/range-filter", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
         { "repo": "abap2UI5-addons/range-filter", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/range-filter.sha", "ref": "ba9bacd4ede6686ae2f62cf4e0dac8faf0f0dbde" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -563,7 +563,7 @@
         { "repo": "abap2UI5-addons/popups", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
         { "repo": "abap2UI5-addons/popups", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/popups.sha", "ref": "7746a51c5475f225cdaf4a0a43acff80b34b7570" },
         { "repo": "abap2UI5-addons/layout-management", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/layout-management.sha", "ref": "f6baf2a616d1490edfb24101e844bc708a37919c" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -581,7 +581,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -601,7 +601,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.150.0" },
         { "repo": "abap2UI5-addons/embed-ui5-control", "via": "npm", "file": "package.json", "field": "dependencies.@abap2ui5/embed-control", "ref": "0.3.0" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.9.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -648,7 +648,7 @@
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -665,7 +665,7 @@
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint-cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" }
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" }
       ],
       "check": "npm run check",
       "canary": { "lint": ["abaplint.jsonc"], "rename": false },
@@ -682,7 +682,7 @@
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.9.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -701,11 +701,11 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
         { "repo": "abap2UI5-addons/popups", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
-        { "repo": "abap2UI5-addons/popups", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/popups.sha", "ref": "510189e24a37697bafdc3a3cbb396a84450d8bf6" },
+        { "repo": "abap2UI5-addons/popups", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/popups.sha", "ref": "d4310347cbee2d76f7e70e30f395f6dea6add657" },
         { "repo": "abap2UI5-addons/custom-controls", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
-        { "repo": "abap2UI5-addons/custom-controls", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/custom-controls.sha", "ref": "81df28fc056a01b93238117c630fc93c2bf1a68b" },
-        { "repo": "abap2UI5-addons/layout-management", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/layout-management.sha", "ref": "d9a73b3b5933c34c789e26fb19b0d990efb07a67", "note": "for npm run unit only" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.1" },
+        { "repo": "abap2UI5-addons/custom-controls", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/custom-controls.sha", "ref": "d1f19665bd0e07e319c25d52f41d85c1e9cd27b5" },
+        { "repo": "abap2UI5-addons/layout-management", "via": "deps-json", "file": ".github/deps.json", "field": "abap2UI5-addons/layout-management.sha", "ref": "2a91e974b6ea34c8763e7daab5b51d93f08e703b", "note": "for npm run unit only" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
       ],
       "check": "npm run check",
@@ -755,7 +755,7 @@
       "release": { "mode": "none" },
       "dependsOn": [
         { "repo": "cap2UI5/cap2UI5", "via": "npm", "file": "package.json", "field": "dependencies.@cap2ui5/cds-plugin", "ref": "^0.8.0" },
-        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.12.0" }
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" }
       ],
       "check": "npm run lint && npm test",
       "canary": null
