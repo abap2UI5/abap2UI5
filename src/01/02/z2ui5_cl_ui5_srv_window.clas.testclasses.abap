@@ -129,6 +129,26 @@ CLASS ltcl_test IMPLEMENTATION.
                                                                                          ( path = `ID` ) )
                                         act = lt_sort ).
 
+    " eleven sorters keep the order they came in - ajson names the array
+    " members as text, and `10` sorts before `2` there
+    DATA(lv_json) = `[`.
+    DO 11 TIMES.
+      IF sy-index > 1.
+        lv_json = lv_json && `,`.
+      ENDIF.
+      lv_json = lv_json && |\{"PATH":"C{ sy-index }"\}|.
+    ENDDO.
+    lv_json = lv_json && `]`.
+    lt_sort = z2ui5_cl_ui5_srv_window=>parse_sort( lv_json ).
+    cl_abap_unit_assert=>assert_equals( exp = 11
+                                        act = lines( lt_sort ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `C2`
+                                        act = lt_sort[ 2 ]-path ).
+    cl_abap_unit_assert=>assert_equals( exp = `C10`
+                                        act = lt_sort[ 10 ]-path ).
+    cl_abap_unit_assert=>assert_equals( exp = `C11`
+                                        act = lt_sort[ 11 ]-path ).
+
   ENDMETHOD.
 
   METHOD parse_filter.

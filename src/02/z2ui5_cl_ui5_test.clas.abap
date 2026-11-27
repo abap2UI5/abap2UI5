@@ -626,7 +626,12 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    LOOP AT ii_json->members( `/S_FRONT/ACTIONS` ) INTO DATA(lv_index).
+    " by index, not over members( ): ajson sorts the member names as text,
+    " so the eleventh action (`10`) came before the third (`2`)
+    DATA lv_index TYPE i.
+    DATA(lv_count) = lines( ii_json->members( `/S_FRONT/ACTIONS` ) ).
+    WHILE lv_index < lv_count.
+      lv_index = lv_index + 1.
       DATA(lv_entry) = |/S_FRONT/ACTIONS/{ lv_index }|.
       DATA(ls_action) = VALUE ty_s_action( name = ii_json->get_string( lv_entry && `/1` )
                                            json = ii_json->slice( lv_entry )->stringify( ) ).
@@ -637,7 +642,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
         lv_arg = lv_arg + 1.
       ENDWHILE.
       INSERT ls_action INTO TABLE mt_action.
-    ENDLOOP.
+    ENDWHILE.
 
   ENDMETHOD.
 
