@@ -1725,10 +1725,31 @@ CLASS ltcl_03_model_out DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS filter_applied           FOR TESTING RAISING cx_static_check.
     " a mapper renames what it says
     METHODS mapper_applied           FOR TESTING RAISING cx_static_check.
+    " the snapshot before main( ): unchanged values are no change - also
+    " when a bound row cannot be reached (its reference was cleared), which
+    " the snapshot leaves out and used to count as bound anew, pushing the
+    " whole model on every roundtrip
+    METHODS snapshot_unchanged       FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
 CLASS ltcl_03_model_out IMPLEMENTATION.
+
+  METHOD snapshot_unchanged.
+
+    bind_all( ).
+    DATA(lt_snapshot) = mo_model->main_snapshot( ).
+    cl_abap_unit_assert=>assert_false( mo_model->main_snapshot_changed( lt_snapshot ) ).
+
+    mo_app->mv_string = `changed`.
+    cl_abap_unit_assert=>assert_true( mo_model->main_snapshot_changed( lt_snapshot ) ).
+
+    " a bound row whose reference is gone: in no snapshot, and no change
+    CLEAR mo_app->mr_elem.
+    lt_snapshot = mo_model->main_snapshot( ).
+    cl_abap_unit_assert=>assert_false( mo_model->main_snapshot_changed( lt_snapshot ) ).
+
+  ENDMETHOD.
 
   METHOD every_bound_row.
 

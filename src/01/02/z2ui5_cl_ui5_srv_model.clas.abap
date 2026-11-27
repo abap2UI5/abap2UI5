@@ -947,18 +947,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
                AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
 
+      " resolved first: a row whose path no longer resolves has no value -
+      " main_snapshot left it out, and asking the snapshot about it first
+      " read as "bound anew" and pushed the whole model on every roundtrip
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+
       " bound by this main( ): the client holds no value for it yet
       READ TABLE snapshot REFERENCE INTO DATA(lr_snap) WITH TABLE KEY name = lr_attri->name.
       IF sy-subrc <> 0.
         result = abap_true.
         RETURN.
       ENDIF.
-
-      TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
-        CATCH cx_root.
-          CONTINUE.
-      ENDTRY.
 
       ASSIGN lr_ref->* TO <val>.
       ASSIGN lr_snap->o_data->* TO <copy>.
