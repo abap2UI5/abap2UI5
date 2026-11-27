@@ -174,6 +174,24 @@ test.describe("HTTP status outside 2xx", () => {
     expect(env.successes).toEqual([]);
   });
 
+  test("an app start that failed on a route's draft marks that draft", async () => {
+    // the overlay's Restart re-reads the same hash; roundtrip leaves the
+    // marked draft out of it (serverLocation.spec.js)
+    const env = load();
+    await answer(env, response({ ok: false, status: 500, text: "restore" }), {
+      S_FRONT: { ROUTE: { APP: "ZCL_X", DRAFT: "D1" } },
+    });
+    expect(env.ctx.router.failedDraft).toBe("D1");
+
+    // an event roundtrip names its draft by ID - nothing to mark
+    const event = load();
+    await answer(event, response({ ok: false, status: 500, text: "dump" }), {
+      ID: "D2",
+      S_FRONT: { EVENT: "SAVE" },
+    });
+    expect(event.ctx.router.failedDraft ?? "").toBe("");
+  });
+
   test("an empty error body falls back to the status code", async () => {
     const env = load();
     await answer(env, response({ ok: false, status: 503, text: "" }));

@@ -313,6 +313,15 @@ sap.ui.define(
         // (client->get( )-s_config-hash). No ROUTE when the hash names none.
         if (!oBody.ID) {
           const route = ctx.router?.startRoute?.();
+          // a draft this page already failed to start from (readHttp) is
+          // not asked for again: the route's class starts fresh. Without
+          // it a draft that exists but no longer restores (the app class
+          // changed its layout) answered the overlay's Restart - which
+          // re-reads the same hash - with the same error, for as long as
+          // the draft lived
+          if (route?.DRAFT && route.DRAFT === ctx.router?.failedDraft) {
+            delete route.DRAFT;
+          }
           if (route) sFront.ROUTE = route;
         }
         // an all-empty CONFIG is left off entirely
@@ -593,6 +602,12 @@ sap.ui.define(
             // again.
             const status = response.status;
             const fallback = `HTTP ${status}`;
+            // an app start that asked for a route's draft and failed: the
+            // next start of this page (the overlay's Restart) leaves that
+            // draft out (roundtrip). On ctx.router, which a restart keeps
+            if (!oBody.ID && oBody.S_FRONT?.ROUTE?.DRAFT && ctx.router) {
+              ctx.router.failedDraft = oBody.S_FRONT.ROUTE.DRAFT;
+            }
             if (status === 410) {
               this.responseError(ctx, SESSION_EXPIRED);
               return;
