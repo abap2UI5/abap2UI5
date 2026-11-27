@@ -108,43 +108,43 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `,async _processAfterRendering(reqSeq){let superseded=false;let replaced=false;let failed=false;const oResponse=this.ctx.state.oResponse;if(!oResponse||oResponse._processed)return;oResponse._processed=` &&
              `true;oResponse._processing=true;const seq=reqSeq??this.ctx.server.requestSeq;try{const state=this.ctx.state;const previousApp=state.renderedApp;if(oResponse.APP&&previousApp!==oResponse.APP){Lib.dropQ` &&
              `ueuedEvents(state);state.timerRepeat=null;state.renderedApp=oResponse.APP}if(this._replacesMainOwner(oResponse,previousApp)){state.shortcuts=Object.create(null);state.treeStates=Object.create(null);st` &&
-             `ate.tableStates=Object.create(null);state.viewSizeLimits=Object.create(null);state.hashEvent=null;state.appHash="";state.pendingAppHash=null}if(oResponse.VIEWS){await this._applyViews(oResponse,seq)}c` &&
-             `onst alive=Lib.isControllerAlive(this);if(!alive||seq!==this.ctx.server.requestSeq||oResponse!==this.ctx.state.oResponse){superseded=true;replaced=!alive||oResponse!==this.ctx.state.oResponse;return}i` &&
-             `f(oResponse.MODELPRESENT)Slots.action(this.ctx,"updateModel");Router.sync(this.ctx,{...oResponse.NAV||{},id:oResponse.ID});Lib.runCallbacks(this.ctx.state.onAfterRendering);Lib.runCallbacks(this.ctx.s` &&
-             `tate.onRoundtripEnd)}catch(e){Lib.logError("_processAfterRendering: unexpected error",e);if(!Lib.isControllerAlive(this)||seq!==this.ctx.server.requestSeq){superseded=true;replaced=!Lib.isControllerAl` &&
-             `ive(this)||oResponse!==this.ctx.state.oResponse}else{failed=true;Server.showRenderError(this.ctx,e,"Unexpected Error Occurred - App Terminated")}}finally{oResponse._processing=false;if(!superseded){hi` &&
-             `deBusy(this.ctx);this.ctx.state.isBusy=false}if(!replaced&&this.ctx.state.mainTransition){await this.ctx.state.mainTransition}if(!replaced&&!failed)await this._runPendingActions(oResponse);if(supersed` &&
-             `ed&&!replaced&&this.ctx.server.restoreSeq===this.ctx.server.requestSeq&&seq!==this.ctx.server.requestSeq){Lib.cancelPendingTimers(this.ctx)}if(!superseded&&!failed){this._dispatchQueuedEvent();Router.` &&
-             `dispatchPendingAppHash(this.ctx);if(this.ctx.state.timerRepeat){FrontendAction.resumeRepeatTimer(this.ctx)}}}},_replacesMainOwner(oResponse,previousApp){if(!oResponse?.APP)return false;const main=oRes` &&
-             `ponse.VIEWS?.MAIN;if(!main||main.DESTROY)return false;const owner=ViewSlots.getViewApp(this.ctx,"MAIN")??previousApp;return owner!==oResponse.APP},async _applyViews(oResponse,seq){const views=oRespons` &&
-             `e?.VIEWS;if(!views)return;for(const slot of ViewSlots.slots){const entry=views[slot.key];if(!entry)continue;if(!Lib.isControllerAlive(this)||seq!==this.ctx.server.requestSeq)return;await Slots.action(` &&
-             `this.ctx,entry.DESTROY?"destroy":"display",slot.key,entry.XML,entry.OPT,seq)}},_dispatchQueuedEvent(){const state=this.ctx.state;while(state.aRenderEvents.length){const queued=state.aRenderEvents.shif` &&
-             `t();if(!Lib.isControllerAlive(queued.controller))continue;const key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getViewToken(this.ctx,key)!==queued.token){continue}const chain=state.rend` &&
-             `erEventChain+1;if(chain>RENDER_EVENT_CHAIN_MAX){Lib.logError(``eB: ${RENDER_EVENT_CHAIN_MAX} events fired while a view was being built went out in a row - '${queued.args[0]?.[0]}' and the ones behind i` &&
-             `t are dropped. An app that answers a rendering event with a new view fires it again``);state.aRenderEvents=[];break}queued.controller.eB(...queued.args);state.renderEventChain=chain;break}const tickQue` &&
-             `ued=state.oTickQueuedEvent;if(tickQueued&&!state.isBusy){state.oTickQueuedEvent=null;const key=ViewSlots.keyOfController(tickQueued.controller);if(Lib.isControllerAlive(tickQueued.controller)&&ViewSlo` &&
-             `ts.getView(this.ctx,key)){tickQueued.controller.eB(...tickQueued.args)}}const queued=state.oQueuedEvent;state.oQueuedEvent=null;if(queued&&Lib.isControllerAlive(queued.controller)){const key=ViewSlots` &&
-             `.keyOfController(queued.controller);if(ViewSlots.getView(this.ctx,key)===queued.view){queued.controller.eB(...queued.args)}}Slots.dispatchQueuedWindows(this.ctx)},async _runPendingActions(oResponse){c` &&
-             `onst actions=oResponse?._pendingActions;if(oResponse)oResponse._pendingActions=null;if(!actions)return;if(!Lib.isControllerAlive(this))return;for(const item of actions){const result=FrontendAction.run` &&
-             `Custom(item,this);if(typeof result?.then==="function"){try{await result}catch(e){Lib.logError(``FrontendAction: async action '${item?.[0]}' failed``,e)}if(!Lib.isControllerAlive(this))return}}},destroyP` &&
-             `opup(){ViewSlots.destroy(this.ctx,"POPUP")},destroyPopover(){ViewSlots.destroy(this.ctx,"POPOVER")},destroyNestView(){ViewSlots.destroy(this.ctx,"NEST")},destroyNestView2(){ViewSlots.destroy(this.ctx,` &&
-             `"NEST2")},destroyView(){ViewSlots.destroy(this.ctx,"MAIN")},eF(...args){return FrontendAction.execute(this,args)},eBP(oEvent,bVeto,...args){if(bVeto&&typeof oEvent?.preventDefault==="function"){oEvent` &&
-             `.preventDefault()}this.eB(...args)},textPath(oControl,sSeparator){return Lib.getTextPath(oControl,sSeparator)},slotById(sSlot,sId){const control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.reso` &&
-             `lveById(this.ctx,sId);if(!control){Lib.logError(``slotById: no control '${sId}' in slot '${sSlot||"(any)"}'``);return null}return control},slotValue(sSlot,sId,sMethod){try{const control=sSlot?ViewSlots.` &&
-             `byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotValue: no control '${sId}' in slot '${sSlot||"(any)"}'``);return""}if(typeof control[sMethod]!=="function"){L` &&
-             `ib.logError(``slotValue: '${sMethod}' is not a method of control '${sId}'``);return""}const value=control[sMethod]();return value===undefined||value===null?"":value}catch(e){Lib.logError(``slotValue: '${` &&
-             `sMethod}' on '${sId}' failed``,e);return""}},eB(...args){if(!Array.isArray(args[0])){let got;try{got=JSON.stringify(args[0])}catch{got=``an object that is no JSON (${Object.prototype.toString.call(args[` &&
-             `0])})``}Lib.logError(``eB: the first argument must be the event array, got ${got}``);return}if(this.ctx.state.terminated)return;const{useMainModel,queueLast,noBusy,timer}=Lib.eventOptions(args[0]);if(thi` &&
-             `s.ctx.state.isBusy){if(queueLast){this.ctx.state.oQueuedEvent={controller:this,view:ViewSlots.getView(this.ctx,ViewSlots.keyOfController(this)),args:Lib.normalizeEventArgs(args)}}else if(this._firedWh` &&
-             `ileBuilding()){this.ctx.state.aRenderEvents.push({controller:this,token:this.ctx.state.oResponse.TOKEN,args:Lib.normalizeEventArgs(args)});return}else if(this.ctx.state.tickInFlight&&!timer){if(!this.` &&
-             `ctx.state.oTickQueuedEvent){this.ctx.state.oTickQueuedEvent={controller:this,args:Lib.normalizeEventArgs(args)}}}if(!noBusy)showBusy(this.ctx,0);return}this.ctx.state.renderEventChain=0;Lib.cancelPend` &&
-             `ingTimers(this.ctx);this.ctx.state.isBusy=true;if(!noBusy)showBusy(this.ctx);this.ctx.state.tickInFlight=timer;const oBody={};this.ctx.state.oBody=oBody;const oModel=this._pickModelForRoundtrip(useMai` &&
-             `nModel);Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);const changedPaths=oModel?._z2ui5ChangedPaths;if(oModel&&changedPaths?.size>0){const data=oModel.getData();if(data){oBody.MODEL=Lib.buildDelt` &&
-             `aFromPaths(changedPaths,data)}oModel._z2ui5SentValues=new Map(Array.from(changedPaths,path=>[path,oModel.getProperty(path)]))}this.ctx.state.oSentModel=oModel;oBody.ID=this.ctx.state.oResponse?.ID;if(` &&
-             `timer)oBody.TIMER=true;oBody.ARGUMENTS=Lib.normalizeEventArgs(args);Server.roundtrip(this.ctx,oBody);Lib.runCallbacks(this.ctx.state.onAfterRoundtrip)},_firedWhileBuilding(){const oResponse=this.ctx.s` &&
-             `tate.oResponse;if(!oResponse?._processing)return false;const key=ViewSlots.keyOfController(this);if(!ViewSlots.getView(this.ctx,key))return true;return ViewSlots.getViewToken(this.ctx,key)===oResponse` &&
-             `.TOKEN},_pickModelForRoundtrip(useMainModel){const slotKey=useMainModel?"MAIN":ViewSlots.keyOfController(this);if(!slotKey)return undefined;const oView=ViewSlots.getView(this.ctx,slotKey);if(!oView)re` &&
-             `turn undefined;if(Lib.isRootModelSlot(slotKey)){return Slots.resolveTrackedModel(oView)}return oView.getModel()}});return Env.ownClass(View1Controller)});` && |\n| &&
+             `ate.tableStates=Object.create(null);state.websocketStates=Object.create(null);state.viewSizeLimits=Object.create(null);state.hashEvent=null;state.appHash="";state.pendingAppHash=null}if(oResponse.VIEW` &&
+             `S){await this._applyViews(oResponse,seq)}const alive=Lib.isControllerAlive(this);if(!alive||seq!==this.ctx.server.requestSeq||oResponse!==this.ctx.state.oResponse){superseded=true;replaced=!alive||oRe` &&
+             `sponse!==this.ctx.state.oResponse;return}if(oResponse.MODELPRESENT)Slots.action(this.ctx,"updateModel");Router.sync(this.ctx,{...oResponse.NAV||{},id:oResponse.ID});Lib.runCallbacks(this.ctx.state.onA` &&
+             `fterRendering);Lib.runCallbacks(this.ctx.state.onRoundtripEnd)}catch(e){Lib.logError("_processAfterRendering: unexpected error",e);if(!Lib.isControllerAlive(this)||seq!==this.ctx.server.requestSeq){su` &&
+             `perseded=true;replaced=!Lib.isControllerAlive(this)||oResponse!==this.ctx.state.oResponse}else{failed=true;Server.showRenderError(this.ctx,e,"Unexpected Error Occurred - App Terminated")}}finally{oRes` &&
+             `ponse._processing=false;if(!superseded){hideBusy(this.ctx);this.ctx.state.isBusy=false}if(!replaced&&this.ctx.state.mainTransition){await this.ctx.state.mainTransition}if(!replaced&&!failed)await this` &&
+             `._runPendingActions(oResponse);if(superseded&&!replaced&&this.ctx.server.restoreSeq===this.ctx.server.requestSeq&&seq!==this.ctx.server.requestSeq){Lib.cancelPendingTimers(this.ctx)}if(!superseded&&!f` &&
+             `ailed){this._dispatchQueuedEvent();Router.dispatchPendingAppHash(this.ctx);if(this.ctx.state.timerRepeat){FrontendAction.resumeRepeatTimer(this.ctx)}}}},_replacesMainOwner(oResponse,previousApp){if(!o` &&
+             `Response?.APP)return false;const main=oResponse.VIEWS?.MAIN;if(!main||main.DESTROY)return false;const owner=ViewSlots.getViewApp(this.ctx,"MAIN")??previousApp;return owner!==oResponse.APP},async _appl` &&
+             `yViews(oResponse,seq){const views=oResponse?.VIEWS;if(!views)return;for(const slot of ViewSlots.slots){const entry=views[slot.key];if(!entry)continue;if(!Lib.isControllerAlive(this)||seq!==this.ctx.se` &&
+             `rver.requestSeq)return;await Slots.action(this.ctx,entry.DESTROY?"destroy":"display",slot.key,entry.XML,entry.OPT,seq)}},_dispatchQueuedEvent(){const state=this.ctx.state;while(state.aRenderEvents.len` &&
+             `gth){const queued=state.aRenderEvents.shift();if(!Lib.isControllerAlive(queued.controller))continue;const key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getViewToken(this.ctx,key)!==que` &&
+             `ued.token){continue}const chain=state.renderEventChain+1;if(chain>RENDER_EVENT_CHAIN_MAX){Lib.logError(``eB: ${RENDER_EVENT_CHAIN_MAX} events fired while a view was being built went out in a row - '${q` &&
+             `ueued.args[0]?.[0]}' and the ones behind it are dropped. An app that answers a rendering event with a new view fires it again``);state.aRenderEvents=[];break}queued.controller.eB(...queued.args);state.` &&
+             `renderEventChain=chain;break}const tickQueued=state.oTickQueuedEvent;if(tickQueued&&!state.isBusy){state.oTickQueuedEvent=null;const key=ViewSlots.keyOfController(tickQueued.controller);if(Lib.isContr` &&
+             `ollerAlive(tickQueued.controller)&&ViewSlots.getView(this.ctx,key)){tickQueued.controller.eB(...tickQueued.args)}}const queued=state.oQueuedEvent;state.oQueuedEvent=null;if(queued&&Lib.isControllerAli` &&
+             `ve(queued.controller)){const key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getView(this.ctx,key)===queued.view){queued.controller.eB(...queued.args)}}Slots.dispatchQueuedWindows(this.c` &&
+             `tx)},async _runPendingActions(oResponse){const actions=oResponse?._pendingActions;if(oResponse)oResponse._pendingActions=null;if(!actions)return;if(!Lib.isControllerAlive(this))return;for(const item o` &&
+             `f actions){const result=FrontendAction.runCustom(item,this);if(typeof result?.then==="function"){try{await result}catch(e){Lib.logError(``FrontendAction: async action '${item?.[0]}' failed``,e)}if(!Lib.` &&
+             `isControllerAlive(this))return}}},destroyPopup(){ViewSlots.destroy(this.ctx,"POPUP")},destroyPopover(){ViewSlots.destroy(this.ctx,"POPOVER")},destroyNestView(){ViewSlots.destroy(this.ctx,"NEST")},dest` &&
+             `royNestView2(){ViewSlots.destroy(this.ctx,"NEST2")},destroyView(){ViewSlots.destroy(this.ctx,"MAIN")},eF(...args){return FrontendAction.execute(this,args)},eBP(oEvent,bVeto,...args){if(bVeto&&typeof o` &&
+             `Event?.preventDefault==="function"){oEvent.preventDefault()}this.eB(...args)},textPath(oControl,sSeparator){return Lib.getTextPath(oControl,sSeparator)},slotById(sSlot,sId){const control=sSlot?ViewSlo` &&
+             `ts.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotById: no control '${sId}' in slot '${sSlot||"(any)"}'``);return null}return control},slotValue(sSlot,sId,s` &&
+             `Method){try{const control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotValue: no control '${sId}' in slot '${sSlot||"(any)"}'``);return""}` &&
+             `if(typeof control[sMethod]!=="function"){Lib.logError(``slotValue: '${sMethod}' is not a method of control '${sId}'``);return""}const value=control[sMethod]();return value===undefined||value===null?"":v` &&
+             `alue}catch(e){Lib.logError(``slotValue: '${sMethod}' on '${sId}' failed``,e);return""}},eB(...args){if(!Array.isArray(args[0])){let got;try{got=JSON.stringify(args[0])}catch{got=``an object that is no JS` &&
+             `ON (${Object.prototype.toString.call(args[0])})``}Lib.logError(``eB: the first argument must be the event array, got ${got}``);return}if(this.ctx.state.terminated)return;const{useMainModel,queueLast,noBu` &&
+             `sy,timer}=Lib.eventOptions(args[0]);if(this.ctx.state.isBusy){if(queueLast){this.ctx.state.oQueuedEvent={controller:this,view:ViewSlots.getView(this.ctx,ViewSlots.keyOfController(this)),args:Lib.norma` &&
+             `lizeEventArgs(args)}}else if(this._firedWhileBuilding()){this.ctx.state.aRenderEvents.push({controller:this,token:this.ctx.state.oResponse.TOKEN,args:Lib.normalizeEventArgs(args)});return}else if(this` &&
+             `.ctx.state.tickInFlight&&!timer){if(!this.ctx.state.oTickQueuedEvent){this.ctx.state.oTickQueuedEvent={controller:this,args:Lib.normalizeEventArgs(args)}}}if(!noBusy)showBusy(this.ctx,0);return}this.c` &&
+             `tx.state.renderEventChain=0;Lib.cancelPendingTimers(this.ctx);this.ctx.state.isBusy=true;if(!noBusy)showBusy(this.ctx);this.ctx.state.tickInFlight=timer;const oBody={};this.ctx.state.oBody=oBody;const` &&
+             ` oModel=this._pickModelForRoundtrip(useMainModel);Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);const changedPaths=oModel?._z2ui5ChangedPaths;if(oModel&&changedPaths?.size>0){const data=oModel.ge` &&
+             `tData();if(data){oBody.MODEL=Lib.buildDeltaFromPaths(changedPaths,data)}oModel._z2ui5SentValues=new Map(Array.from(changedPaths,path=>[path,oModel.getProperty(path)]))}this.ctx.state.oSentModel=oModel` &&
+             `;oBody.ID=this.ctx.state.oResponse?.ID;if(timer)oBody.TIMER=true;oBody.ARGUMENTS=Lib.normalizeEventArgs(args);Server.roundtrip(this.ctx,oBody);Lib.runCallbacks(this.ctx.state.onAfterRoundtrip)},_fired` &&
+             `WhileBuilding(){const oResponse=this.ctx.state.oResponse;if(!oResponse?._processing)return false;const key=ViewSlots.keyOfController(this);if(!ViewSlots.getView(this.ctx,key))return true;return ViewSl` &&
+             `ots.getViewToken(this.ctx,key)===oResponse.TOKEN},_pickModelForRoundtrip(useMainModel){const slotKey=useMainModel?"MAIN":ViewSlots.keyOfController(this);if(!slotKey)return undefined;const oView=ViewSl` &&
+             `ots.getView(this.ctx,slotKey);if(!oView)return undefined;if(Lib.isRootModelSlot(slotKey)){return Slots.resolveTrackedModel(oView)}return oView.getModel()}});return Env.ownClass(View1Controller)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/AppState.js": function(){sap.ui.define([],()=>{"use strict";function createState(){return{endpoint:null,url:null,oConfig:{},ccResourceRoot:null,cccResourceRoot:null,endpointPrefix:nu` &&
@@ -153,10 +153,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `se:null,renderedApp:null,responseData:null,contextId:null,isBusy:false,terminated:false,oQueuedEvent:null,tickInFlight:false,oTickQueuedEvent:null,oQueuedWindow:null,aRenderEvents:[],renderEventChain:` &&
              `0,oSentModel:null,lastRequestBytes:null,lastRoundtripMs:null,lastMainDisplayOptions:null,navRouting:false,navMode:null,currentApp:null,currentDraftId:null,navFromHash:false,navDirection:"",hashEvent:n` &&
              `ull,appHash:"",pendingAppHash:null,hashPushCount:0,timers:Object.create(null),timerRepeat:null,shortcuts:Object.create(null),lastScrolled:{},odataClients:new Set,viewSizeLimits:Object.create(null),tre` &&
-             `eStates:Object.create(null),tableStates:Object.create(null),lastError:null,onBeforeRoundtrip:[],onAfterRoundtrip:[],onAfterRendering:[],onRoundtripEnd:[],onBeforeEventFrontend:[],onErrorDetails:[]}}co` &&
-             `nst COMPONENT_FIELDS=new Set(["endpoint","url","oConfig","ccResourceRoot","cccResourceRoot","endpointPrefix","nodePath","ownsPage","oApp","oOwnerComponent","oDeviceModel","oLaunchpad","onBeforeRoundtr` &&
-             `ip","onAfterRoundtrip","onAfterRendering","onBeforeEventFrontend","onErrorDetails"]);function resetApp(state){const fresh=createState();for(const key of Object.keys(fresh)){if(!COMPONENT_FIELDS.has(ke` &&
-             `y))state[key]=fresh[key]}}return{createState,resetApp,COMPONENT_FIELDS}});` && |\n| &&
+             `eStates:Object.create(null),tableStates:Object.create(null),websocketStates:Object.create(null),lastError:null,onBeforeRoundtrip:[],onAfterRoundtrip:[],onAfterRendering:[],onRoundtripEnd:[],onBeforeEv` &&
+             `entFrontend:[],onErrorDetails:[]}}const COMPONENT_FIELDS=new Set(["endpoint","url","oConfig","ccResourceRoot","cccResourceRoot","endpointPrefix","nodePath","ownsPage","oApp","oOwnerComponent","oDevice` &&
+             `Model","oLaunchpad","onBeforeRoundtrip","onAfterRoundtrip","onAfterRendering","onBeforeEventFrontend","onErrorDetails"]);function resetApp(state){const fresh=createState();for(const key of Object.keys` &&
+             `(fresh)){if(!COMPONENT_FIELDS.has(key))state[key]=fresh[key]}}return{createState,resetApp,COMPONENT_FIELDS}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/Context.js": function(){sap.ui.define(["z2ui5/core/AppState"],AppState=>{"use strict";const byComponent=new WeakMap;const byView=new WeakMap;function create(component){const ctx={com` &&
@@ -1134,7 +1134,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `  });` && |\n| &&
              `})();` && |\n| &&
              `(function(){"use strict";var bundleScript=document.currentScript;var bundleUrl=bundleScript&&bundleScript.src||"";sap.ui.define("z2ui5/embed",function(){var installation={componentName:"z2ui5.embed.fr` &&
-             `ontend",ccBundle:"ca63edaeb27db8b9",bundleUrl,componentData:{nodePath:"@z2ui5-node-path@",ccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_cci",cccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_ccc"},create:functio` &&
+             `ontend",ccBundle:"d2bdbe8f628c6b13",bundleUrl,componentData:{nodePath:"@z2ui5-node-path@",ccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_cci",cccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_ccc"},create:functio` &&
              `n(settings){return new Promise(function(resolve,reject){sap.ui.require(["z2ui5/core/Embed"],function(Embed){resolve(Embed.create(settings,installation))},reject)})}};return installation})})();` && |\n| &&
              `` && |\n|.
 

@@ -129,6 +129,9 @@ sap.ui.define(
             state.shortcuts = Object.create(null);
             state.treeStates = Object.create(null);
             state.tableStates = Object.create(null);
+            // ... and the reconnect budget of its push channels: the next
+            // app's Websocket to the same URL starts with whole attempts
+            state.websocketStates = Object.create(null);
             // ... and the model size limits it set (cs_event-set_size_limit):
             // every model a slot builds takes the stored limit
             // (Slots.applyStoredSizeLimit), so the next app's tables were

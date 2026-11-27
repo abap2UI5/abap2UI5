@@ -37,6 +37,17 @@ sap.ui.define(
     const RECONNECT_BASE_MS = 500;
     const RECONNECT_MAX_MS = 30000;
     const MAX_CONNECT_ATTEMPTS = 5;
+    //
+    // The budget - { failedAttempts, nextAllowedAt } - is kept per URL in
+    // the component's state (state.websocketStates, like the table and tree
+    // states of UITableExt and Tree), not on the control: an app answering
+    // `error` with a view-rebuilding roundtrip gets a NEW control on every
+    // rebuild, and a budget on the instance started over each time - five
+    // attempts per roundtrip, the backoff never reached, the storm the
+    // give-up exists to stop. nextAllowedAt is the backoff itself: a
+    // render (of this control or of its successor) inside it does not
+    // connect, it waits for that moment. A control in no component keeps
+    // its own record, as before.
 
     // How long a socket must stay open before it counts as an established
     // connection rather than a failed attempt. A completed handshake alone
@@ -108,7 +119,6 @@ sap.ui.define(
       },
       init() {
         this._queue = [];
-        this._failedAttempts = 0;
         this._dropped = 0;
       },
       // Every state change (checkActive toggled, path rebound) invalidates
@@ -116,21 +126,24 @@ sap.ui.define(
       // in line with the properties - no setter override needed.
       onAfterRendering() {
         const url = this._resolveUrl();
+        // a fresh control (a rebuilt view) has no URL yet: it takes the
+        // budget its URL has in the component, it is no new target
+        const rebound = this._url !== undefined && url !== this._url;
         if (url !== this._url) {
           this._disconnect();
-          // a NEW target gets a fresh set of attempts - the give-up above
-          // is about hammering the same dead endpoint
-          this._failedAttempts = 0;
           this._doneAfterFirst = false;
         }
         this._url = url;
+        // a NEW target gets a fresh set of attempts - the give-up above
+        // is about hammering the same dead endpoint
+        if (rebound && url) this._resetBudget();
         const active = this.getProperty("checkActive");
         // checkActive switched back on is the app asking for a new attempt
         // (the ICF node was activated meanwhile) - the give-up is about
         // hammering the same dead endpoint unasked, and this is the second
         // trigger the contract above promises next to a path change
         if (active && this._wasInactive) {
-          this._failedAttempts = 0;
+          if (url) this._resetBudget();
           this._doneAfterFirst = false;
         }
         this._wasInactive = !active;
@@ -168,15 +181,47 @@ sap.ui.define(
         const origin = base.replace(HTTP_SCHEME, "ws");
         return path.charAt(0) === "/" ? origin + path : origin + "/" + path;
       },
-      _connect() {
+      // The give-up budget of `url` (see MAX_CONNECT_ATTEMPTS): the record
+      // of the component's state, or the control's own in no component.
+      _budget(url) {
+        const states = Context.of(this)?.state.websocketStates;
+        if (!states) {
+          if (this._ownBudget?.url !== url) {
+            this._ownBudget = { url, failedAttempts: 0, nextAllowedAt: 0 };
+          }
+          return this._ownBudget;
+        }
+        if (!states[url]) {
+          states[url] = { failedAttempts: 0, nextAllowedAt: 0 };
+        }
+        return states[url];
+      },
+      _resetBudget(url = this._url) {
+        const budget = this._budget(url);
+        budget.failedAttempts = 0;
+        budget.nextAllowedAt = 0;
+      },
+      // `due` is the reconnect timer firing: its moment IS nextAllowedAt,
+      // so the wait below is not asked again (a clock that runs behind the
+      // timer by a millisecond would otherwise put it off once more)
+      _connect(due) {
         if (this._ws || !this._url) return;
-        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;
+        const budget = this._budget(this._url);
+        if (budget.failedAttempts >= MAX_CONNECT_ATTEMPTS) return;
         // "close after the first message" (checkRepeat = false) has to hold
         // past the next re-render: every roundtrip runs onAfterRendering,
         // and reconnecting from there turned "once" into "once per
         // roundtrip". A path change or a checkActive/checkRepeat toggle
         // (above) is what asks for the next one
         if (this._doneAfterFirst) return;
+        // inside the backoff of an earlier failure - of this control or of
+        // the one the rebuilt view replaced: wait for it on a timer of our
+        // own (the predecessor's died with it) instead of connecting now
+        const wait = budget.nextAllowedAt - Date.now();
+        if (!due && wait > 0) {
+          this._scheduleConnect(wait);
+          return;
+        }
         const url = this._url;
         let ws;
         try {
@@ -220,7 +265,7 @@ sap.ui.define(
           // The channel really carries data - the proof the handshake
           // alone does not give, so the failure budget is whole again for
           // whatever drop comes next.
-          this._failedAttempts = 0;
+          this._resetBudget(url);
           if (!this.getProperty("checkRepeat")) {
             this._doneAfterFirst = true;
             this._disconnect();
@@ -253,7 +298,7 @@ sap.ui.define(
             this._opened &&
             Date.now() - this._openedAt >= CONNECT_STABLE_MS
           ) {
-            this._failedAttempts = 0;
+            this._resetBudget(url);
           } else {
             this._countFailure(url);
           }
@@ -262,7 +307,7 @@ sap.ui.define(
             code: String(event.code),
             message: message,
           });
-          this._scheduleReconnect();
+          this._scheduleReconnect(url);
         };
       },
       // Count one failed attempt against the give-up budget and say so once
@@ -270,8 +315,17 @@ sap.ui.define(
       // goes through (see MAX_CONNECT_ATTEMPTS) - a door that counted
       // nothing was a reconnect storm each time.
       _countFailure(url) {
-        this._failedAttempts += 1;
-        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {
+        const budget = this._budget(url);
+        budget.failedAttempts += 1;
+        // the backoff starts with the failure, not with the timer: a
+        // rebuilt view's control asks nextAllowedAt before it connects
+        budget.nextAllowedAt =
+          Date.now() +
+          Math.min(
+            RECONNECT_MAX_MS,
+            RECONNECT_BASE_MS * 2 ** budget.failedAttempts,
+          );
+        if (budget.failedAttempts >= MAX_CONNECT_ATTEMPTS) {
           Lib.logError(
             "Websocket: " +
               MAX_CONNECT_ATTEMPTS +
@@ -284,17 +338,21 @@ sap.ui.define(
       // Try again on our own timer, not only on the next render: a model-only
       // response never re-renders, and the push channel used to stay silently
       // dead until something else happened to rebuild the view.
-      _scheduleReconnect() {
-        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;
-        const delay = Math.min(
-          RECONNECT_MAX_MS,
-          RECONNECT_BASE_MS * 2 ** this._failedAttempts,
+      _scheduleReconnect(url) {
+        const budget = this._budget(url);
+        if (budget.failedAttempts >= MAX_CONNECT_ATTEMPTS) return;
+        // the backoff _countFailure set - or the minimum after a stable
+        // connection that was closed, whose budget is whole again
+        this._scheduleConnect(
+          Math.max(budget.nextAllowedAt - Date.now(), RECONNECT_BASE_MS),
         );
+      },
+      _scheduleConnect(delay) {
         clearTimeout(this._reconnectId);
         this._reconnectId = setTimeout(() => {
           if (Lib.isDestroyed(this)) return;
           if (!this.getProperty("checkActive")) return;
-          this._connect();
+          this._connect(true);
         }, delay);
       },
       _disconnect() {
