@@ -11,6 +11,12 @@ Legend
 
 unreleased
 ----------
+* Developer tools: Details on the error dialog brings the dialog back when the tools cannot open (their bundle did not load, or the dialog failed) - the app was left dead, with no Retry and no Restart
+* Developer tools: ?z2ui5-devtools= opens the tools again - the auto open ran before the roundtrip URL was known and was refused with "no endpoint"
+* Developer tools: loading the tools' bundle gives up after 60 seconds and removes a failed script element - a load that never answered kept the tools from ever opening
+* Developer tools: a journey records no START_TIMER tick - each one was exported as a click the user never made
+* Developer tools: the roundtrip history pairs a render with its request once the browser's resource buffer is full - it showed it unmeasured, plus a roundtrip that "never rendered"
+* Developer tools: the ABAP Source tab fetches the class again whenever it is opened, and the source cache is per system - an edited class kept its old text for the deep link and the export, and the same class name on a second system showed the first one's source
 * Tooling: the downport refuses a config whose src/ glob it cannot retarget (abaplint --fix would have rewritten src/ in place), express:live answers a malformed request with 400 instead of exiting, abap2ui5-own-apps empties only a folder it wrote, and pack-npm / verify quote their arguments on Windows
 * Embedded on a host page: the BUSY_INDICATOR action covers the component's own area - it blocked the host's whole page, and its hide took down the host's own indicator; hash_back is refused there - it navigated the host's history or overwrote its route
 * hash_back: a push of the hash the browser already stands on counts as no history entry, and the route a nav_app_call pushes under hash_routing does - the next hash_back took the wrong branch, leaving the app or staying put
