@@ -83,6 +83,9 @@ CLASS z2ui5_cl_ui5_llm_claude DEFINITION
 
   PRIVATE SECTION.
 
+    " the endpoint as the texts of an exception name it
+    CONSTANTS cv_api_name TYPE string VALUE `the Messages API`.
+
     DATA mv_model TYPE string.
     DATA mv_api_key TYPE string.
     DATA mv_url TYPE string.
@@ -139,25 +142,10 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
     IF lv_model IS INITIAL.
       lv_model = mv_model.
     ENDIF.
-    IF lv_model IS INITIAL.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text = `no model is configured - the Messages API needs a model id`.
-    ENDIF.
-    IF lines( t_message ) = 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text = `a chat call needs at least one message`.
-    ENDIF.
-    IF s_options-temperature IS NOT INITIAL
-        AND ( s_options-temperature CN `0123456789.` OR count( val = s_options-temperature
-                                                               sub = `.` ) > 1
-              " JSON wants a digit on both sides of the point - `.7` and `1.` are no number there
-              OR s_options-temperature CP `.*` OR s_options-temperature CP `*.` ).
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text = |the temperature { s_options-temperature } is no number|.
-    ENDIF.
+    z2ui5_cl_ui5_llm_http=>check_call( iv_model       = lv_model
+                                       it_message     = t_message
+                                       iv_temperature = s_options-temperature
+                                       iv_api         = cv_api_name ).
 
     lv_max_tokens = s_options-max_tokens.
     IF lv_max_tokens <= 0.
@@ -185,11 +173,6 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
         ENDIF.
         lo_body->touch_array( `/messages` ).
         LOOP AT t_message INTO DATA(ls_message).
-          IF ls_message-content IS INITIAL.
-            RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-              EXPORTING
-                text = |message { sy-tabix } has no content - the Messages API refuses an empty message|.
-          ENDIF.
           DATA(lo_item) = z2ui5_cl_ajson=>create_empty( ).
           lo_item->set( iv_path = `/role`
                         iv_val  = ls_message-role ).
@@ -249,36 +232,8 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
 
   METHOD parse_response.
 
-    DATA lo_json TYPE REF TO z2ui5_if_ajson.
-    DATA lv_message TYPE string.
-
-    TRY.
-        lo_json = z2ui5_cl_ajson=>parse( is_response-body ).
-      CATCH cx_root.
-        CLEAR lo_json.
-    ENDTRY.
-
-    IF is_response-status <> 200.
-      IF lo_json IS BOUND.
-        lv_message = lo_json->get_string( `/error/message` ).
-      ENDIF.
-      IF lv_message IS INITIAL.
-        lv_message = z2ui5_cl_ui5_util_context=>c_truncate( val = is_response-body
-                                                           max  = 200 ).
-      ENDIF.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text        = |the Messages API answered HTTP { is_response-status } { is_response-reason } - { lv_message }|
-          http_status = is_response-status
-          retryable   = xsdbool( is_response-status = 408 OR is_response-status = 429 OR is_response-status >= 500 ).
-    ENDIF.
-
-    IF lo_json IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text        = `the Messages API answered with no JSON`
-          http_status = is_response-status.
-    ENDIF.
+    DATA(lo_json) = z2ui5_cl_ui5_llm_http=>parse_answer( is_response = is_response
+                                                         iv_api      = cv_api_name ).
 
     result-model                 = lo_json->get_string( `/model` ).
     result-stop_reason           = lo_json->get_string( `/stop_reason` ).

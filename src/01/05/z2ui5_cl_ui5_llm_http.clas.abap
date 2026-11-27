@@ -4,7 +4,9 @@
 "! between CL_HTTP_CLIENT (Standard - an SM59 destination or a URL) and
 "! CL_WEB_HTTP_CLIENT_MANAGER (ABAP Cloud - a URL, a communication
 "! arrangement or a BTP destination), both named dynamically. Nothing about
-"! the platform is decided here, and nothing about a provider either.
+"! the platform is decided here, and nothing about a provider either - beyond
+"! the two steps every HTTP provider takes alike: check_call before the body
+"! is written, parse_answer on what came back.
 CLASS z2ui5_cl_ui5_llm_http DEFINITION
   PUBLIC
   FINAL
@@ -14,6 +16,31 @@ CLASS z2ui5_cl_ui5_llm_http DEFINITION
 
     INTERFACES z2ui5_if_ui5_llm_http.
 
+    "! The checks of a chat call before its body is written: a model, at
+    "! least one message and none without content, and a temperature that
+    "! is a JSON number. iv_api names the endpoint in the texts.
+    CLASS-METHODS check_call
+      IMPORTING
+        iv_model       TYPE string
+        it_message     TYPE z2ui5_if_ui5_llm=>ty_t_message
+        iv_temperature TYPE string
+        iv_api         TYPE string
+      RAISING
+        z2ui5_cx_ui5_llm.
+
+    "! The answer of an HTTP provider as JSON, or the exception it stands
+    "! for: a status other than 200 raises with the message of the error
+    "! object (/error/message, or /error as a string - Ollama), retryable
+    "! for 408, 429 and 5xx; a 200 that is no JSON raises as well.
+    CLASS-METHODS parse_answer
+      IMPORTING
+        is_response   TYPE z2ui5_if_ui5_llm_http=>ty_s_response
+        iv_api        TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ajson
+      RAISING
+        z2ui5_cx_ui5_llm.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -22,6 +49,85 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_llm_http IMPLEMENTATION.
+
+  METHOD check_call.
+
+    IF iv_model IS INITIAL.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text = |no model is configured - { iv_api } needs a model id|.
+    ENDIF.
+    IF lines( it_message ) = 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text = `a chat call needs at least one message`.
+    ENDIF.
+    LOOP AT it_message TRANSPORTING NO FIELDS WHERE content IS INITIAL. "#EC CI_SORTSEQ
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text = |message { sy-tabix } has no content - { iv_api } refuses an empty message|.
+    ENDLOOP.
+
+    IF iv_temperature IS INITIAL.
+      RETURN.
+    ENDIF.
+    " JSON wants a digit on both sides of the point - `.7` and `1.` are no
+    " number there - and no leading zero in front of another digit: `01`
+    " and `00.5` are no number either
+    IF iv_temperature CN `0123456789.`
+        OR count( val = iv_temperature
+                  sub = `.` ) > 1
+        OR iv_temperature CP `.*` OR iv_temperature CP `*.`
+        OR ( strlen( iv_temperature ) > 1
+             AND substring( val = iv_temperature
+                            len = 1 ) = `0`
+             AND substring( val = iv_temperature
+                            off = 1
+                            len = 1 ) <> `.` ).
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text = |the temperature { iv_temperature } is no number|.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD parse_answer.
+
+    DATA lv_message TYPE string.
+
+    TRY.
+        result = z2ui5_cl_ajson=>parse( is_response-body ).
+      CATCH cx_root.
+        CLEAR result.
+    ENDTRY.
+
+    IF is_response-status <> 200.
+      IF result IS BOUND.
+        " {"error":{"message":...}} - Ollama: {"error":"..."}
+        lv_message = result->get_string( `/error/message` ).
+        IF lv_message IS INITIAL.
+          lv_message = result->get_string( `/error` ).
+        ENDIF.
+      ENDIF.
+      IF lv_message IS INITIAL.
+        lv_message = z2ui5_cl_ui5_util_context=>c_truncate( val = is_response-body
+                                                           max  = 200 ).
+      ENDIF.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text        = |{ iv_api } answered HTTP { is_response-status } { is_response-reason } - { lv_message }|
+          http_status = is_response-status
+          retryable   = xsdbool( is_response-status = 408 OR is_response-status = 429 OR is_response-status >= 500 ).
+    ENDIF.
+
+    IF result IS NOT BOUND.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text        = |{ iv_api } answered with no JSON|
+          http_status = is_response-status.
+    ENDIF.
+
+  ENDMETHOD.
 
   METHOD z2ui5_if_ui5_llm_http~post.
 

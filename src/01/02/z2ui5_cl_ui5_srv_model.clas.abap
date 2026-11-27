@@ -168,10 +168,19 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! may the attribute travel as a token (json_fast_set, json_ns_set): a
+    "! table or a structure, under a client name without an empty segment
+    METHODS check_json_token_path
+      IMPORTING
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     "! a bound table or structure through the fast path: when the value
     "! takes it, its JSON is kept on cs_fast and a token set into the tree
     "! under the attribute's path - ev_taken then, abap_false when the
-    "! caller has to set the value the general way
+    "! caller has to set the value the general way. Only for an attribute
+    "! check_json_token_path admits
     METHODS json_fast_set
       IMPORTING
         ir_ref    TYPE REF TO data
@@ -202,7 +211,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! path did not take - a deep row: written through ajson into a tree of
     "! its own and rendered by json_ns_text, the namespace a level of its
     "! own (`"ABC":{"FIELD":...}`), then registered as a token. ev_taken
-    "! abap_false for every other value: the caller sets it as before
+    "! abap_false for every other value: the caller sets it as before. Only
+    "! for an attribute check_json_token_path admits
     METHODS json_ns_set
       IMPORTING
         ir_ref    TYPE REF TO data
@@ -247,14 +257,20 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       CHANGING
         ct_buffer TYPE string_table.
 
-    " one member of an object of json_ns_text - see ty_s_ns_member
+    " one member of an object whose names may carry a namespace - a node
+    " of json_ns_text (node) or a column of a row of the fast path (name,
+    " json_kind): key is the member of the object (the namespace for a
+    " namespaced name, the name for every other one), sub the member of
+    " the namespace object (empty for a plain name)
     TYPES:
-      BEGIN OF ty_s_ns_node_member,
-        key  TYPE string,
-        sub  TYPE string,
-        node TYPE z2ui5_if_ajson_types=>ty_node,
-      END OF ty_s_ns_node_member.
-    TYPES ty_t_ns_node_member TYPE STANDARD TABLE OF ty_s_ns_node_member WITH EMPTY KEY.
+      BEGIN OF ty_s_ns_member,
+        key       TYPE string,
+        sub       TYPE string,
+        name      TYPE string,
+        json_kind TYPE z2ui5_cl_ui5_util_context=>ty_s_flat_comp-json_kind,
+        node      TYPE z2ui5_if_ajson_types=>ty_node,
+      END OF ty_s_ns_member.
+    TYPES ty_t_ns_member TYPE STANDARD TABLE OF ty_s_ns_member WITH EMPTY KEY.
 
     "! the members of the object whose children sit at iv_path, in the
     "! order json_ns_object writes them
@@ -263,7 +279,23 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         it_tree       TYPE z2ui5_if_ajson_types=>ty_nodes_ts
         iv_path       TYPE string
       RETURNING
-        VALUE(result) TYPE ty_t_ns_node_member.
+        VALUE(result) TYPE ty_t_ns_member.
+
+    "! a member named iv_name: key and sub split by ns_split
+    CLASS-METHODS ns_member
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_ns_member.
+
+    "! members in the order ajson writes the grouped object: unchanged when
+    "! no name carries a namespace; otherwise a member named like a
+    "! namespace of its neighbours gives way to the namespace object (two
+    "! keys of one name are no document) and the rest is sorted by key and
+    "! sub, so a namespace's members follow each other
+    CLASS-METHODS ns_members_order
+      CHANGING
+        ct_member TYPE ty_t_ns_member.
 
     "! a component name `/ABC/FIELD` split into its namespace `ABC` and
     "! its name `FIELD` - both empty for a name without a namespace
@@ -291,14 +323,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       CHANGING
         cv_json TYPE string.
 
-    "! one row as a JSON object, it_comp sorted by name
-    CLASS-METHODS json_row
-      IMPORTING
-        is_row        TYPE any
-        it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
-      RETURNING
-        VALUE(result) TYPE string.
-
     "! one elementary cell as JSON text - the rendering ajson writes for
     "! the json_kind of its column (see json_row)
     CLASS-METHODS json_cell
@@ -308,22 +332,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    " one member of a row of the fast path whose columns carry a
-    " namespace: key is the member of the row object (the namespace for a
-    " namespaced column, the name for every other one), sub the member of
-    " the namespace object (empty for a plain column), name the component
-    TYPES:
-      BEGIN OF ty_s_ns_member,
-        key       TYPE string,
-        sub       TYPE string,
-        name      TYPE string,
-        json_kind TYPE z2ui5_cl_ui5_util_context=>ty_s_flat_comp-json_kind,
-      END OF ty_s_ns_member.
-    TYPES ty_t_ns_member TYPE STANDARD TABLE OF ty_s_ns_member WITH EMPTY KEY.
-
-    "! the members of a row with namespaced columns in the order ajson
-    "! writes the grouped object (json_ns_text) - empty when no column
-    "! carries a namespace, and json_row writes the row as before
+    "! the members of a row in the order ajson writes its object - it_comp
+    "! sorted by name, with namespaced columns grouped (json_ns_text)
     CLASS-METHODS json_ns_members
       IMPORTING
         it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
@@ -332,7 +342,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     "! one row as a JSON object, the namespaced columns grouped
     "! (json_ns_members)
-    CLASS-METHODS json_row_ns
+    CLASS-METHODS json_row
       IMPORTING
         is_row        TYPE any
         it_member     TYPE ty_t_ns_member
@@ -425,6 +435,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_parent TYPE string
         iv_from   TYPE string
         iv_to     TYPE string.
+
+    " does the `<iv_name>->*` row of a reference at a table alias the
+    " table of another owner (name_ref) - see main_attri_db_save_srtti
+    METHODS dref_check_table_alias
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     " abap_true when a reference row takes a payload of its own on the save
     " (it is bound and owns its target); drops the alias of the children of
@@ -732,16 +750,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         ir_res      TYPE REF TO ty_s_resolved
         it_resolved TYPE ty_t_resolved.
 
-    "! Is the table behind the reference a STANDARD table - the only kind a
-    "! row delta can be written into by index. Asked BEFORE any ASSIGN to a
-    "! TYPE STANDARD TABLE field symbol: on a system that ASSIGN is the
-    "! runtime error ASSIGN_TYPE_CONFLICT for a sorted or hashed table.
-    METHODS check_table_standard
-      IMPORTING
-        ir_ref        TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
     "! iv_type_kind is the component's type kind, resolved by the caller
     "! once per column (ty_t_col_kind) - it used to be asked per cell
     METHODS delta_apply_scalar
@@ -939,18 +947,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
                AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
 
+      " resolved first: a row whose path no longer resolves has no value -
+      " main_snapshot left it out, and asking the snapshot about it first
+      " read as "bound anew" and pushed the whole model on every roundtrip
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+
       " bound by this main( ): the client holds no value for it yet
       READ TABLE snapshot REFERENCE INTO DATA(lr_snap) WITH TABLE KEY name = lr_attri->name.
       IF sy-subrc <> 0.
         result = abap_true.
         RETURN.
       ENDIF.
-
-      TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
-        CATCH cx_root.
-          CONTINUE.
-      ENDTRY.
 
       ASSIGN lr_ref->* TO <val>.
       ASSIGN lr_snap->o_data->* TO <copy>.
@@ -1049,22 +1060,25 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                          io_result = li_ajson_result ).
           ENDIF.
 
-          json_fast_set( EXPORTING ir_ref    = lr_ref
+          " the two token roads - the fast path, then the namespaced one
+          IF check_json_token_path( lr_attri ) = abap_true.
+            json_fast_set( EXPORTING ir_ref    = lr_ref
+                                     ir_attri  = lr_attri
+                                     io_result = li_ajson_result
+                           IMPORTING ev_taken  = DATA(lv_taken)
+                           CHANGING  cs_fast   = ls_fast ).
+            IF lv_taken = abap_true.
+              CONTINUE.
+            ENDIF.
+
+            json_ns_set( EXPORTING ir_ref    = lr_ref
                                    ir_attri  = lr_attri
                                    io_result = li_ajson_result
-                         IMPORTING ev_taken  = DATA(lv_taken)
+                         IMPORTING ev_taken  = lv_taken
                          CHANGING  cs_fast   = ls_fast ).
-          IF lv_taken = abap_true.
-            CONTINUE.
-          ENDIF.
-
-          json_ns_set( EXPORTING ir_ref    = lr_ref
-                                 ir_attri  = lr_attri
-                                 io_result = li_ajson_result
-                       IMPORTING ev_taken  = lv_taken
-                       CHANGING  cs_fast   = ls_fast ).
-          IF lv_taken = abap_true.
-            CONTINUE.
+            IF lv_taken = abap_true.
+              CONTINUE.
+            ENDIF.
           ENDIF.
 
           li_ajson_result->set( iv_ignore_empty = abap_false
@@ -1139,9 +1153,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD json_fast_set.
+  METHOD check_json_token_path.
 
-    ev_taken = abap_false.
     " a path with an empty segment (`/MS_ROW//ABC/FIELD`, the client name
     " a namespaced component had before z2ui5_cl_ui5_srv_bind=>get_client_name
     " collapsed it - a draft of a session started then still carries it):
@@ -1152,11 +1165,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
              sub = `//` ) >= 0.
       RETURN.
     ENDIF.
-    IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-      RETURN.
-    ENDIF.
+    CASE ir_attri->type_kind.
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD json_fast_set.
+
+    ev_taken = abap_false.
     DATA(lv_json) = attri_json_fast( ir_ref ).
     IF lv_json IS INITIAL.
       RETURN.
@@ -1193,17 +1213,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD json_ns_set.
 
     ev_taken = abap_false.
-    " a client name with an empty segment cannot hold a token - see
-    " json_fast_set; such a draft keeps the road it always took
-    IF find( val = ir_attri->name_client
-             sub = `//` ) >= 0.
-      RETURN.
-    ENDIF.
-    IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-      RETURN.
-    ENDIF.
     " the common value has no namespaced component anywhere and is set
     " into the result directly, as it always was - the scratch tree below
     " is only paid for the value that needs it
@@ -1317,33 +1326,46 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD json_ns_object_members.
 
-    DATA lt_ns TYPE string_table.
-
     " the members as ajson orders them - by name, the primary key - with a
     " namespaced one filed under its namespace
     LOOP AT it_tree INTO DATA(ls_node) WHERE path = iv_path. "#EC CI_SORTSEQ
-      ns_split( EXPORTING iv_name  = ls_node-name
-                IMPORTING ev_ns    = DATA(lv_ns)
-                          ev_field = DATA(lv_field) ).
-      IF lv_ns IS INITIAL.
-        INSERT VALUE #( key  = ls_node-name
-                        node = ls_node ) INTO TABLE result.
-      ELSE.
-        INSERT VALUE #( key  = lv_ns
-                        sub  = lv_field
-                        node = ls_node ) INTO TABLE result.
-        INSERT lv_ns INTO TABLE lt_ns.
-      ENDIF.
+      DATA(ls_member) = ns_member( ls_node-name ).
+      ls_member-node = ls_node.
+      INSERT ls_member INTO TABLE result.
+    ENDLOOP.
+    ns_members_order( CHANGING ct_member = result ).
+
+  ENDMETHOD.
+
+  METHOD ns_member.
+
+    ns_split( EXPORTING iv_name  = iv_name
+              IMPORTING ev_ns    = DATA(lv_ns)
+                        ev_field = DATA(lv_field) ).
+    result-name = iv_name.
+    IF lv_ns IS INITIAL.
+      result-key = iv_name.
+    ELSE.
+      result-key = lv_ns.
+      result-sub = lv_field.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD ns_members_order.
+
+    DATA lt_ns TYPE string_table.
+
+    LOOP AT ct_member REFERENCE INTO DATA(lr_member) WHERE sub IS NOT INITIAL. "#EC CI_SORTSEQ
+      INSERT lr_member->key INTO TABLE lt_ns.
     ENDLOOP.
     IF lt_ns IS INITIAL.
       RETURN.
     ENDIF.
-    " a member named like a namespace of its neighbours gives way to the
-    " namespace object - see json_ns_text
-    LOOP AT lt_ns INTO lv_ns.
-      DELETE result WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
+    LOOP AT lt_ns INTO DATA(lv_ns).
+      DELETE ct_member WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
     ENDLOOP.
-    SORT result BY key sub.
+    SORT ct_member BY key sub.
 
   ENDMETHOD.
 
@@ -1523,20 +1545,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     SORT lt_comp BY name.
     " a column with a namespace (`/ABC/FIELD`) is written below an object
     " of its namespace, as json_ns_text writes it on the general road - so
-    " a row template can bind it relatively. Empty for every other row,
-    " which keeps the text it always had
+    " a row template can bind it relatively. Every other row keeps the
+    " text it always had
     DATA(lt_member) = json_ns_members( lt_comp ).
 
     IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
       " the flat structure itself
       ASSIGN ir_ref->* TO <row>.
-      IF lt_member IS NOT INITIAL.
-        result = json_row_ns( is_row    = <row>
-                              it_member = lt_member ).
-        RETURN.
-      ENDIF.
-      result = json_row( is_row  = <row>
-                         it_comp = lt_comp ).
+      result = json_row( is_row    = <row>
+                         it_member = lt_member ).
       RETURN.
     ENDIF.
 
@@ -1544,42 +1561,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " system when the kinds differ (abap-check, section 5)
     ASSIGN ir_ref->* TO <tab>.
     DATA lt_row TYPE string_table.
-    IF lt_member IS NOT INITIAL.
-      LOOP AT <tab> ASSIGNING <row>.
-        INSERT json_row_ns( is_row    = <row>
-                            it_member = lt_member ) INTO TABLE lt_row.
-      ENDLOOP.
-    ELSE.
-      LOOP AT <tab> ASSIGNING <row>.
-        INSERT json_row( is_row  = <row>
-                         it_comp = lt_comp ) INTO TABLE lt_row.
-      ENDLOOP.
-    ENDIF.
+    LOOP AT <tab> ASSIGNING <row>.
+      INSERT json_row( is_row    = <row>
+                       it_member = lt_member ) INTO TABLE lt_row.
+    ENDLOOP.
     result = `[` && concat_lines_of( table = lt_row
                                      sep   = `,` ) && `]`.
-
-  ENDMETHOD.
-
-  METHOD json_row.
-
-    FIELD-SYMBOLS <cell> TYPE any.
-    DATA lt_member TYPE string_table.
-
-    LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
-      ASSIGN COMPONENT lr_comp->name OF STRUCTURE is_row TO <cell>.
-      IF sy-subrc <> 0.
-        " the names come from the RTTI of this very row - loud rather than
-        " a document missing a column
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = |MODEL_FAST_PATH_COMPONENT_LOST - internal error while serializing a bound table: column | &&
-                  |'{ lr_comp->name }' is missing from its own row. This is a framework defect, not an app error - please report it|.
-      ENDIF.
-      INSERT |"{ lr_comp->name }":{ json_cell( iv_cell  = <cell>
-                                                iv_kind = lr_comp->json_kind ) }| INTO TABLE lt_member.
-    ENDLOOP.
-    result = `{` && concat_lines_of( table = lt_member
-                                     sep   = `,` ) && `}`.
 
   ENDMETHOD.
 
@@ -1616,38 +1603,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD json_ns_members.
 
-    DATA lt_ns TYPE string_table.
-
     LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
-      ns_split( EXPORTING iv_name  = lr_comp->name
-                IMPORTING ev_ns    = DATA(lv_ns)
-                          ev_field = DATA(lv_field) ).
-      IF lv_ns IS INITIAL.
-        INSERT VALUE #( key       = lr_comp->name
-                        name      = lr_comp->name
-                        json_kind = lr_comp->json_kind ) INTO TABLE result.
-      ELSE.
-        INSERT VALUE #( key       = lv_ns
-                        sub       = lv_field
-                        name      = lr_comp->name
-                        json_kind = lr_comp->json_kind ) INTO TABLE result.
-        INSERT lv_ns INTO TABLE lt_ns.
-      ENDIF.
+      DATA(ls_member) = ns_member( lr_comp->name ).
+      ls_member-json_kind = lr_comp->json_kind.
+      INSERT ls_member INTO TABLE result.
     ENDLOOP.
-    IF lt_ns IS INITIAL.
-      CLEAR result.
-      RETURN.
-    ENDIF.
     " the rule of json_ns_object: a column named like a namespace of its
     " neighbours gives way to the namespace object
-    LOOP AT lt_ns INTO lv_ns.
-      DELETE result WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
-    ENDLOOP.
-    SORT result BY key sub.
+    ns_members_order( CHANGING ct_member = result ).
 
   ENDMETHOD.
 
-  METHOD json_row_ns.
+  METHOD json_row.
 
     FIELD-SYMBOLS <cell> TYPE any.
     DATA lt_member TYPE string_table.
@@ -2029,23 +1996,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
 
-          " a dref whose deref is a TABLE has exactly ONE dissolved child:
+          " a dref whose deref is a TABLE has at most ONE dissolved child:
           " diss_dref's non-struct branch creates the single `<name>->*` row
           " (only a struct deref fans out into several children, and that
-          " case is the struct branch below). The child row IS the deref
-          " resolved above; the loop exists to pair the WHERE filter with a
-          " no-match fallthrough, so the unconditional EXIT states that it
-          " can never have a second row to visit. Only the REFERENCE is
-          " detached (below) - the table itself stays as it is, and
-          " main_attri_reattach hands it back to the live instance untouched
-          LOOP AT mt_attri->* TRANSPORTING NO FIELDS USING KEY parent
-               WHERE name_parent = lr_attri->name
-                     AND name_ref IS INITIAL
-                     AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+          " case is the struct branch below). When that child aliases a
+          " table of another owner (name_ref), the load points the reference
+          " at that owner again and there is no payload. Every other table
+          " is stored - also one WITHOUT a child: a reference that was still
+          " INITIAL when the rows were dissolved and got its table later,
+          " never bound, is never dissolved again (dissolve has nothing
+          " pending), and storing only when the child existed lost that
+          " table from the draft. Only the REFERENCE is detached (below) -
+          " the table itself stays as it is, and main_attri_reattach hands
+          " it back to the live instance untouched
+          IF dref_check_table_alias( lr_attri->name ) = abap_false.
             attri_srtti_store( ir_attri = lr_attri
                                iv_val   = <val_deref> ).
-            EXIT.
-          ENDLOOP.
+          ENDIF.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
           attri_srtti_store( ir_attri = lr_attri
@@ -2811,6 +2778,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD dref_check_table_alias.
+
+    LOOP AT mt_attri->* TRANSPORTING NO FIELDS USING KEY parent
+         WHERE name_parent = iv_name
+               AND name_ref IS NOT INITIAL
+               AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+      result = abap_true.
+      RETURN.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD dref_check_payload.
 
     " a reference the app CLEARed points at nothing - and its dissolved
@@ -2978,7 +2957,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " are keyed reads on the sorted node table
     DATA(lv_delta) = |{ iv_path }/__delta|.
 
-    IF check_table_standard( lr_ref_d ) = abap_false.
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( lr_ref_d ) = abap_false.
       delta_skip_nodes( io_delta = io_val_front
                         iv_base  = lv_delta
                         iv_table = iv_name ).
@@ -3196,12 +3175,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF result < 1.
       result = 0.
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD check_table_standard.
-
-    result = z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ).
 
   ENDMETHOD.
 
@@ -3450,11 +3423,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     DATA(ls_col_kind) = VALUE ty_s_col_kind(
         field     = is_cell-field
         type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ) ).
-    " the table kind only where there is a table: check_table_standard on
+    " the table kind only where there is a table: rtti_check_table_standard on
     " a REF TO data sees the reference itself and answers no - which is
     " what keeps a delta from being followed through such a column
     IF ls_col_kind-type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-      ls_col_kind-standard = check_table_standard( ir_comp ).
+      ls_col_kind-standard = z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_comp ).
     ENDIF.
     INSERT ls_col_kind INTO TABLE ct_col_kind REFERENCE INTO er_col_kind.
 
@@ -3625,7 +3598,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " standard table is matched row by row (and decided by RTTI before the
     " typed ASSIGN, abap-check section 5)
     IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-        OR check_table_standard( ir_ref ) = abap_false.
+        OR z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
       RETURN.
     ENDIF.
     ASSIGN ir_ref->* TO <tab>.

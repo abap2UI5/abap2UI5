@@ -580,13 +580,18 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     TRY.
         DATA(lo_destination) = client_destination_cloud( ls_req ).
 
+        " every call on the client, request and response objects names its
+        " interface: the objects are typed REF TO object, and a bare
+        " GET_HTTP_REQUEST resolves only where the implementing class
+        " happens to declare an alias - the server branch of this class
+        " qualifies its IF_WEB_HTTP_REQUEST~ calls the same way
         CALL METHOD (lv_manager)=>create_by_http_destination
           EXPORTING
             i_destination = lo_destination
           RECEIVING
             r_client      = lo_client.
 
-        CALL METHOD lo_client->(`GET_HTTP_REQUEST`)
+        CALL METHOD lo_client->(`IF_WEB_HTTP_CLIENT~GET_HTTP_REQUEST`)
           RECEIVING
             r_http_request = lo_request.
 
@@ -594,20 +599,20 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         " path is already part of it
         IF ls_target-request_uri IS NOT INITIAL.
           DATA(lv_path) = ls_target-request_uri.
-          CALL METHOD lo_request->(`SET_URI_PATH`)
+          CALL METHOD lo_request->(`IF_WEB_HTTP_REQUEST~SET_URI_PATH`)
             EXPORTING
               i_uri_path = lv_path.
         ENDIF.
 
         LOOP AT is_req-t_header INTO DATA(ls_header).
-          CALL METHOD lo_request->(`SET_HEADER_FIELD`)
+          CALL METHOD lo_request->(`IF_WEB_HTTP_REQUEST~SET_HEADER_FIELD`)
             EXPORTING
               i_name  = ls_header-n
               i_value = ls_header-v.
         ENDLOOP.
 
         DATA(lv_body) = is_req-body.
-        CALL METHOD lo_request->(`SET_TEXT`)
+        CALL METHOD lo_request->(`IF_WEB_HTTP_REQUEST~SET_TEXT`)
           EXPORTING
             i_text = lv_body.
 
@@ -622,22 +627,22 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
                                             method    = <method>
                                             timeout   = is_req-timeout ).
 
-        CALL METHOD lo_response->(`GET_STATUS`)
+        CALL METHOD lo_response->(`IF_WEB_HTTP_RESPONSE~GET_STATUS`)
           RECEIVING
             r_value = ls_status.
         result-status_code   = ls_status-code.
         result-status_reason = ls_status-reason.
 
-        CALL METHOD lo_response->(`GET_TEXT`)
+        CALL METHOD lo_response->(`IF_WEB_HTTP_RESPONSE~GET_TEXT`)
           RECEIVING
             r_value = result-body.
 
-        CALL METHOD lo_client->(`CLOSE`).
+        CALL METHOD lo_client->(`IF_WEB_HTTP_CLIENT~CLOSE`).
 
       CATCH cx_root INTO DATA(x).
         IF lo_client IS BOUND.
           TRY.
-              CALL METHOD lo_client->(`CLOSE`).
+              CALL METHOD lo_client->(`IF_WEB_HTTP_CLIENT~CLOSE`).
             CATCH cx_root ##NO_HANDLER.
           ENDTRY.
         ENDIF.
@@ -658,14 +663,14 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     TRY.
         IF timeout > 0.
           DATA(lv_timeout) = timeout.
-          CALL METHOD io_client->(`EXECUTE`)
+          CALL METHOD io_client->(`IF_WEB_HTTP_CLIENT~EXECUTE`)
             EXPORTING
               i_method   = method
               i_timeout  = lv_timeout
             RECEIVING
               r_response = result.
         ELSE.
-          CALL METHOD io_client->(`EXECUTE`)
+          CALL METHOD io_client->(`IF_WEB_HTTP_CLIENT~EXECUTE`)
             EXPORTING
               i_method   = method
             RECEIVING

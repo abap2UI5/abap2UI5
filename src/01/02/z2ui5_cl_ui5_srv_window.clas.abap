@@ -88,16 +88,16 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD count_of.
 
-    DATA(lv_val) = condense( val ).
-    IF lv_val IS NOT INITIAL AND lv_val CO `0123456789` AND strlen( lv_val ) <= 9.
-      result = lv_val.
+    IF z2ui5_cl_ui5_util_context=>check_int_digits( val ) = abap_true.
+      result = condense( val ).
     ENDIF.
 
   ENDMETHOD.
 
   METHOD parse_sort.
 
-    DATA lv_json TYPE string.
+    DATA lv_json  TYPE string.
+    DATA lv_index TYPE i.
     lv_json = condense( val ).
     IF lv_json IS INITIAL.
       RETURN.
@@ -105,15 +105,19 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     TRY.
         DATA(li_json) = z2ui5_cl_ajson=>parse( lv_json ).
-        LOOP AT li_json->members( `/` ) INTO DATA(lv_member).
-          DATA(lv_sorter) = |/{ lv_member }|.
+        " by index, not over members( ): ajson sorts the member names as
+        " text, so an eleventh sorter (`10`) came before the third (`2`)
+        DATA(lv_count) = lines( li_json->members( `/` ) ).
+        WHILE lv_index < lv_count.
+          lv_index = lv_index + 1.
+          DATA(lv_sorter) = |/{ lv_index }|.
           DATA(lv_name) = to_upper( li_json->get_string( |{ lv_sorter }/PATH| ) ).
           IF lv_name IS INITIAL.
             CONTINUE.
           ENDIF.
           INSERT VALUE #( path       = lv_name
                           descending = li_json->get_boolean( |{ lv_sorter }/DESCENDING| ) ) INTO TABLE result.
-        ENDLOOP.
+        ENDWHILE.
       CATCH cx_root.
         " a sort that cannot be read is no sort - the app's own order
         CLEAR result.

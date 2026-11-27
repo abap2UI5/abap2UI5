@@ -93,6 +93,9 @@ CLASS z2ui5_cl_ui5_llm_openai DEFINITION
 
   PRIVATE SECTION.
 
+    " the endpoint as the texts of an exception name it
+    CONSTANTS cv_api_name TYPE string VALUE `the Chat Completions endpoint`.
+
     DATA mv_model TYPE string.
     DATA mv_api_key TYPE string.
     DATA mv_url TYPE string.
@@ -172,25 +175,10 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
     IF lv_model IS INITIAL.
       lv_model = mv_model.
     ENDIF.
-    IF lv_model IS INITIAL.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text = `no model is configured - a Chat Completions call needs a model id`.
-    ENDIF.
-    IF lines( t_message ) = 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text = `a chat call needs at least one message`.
-    ENDIF.
-    IF s_options-temperature IS NOT INITIAL
-        AND ( s_options-temperature CN `0123456789.` OR count( val = s_options-temperature
-                                                               sub = `.` ) > 1
-              " JSON wants a digit on both sides of the point - `.7` and `1.` are no number there
-              OR s_options-temperature CP `.*` OR s_options-temperature CP `*.` ).
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text = |the temperature { s_options-temperature } is no number|.
-    ENDIF.
+    z2ui5_cl_ui5_llm_http=>check_call( iv_model       = lv_model
+                                       it_message     = t_message
+                                       iv_temperature = s_options-temperature
+                                       iv_api         = cv_api_name ).
     lv_system = system.
 
     TRY.
@@ -216,11 +204,6 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
                         content = lv_system ).
         ENDIF.
         LOOP AT t_message INTO DATA(ls_message).
-          IF ls_message-content IS INITIAL.
-            RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-              EXPORTING
-                text = |message { sy-tabix } has no content|.
-          ENDIF.
           message_push( io_body = lo_body
                         role    = ls_message-role
                         content = ls_message-content ).
@@ -273,40 +256,10 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
 
   METHOD parse_response.
 
-    DATA lo_json TYPE REF TO z2ui5_if_ajson.
-    DATA lv_message TYPE string.
-
-    TRY.
-        lo_json = z2ui5_cl_ajson=>parse( is_response-body ).
-      CATCH cx_root.
-        CLEAR lo_json.
-    ENDTRY.
-
-    IF is_response-status <> 200.
-      IF lo_json IS BOUND.
-        " OpenAI: {"error":{"message":...}} - Ollama: {"error":"..."}
-        lv_message = lo_json->get_string( `/error/message` ).
-        IF lv_message IS INITIAL.
-          lv_message = lo_json->get_string( `/error` ).
-        ENDIF.
-      ENDIF.
-      IF lv_message IS INITIAL.
-        lv_message = z2ui5_cl_ui5_util_context=>c_truncate( val = is_response-body
-                                                           max  = 200 ).
-      ENDIF.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text        = |the Chat Completions endpoint answered HTTP { is_response-status } { is_response-reason } - { lv_message }|
-          http_status = is_response-status
-          retryable   = xsdbool( is_response-status = 408 OR is_response-status = 429 OR is_response-status >= 500 ).
-    ENDIF.
-
-    IF lo_json IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
-        EXPORTING
-          text        = `the Chat Completions endpoint answered with no JSON`
-          http_status = is_response-status.
-    ENDIF.
+    " OpenAI: {"error":{"message":...}} - Ollama: {"error":"..."}, both read
+    " by parse_answer
+    DATA(lo_json) = z2ui5_cl_ui5_llm_http=>parse_answer( is_response = is_response
+                                                         iv_api      = cv_api_name ).
 
     result-model                 = lo_json->get_string( `/model` ).
     result-stop_reason           = map_stop_reason( lo_json->get_string( `/choices/1/finish_reason` ) ).

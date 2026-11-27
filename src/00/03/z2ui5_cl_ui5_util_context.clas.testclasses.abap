@@ -1490,6 +1490,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_item_component   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_id_without_text  FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_mesg_shape       FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1553,6 +1554,37 @@ CLASS ltcl_msg IMPLEMENTATION.
                                         act = lt_msg[ 2 ]-text ).
     cl_abap_unit_assert=>assert_equals( exp = `W`
                                         act = lt_msg[ 2 ]-type ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_mesg_shape.
+
+    " MESG names the message class ARBGB and the number TXTNR
+    TYPES:
+      BEGIN OF ty_s_mesg,
+        msgty TYPE c LENGTH 1,
+        arbgb TYPE c LENGTH 20,
+        txtnr TYPE c LENGTH 3,
+        text  TYPE c LENGTH 73,
+      END OF ty_s_mesg.
+
+    DATA(ls_mesg) = VALUE ty_s_mesg( msgty = `W`
+                                     arbgb = `VL`
+                                     txtnr = `042`
+                                     text  = `a warning` ).
+
+    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_t( ls_mesg ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_msg ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `W`
+                                        act = lt_msg[ 1 ]-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `VL`
+                                        act = lt_msg[ 1 ]-id ).
+    cl_abap_unit_assert=>assert_equals( exp = `042`
+                                        act = lt_msg[ 1 ]-no ).
+    cl_abap_unit_assert=>assert_equals( exp = `a warning`
+                                        act = lt_msg[ 1 ]-text ).
 
   ENDMETHOD.
 
@@ -2571,6 +2603,7 @@ CLASS ltcl_edge DEFINITION FINAL
     METHODS test_trim_many_layers       FOR TESTING RAISING cx_static_check.
     METHODS test_utf8_roundtrip         FOR TESTING RAISING cx_static_check.
     METHODS test_utf8_empty             FOR TESTING RAISING cx_static_check.
+    METHODS test_utf8_invalid           FOR TESTING RAISING cx_static_check.
     METHODS test_base64_roundtrip       FOR TESTING RAISING cx_static_check.
     METHODS test_escape_html_entity     FOR TESTING RAISING cx_static_check.
     METHODS test_struc_pairs_signs      FOR TESTING RAISING cx_static_check.
@@ -2724,6 +2757,20 @@ CLASS ltcl_edge IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( `` ) ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_utf8_invalid.
+
+    " bytes that are no UTF-8 - a lone continuation byte - are reported as
+    " such, not as a missing codepage API
+    TRY.
+        z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `41FF42` ) ).
+        cl_abap_unit_assert=>fail( `invalid UTF-8 was accepted` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( act = lx->get_text( )
+                                             exp = `INVALID_UTF8*` ).
+    ENDTRY.
 
   ENDMETHOD.
 

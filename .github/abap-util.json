@@ -15,7 +15,12 @@
       "settled": {
         "class_constructor": "the master keeps cv_char_util_charsize, which has no caller in this trimmed copy",
         "uuid_get_c32": "the master keeps its gv_uuid_failed guard, dropped here in the 2026-10 full sync",
-        "c_escape_json": "the master escapes every control character below U+0020 itself; here z2ui5_cl_ui5_util_json_fl=>escape_controls does that once for a whole response, so the per-value escape stays at the five common characters"
+        "c_escape_json": "the master escapes every control character below U+0020 itself; here z2ui5_cl_ui5_util_json_fl=>escape_controls does that once for a whole response, so the per-value escape stays at the five common characters",
+        "boolean_check_by_data": "the cache lookup is written READ TABLE ... REFERENCE INTO here, the master keeps ASSIGN itab[ ... ] because its lint forbids READ TABLE - same behaviour",
+        "rtti_check_class_exists": "the cache lookup is written READ TABLE ... REFERENCE INTO here, the master keeps ASSIGN itab[ ... ] because its lint forbids READ TABLE - same behaviour",
+        "rtti_check_class_impl_intf": "the cache lookup is written READ TABLE ... REFERENCE INTO here, the master keeps ASSIGN itab[ ... ] because its lint forbids READ TABLE - same behaviour",
+        "rtti_get_t_attri_by_any": "the cache lookup is written READ TABLE ... REFERENCE INTO here, the master keeps ASSIGN itab[ ... ] because its lint forbids READ TABLE - same behaviour",
+        "xml_srtti_descr": "names the S-RTTI mirror by this repository's prefix (z2ui5_cl_srt_typedescr), a rename rather than drift"
       }
     },
     {
