@@ -346,7 +346,7 @@ what check:skills exists to refuse.
 
   The case: `abap2UI5-addons/custom-controls`' NetworkStatus pings every five
   seconds and writes `status`, `latency` and `quality` with suppressed
-  invalidation. In S5S's footer (an `OverflowToolbar` with a clock and
+  invalidation. In a consumer app's footer (an `OverflowToolbar` with a clock and
   buttons) the overflow menu closed a few seconds after it was opened - at the
   next ping. Fixed in custom-controls `700301c` (2026-11-24): the control
   implements `sap.m.IOverflowToolbarContent`, `getOverflowToolbarConfig( )`

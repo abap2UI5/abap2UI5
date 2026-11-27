@@ -269,7 +269,7 @@ for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
 - **The second half (same day): a namespaced COLUMN of a bound table.** A
   table row carried the key `"/CWM/XCWMAT"`, and the row template's
   `{/CWM/XCWMAT}` is an ABSOLUTE path in UI5 - an empty cell, and the edit
-  went nowhere, without an error anywhere (S5S, /KRO/ EWM apps over
+  went nowhere, without an error anywhere (a consumer's apps over
   /SCWM/ tables). The model now writes a namespace as a level of its row,
   `"CWM":{"XCWMAT":...}` - on the fast path (`json_row_ns`) and on the
   general road, where ajson cannot address a node named `/CWM/XCWMAT`
@@ -282,7 +282,7 @@ for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
   `cl_abap_structdescr=>create( )`: no typed declaration can carry such a
   name.
 
-### Two a clean-up pass broke in a downstream app (S5S, 2026-11-25)
+### Two a clean-up pass broke in a downstream app (2026-11-25)
 
 - **A guard before FOR ALL ENTRIES changes what the statement returns.**
   `SELECT … FOR ALL ENTRIES IN itab` over an EMPTY `itab` ignores the whole

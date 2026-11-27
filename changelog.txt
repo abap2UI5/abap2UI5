@@ -11,9 +11,11 @@ Legend
 
 unreleased
 ----------
+* Range tokens: a CP / NP range row whose LOW already is a pattern (abc*, *abc) renders as that pattern - the token template wrapped it in asterisks once more (*abc**). From abap-util, where a pattern token is now stored as typed
 ! ABAP Cloud: the branch cloud carries the whole repository, as 702 does, and is rebuilt on every push to main - always one commit ahead of main, never behind. An installation pulls src/ as before
 * 702: the test include of z2ui5_cl_ui5_srv_model activates on 7.02 - the downport declared 14 field symbols LIKE LINE OF a generically typed table ("<TAB> is a generic type"), which took the whole class pool down; the rows are assigned first now, and check-generic-like also catches FIELD-SYMBOLS ... LIKE, not only DATA ... LIKE
 + build-rename also builds the renamed 7.02 installation: rename_<name>_702 is the renamed tree run through the same downport as the branch 702 (npm run auto_downport, without the BSP) and linted with the 702 config before it is pushed; the input with_702 (default on) switches it off. There is still no renamed variant of the branch cloud
++ Agent guide (docs/agents/building-apps.md, llms.txt, z2ui5_cl_ui5_llm_guide): a table of the names that changed for readers who know the old API, the addons and where their catalogue is, and markers around the passages app-template's AGENTS.md carries as essentials - the guide itself moved there into one file of its own
 
 2026-11-25 v1.151.0
 -------------------

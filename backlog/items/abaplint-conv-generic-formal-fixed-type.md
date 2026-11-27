@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "The fixed type STRING is used for the generic type CLIKE" on /KRO/UI502_CL_APP_001->check_anfme, add_msg( v1 = CONV #( lv_quan ) ) with a packed quantity. Fixed with CONV string( )'
+  - 'one activation of a consumer system on S/4HANA (2026-11-24) warned "The fixed type STRING is used for the generic type CLIKE" on add_msg( v1 = CONV #( lv_quan ) ) with a packed quantity. Fixed with CONV string( )'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: add_msg IMPORTING v1 TYPE clike OPTIONAL, DATA lv_menge TYPE p LENGTH 7 DECIMALS 3, add_msg( v1 = CONV #( lv_menge ) ) - no finding (only omit_parameter_name)'
 ---
 
@@ -41,4 +41,4 @@ rule).
 
 **Where.** `inline_generic_source`. **Effort:** S.
 
-**Source.** S5S (a consumer system), one activation on S/4HANA.
+**Source.** A consumer system, one activation on S/4HANA.

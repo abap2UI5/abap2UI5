@@ -1557,9 +1557,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       IF lv_value IS INITIAL.
         lv_value = lt_mapping[ n = `EQ` ]-v. "#EC CI_SORTSEQ
       ENDIF.
-      lv_value = filter_token_fill( template = lv_value
-                                    low      = lr_row->low
-                                    high     = lr_row->high ).
+      IF ( lv_option = `CP` OR lv_option = `NP` ) AND lr_row->low CA `*`.
+        " LOW is a pattern already - wrapping it in the template's asterisks
+        " would turn `abc*` into `*abc**`
+        lv_value = COND #( WHEN lv_option = `CP` THEN lr_row->low
+                           ELSE |!({ lr_row->low })| ).
+      ELSE.
+        lv_value = filter_token_fill( template = lv_value
+                                      low      = lr_row->low
+                                      high     = lr_row->high ).
+      ENDIF.
 
       " an excluding row must not render like its including twin - negate the
       " token so the MultiInput shows the filter's real meaning

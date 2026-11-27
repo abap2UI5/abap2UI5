@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 80891c9: abaplint.jsonc excluded 27 files from unsecure_fae - every FOR ALL ENTRIES in them was reviewed and is guarded by IF <itab> IS NOT INITIAL, an early RETURN or a driver table provably filled, except one deliberately unguarded site (/KRO/UI502_CL_APP_014 FACTORY)'
+  - 'a downstream app repository: abaplint.jsonc excluded 27 files from unsecure_fae - every FOR ALL ENTRIES in them was reviewed and is guarded by IF <itab> IS NOT INITIAL, an early RETURN or a driver table provably filled, except one deliberately unguarded site'
   - 'probed 2026-11-24 against abaplint 2.120.116: IF it IS NOT INITIAL. SELECT … FOR ALL ENTRIES IN @it … ENDIF. was reported as "Unsecure FAE" - the guard detection was a todo in rules/unsecure_fae.ts (still so in 2.120.118)'
   - 'filed as abaplint/abaplint#2384 (open since 2022-02, the same shape); fixed by abaplint/abaplint#4706, merged 2026-11-24 and closing #2384: an IF/ELSEIF on itab IS NOT INITIAL / lines( itab ) > 0, an IF itab IS INITIAL. RETURN. or a CHECK itab IS NOT INITIAL counts as the check - not yet in a release (2.120.118 is the latest on npm)'
   - 'a downstream app repository, review of 2026-11 - a mix indicator computed with a guarded FOR ALL ENTRIES gave "none" for an empty driver table where "all" was meant; it was restored with a SELECT COUNT(*) without FOR ALL ENTRIES for the empty case'
@@ -60,4 +60,4 @@ cleared before the guard; a guard with an `ELSE` that writes the target; an
 
 **Where.** `unsecure_fae`. **Effort:** S.
 
-**Source.** S5S (a consumer system); a downstream app repository.
+**Source.** A downstream app repository.

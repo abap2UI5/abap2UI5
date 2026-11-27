@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "The table <name> has a replacement object and hence should no longer be used" for MARD, MCHB, MBEW, EBEW, MARC, MKPF, MSEG, MSKA, MSLB, MSKU, MKOL and /SAPAPO/MATMAP - more than 20 sites'
+  - 'one activation of a consumer system on S/4HANA (2026-11-24) warned "The table <name> has a replacement object and hence should no longer be used" for MARD, MCHB, MBEW, EBEW, MARC, MKPF, MSEG, MSKA, MSLB, MSKU, MKOL and /SAPAPO/MATMAP - more than 20 sites'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: SELECT * FROM mard WHERE werks = ''1000'' INTO TABLE @DATA(lt_mard) with MARD as a TABL in the project - only check_subrc and select_add_order_by'
 ---
 
@@ -41,7 +41,7 @@ same name.
 **Where.** `forbidden_void_type` (a `tables` option) or a sibling rule.
 **Effort:** S.
 
-**Source.** S5S (a consumer system), one activation on S/4HANA.
+**Source.** A consumer system, one activation on S/4HANA.
 
 **Overlap.** abaplint-release-api-availability asks for a per-release list of
 SAP APIs that do not EXIST on a release; this is the inverse - objects that

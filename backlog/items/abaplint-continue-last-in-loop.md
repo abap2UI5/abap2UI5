@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'ATC export of an S/4HANA EWM system (2026-11-24), abapOpenChecks 062: 6 findings "CONTINUE as last statement in loop" - /KRO/UI501_CL_APP_001, /KRO/UI502_CL_SHIPMENT_HANDLER, /KRO/UI505_CL_INPUT_HANDLER, /KRO/UI509_CL_APP_002 (S5S), Z2UI5_CL_TM_001 and Z2UI5_CL_UI5_CLIENT'
+  - 'ATC export of a consumer system on S/4HANA (2026-11-24), abapOpenChecks 062: 6 findings "CONTINUE as last statement in loop" - four in consumer classes, Z2UI5_CL_TM_001 and Z2UI5_CL_UI5_CLIENT'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated project with a control finding firing: LOOP AT it INTO DATA(lv_line). ... rv = rv && lv_line. CONTINUE. ENDLOOP. - no finding'
 ---
 
@@ -41,7 +41,7 @@ loop (a syntax error, #3660).
 
 **Where.** a new rule, or an option of the rule for #439. **Effort:** S.
 
-**Source.** ATC on a consumer system (S5S and the abap2UI5 addons installed
+**Source.** ATC on a consumer system (its own classes and the abap2UI5 addons installed
 there).
 
 Related upstream: abaplint/abaplint#439 (open - RETURN as last statement), #3660 (open - CONTINUE outside of a loop, a syntax check).

@@ -1140,14 +1140,14 @@ and points here, so a new trap is added here and nowhere else.
   differently per release (#1937, comments at the sites), and a rewrite to
   `mo_app->(name)` needs a 7.02 and a cloud system to be tested on first.
 
-- **One activation of a consumer system (S5S on S/4HANA EWM, 2026-11-24)**
+- **One activation of a consumer system (S/4HANA, 2026-11-24)**
   brought a batch of SLIN warnings abaplint 2.120.116 does not report -
   measured in an isolated, syntax-clean probe with every rule on, a control
-  finding firing (fixes in `oblomov-dev/s5s_dev` `3173ec5`). Each is a stock
+  finding firing. Each is a stock
   item:
   - *"Empty documentation is not allowed"* - `"! @parameter client |` with no
     text, a lone `"!` in front of `CLASS` or ending a block (~20 times in
-    `/KRO/UI501_CL_APP_VIEW`). Fix: write the text or drop the line; an empty
+    one class). Fix: write the text or drop the line; an empty
     `"!` between two text lines is fine.
   - *"HTML tag <html:style> is not supported in ABAP Doc"* / *"... is not
     closed"* - `abapdoc_html_tag` reports `<layoutData>` but not a namespaced
@@ -1933,7 +1933,7 @@ for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
 - **The second half (same day): a namespaced COLUMN of a bound table.** A
   table row carried the key `"/CWM/XCWMAT"`, and the row template's
   `{/CWM/XCWMAT}` is an ABSOLUTE path in UI5 - an empty cell, and the edit
-  went nowhere, without an error anywhere (S5S, /KRO/ EWM apps over
+  went nowhere, without an error anywhere (a consumer's apps over
   /SCWM/ tables). The model now writes a namespace as a level of its row,
   `"CWM":{"XCWMAT":...}` - on the fast path (`json_row_ns`) and on the
   general road, where ajson cannot address a node named `/CWM/XCWMAT`
@@ -1946,7 +1946,7 @@ for a path it cannot place (`z2ui5_cl_ui5_srv_model=>json_fast_set`,
   `cl_abap_structdescr=>create( )`: no typed declaration can carry such a
   name.
 
-### Two a clean-up pass broke in a downstream app (S5S, 2026-11-25)
+### Two a clean-up pass broke in a downstream app (2026-11-25)
 
 - **A guard before FOR ALL ENTRIES changes what the statement returns.**
   `SELECT … FOR ALL ENTRIES IN itab` over an EMPTY `itab` ignores the whole
@@ -2008,7 +2008,7 @@ numbered section above.
   the `.abap` files so the `.clas.xml` keeps its `object_naming` and
   `xml_consistency` coverage.
 - **A red abaplint finding on valid ABAP, measured on 2.120.116 (2026-11-24,
-  S5S against its own system).** `check_syntax` refuses a dynamic attribute
+  a downstream repository against its own system).** `check_syntax` refuses a dynamic attribute
   on `REF TO object` (`mo_app->('MV_FLAG') = abap_true.`, "Not an object
   reference") and a dereferenced generic `REF TO data` as a table operand
   (`INSERT LINES OF lt INTO TABLE mr_tab->*.`) - both fixed upstream by
