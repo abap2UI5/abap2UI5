@@ -1490,6 +1490,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_item_component   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_id_without_text  FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_mesg_shape       FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1553,6 +1554,37 @@ CLASS ltcl_msg IMPLEMENTATION.
                                         act = lt_msg[ 2 ]-text ).
     cl_abap_unit_assert=>assert_equals( exp = `W`
                                         act = lt_msg[ 2 ]-type ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_mesg_shape.
+
+    " MESG names the message class ARBGB and the number TXTNR
+    TYPES:
+      BEGIN OF ty_s_mesg,
+        msgty TYPE c LENGTH 1,
+        arbgb TYPE c LENGTH 20,
+        txtnr TYPE c LENGTH 3,
+        text  TYPE c LENGTH 73,
+      END OF ty_s_mesg.
+
+    DATA(ls_mesg) = VALUE ty_s_mesg( msgty = `W`
+                                     arbgb = `VL`
+                                     txtnr = `042`
+                                     text  = `a warning` ).
+
+    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_t( ls_mesg ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_msg ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `W`
+                                        act = lt_msg[ 1 ]-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `VL`
+                                        act = lt_msg[ 1 ]-id ).
+    cl_abap_unit_assert=>assert_equals( exp = `042`
+                                        act = lt_msg[ 1 ]-no ).
+    cl_abap_unit_assert=>assert_equals( exp = `a warning`
+                                        act = lt_msg[ 1 ]-text ).
 
   ENDMETHOD.
 

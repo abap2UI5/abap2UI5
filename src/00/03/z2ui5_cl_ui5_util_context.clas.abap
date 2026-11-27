@@ -4584,9 +4584,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDIF.
 
     CASE name.
-      WHEN `ID` OR `MSGID`.
+      WHEN `ID` OR `MSGID` OR `ARBGB`.
         result-id = val.
-      WHEN `NO` OR `NUMBER` OR `MSGNO`.
+      WHEN `NO` OR `NUMBER` OR `MSGNO` OR `TXTNR`.
         result-no = val.
       WHEN `MESSAGE` OR `TEXT`.
         result-text = val.
