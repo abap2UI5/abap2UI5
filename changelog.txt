@@ -70,6 +70,7 @@ unreleased
 * Custom controls: a NativeBridgeScan result, an ExcelBridge selection change and a CameraPicture photo that arrive while another roundtrip is in flight are sent once it has landed - the event was dropped, and ExcelBridge then never reported that address again; ExcelBridge also writes the new address to selectionAddress
 * Custom controls: UploadSetExt switches its upload set's instantUpload off when the set has no uploadUrl and no uploader - every added file was also POSTed to a URL that does not exist and the item ended as failed, while the file travels in the roundtrip anyway
 * Developer tools: the ABAP Source tab, Open in ADT and the class source in Report a Bug go through the path prefix of a proxy in front of the node (Work Zone /dynamic_dest/..., an approuter route), as the Websocket control does - they went to the bare origin and came back blank
+! $controller.slotValue( ) calls only a getter (a method named get..., is... or has...) - it called any method without arguments, destroy, close or a fireXxx included, outside the whitelist of control_by_id; anything else is logged and answered with an empty value
 
 2026-11-25 v1.151.0
 -------------------

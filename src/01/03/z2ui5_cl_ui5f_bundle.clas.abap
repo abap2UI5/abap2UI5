@@ -104,49 +104,50 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/controller/View1.controller.js": function(){sap.ui.define(["sap/ui/core/mvc/Controller","z2ui5/core/Server","z2ui5/core/Lib","z2ui5/core/FrontendAction","z2ui5/core/actions/Slots","z2ui5/` &&
              `core/ViewSlots","z2ui5/core/Router","z2ui5/core/Env"],(Controller,Server,Lib,FrontendAction,Slots,ViewSlots,Router,Env)=>{"use strict";const showBusy=(ctx,delay)=>Lib.showBusy(ctx,delay);const hideBus` &&
-             `y=ctx=>Lib.hideBusy(ctx);const RENDER_EVENT_CHAIN_MAX=25;const View1Controller=Controller.extend("z2ui5.controller.View1",{onAfterRendering(){if(this.ctx.state.oResponse)this._processAfterRendering()}` &&
-             `,async _processAfterRendering(reqSeq){let superseded=false;let replaced=false;let failed=false;const oResponse=this.ctx.state.oResponse;if(!oResponse||oResponse._processed)return;oResponse._processed=` &&
-             `true;oResponse._processing=true;const seq=reqSeq??this.ctx.server.requestSeq;try{const state=this.ctx.state;const previousApp=state.renderedApp;if(oResponse.APP&&previousApp!==oResponse.APP){Lib.dropQ` &&
-             `ueuedEvents(state);state.timerRepeat=null;state.renderedApp=oResponse.APP}if(this._replacesMainOwner(oResponse,previousApp)){state.shortcuts=Object.create(null);state.treeStates=Object.create(null);st` &&
-             `ate.tableStates=Object.create(null);state.websocketStates=Object.create(null);state.viewSizeLimits=Object.create(null);state.hashEvent=null;state.appHash="";state.pendingAppHash=null}if(oResponse.VIEW` &&
-             `S){await this._applyViews(oResponse,seq)}const alive=Lib.isControllerAlive(this);if(!alive||seq!==this.ctx.server.requestSeq||oResponse!==this.ctx.state.oResponse){superseded=true;replaced=!alive||oRe` &&
-             `sponse!==this.ctx.state.oResponse;return}if(oResponse.MODELPRESENT)Slots.action(this.ctx,"updateModel");Router.sync(this.ctx,{...oResponse.NAV||{},id:oResponse.ID});Lib.runCallbacks(this.ctx.state.onA` &&
-             `fterRendering);Lib.runCallbacks(this.ctx.state.onRoundtripEnd)}catch(e){Lib.logError("_processAfterRendering: unexpected error",e);if(!Lib.isControllerAlive(this)||seq!==this.ctx.server.requestSeq){su` &&
-             `perseded=true;replaced=!Lib.isControllerAlive(this)||oResponse!==this.ctx.state.oResponse}else{failed=true;Server.showRenderError(this.ctx,e,"Unexpected Error Occurred - App Terminated")}}finally{oRes` &&
-             `ponse._processing=false;if(!superseded){hideBusy(this.ctx);this.ctx.state.isBusy=false}if(!replaced&&this.ctx.state.mainTransition){await this.ctx.state.mainTransition}if(!replaced&&!failed)await this` &&
-             `._runPendingActions(oResponse);if(superseded&&!replaced&&this.ctx.server.restoreSeq===this.ctx.server.requestSeq&&seq!==this.ctx.server.requestSeq){Lib.cancelPendingTimers(this.ctx)}if(!superseded&&!f` &&
-             `ailed){this._dispatchQueuedEvent();Router.dispatchPendingAppHash(this.ctx);if(this.ctx.state.timerRepeat){FrontendAction.resumeRepeatTimer(this.ctx)}}}},_replacesMainOwner(oResponse,previousApp){if(!o` &&
-             `Response?.APP)return false;const main=oResponse.VIEWS?.MAIN;if(!main||main.DESTROY)return false;const owner=ViewSlots.getViewApp(this.ctx,"MAIN")??previousApp;return owner!==oResponse.APP},async _appl` &&
-             `yViews(oResponse,seq){const views=oResponse?.VIEWS;if(!views)return;for(const slot of ViewSlots.slots){const entry=views[slot.key];if(!entry)continue;if(!Lib.isControllerAlive(this)||seq!==this.ctx.se` &&
-             `rver.requestSeq)return;await Slots.action(this.ctx,entry.DESTROY?"destroy":"display",slot.key,entry.XML,entry.OPT,seq)}},_dispatchQueuedEvent(){const state=this.ctx.state;while(!state.isBusy&&state.aR` &&
-             `enderEvents.length){const queued=state.aRenderEvents.shift();if(!Lib.isControllerAlive(queued.controller))continue;const key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getViewToken(this` &&
-             `.ctx,key)!==queued.token){continue}const chain=state.renderEventChain+1;if(chain>RENDER_EVENT_CHAIN_MAX){Lib.logError(``eB: ${RENDER_EVENT_CHAIN_MAX} events fired while a view was being built went out` &&
-             ` in a row - '${queued.args[0]?.[0]}' and the ones behind it are dropped. An app that answers a rendering event with a new view fires it again``);state.aRenderEvents=[];break}queued.controller.eB(...qu` &&
-             `eued.args);state.renderEventChain=chain;break}const tickQueued=state.oTickQueuedEvent;if(tickQueued&&!state.isBusy){state.oTickQueuedEvent=null;const key=ViewSlots.keyOfController(tickQueued.controlle` &&
-             `r);if(Lib.isControllerAlive(tickQueued.controller)&&ViewSlots.getView(this.ctx,key)){tickQueued.controller.eB(...tickQueued.args)}}const queued=state.oQueuedEvent;state.oQueuedEvent=null;if(queued&&Li` &&
-             `b.isControllerAlive(queued.controller)){const key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getView(this.ctx,key)===queued.view){queued.controller.eB(...queued.args)}}Slots.dispatchQue` &&
-             `uedWindows(this.ctx)},async _runPendingActions(oResponse){const actions=oResponse?._pendingActions;if(oResponse)oResponse._pendingActions=null;if(!actions)return;if(!Lib.isControllerAlive(this))return` &&
-             `;for(const item of actions){const result=FrontendAction.runCustom(item,this);if(typeof result?.then==="function"){try{await result}catch(e){Lib.logError(``FrontendAction: async action '${item?.[0]}' f` &&
-             `ailed``,e)}if(!Lib.isControllerAlive(this))return}}},destroyPopup(){ViewSlots.destroy(this.ctx,"POPUP")},destroyPopover(){ViewSlots.destroy(this.ctx,"POPOVER")},destroyNestView(){ViewSlots.destroy(thi` &&
-             `s.ctx,"NEST")},destroyNestView2(){ViewSlots.destroy(this.ctx,"NEST2")},destroyView(){ViewSlots.destroy(this.ctx,"MAIN")},eF(...args){return FrontendAction.execute(this,args)},eBP(oEvent,bVeto,...args)` &&
-             `{if(bVeto&&typeof oEvent?.preventDefault==="function"){oEvent.preventDefault()}this.eB(...args)},textPath(oControl,sSeparator){return Lib.getTextPath(oControl,sSeparator)},slotById(sSlot,sId){const co`.
+             `y=ctx=>Lib.hideBusy(ctx);const RENDER_EVENT_CHAIN_MAX=25;const GETTER_NAME=/^(get|is|has)[A-Z]/;const View1Controller=Controller.extend("z2ui5.controller.View1",{onAfterRendering(){if(this.ctx.state.o` &&
+             `Response)this._processAfterRendering()},async _processAfterRendering(reqSeq){let superseded=false;let replaced=false;let failed=false;const oResponse=this.ctx.state.oResponse;if(!oResponse||oResponse.` &&
+             `_processed)return;oResponse._processed=true;oResponse._processing=true;const seq=reqSeq??this.ctx.server.requestSeq;try{const state=this.ctx.state;const previousApp=state.renderedApp;if(oResponse.APP&` &&
+             `&previousApp!==oResponse.APP){Lib.dropQueuedEvents(state);state.timerRepeat=null;state.renderedApp=oResponse.APP}if(this._replacesMainOwner(oResponse,previousApp)){state.shortcuts=Object.create(null);` &&
+             `state.treeStates=Object.create(null);state.tableStates=Object.create(null);state.websocketStates=Object.create(null);state.viewSizeLimits=Object.create(null);state.hashEvent=null;state.appHash="";stat` &&
+             `e.pendingAppHash=null}if(oResponse.VIEWS){await this._applyViews(oResponse,seq)}const alive=Lib.isControllerAlive(this);if(!alive||seq!==this.ctx.server.requestSeq||oResponse!==this.ctx.state.oRespons` &&
+             `e){superseded=true;replaced=!alive||oResponse!==this.ctx.state.oResponse;return}if(oResponse.MODELPRESENT)Slots.action(this.ctx,"updateModel");Router.sync(this.ctx,{...oResponse.NAV||{},id:oResponse.I` &&
+             `D});Lib.runCallbacks(this.ctx.state.onAfterRendering);Lib.runCallbacks(this.ctx.state.onRoundtripEnd)}catch(e){Lib.logError("_processAfterRendering: unexpected error",e);if(!Lib.isControllerAlive(this` &&
+             `)||seq!==this.ctx.server.requestSeq){superseded=true;replaced=!Lib.isControllerAlive(this)||oResponse!==this.ctx.state.oResponse}else{failed=true;Server.showRenderError(this.ctx,e,"Unexpected Error Oc` &&
+             `curred - App Terminated")}}finally{oResponse._processing=false;if(!superseded){hideBusy(this.ctx);this.ctx.state.isBusy=false}if(!replaced&&this.ctx.state.mainTransition){await this.ctx.state.mainTran` &&
+             `sition}if(!replaced&&!failed)await this._runPendingActions(oResponse);if(superseded&&!replaced&&this.ctx.server.restoreSeq===this.ctx.server.requestSeq&&seq!==this.ctx.server.requestSeq){Lib.cancelPen` &&
+             `dingTimers(this.ctx)}if(!superseded&&!failed){this._dispatchQueuedEvent();Router.dispatchPendingAppHash(this.ctx);if(this.ctx.state.timerRepeat){FrontendAction.resumeRepeatTimer(this.ctx)}}}},_replace` &&
+             `sMainOwner(oResponse,previousApp){if(!oResponse?.APP)return false;const main=oResponse.VIEWS?.MAIN;if(!main||main.DESTROY)return false;const owner=ViewSlots.getViewApp(this.ctx,"MAIN")??previousApp;re` &&
+             `turn owner!==oResponse.APP},async _applyViews(oResponse,seq){const views=oResponse?.VIEWS;if(!views)return;for(const slot of ViewSlots.slots){const entry=views[slot.key];if(!entry)continue;if(!Lib.isC` &&
+             `ontrollerAlive(this)||seq!==this.ctx.server.requestSeq)return;await Slots.action(this.ctx,entry.DESTROY?"destroy":"display",slot.key,entry.XML,entry.OPT,seq)}},_dispatchQueuedEvent(){const state=this.` &&
+             `ctx.state;while(!state.isBusy&&state.aRenderEvents.length){const queued=state.aRenderEvents.shift();if(!Lib.isControllerAlive(queued.controller))continue;const key=ViewSlots.keyOfController(queued.con` &&
+             `troller);if(ViewSlots.getViewToken(this.ctx,key)!==queued.token){continue}const chain=state.renderEventChain+1;if(chain>RENDER_EVENT_CHAIN_MAX){Lib.logError(``eB: ${RENDER_EVENT_CHAIN_MAX} events fire` &&
+             `d while a view was being built went out in a row - '${queued.args[0]?.[0]}' and the ones behind it are dropped. An app that answers a rendering event with a new view fires it again``);state.aRenderEve` &&
+             `nts=[];break}queued.controller.eB(...queued.args);state.renderEventChain=chain;break}const tickQueued=state.oTickQueuedEvent;if(tickQueued&&!state.isBusy){state.oTickQueuedEvent=null;const key=ViewSlo` &&
+             `ts.keyOfController(tickQueued.controller);if(Lib.isControllerAlive(tickQueued.controller)&&ViewSlots.getView(this.ctx,key)){tickQueued.controller.eB(...tickQueued.args)}}const queued=state.oQueuedEven` &&
+             `t;state.oQueuedEvent=null;if(queued&&Lib.isControllerAlive(queued.controller)){const key=ViewSlots.keyOfController(queued.controller);if(ViewSlots.getView(this.ctx,key)===queued.view){queued.controlle` &&
+             `r.eB(...queued.args)}}Slots.dispatchQueuedWindows(this.ctx)},async _runPendingActions(oResponse){const actions=oResponse?._pendingActions;if(oResponse)oResponse._pendingActions=null;if(!actions)return` &&
+             `;if(!Lib.isControllerAlive(this))return;for(const item of actions){const result=FrontendAction.runCustom(item,this);if(typeof result?.then==="function"){try{await result}catch(e){Lib.logError(``Fronte` &&
+             `ndAction: async action '${item?.[0]}' failed``,e)}if(!Lib.isControllerAlive(this))return}}},destroyPopup(){ViewSlots.destroy(this.ctx,"POPUP")},destroyPopover(){ViewSlots.destroy(this.ctx,"POPOVER")},` &&
+             `destroyNestView(){ViewSlots.destroy(this.ctx,"NEST")},destroyNestView2(){ViewSlots.destroy(this.ctx,"NEST2")},destroyView(){ViewSlots.destroy(this.ctx,"MAIN")},eF(...args){return FrontendAction.execut` &&
+             `e(this,args)},eBP(oEvent,bVeto,...args){if(bVeto&&typeof oEvent?.preventDefault==="function"){oEvent.preventDefault()}this.eB(...args)},textPath(oControl,sSeparator){return Lib.getTextPath(oControl,sS`.
     result = result &&
-             `ntrol=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotById: no control '${sId}' in slot '${sSlot||"(any)"}'``);return null}return control},` &&
-             `slotValue(sSlot,sId,sMethod){try{const control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotValue: no control '${sId}' in slot '${sSlot|` &&
-             `|"(any)"}'``);return""}if(typeof control[sMethod]!=="function"){Lib.logError(``slotValue: '${sMethod}' is not a method of control '${sId}'``);return""}const value=control[sMethod]();return value===und` &&
-             `efined||value===null?"":value}catch(e){Lib.logError(``slotValue: '${sMethod}' on '${sId}' failed``,e);return""}},eB(...args){if(!Array.isArray(args[0])){let got;try{got=JSON.stringify(args[0])}catch{g` &&
-             `ot=``an object that is no JSON (${Object.prototype.toString.call(args[0])})``}Lib.logError(``eB: the first argument must be the event array, got ${got}``);return}if(this.ctx.state.terminated)return;co` &&
-             `nst{useMainModel,queueLast,noBusy,timer}=Lib.eventOptions(args[0]);if(this.ctx.state.isBusy){if(queueLast){this.ctx.state.oQueuedEvent={controller:this,view:ViewSlots.getView(this.ctx,ViewSlots.keyOfC` &&
-             `ontroller(this)),args:Lib.normalizeEventArgs(args)}}else if(this._firedWhileBuilding()){this.ctx.state.aRenderEvents.push({controller:this,token:this.ctx.state.oResponse.TOKEN,args:Lib.normalizeEventA` &&
-             `rgs(args)});return}else if(this.ctx.state.tickInFlight&&!timer){if(!this.ctx.state.oTickQueuedEvent){this.ctx.state.oTickQueuedEvent={controller:this,args:Lib.normalizeEventArgs(args)}}}if(!noBusy)sho` &&
-             `wBusy(this.ctx,0);return}this.ctx.state.renderEventChain=0;Lib.cancelPendingTimers(this.ctx);this.ctx.state.isBusy=true;if(!noBusy)showBusy(this.ctx);this.ctx.state.tickInFlight=timer;const oBody={};t` &&
-             `his.ctx.state.oBody=oBody;const oModel=this._pickModelForRoundtrip(useMainModel);Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);const changedPaths=oModel?._z2ui5ChangedPaths;if(oModel&&changedPath` &&
-             `s?.size>0){const data=oModel.getData();if(data){oBody.MODEL=Lib.buildDeltaFromPaths(changedPaths,data)}oModel._z2ui5SentValues=new Map(Array.from(changedPaths,path=>[path,oModel.getProperty(path)]))}t` &&
-             `his.ctx.state.oSentModel=oModel;oBody.ID=this.ctx.state.oResponse?.ID;if(timer)oBody.TIMER=true;oBody.ARGUMENTS=Lib.normalizeEventArgs(args);Server.roundtrip(this.ctx,oBody);Lib.runCallbacks(this.ctx.` &&
-             `state.onAfterRoundtrip)},_firedWhileBuilding(){const oResponse=this.ctx.state.oResponse;if(!oResponse?._processing)return false;const key=ViewSlots.keyOfController(this);if(!ViewSlots.getView(this.ctx` &&
-             `,key))return true;return ViewSlots.getViewToken(this.ctx,key)===oResponse.TOKEN},_pickModelForRoundtrip(useMainModel){const slotKey=useMainModel?"MAIN":ViewSlots.keyOfController(this);if(!slotKey)retu` &&
-             `rn undefined;const oView=ViewSlots.getView(this.ctx,slotKey);if(!oView)return undefined;if(Lib.isRootModelSlot(slotKey)){return Slots.resolveTrackedModel(oView)}return oView.getModel()}});return Env.o` &&
-             `wnClass(View1Controller)});` && |\n| &&
+             `eparator)},slotById(sSlot,sId){const control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotById: no control '${sId}' in slot '${sSlot||"(` &&
+             `any)"}'``);return null}return control},slotValue(sSlot,sId,sMethod){try{const control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotValue` &&
+             `: no control '${sId}' in slot '${sSlot||"(any)"}'``);return""}if(!GETTER_NAME.test(sMethod)){Lib.logError(``slotValue: '${sMethod}' is no getter (get..., is..., has...) - not called on control '${sId}` &&
+             `'``);return""}if(typeof control[sMethod]!=="function"){Lib.logError(``slotValue: '${sMethod}' is not a method of control '${sId}'``);return""}const value=control[sMethod]();return value===undefined||v` &&
+             `alue===null?"":value}catch(e){Lib.logError(``slotValue: '${sMethod}' on '${sId}' failed``,e);return""}},eB(...args){if(!Array.isArray(args[0])){let got;try{got=JSON.stringify(args[0])}catch{got=``an o` &&
+             `bject that is no JSON (${Object.prototype.toString.call(args[0])})``}Lib.logError(``eB: the first argument must be the event array, got ${got}``);return}if(this.ctx.state.terminated)return;const{useMa` &&
+             `inModel,queueLast,noBusy,timer}=Lib.eventOptions(args[0]);if(this.ctx.state.isBusy){if(queueLast){this.ctx.state.oQueuedEvent={controller:this,view:ViewSlots.getView(this.ctx,ViewSlots.keyOfController` &&
+             `(this)),args:Lib.normalizeEventArgs(args)}}else if(this._firedWhileBuilding()){this.ctx.state.aRenderEvents.push({controller:this,token:this.ctx.state.oResponse.TOKEN,args:Lib.normalizeEventArgs(args)` &&
+             `});return}else if(this.ctx.state.tickInFlight&&!timer){if(!this.ctx.state.oTickQueuedEvent){this.ctx.state.oTickQueuedEvent={controller:this,args:Lib.normalizeEventArgs(args)}}}if(!noBusy)showBusy(thi` &&
+             `s.ctx,0);return}this.ctx.state.renderEventChain=0;Lib.cancelPendingTimers(this.ctx);this.ctx.state.isBusy=true;if(!noBusy)showBusy(this.ctx);this.ctx.state.tickInFlight=timer;const oBody={};this.ctx.s` &&
+             `tate.oBody=oBody;const oModel=this._pickModelForRoundtrip(useMainModel);Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);const changedPaths=oModel?._z2ui5ChangedPaths;if(oModel&&changedPaths?.size>0` &&
+             `){const data=oModel.getData();if(data){oBody.MODEL=Lib.buildDeltaFromPaths(changedPaths,data)}oModel._z2ui5SentValues=new Map(Array.from(changedPaths,path=>[path,oModel.getProperty(path)]))}this.ctx.s` &&
+             `tate.oSentModel=oModel;oBody.ID=this.ctx.state.oResponse?.ID;if(timer)oBody.TIMER=true;oBody.ARGUMENTS=Lib.normalizeEventArgs(args);Server.roundtrip(this.ctx,oBody);Lib.runCallbacks(this.ctx.state.onA` &&
+             `fterRoundtrip)},_firedWhileBuilding(){const oResponse=this.ctx.state.oResponse;if(!oResponse?._processing)return false;const key=ViewSlots.keyOfController(this);if(!ViewSlots.getView(this.ctx,key))ret` &&
+             `urn true;return ViewSlots.getViewToken(this.ctx,key)===oResponse.TOKEN},_pickModelForRoundtrip(useMainModel){const slotKey=useMainModel?"MAIN":ViewSlots.keyOfController(this);if(!slotKey)return undefi` &&
+             `ned;const oView=ViewSlots.getView(this.ctx,slotKey);if(!oView)return undefined;if(Lib.isRootModelSlot(slotKey)){return Slots.resolveTrackedModel(oView)}return oView.getModel()}});return Env.ownClass(V` &&
+             `iew1Controller)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/AppState.js": function(){sap.ui.define([],()=>{"use strict";function createState(){return{endpoint:null,url:null,oConfig:{},ccResourceRoot:null,cccResourceRoot:null,endpointPrefix:nu` &&
@@ -196,9 +197,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `=>[].concat(startup[name])[0];const params={};for(const name of Object.keys(startup)){if(name!=="app_start"&&first(name)!=null){params[name]=first(name)}}const app=settings.app||first("app_start")||""` &&
              `;return Object.assign({},settings,{app:String(app),params:Object.assign(params,settings.params)})}function componentData(settings,installation){const data=Object.assign({},installation.componentData,{` &&
              `endpoint:settings.endpoint});const parameters=startupParameters(settings.params,settings.app);if(Object.keys(parameters).length)data.startupParameters=parameters;if(settings.ownsPage===true)data.ownsP` &&
-             `age=true;return data}function createComponent(settings,installation){const create=()=>Component.create({name:installation.componentName,manifest:true,handleValidation:true,componentData:componentData(` &&
-             `settings,installation)});const owner=settings.host&&Component.getOwnerComponentFor(settings.host);if(owner){try{return owner.runAsOwner(create)}catch(e){}}return create()}return{startupParameters,comp`.
+             `age=true;return data}function createComponent(settings,installation){const create=()=>Component.create({name:installation.componentName,manifest:true,handleValidation:true,componentData:componentData(`.
     result = result &&
+             `settings,installation)});const owner=settings.host&&Component.getOwnerComponentFor(settings.host);if(owner){try{return owner.runAsOwner(create)}catch(e){}}return create()}return{startupParameters,comp` &&
              `onentData,withHostStart,create(settings,installation){const part=settings.ownsPage!==true;if(part)installStyle();return Promise.resolve(createComponent(withHostStart(settings),installation)).then(comp` &&
              `onent=>{const container=new ComponentContainer({lifecycle:"Container",propagateModel:false,width:"100%",height:"100%",component});if(part)container.addStyleClass(AREA);return container})}}});` && |\n| &&
              `` && |\n| &&
@@ -270,9 +271,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `,MESSAGE_CLASS)});if(String(details||"").trim()!==message){content.push(withClass(new Text({text:"Choose Details for the full technical information."}),HINT_CLASS))}const restartButton=new Button({tex` &&
              `t:"Restart",type:"Emphasized",press:()=>{dialog.close();restart(ctx)}});const copyText=``${title||DEFAULT_TITLE}\n\n${details}``;const copyButton=new Button({text:"Copy",press:()=>{copyToClipboard(cop` &&
              `yText);copyButton.setText("Copied");setTimeout(()=>{if(!copyButton.bIsDestroyed)copyButton.setText("Copy")},1500)}});const buttons=[];if(hasErrorDetails(ctx)){buttons.push(new Button({text:"Details",p` &&
-             `ress:()=>{dialog.close();openErrorDetails(ctx)}}))}buttons.push(copyButton);if(typeof options.onRetry==="function"){buttons.push(new Button({text:"Retry",press:()=>{dialog.close();options.onRetry()}})` &&
-             `)}buttons.push(restartButton);const dialog=new Dialog({title:title||"Application Error",type:"Message",state:"Error",icon:"sap-icon://message-error",contentWidth:"36rem",escapeHandler:oPromise=>oPromi`.
+             `ress:()=>{dialog.close();openErrorDetails(ctx)}}))}buttons.push(copyButton);if(typeof options.onRetry==="function"){buttons.push(new Button({text:"Retry",press:()=>{dialog.close();options.onRetry()}})`.
     result = result &&
+             `)}buttons.push(restartButton);const dialog=new Dialog({title:title||"Application Error",type:"Message",state:"Error",icon:"sap-icon://message-error",contentWidth:"36rem",escapeHandler:oPromise=>oPromi` &&
              `se.reject(),content,buttons,initialFocus:restartButton,afterClose:()=>{if(store.dialog===dialog)store.dialog=null;dialog.destroy()}});withClass(dialog,DIALOG_CLASS);store.dialog=dialog;dialog.open();r` &&
              `eturn true}catch(e){window.console?.error?.("ErrorView: friendly dialog failed",e);return false}}function reset(ctx){const store=ctx.errorView;store.title="";store.details="";store.options={}}function` &&
              ` reopenErrorDialog(ctx){const store=ctx.errorView;return showFriendlyDialog(ctx,store.title,store.details,store.options)}function handleLogout(ctx){const fallback=()=>{window.location.href="/sap/publi` &&
@@ -344,9 +345,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `turn list.filter(file=>{if(!(Number(file?.size)>limit))return true;logError(``file '${file?.name??""}' is over the limit of ${maxMegabytes} MB - not read``);try{onTooBig?.(file)}catch(e){logError("wit` &&
              `hinFileSize: the size handler failed",e)}return false})}function dispatchWhenIdle(oController,args){const fire=()=>{if(!isControllerAlive(oController))return;if(oController.ctx?.state?.isBusy){afterRo` &&
              `undtrip(oController,()=>setTimeout(fire,0));return}oController.eB(...args)};fire()}function fireWhenIdle(owner,fire){let cancel=()=>{};const attempt=()=>{cancel=()=>{};if(isDestroyed(owner))return;if(` &&
-             `Context.of(owner)?.state.isBusy){cancel=afterRoundtrip(owner,()=>{const id=setTimeout(attempt,0);cancel=()=>clearTimeout(id)});return}fire()};attempt();return()=>cancel()}function runCallbacks(callbac` &&
-             `ks,...args){if(!callbacks)return;for(const fn of callbacks){if(!fn)continue;try{fn(...args)}catch(e){logError("runCallbacks: callback failed",e)}}}const pendingDelegates=new WeakMap;function onNextRen`.
+             `Context.of(owner)?.state.isBusy){cancel=afterRoundtrip(owner,()=>{const id=setTimeout(attempt,0);cancel=()=>clearTimeout(id)});return}fire()};attempt();return()=>cancel()}function runCallbacks(callbac`.
     result = result &&
+             `ks,...args){if(!callbacks)return;for(const fn of callbacks){if(!fn)continue;try{fn(...args)}catch(e){logError("runCallbacks: callback failed",e)}}}const pendingDelegates=new WeakMap;function onNextRen` &&
              `dering(control,fn,key){let byKey;if(key){byKey=pendingDelegates.get(control);if(!byKey){byKey=new Map;pendingDelegates.set(control,byKey)}const prev=byKey.get(key);if(prev)control.removeEventDelegate(` &&
              `prev)}const delegate={onAfterRendering:()=>{control.removeEventDelegate(delegate);if(byKey)byKey.delete(key);fn()}};if(byKey)byKey.set(key,delegate);control.addEventDelegate(delegate)}function whenRen` &&
              `dered(control,owner,fn,key){if(control.getDomRef()){if(!isDestroyed(owner))fn();return}onNextRendering(control,()=>{if(!isDestroyed(owner))fn()},key)}const XML_TEMPLATING=/sap\.ui\.core\.template\/1|\` &&
@@ -418,9 +419,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/Router.js": function(){sap.ui.define(["sap/ui/core/routing/HashChanger","z2ui5/core/Lib"],(HashChanger,Lib)=>{"use strict";const APP_ROUTE_PREFIX="/app/";const SHELL_SEPARATOR="&/";f` &&
-             `unction hashChanger(){return HashChanger.getInstance()}function splitHash(sHash){const raw=String(sHash||"").replace(/^#/,"");if(!raw||raw.startsWith("/"))return{shell:"",app:raw};const i=raw.indexOf(` &&
-             `SHELL_SEPARATOR);if(i<0)return{shell:"",app:raw};let app=raw.slice(i+SHELL_SEPARATOR.length).replace(/^\/+/,"");if(app)app=``/${app}``;return{shell:raw.slice(0,i),app}}function appHashOf(sHash){return`.
+             `unction hashChanger(){return HashChanger.getInstance()}function splitHash(sHash){const raw=String(sHash||"").replace(/^#/,"");if(!raw||raw.startsWith("/"))return{shell:"",app:raw};const i=raw.indexOf(`.
     result = result &&
+             `SHELL_SEPARATOR);if(i<0)return{shell:"",app:raw};let app=raw.slice(i+SHELL_SEPARATOR.length).replace(/^\/+/,"");if(app)app=``/${app}``;return{shell:raw.slice(0,i),app}}function appHashOf(sHash){return` &&
              ` splitHash(sHash).app}function getHash(){return appHashNormalized(hashChanger().getHash())}function appHashNormalized(sHash){const app=appHashOf(sHash);if(app==="/")return"";return app&&!app.startsWit` &&
              `h("/")?``/${app}``:app}function getRawHash(){return String(window.location.hash||"").replace(/^#/,"")}function patternFor(sClass,sDraftId){const base=``${APP_ROUTE_PREFIX}${sClass}``;return sDraftId?` &&
              ```${base}/${sDraftId}``:base}function segmentsOf(sHash){const app=appHashOf(sHash).replace(/^\/+/,"");const marker="app/";if(!app.startsWith(marker))return null;return app.slice(marker.length).split(/` &&
@@ -492,9 +493,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `y.ID,EVENT:eventName,HASH:state.ownsPage?window.location.hash:""};const sFront=oBody.S_FRONT;if(oBody.TIMER)sFront.TIMER=true;delete oBody.TIMER;if(!oBody.ID){const route=ctx.router?.startRoute?.();if` &&
              `(route?.DRAFT&&route.DRAFT===ctx.router?.failedDraft){delete route.DRAFT}if(route)sFront.ROUTE=route}if(Object.values(config).some(v=>v!==undefined)){sFront.CONFIG=config}if(state.lastRoundtripMs){sFr` &&
              `ont.MS_CLIENT_PREV=state.lastRoundtripMs}Object.assign(sFront,Session.location(ctx,oBody.ID));if(oBody.ARGUMENTS)oBody.ARGUMENTS.shift();sFront.T_EVENT_ARG=oBody.ARGUMENTS;delete oBody.ID;delete oBody` &&
-             `.ARGUMENTS;if(!sFront.T_EVENT_ARG?.length)delete sFront.T_EVENT_ARG;if(sFront.SEARCH==="")delete sFront.SEARCH;if(!sFront.HASH)delete sFront.HASH;if(!oBody.MODEL)delete oBody.MODEL;this.readHttp(ctx,o` &&
-             `Body,Session.takePending(ctx))},_openRequest(ctx,ms){const controller=new AbortController;const request={signal:controller.signal,timedOut:false,abort:()=>controller.abort()};const timer=setTimeout(()`.
+             `.ARGUMENTS;if(!sFront.T_EVENT_ARG?.length)delete sFront.T_EVENT_ARG;if(sFront.SEARCH==="")delete sFront.SEARCH;if(!sFront.HASH)delete sFront.HASH;if(!oBody.MODEL)delete oBody.MODEL;this.readHttp(ctx,o`.
     result = result &&
+             `Body,Session.takePending(ctx))},_openRequest(ctx,ms){const controller=new AbortController;const request={signal:controller.signal,timedOut:false,abort:()=>controller.abort()};const timer=setTimeout(()` &&
              `=>{request.timedOut=true;controller.abort()},ms);request.close=()=>{clearTimeout(timer);ctx.server.inflight.delete(request)};ctx.server.inflight.add(request);return request},_abortInflight(ctx){for(co` &&
              `nst request of[...ctx.server.inflight]){request.close();request.abort()}},async readHttp(ctx,oBody,sessionCarried){const oRetry={onRetry:()=>{ctx.state.terminated=false;ctx.state.isBusy=true;showBusy(` &&
              `ctx,0);if(oRetry.timerRepeat){ctx.state.timerRepeat=oRetry.timerRepeat;oRetry.timerRepeat=null}this.readHttp(ctx,oBody,sessionCarried)},timerRepeat:null};const reportTimeout=()=>this.responseError(ctx` &&
@@ -566,9 +567,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `??[]){if(isInside(ctx.state[byKey(inner).prop],view))destroy(ctx,inner)}if(slot.fragmentId){try{if(view.close)view.close()}catch(e){Lib.logError(``ViewSlots.destroy: view.close() failed for ${key}``,e` &&
              `)}}try{Env.getMessaging?.()?.unregisterObject(view)}catch(e){Lib.logError(``ViewSlots.destroy: unregisterObject failed for ${key}``,e)}try{view.destroy()}catch(e){Lib.logError(``ViewSlots.destroy: vie` &&
              `w.destroy() failed for ${key}``,e)}ctx.state[slot.prop]=null}function isInside(control,container){let node=control?.getParent?.();for(let depth=0;node&&depth<200;depth++){if(node===container)return tr` &&
-             `ue;node=node.getParent?.()}return false}function detach(ctx,key){const slot=byKey(key);if(!slot||!ctx?.state)return undefined;for(const dep of slot.dependentSlots??[])detach(ctx,dep);delete slotXmlSto` &&
-             `re(ctx)[key];delete slotAppStore(ctx)[key];delete ctx.state.slotToken[key];const view=ctx.state[slot.prop];if(!view)return undefined;try{Env.getMessaging?.()?.unregisterObject(view)}catch(e){Lib.logEr`.
+             `ue;node=node.getParent?.()}return false}function detach(ctx,key){const slot=byKey(key);if(!slot||!ctx?.state)return undefined;for(const dep of slot.dependentSlots??[])detach(ctx,dep);delete slotXmlSto`.
     result = result &&
+             `re(ctx)[key];delete slotAppStore(ctx)[key];delete ctx.state.slotToken[key];const view=ctx.state[slot.prop];if(!view)return undefined;try{Env.getMessaging?.()?.unregisterObject(view)}catch(e){Lib.logEr` &&
              `ror(``ViewSlots.detach: unregisterObject failed for ${key}``,e)}ctx.state[slot.prop]=null;return view}return{slots,getView,getViewXml,getViewApp,getViewToken,setView,getController,keyOfController,byId` &&
              `,byIdOfOwner,ownId,fragmentIdOf,resolveById,containingSlotKey,trackedModel,responseModel,destroy,detach}});` && |\n| &&
              `` && |\n| &&
@@ -637,9 +638,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `b.isValidRedirectURL(args[1])){window.location.href=args[1]}else{MessageBox.error("Invalid redirect URL. Only relative URLs to the same domain are allowed.")}}function evSystemLogout(oController,args)` &&
              `{const explicitUrl=args[1];const logoutUrl=explicitUrl||"/sap/public/bc/icf/logoff";try{const container=oController?.ctx?.state.oLaunchpad?.Container;if(container?.logout&&!explicitUrl){container.logo` &&
              `ut();return}}catch(e){Lib.logError("SYSTEM_LOGOUT: ushell logout failed",e)}logoutViaBspTerminate(logoutUrl)}function logoutViaBspTerminate(logoutUrl){const path=window.location.pathname;if(!path.star` &&
-             `tsWith("/sap/bc/bsp/")){redirectToLogout(logoutUrl);return}const bspKill=``${path}?sap-sessioncmd=logoff``;let done=false;let frame;const finish=()=>{if(done)return;done=true;if(frame){try{frame.remov` &&
-             `e()}catch{}frame=null}redirectToLogout(logoutUrl)};try{frame=document.createElement("iframe");frame.style.display="none";frame.src=bspKill;frame.addEventListener("load",finish);document.body.appendChi`.
+             `tsWith("/sap/bc/bsp/")){redirectToLogout(logoutUrl);return}const bspKill=``${path}?sap-sessioncmd=logoff``;let done=false;let frame;const finish=()=>{if(done)return;done=true;if(frame){try{frame.remov`.
     result = result &&
+             `e()}catch{}frame=null}redirectToLogout(logoutUrl)};try{frame=document.createElement("iframe");frame.style.display="none";frame.src=bspKill;frame.addEventListener("load",finish);document.body.appendChi` &&
              `ld(frame)}catch(e){Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed",e);finish();return}setTimeout(finish,1500)}function redirectToLogout(logoutUrl){if(Lib.isValidRedirectURL(logoutUrl)){windo` &&
              `w.location.href=logoutUrl}else{MessageBox.error("Invalid logout URL. Only relative URLs to the same domain are allowed.")}}function evOpenNewTab(oController,args){if(!Lib.isValidRedirectURL(args[1])){` &&
              `MessageBox.error("Invalid URL. Only relative URLs to the same domain are allowed.");return}window.open(args[1],"_blank","noopener,noreferrer")}function evUrlHelper(oController,args){const params=typeo` &&
@@ -714,9 +715,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `egin top","begin bottom",anchor)})}function pseudoCss({control,id,args}){const prop=String(args[4]??"").toLowerCase();if(!CSS_PROPERTIES.includes(prop)){Lib.logError(``CONTROL_BY_ID: css property '${a` &&
              `rgs[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``);return}const el=control?.getDomRef?.();if(!el){Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);return}el.style.s` &&
              `etProperty(prop,String(args[5]??""))}function pseudoExpandCollapse({control,id,method}){const op=method==="expandSelected"?"expand":"collapse";if(!control||typeof control[op]!=="function"){Lib.logErro` &&
-             `r(``CONTROL_BY_ID: '${method}' not callable on control '${id}'``);return}const indices=selectedIndicesOf(control);if(indices===null){Lib.logError(``CONTROL_BY_ID: '${method}' - control '${id}' exposes` &&
-             ` no selection``);return}if(indices.length)control[op](indices)}function pseudoSetAsyncURLHandler({control,id,args}){const policy=String(args[4]??"").toUpperCase();const isAllowed=URL_POLICIES[policy];`.
+             `r(``CONTROL_BY_ID: '${method}' not callable on control '${id}'``);return}const indices=selectedIndicesOf(control);if(indices===null){Lib.logError(``CONTROL_BY_ID: '${method}' - control '${id}' exposes`.
     result = result &&
+             ` no selection``);return}if(indices.length)control[op](indices)}function pseudoSetAsyncURLHandler({control,id,args}){const policy=String(args[4]??"").toUpperCase();const isAllowed=URL_POLICIES[policy];` &&
              `if(!isAllowed){Lib.logError(``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``);return}if(!control||typeof control.setAsyncURLHandler!=="function"){L` &&
              `ib.logError(``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``);return}control.setAsyncURLHandler(config=>{config?.promise?.resolve({allowed:isAllowed(config.url),id:config.id})})` &&
              `}function isRootPrototypeMethod(obj,method){let owner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&` &&
