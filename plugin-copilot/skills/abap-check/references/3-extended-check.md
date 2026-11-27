@@ -7,7 +7,7 @@
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps, abaplint-timestampl-to-timestamp, abaplint-abapdoc-empty-documentation, abaplint-abapdoc-html-tag-namespaced, abaplint-inline-packed-computation-gaps, abaplint-modify-key-only-table, abaplint-implement-methods-alias-name, abaplint-conv-generic-formal-fixed-type, abaplint-replacement-object-tables, abaplint-select-from-itab-key
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps, abaplint-timestampl-to-timestamp, abaplint-abapdoc-empty-documentation, abaplint-abapdoc-html-tag-namespaced, abaplint-modify-key-only-table, abaplint-conv-generic-formal-fixed-type, abaplint-replacement-object-tables, abaplint-select-from-itab-key
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -482,7 +482,9 @@ and points here, so a new trap is added here and nowhere else.
     tag. Fix: `&lt;html:style&gt;`.
   - *"... the type P(8,0) is used here implicitly"* on `DATA(x) = ( a + b ).`
     and `DATA(t) = a + VALUE #( lt[ 1 ]-quan OPTIONAL ).` -
-    `inline_packed_computation` reports the bare chain only. The decimals go:
+    `inline_packed_computation` reported the bare chain only (both shapes
+    are reported from abaplint/abaplint#4792 on, merged 2026-11-27, after
+    2.120.122). The decimals go:
     a weight difference below 0.5 counted as none. Fix: declare the target
     with the operands' type, or `CONV ty_quan( ... )`.
   - *"Table ... contains only key fields. Entries can be inserted, but not
@@ -491,7 +493,8 @@ and points here, so a new trap is added here and nowhere else.
   - *"The component addressed here under the name COUNT is accessed in the
     current context under a different name"* - a `REDEFINITION` of
     `zif~count` implemented as `METHOD count.` via the superclass alias;
-    abaplint reports a missing implementation instead. Fix:
+    abaplint reported a missing implementation instead (accepted from
+    abaplint/abaplint#4788 on, merged 2026-11-27, after 2.120.122). Fix:
     `METHOD zif~count.`
     The same warning for an attribute: one method that reads
     `mo_app->mv_shared` (an alias) and `mo_app->lif~mv_shared` (2026-11-25,

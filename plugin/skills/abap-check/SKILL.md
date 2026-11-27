@@ -115,14 +115,15 @@ numbered section above.
   merged 2026-11-24, not yet released - and the guard it accepts turns "every
   row" into "no row" for an empty driver table, which is not always what was
   meant); `suspicious_loop` calls a WHILE "unchanged"
-  when its counter is advanced through an inline-declared variable; and a rule
+  when its counter is advanced through an inline-declared variable (fixed
+  upstream by abaplint/abaplint#4707, in 2.120.121); and a rule
   configured as an object (`"check_subrc": { "exclude": [...] }`) checks none
   of the options it does not name. The first three can only be suppressed per
   file, which switches the whole rule off for that file - keep such an
   exclusion list short and commented, and write rule objects with every
   option of `abaplint --default`.
 
-**Backlog:** abaplint · abaplint-unsecure-fae-guarded, abaplint-suspicious-loop-inline-declaration, abaplint-rule-config-partial-options
+**Backlog:** abaplint · abaplint-unsecure-fae-guarded, abaplint-rule-config-partial-options
 
 ## When a pull does show diffs
 

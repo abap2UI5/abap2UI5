@@ -5,13 +5,14 @@ summary: The 7.02 downport turns VALUE #( ( 'literal' ) ) for a table of c LENGT
 priority: high
 state: open
 first_seen: 2026-11-26
-checked_upstream: 2026-11-26
+checked_upstream: 2026-11-27
 upstream: abaplint/abaplint
 evidence:
   - 'abap-cloud-gui DEV 2bc0afe, npm run check:702 with @abaplint/cli 2.120.120 (downport + syfixes + .github/abaplint/abap_702.jsonc): src/03/z2ui5_cl_cgui_r2c_25.clas.abap:65-66 and z2ui5_cl_cgui_r2c_40.clas.abap:58-60 - check_syntax "Types not compatible"; the same sources were clean with 2.120.92'
   - 'gh search 2026-11-26 (repo:abaplint/abaplint): no issue for it; #4720 "downport: keep line breaks when outlining VALUE rows and INSERT/APPEND sources" merged 2026-11-25 17:49 UTC, after 2.120.120 was published - touches the same outlining, not verified whether it fixes this'
   - 'the downported statement INSERT ''<h2>Menu</h2>'' INTO TABLE temp2 (temp2 LIKE a STANDARD TABLE OF c LENGTH 255) is valid ABAP - a character literal converts into the line type; the false positive is check_syntax, not the downport'
   - 'workaround 2026-11-26: abap-cloud-gui DEV fbed492 - noIssues for z2ui5_cl_cgui_r2c_25/_40 in .github/abaplint/abap_702.jsonc and the same exception in tools/report2ui5/test/abaplint.test.mjs; remove both when this is fixed'
+  - 'probed 2026-11-27 against abaplint main after 2.120.122, syntax v702: INSERT abc INTO TABLE t2. with t2 a standard table of c LENGTH 5 still reports "Types not compatible" (check_syntax), and the downport of t2 = VALUE #( ( abc ) ( de ) ) still writes that statement'
 ---
 
 # check_syntax: `INSERT '<literal>' INTO TABLE` of a character table

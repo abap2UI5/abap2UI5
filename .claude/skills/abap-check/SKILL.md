@@ -679,7 +679,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps, abaplint-timestampl-to-timestamp, abaplint-abapdoc-empty-documentation, abaplint-abapdoc-html-tag-namespaced, abaplint-inline-packed-computation-gaps, abaplint-modify-key-only-table, abaplint-implement-methods-alias-name, abaplint-conv-generic-formal-fixed-type, abaplint-replacement-object-tables, abaplint-select-from-itab-key
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target, abaplint-redundant-conversion-gaps, abaplint-timestampl-to-timestamp, abaplint-abapdoc-empty-documentation, abaplint-abapdoc-html-tag-namespaced, abaplint-modify-key-only-table, abaplint-conv-generic-formal-fixed-type, abaplint-replacement-object-tables, abaplint-select-from-itab-key
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -1154,7 +1154,9 @@ and points here, so a new trap is added here and nowhere else.
     tag. Fix: `&lt;html:style&gt;`.
   - *"... the type P(8,0) is used here implicitly"* on `DATA(x) = ( a + b ).`
     and `DATA(t) = a + VALUE #( lt[ 1 ]-quan OPTIONAL ).` -
-    `inline_packed_computation` reports the bare chain only. The decimals go:
+    `inline_packed_computation` reported the bare chain only (both shapes
+    are reported from abaplint/abaplint#4792 on, merged 2026-11-27, after
+    2.120.122). The decimals go:
     a weight difference below 0.5 counted as none. Fix: declare the target
     with the operands' type, or `CONV ty_quan( ... )`.
   - *"Table ... contains only key fields. Entries can be inserted, but not
@@ -1163,7 +1165,8 @@ and points here, so a new trap is added here and nowhere else.
   - *"The component addressed here under the name COUNT is accessed in the
     current context under a different name"* - a `REDEFINITION` of
     `zif~count` implemented as `METHOD count.` via the superclass alias;
-    abaplint reports a missing implementation instead. Fix:
+    abaplint reported a missing implementation instead (accepted from
+    abaplint/abaplint#4788 on, merged 2026-11-27, after 2.120.122). Fix:
     `METHOD zif~count.`
     The same warning for an attribute: one method that reads
     `mo_app->mv_shared` (an alias) and `mo_app->lif~mv_shared` (2026-11-25,
@@ -2020,14 +2023,15 @@ numbered section above.
   merged 2026-11-24, not yet released - and the guard it accepts turns "every
   row" into "no row" for an empty driver table, which is not always what was
   meant); `suspicious_loop` calls a WHILE "unchanged"
-  when its counter is advanced through an inline-declared variable; and a rule
+  when its counter is advanced through an inline-declared variable (fixed
+  upstream by abaplint/abaplint#4707, in 2.120.121); and a rule
   configured as an object (`"check_subrc": { "exclude": [...] }`) checks none
   of the options it does not name. The first three can only be suppressed per
   file, which switches the whole rule off for that file - keep such an
   exclusion list short and commented, and write rule objects with every
   option of `abaplint --default`.
 
-**Backlog:** abaplint · abaplint-unsecure-fae-guarded, abaplint-suspicious-loop-inline-declaration, abaplint-rule-config-partial-options
+**Backlog:** abaplint · abaplint-unsecure-fae-guarded, abaplint-rule-config-partial-options
 
 ## 7. The rule stock — read for it by hand until abaplint decides it
 
@@ -2119,16 +2123,16 @@ substrings to be accessed" (#4544; a length without offset that covers a
 whole `p` field stays allowed); `DATA(x) = lv_date - lv_start` typed as a
 number, not a date, so `x+6(2)` is caught too (#4546); and `LOOP … USING
 KEY` a sorted secondary key whose WHERE does not compare the first key
-component with `=` joined by AND (#4549). Still open:
+component with `=` joined by AND (#4549); and `RAISE EXCEPTION` or `THROW` in a method or
+function module that declares classic `EXCEPTIONS` - even for a CX_NO_CHECK
+("Old exceptions and class-based exceptions cannot be used at the same
+time", #4547, in 2.120.121); raise it in a method of its own, from which it
+passes through. Still open:
 
-- `RAISE EXCEPTION` or `THROW` in a method or function module that declares
-  classic `EXCEPTIONS` - even for a CX_NO_CHECK ("Old exceptions and
-  class-based exceptions cannot be used at the same time"); raise it in a
-  method of its own, from which it passes through.
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-raise-in-classic-procedure, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-release-api-availability
 
 ### Security
 

@@ -90,16 +90,16 @@ substrings to be accessed" (#4544; a length without offset that covers a
 whole `p` field stays allowed); `DATA(x) = lv_date - lv_start` typed as a
 number, not a date, so `x+6(2)` is caught too (#4546); and `LOOP … USING
 KEY` a sorted secondary key whose WHERE does not compare the first key
-component with `=` joined by AND (#4549). Still open:
+component with `=` joined by AND (#4549); and `RAISE EXCEPTION` or `THROW` in a method or
+function module that declares classic `EXCEPTIONS` - even for a CX_NO_CHECK
+("Old exceptions and class-based exceptions cannot be used at the same
+time", #4547, in 2.120.121); raise it in a method of its own, from which it
+passes through. Still open:
 
-- `RAISE EXCEPTION` or `THROW` in a method or function module that declares
-  classic `EXCEPTIONS` - even for a CX_NO_CHECK ("Old exceptions and
-  class-based exceptions cannot be used at the same time"); raise it in a
-  method of its own, from which it passes through.
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-raise-in-classic-procedure, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-release-api-availability
 
 ### Security
 

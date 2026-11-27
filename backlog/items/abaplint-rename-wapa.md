@@ -1,19 +1,20 @@
 ---
 target: abaplint
 title: 'rename: BSP applications (WAPA)'
-summary: abaplint cannot rename a BSP application (WAPA) - it blocks the namespace rename of custom-controls, custom-controls-customer and embed-excel today, and abap2UI5 renames its own BSP (src/03/02) with tools/bsp_rename as a workaround; upstream PR #4721 is open, the MIME folder half (#4722) merged after 2.120.120
+summary: abaplint cannot rename a BSP application (WAPA) - it blocks the namespace rename of custom-controls, custom-controls-customer and embed-excel today, and abap2UI5 renames its own BSP (src/03/02) with tools/bsp_rename as a workaround; merged upstream with #4722 (which carries the content of #4721) and released with 2.120.121; the pin of abap2UI5 is still 2.120.120 - delete when the pin is a release with it and tools/bsp_rename is decided
 priority: high
 state: filed
-filed: https://github.com/abaplint/abaplint/pull/4721
+filed: https://github.com/abaplint/abaplint/pull/4722
 upstream: abaplint/abaplint
 first_seen: 2026-11-26
-checked_upstream: 2026-11-26
+checked_upstream: 2026-11-27
 evidence:
   - 'abaplint 2.120.120 (the pin of abap2UI5 and of every addon, 2026-11-26): Renamer.factory knows CLAS, DTEL, DOMA, TABL, TTYP, INTF, PROG, MSAG, SICF - anything else throws "Renaming of <type> not yet supported"'
   - 'abap2UI5 main: rename.jsonc excludes src/03; .github/scripts/rename-service.mjs renames the BSP Z2UI5 (src/03/02, z2ui5.wapa.*) and its SICF nodes with tools/bsp_rename/rename-bsp.mjs - a second renamer in this repository that exists only because abaplint has none for WAPA'
   - 'audit 2026-11-26 (backlog item abap2ui5-addon-rename-gaps): custom-controls (BSP for the resource path z2ui5_cci), custom-controls-customer (BSP Z2UI5_CCC: 1 wapa, 2 sicf, 1 ui5repositorypathmapping at 65f5b4b) and embed-excel (a BSP) have no namespace rename because of it'
   - 'gh search 2026-11-26: abaplint/abaplint#4721 "rename WAPA: BSP applications" open (2026-11-25); #4722 "rename WAPA: the MIME folder of the application moves with it" merged 2026-11-25 19:46 UTC - after 2.120.120 was published (13:57 UTC), so no release carries it yet'
   - 'custom-controls DEV and custom-controls-customer DEV 2026-11-26: npm run rename (the shared .github/scripts/rename.mjs) now exists in both, with src/01 - the BSP and its ICF nodes - left out by package.json config.renameSkip and printed on every run; the literal c_ns that names the BSP resource root is kept (config.renameLiterals). abaplint renaming the ICF nodes but not the WAPA is why the whole package is left out rather than the WAPA alone'
+  - '2026-11-27: abaplint/abaplint#4721 was closed without a merge - its whole content went into main with #4722, which was built on it; abaplint main has objects/rename/rename_bsp_application.ts and Renamer.factory knows WAPA; #4722 and #4732 (the URLs of ICF nodes in the pages of BSPs) are ancestors of the release commit of 2.120.121; package-lock.json of abap2UI5 main still resolves to 2.120.120'
 ---
 
 # rename: BSP applications (WAPA)

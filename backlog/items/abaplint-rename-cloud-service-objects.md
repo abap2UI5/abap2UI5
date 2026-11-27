@@ -3,15 +3,17 @@ target: abaplint
 title: 'rename: ABAP Cloud service objects (HTTP service, SCO2, SIA1, SIA6, SIA7)'
 summary: abaplint renames none of the ABAP Cloud objects that publish a service - HTTP service, communication scenario, IAM app, business catalog and its app assignment - so abap2UI5 has no renamed cloud installation (cloud/src/03); a cloud user renames by hand today
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4809
 upstream: abaplint/abaplint
 first_seen: 2026-11-26
-checked_upstream: 2026-11-26
+checked_upstream: 2026-11-27
 evidence:
   - 'abaplint 2.120.120 Renamer.factory: no HTTP, SCO2, SIA1, SIA6, SIA7'
   - 'abap2UI5 main, cloud/src/03: z2ui5.http.xml, z2ui5_http.sco2.xml, z2ui5_http_ibs.sia6.xml (01), z2ui5_bc.sia1.xml, z2ui5_iam_ext.sia6.xml, z2ui5_bc_0001.sia7.xml (02) - build-rename builds rename_<name> and rename_<name>_702 but no cloud variant (backlog item rename-variants-cloud)'
   - 'gh search 2026-11-26 (repo:abaplint/abaplint: "rename HTTP service", "rename SIA6"): nothing - #4717/#4718 are the classic SICF node'
   - 'abap2ui5-local DEV 2026-11-26: the shared rename.mjs on a checkout of the cloud branch renames z2ui5_cl_abap2ui5_local (10 files, 0 issues), but src/01 z2ui5_service_http.http.xml, z2ui5_service_http_http.sco2.xml and z2ui5_service_http_http_ibs.sia6.xml keep naming the original class - check_rename.yaml / build_rename.yaml therefore cover standard and 702 only'
+  - 'abaplint/abaplint#4809 "rename: HTTP service, inbound service and IAM app of ABAP Cloud" open since 2026-11-27: renames HTTP, SCO2 and SIA6, and lets SERVICEHANDLER of the HTTP service, HTTP_SERVICE_ID, SECONDARY_ID and the APP_ID of the business catalog assignments follow; the business catalog (SIA1) and its app assignment (SIA7) are not renamed by it - that part of this item is left'
 ---
 
 # rename: ABAP Cloud service objects
