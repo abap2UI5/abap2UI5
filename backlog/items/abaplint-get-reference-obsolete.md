@@ -3,14 +3,16 @@ target: abaplint
 title: 'Report `GET REFERENCE OF … INTO` under the Cloud language version'
 summary: 'the statement is not released for ABAP Cloud and has a released equivalent (`REF`), yet abaplint 2.120.52 under `syntax.version` Cloud accepts it without a finding — `check:cloud` in abap2UI5 is green with it in place'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4825
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5, 2026-08/09 — the cloud-readiness pass that turned bare Open SQL literals into host expressions (#2657) also had to find every `GET REFERENCE OF` by hand: `npm run check:cloud` (abaplint with the Cloud language version) and the transpiled unit run were both green with the three in `z2ui5_cl_ui5_srv_model` in place; abap-check §3 carries the case
   - 25 statements in six files under abap2UI5 `src/` still carry it (2026-09-19), all in vendored mirrors (`src/00`) or the frozen package (`src/99`) — the probe beside this item counts them
   - measured 2026-09-19 on abaplint 2.120.52, `syntax.version` Cloud, `check_syntax` on: `GET REFERENCE OF lv INTO lr` in an isolated class produces no finding. The grammar has the statement as `verNotLang(LanguageVersion.KeyUser)` — excluded for KeyUser only, not for Cloud
-checked_upstream: 2026-11-14
+  - 'filed 2026-11-27 as abaplint/abaplint#4825 (syntax 3/4): the statement is excluded for Cloud as well as Key User. The pull request asks the maintainer to confirm the premise - no line of the keyword documentation could be quoted for it'
+checked_upstream: 2026-11-27
 ---
 
 # Report `GET REFERENCE OF … INTO` under the Cloud language version

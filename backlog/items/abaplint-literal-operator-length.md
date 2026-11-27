@@ -3,13 +3,15 @@ target: abaplint
 title: 'Report a text literal joined with the literal operator & that is longer than 255 characters'
 summary: 'literals joined with & form ONE literal at compile time, and a literal may hold 255 characters - the system refuses the joined form, abaplint checks each part only'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4823
 first_seen: 2026-11-24
-checked_upstream: 2026-11-24
+checked_upstream: 2026-11-27
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5-addons/layout-management 5b1c8b7: a user''s pull (2026-11-24) refused the test classes of z2ui5_cl_layo_xml_tree with "The text literal "`<mvc:View xmlns="sap.m" xm..." is longer than 255 characters", then "The statement ENDCLASS is missing" and "Compilation was canceled" - a CONSTANTS c_view TYPE string VALUE of eleven backquoted parts joined with &. The fix built the string in a method with &&'
   - 'probed 2026-11-24 against abaplint 2.120.113, every syntax rule and line_length on: a CONSTANTS VALUE of three backquoted parts of 100 + 100 + 80 characters joined with & - no finding'
+  - 'filed 2026-11-27 as abaplint/abaplint#4823 (syntax 1/4): check_syntax adds up the parts of a & chain, backquoted and quoted, in CONSTANTS/DATA VALUE and in operand positions'
 ---
 
 # Report a text literal joined with the literal operator & that is longer than 255 characters
