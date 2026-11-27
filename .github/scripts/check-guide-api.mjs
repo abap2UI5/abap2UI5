@@ -105,8 +105,8 @@ if (unique.length) {
   console.error("check-guide-api: docs/agents/building-apps.md names API that does not exist:");
   for (const p of unique) console.error(`  ${p}`);
   console.error(
-    "\nFix the guide (and docs/agents is mirrored into abap2UI5/app-template's AGENTS.md — " +
-      "re-sync it there too).",
+    "\nFix the guide (and docs/agents is mirrored into abap2UI5/app-template - its build-an-app " +
+      "skill's references/building-apps.md and the essentials in its AGENTS.md - re-sync it there too).",
   );
   process.exit(1);
 }
