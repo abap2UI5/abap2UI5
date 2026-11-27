@@ -16,126 +16,125 @@ unreleased
 
 2026-11-25 v1.151.0
 -------------------
-! the legacy objects of the former src/99 (z2ui5_cl_util*, z2ui5_cx_util_error, z2ui5_t_91, z2ui5_cl_xml_view(_cc), z2ui5_if_types, z2ui5_cl_pop_*) ship from abap2UI5/abap2UI5-ext again (named abap2UI5-obsolet from 2026-11-17 to 2026-11-25; GitHub forwards the old URL) - all of them, same names and packages; abap2UI5/frontend, which held them since 1.150.0, is retired: an installation changes the URL of its abapGit repository to abap2UI5-ext and pulls
-* z2ui5_cl_ui5_test: a stateless roundtrip restores the app from the draft store again - the container buffer of the earlier roundtrip survived, so a timer tick answered with the same draft id went on with the live instance instead of the stored one
-* nav_app_leave( keep_messages ): documents that a carried message box keeps its onclose event, which the target app then receives
-* cs_event-set_title_launchpad no longer overwrites the shell title of a host app: an app embedded in a page it does not own (a z2ui5.embed.Container in a Fiori elements app, several components on one page) sets none and writes a line to the log, as set_title has done since the shell title became its as well - both go through the same check. An app that owns the page (the launchpad's own BSP) titles the shell as before
-+ z2ui5_cl_ui5_test: a public test harness for apps - a global FOR TESTING class that drives a z2ui5_if_app class from an ABAP Unit test through the real framework (handler, client, _bind( ), _event( ), the draft), one roundtrip per call, with no test double of z2ui5_if_client and no framework internals in the test: start( app ) / start_called( app ), set_model( path val ) for what the user types, event( name t_arg ), leave( ), timer( ), restore( ); readers view_xml( ), nest_xml( ), nest2_xml( ), popup_xml( ), popover_xml( ) (what each slot shows now), model( path ), actions( ), messages( ), nav_called( ), nav_left( ), app( ), response( ). The drafts are kept in memory for the duration of each roundtrip - nothing reaches Z2UI5_T_01 - and every event restores the app from the draft the previous roundtrip saved, as in production; a stateful app keeps its instance. Runs on the transpiled runtime, NW 7.02 and ABAP Cloud
-+ client->timer_set( event delay_ms no_busy ) and client->timer_stop( ): a DECLARATIVE timer per app. The declaration is stored with the app (in its draft, not in an attribute of the app) and armed by the framework as the repeating START_TIMER whenever the app gets the screen - its first display, the return from a called app (a popup app closing included), a Back/Forward restore or app-state link of its draft - and stopped when the app is left, also for a called instance of the same class. An unchanged declaration that runs is not sent again, so an app may state it on every roundtrip, and an unchanged tick still answers with the draft it continued. Other values replace it; timer_stop( ), an empty event or a delay of 0 end it. A follow_up_action( ) with start_timer or stop_timer takes the timer over and drops the declaration. Apps no longer re-arm a poll in their check_on_navigated( ) branch or keep a memo of whether it is armed
-! cs_event-set_title sets the launchpad shell title as well when the app runs inside the Fiori launchpad (ShellUIService.setTitle, as set_title_launchpad does), so one call titles the screen in both environments; an embedded app whose host keeps the page changes neither, as before. A shell title that arrives before the launchpad's ShellUIService has resolved - the first response of a launch - is set once it is there instead of being dropped (set_title_launchpad too)
-* the error overlay's Retry no longer loses a repeating START_TIMER: the retried roundtrip continues the poll once its response is applied
-! a draft stores only the rows of the binding table it needs - the bound ones and those that own, alias or sit below a data reference - and no type descriptors: the rows written for every component of a public structure nobody binds stay in memory and out of the draft. An app shaped like a large warehouse app writes 38 of its 436 rows, its draft 2.18 MB where it was 2.40 MB; the next render of the same view binds without rebuilding the table, a first _bind( ) of an attribute left out rebuilds it once. A sticky session keeps every row
-+ an attribute an interface declares binds: client->_bind( zif_state~mv_value ), and through a reference typed with the interface client->_bind( mi_state->mv_value ) - it raised BINDING_ERROR. The path keeps the ~ ({/ZIF_STATE~MV_VALUE}, {/MI_STATE/ZIF_STATE~MV_VALUE}; a namespaced interface is a level like every namespace, {/NS/IF_STATE~MV_VALUE}), and edits come back onto it (whole values, row deltas, data references). An attribute reachable by an ALIASES name as well is one attribute with one path, whichever spelling is bound. The interface attributes are only dissolved once a binding asks for one: an app that binds none keeps the draft and the model it had
-+ START_TIMER repeats on request: a fourth t_arg X (t_arg = event, delay, no-busy flag, repeat flag) arms the timer once and the browser arms the same tick again after every applied response - a user event in between pauses it and it goes on after that event's response, so a poll no longer re-arms START_TIMER on every roundtrip. It keeps running under a popup of the same app and ends with cs_event-stop_timer, a new start_timer, a navigation to another app, a Back/Forward restore, the error overlay or the component's end. Without the flag a timer is the one-shot it always was
-+ cs_event-stop_timer (STOP_TIMER): cancels the pending timer tick and ends a repeating timer; as a wired press it stops it in the browser without a roundtrip
-! a bound table or structure whose columns carry a namespace (/CWM/XCWMAT) writes each namespace as a level of its row in the model - "CWM":{"XCWMAT":...} where it was "/CWM/XCWMAT":... - on the fast path and on the general road (deep rows, omit_initial) alike, so a row template binds the column relatively as {CWM/XCWMAT}: the name as it was, {/CWM/XCWMAT}, is an absolute path in UI5 and rendered an empty cell whose edits went nowhere. Edits come back onto the component (row deltas, whole values, nested tables); a column named like a namespace of its neighbours (CWM next to /CWM/...) gives way to the namespace object. The JSON of every other table is byte for byte what it was. _bind( val = ... tab = ... tab_index = ... ) of a namespaced cell returns /T/0/CWM/XCWMAT instead of /T/0//CWM/XCWMAT
-+ z2ui5_cl_ui5_view_builder=>component_path( name ): the binding path of a column relative to its row - /CWM/XCWMAT gives CWM/XCWMAT, every other name comes back unchanged - for a row template over a table whose columns are only known at run time
-+ client->get_start_param( name ): one start parameter of the page, whichever way the app was started - the URL query first (sap-startup-params unpacked), then the launchpad's startupParameters, then the query of the launchpad intent in the hash; the name in any case, the value as the source carries it
-+ nav_app_leave( keep_messages = abap_true ) and nav_app_call( keep_messages = abap_true ): the message toasts and boxes the app queued in this roundtrip are shown after the target app has rendered instead of being dropped with the screen they were queued on. Not supplied, nothing changes
-! a START_TIMER tick whose main( ) left the app unchanged writes no draft: the response names the draft it continued, and only its time is renewed (at most every five minutes, so a long quiet poll keeps it). A screen that polls every two seconds wrote a row of its whole state per tick. The frontend marks a tick on the wire (S_FRONT.TIMER); every other event still answers a new draft id, also when nothing changed, as the protocol asks
-* a click that met a START_TIMER tick in flight was dropped - at random, on every polling screen, and without a trace when the tick was a no-busy one. It is held back now and sent once the tick's response is applied, under the draft id that response named; while it waits, the timer does not tick again. A second click meets the busy guard as a second click always did
-+ z2ui5_if_ui5_exit=>ty_s_http_config_post-draft_keep_per_chain (2 by default, 0 switches it off and keeps every draft until its expiry as before): N keeps the last N drafts of the chain an app's roundtrips write and deletes the one at depth N + 1 on every save (N - 1 keyed reads and one read of the two app stack columns per save). 2 is the minimum and what a polling app wants (the retry of a lost response continues the draft before the newest one). The drafts of the app stack, the draft of an app state link (app_state_get_href) and of a route restore are never deleted, nor any draft of an app whose app state hash is active. The draft store interface z2ui5_if_ui5_draft_store has two new methods for it, prune_chain( ) and touch( ) - BREAKING for an installation with its own store: it has to implement both
-* a bound field whose name carries a namespace (/ABC/FIELD - the fields of an industry solution or a customer namespace in a DDIC table, a component of a structure built from one) binds under /PARENT/ABC/FIELD instead of /PARENT//ABC/FIELD: the empty segment made UI5 resolve the binding to the parent, left the value out of the model, and a bound table of fixed values raised MODEL_FAST_PATH_TOKEN_LOST on the first rendering (table-maintenance's edit popup over MARA). A bound table the model cannot place takes the general serialization instead of raising
-+ client->check_nav_pending( ): whether this roundtrip already ends in a navigation - true once main( ) has called nav_app_call( ) or nav_app_leave( ). The public form of get( )-_s_nav-check_call / check_leave, for a base class that must not arm a timer, convert data for output or clear messages for a screen the app is about to give away
-+ client->check_on_nav_back( ): true on the one roundtrip on which the app gets the screen back because an app it called left with nav_app_leave( ) - with or without a nav tag, a popup app closing included - and false on the first start, on the called app's own roundtrips, on every later event, on a browser Back/Forward restore under hash routing, on an app-state bookmark, on nav_app_call( me ) and on a leave to a NEW instance. It replaces comparing the class name of get_app_prev( ) (the caller on the way in, the callee on the way back, the app itself on a first start): IF client->check_on_nav_back( ). DATA(li_prev) = client->get_app_prev( ). IF li_prev IS INSTANCE OF zcl_popup. ...
-+ nav_app_call( tag = ... ) and client->get_nav_tag( ): the caller names why it calls, and reads that name on the roundtrip the called app comes back on - an app that opens one popup class for several purposes tells the returns apart without a flag attribute per purpose and without a CAST in a TRY. The tag is the caller's and travels in its own draft; the called app is unchanged and never sees it
-* the start app tells a class that cannot be loaded (a syntax error in it, a missing dependency) from one that does not exist - "could not be loaded" with the reason instead of "does not exist or does not implement z2ui5_if_app"; such a failed check is not cached any more, so the corrected class passes on the next try
-+ message_box_display( icon = ... ): the icon of the box is a parameter again - a sap.m.MessageBox.Icon name or a sap-icon:// URI; it had left the method with the pure UI5 options in 2026-09 by mistake
-! BREAKING: the custom controls (z2ui5.cc) are a bundle of their own - ?z2ui5-bundle=cc, loaded once per page before the first view, nested view, popup or popover that names one (xmlns:z2ui5="z2ui5.cc" under any prefix, a z2ui5/cc/<Name> in the view, or the sibling BSPs z2ui5_cci / z2ui5_ccc) - and no longer part of the frontend bundle every page loads: that one is 191 KB where it was 247 KB (56 KB gzipped, was 70 KB). 19 of 763 sample apps use a control. Breaking only for JavaScript OUTSIDE a view that requires z2ui5/cc/<Name> on a page whose views name no control - it has to load the bundle first; where the files are served one by one (the BSP, the cloud app) nothing changes
-! the first page load is shorter: the page the node serves names the frontend bundle in a <link rel="preload"> and sap.m on the bootstrap tag (data-sap-ui-libs), so both load while UI5 boots instead of one after the other behind it - measured in Chromium on a cold cache, the first view is on screen about 0.5 s (some 15 to 20 %) earlier. No hint where the bundle's URL cannot be known in advance (a path ending in a slash), and no second data-sap-ui-libs when the exit set_config_http_get already sets one
-! the frontend is delivered minified - comments and whitespace go, the identifiers stay (tools/app2abap, terser without compress and mangle): the bundle is about 250 KB where it was 354 KB (71 KB gzipped, was 82 KB), and the class that holds it a good third of its size. A stack trace still names the real functions; it no longer shows the lines of bundle/webapp
-! the model: a bound table whose row type has an .INCLUDE or a TIMESTAMP / TIMESTAMPL column is serialized on the fast path as well (the output is byte for byte what it was), and the tables of a model are spliced into it in one pass instead of one copy of the whole model per table
-* window_bind_tab( total = <a value that is no attribute>, e.g. lines( t ) ) ran the binding search's worst case on every call - three searches and a rebuild of the attribute table - and left the bind service holding a row of the table it had just cleared; the total is looked up without touching the table now
-! the user exit's set_config_http_post is asked once per request, not up to three times, and a response that is not the page no longer assembles the page's config (the CSP text among it) for its five headers when no exit is installed; z2ui5_cl_ui5_http_handler prepares its context once per request
-! frontend: a slot and its model remember the response that built them by a token instead of holding the whole response - the model and the view XML of a response are released once the screen has moved on (about 200 KB per 1,000 rows of a bound table and slot); the request text is released once the developer tools have counted it
-! frontend: one abort mechanism per request (one AbortController and one timer, cleared when the request settles) in place of three browser-dependent paths - a finished request no longer leaves a ten-minute timer behind. An abort that is neither the timeout nor a newer request reads as the network error it is
-- BREAKING: the frontend action targets nothing writes since protocol 3 - CONTROL_GLOBAL ROUTER sync and the VIEW_SLOTS methods display and updateModel (VIEW_SLOTS destroy, the wired close of a popup, stays); z2ui5_if_ui5_types=>cs_global_target-router and the unread ty_s_response-s_front-protocol go with them. The developer tools' recorder names its two counts viewCount and actionCount (were systemActions and customActions)
-! BREAKING: client->hash_set( ) and hash_replace( ) (cs_event-hash_set / hash_replace, experimental) write the hash only for an app that owns it - a listener registered with cs_event-hash_attach_changed, hash_routing off - and the value is the whole app hash. Without a listener, and under hash_routing, nothing is written and the frontend says so in its log. Until now the value was appended to the hash the page had: with history.pushState, which hasher's cache did not see, so the next Back went nowhere; behind the route in KEEP mode; and an app that wrote a whole route on every roundtrip grew its URL (#/repo/1/repo/1). An app that writes a hash registers the listener in view_display( ), as the ten sample apps that write one already do
-* windowed tables (window_bind_tab): the requests of several tables on one page no longer overwrite each other while a roundtrip runs - there was one place for all of them, the last one winning, and a request a list sent while its view was still being built was dropped when it was due. Each table keeps its own now, and they go out one after the other
-! an event a control fires while its view is being built - a z2ui5.cc.Storage answering from its rendering with the value it found, an afterRendering an app wired - reaches the backend on every roundtrip now, after the response that built the view. Until now it was sent at once on the first roundtrip, where it superseded the response that was building the screen, and was dropped without a word on every later one unless its wire carried check_queue_last. The first roundtrip marks the app busy like every other one. An app that answers such an event with a view that fires it again is stopped after 25 of them in a row, with a line in the log
-! BREAKING (wire, protocol 3): a request that starts an app names what the URL hash asks it to restore as S_FRONT.ROUTE - { APP, DRAFT } for a route #/app/<CLASS>/<DRAFT>, { APP_STATE } for an app-state link - parsed by the frontend's router (Router.startRoute). The backend no longer reads a route out of S_FRONT.HASH: its own parser of the launchpad separator, the stacked slashes of older URLs and the namespaced class is gone (six methods of z2ui5_cl_ui5_handler), which had to be kept equal to the router's by hand. HASH still travels with every request for the app (client->get( )-s_config-hash)
-! BREAKING (wire, protocol 3): the response says what the screen is and what to do on it in three sections of S_FRONT - VIEWS (one entry per slot the roundtrip changes: { XML, OPT } for a display, { DESTROY: true } for a teardown), NAV (the URL intent, the options of the router's sync) and ACTIONS (the app's follow-up actions) - where S_ACTION carried the lists T_SYSTEM (["VIEW_SLOTS","display","MAIN",...], ["ROUTER","sync",{...}]) and T_CUSTOM. The frontend applies the views in its own order, MAIN first, so the backend sorts nothing; a section that says nothing is absent. An app changes nothing - a frontend or a tool that reads the response does
-! BREAKING (wire, protocol 3): the backend states the teardown of POPUP and POPOVER for every app hop and every app start, as their VIEWS entries; the frontend no longer takes the two slots down by itself when a response names another class (it could not see a hop to another instance of the same class, which the backend covered as a special case). A new MAIN view still takes them down with it - that rule is the frontend's alone now, and the backend no longer drops a popup_destroy( ) next to a view_display( )
-! BREAKING (wire, protocol 3): the flags of an event wire travel as one object behind the event name - .eB(['LIVE_CHANGE',{queueLast:true,noBusy:true}]) - and no longer as positions [4] and [5] of the event array behind three slots that were always false. client->_event( s_ctrl = ... ) writes the new form, so an app changes nothing; a view that writes the array by hand writes the object, and a positional flag is reported in the log and not read. z2ui5_if_ui5_types=>c_protocol and the frontend's PROTOCOL are 3
-- BREAKING: _bind_edit( ), view_model_update( ), nest_view_model_update( ), nest2_view_model_update( ), popup_model_update( ) and popover_model_update( ) of z2ui5_if_client - none of them did anything of its own: _bind_edit( ) was an alias of _bind( ) (binding always writes back), and the model is pushed automatically whenever main( ) changed it. Write _bind( ) in place of _bind_edit( ) with the same parameters (custom_mapper_back and custom_filter_back were no longer evaluated and go), and delete the *_model_update( ) calls
-- BREAKING: the offline queue (experimental in 1.149.0 and 1.150.0) - cs_event-offline_queue, the frontend's core/Offline.js and the replay in core/Server.js. An edge case the framework does not carry: an event that cannot reach the backend ends in the error overlay with its Retry, as every other one. Sample 543 is removed with it
-! BREAKING: the windowed table of 1.149.0 and 1.150.0 is app-driven - window_bind_tab( val total event window ): the app holds the rows it has loaded and loads, sorts, filters and counts them itself, the way an OData service answers $skip, $top, $orderby and $filter. The browser's requests (more rows, a sort, a filter) arrive as the app's event with z2ui5_if_client=>ty_s_window_request in get( )-r_event_data (cs_window_reason MORE / SORT / FILTER). t_sort and t_filter of window_bind_tab( ) and window_get_row( ) are removed - val is what the browser shows, a row index is its row
-- the server-side sort and filter of windowed tables, the window index of a row delta and the draft's frame of kept tables (z2ui5_cl_ui5_srv_window is the request parser now)
-! one pull is a running installation: the ICF node /sap/bc/z2ui5, its handler z2ui5_cl_ui5_icf_handler and the BSP Z2UI5 for the launchpad are part of this repository (src/03) - they were the branch standard_new of abap2UI5/frontend, a second repository to pull. The node and the BSP keep their names, the handler is renamed (it was z2ui5_cl_lp_handler); an installation that has that repository removes it from abapGit WITHOUT deleting its objects and pulls this one
-+ the branch cloud: abap2UI5 for ABAP Cloud, generated from main on every push (auto-cloud.yaml, tools/build-cloud.mjs) - the HTTP service, its handler and the IAM objects in place of src/03, the app as a Fiori project in app/, the ABAP language version in the abapGit descriptor. It takes the place of the branch cloud_new of abap2UI5/frontend
-- BREAKING: z2ui5_if_exit, the former name of the exit interface, is deleted, and the framework no longer looks it up - an exit class that writes INTERFACES z2ui5_if_exit writes INTERFACES z2ui5_if_ui5_exit instead and names its two methods z2ui5_if_ui5_exit~set_config_http_get / ~set_config_http_post (same parameters, same types). Until it does, it does not compile and the installation runs on the shipped defaults: no custom Content-Security-Policy, theme or bootstrap
-- BREAKING: z2ui5_cl_http_handler, the former name of the HTTP entry point, is deleted - an ICF node or a handler class that still names it names z2ui5_cl_ui5_http_handler (the same methods, it was an empty subclass), or uses the node /sap/bc/z2ui5 with its handler z2ui5_cl_ui5_icf_handler this repository delivers
-- BREAKING: z2ui5_cl_xml_view, z2ui5_cl_xml_view_cc, z2ui5_if_types and the seventeen z2ui5_cl_pop_* popups are no longer part of the core - they moved, unchanged, to abap2UI5/abap2UI5-ext, together with the legacy utilities. A system whose code still names one installs that repository next to abap2UI5. src/99 is gone
-! the BSP Z2UI5 is generated from app_source/webapp by npm run app2abap and committed (src/03/02), like src/01/03; a namespace rename (build-rename) covers the ICF node, the handler and the BSP as well, so rename_<name> is the whole installation
-! the embed control stays in abap2UI5/embed-control, with its tests, its examples and its npm package (0.4.0 there: the shell the bundle creates the app for) - this repository copies it from a pinned commit into the page and the BSP (node/setup/fetch-deps.mjs, tools/deps/), and app_npm is gone: app_source takes the control from npm
-- the delivery into abap2UI5/frontend: tools/build-branches.mjs, frontend_check, frontend_deploy, frontend/embed and the dependency on @abap2ui5/embed-control 0.3.0 - that repository is retired
-* a view that fails to build no longer runs the follow-up actions of its response under the "App Terminated" overlay - a START_TIMER in it kept sending roundtrips for an app that had ended, and a parked hash change sent one
-! the frontend's classes are taken off window on every page; a class of the frontend cannot be extended before UI5 1.120 with that (it could on the backend's own page) - extending them was never a supported way, a customer's own control lives in its own BSP and extends sap/ui/core/Control
-- frontend: Lib.deriveOsName (no caller) and the state field ownsHash (always equal to ownsPage; componentData.ownsHash is still read)
-! the minimal app of the backend's page (app_source) is the component z2ui5 with the launchpad entries in its manifest, and its view is the control alone - the sap.m.Shell around it is gone again: an app without a Shell of its own is as wide as the window, as before the page was changed. A launchpad tile's parameters are read by the bundle (core/Embed.js), and on a page handed to the app the mobile setup is the sap.m.App's again
-+ npm run express:live: the dev server with the frontend bundle served straight from bundle/webapp - edit a file and reload the page, without app2abap and a transpile in between (the page's own app and the control stay the built ones)
-+ the page asks for the frontend bundle by its version (?z2ui5-bundle=<build hash>, the control's new bundleVersion) and the backend lets the browser keep that answer (max-age, immutable) - a start costs no request for the frontend once it is cached; a bundle asked for without the version revalidates as before
-! the end of the frontend bundle - the z2ui5/embed module and its create( ) - is a file of its own, bundle/tail/embed.js, formatted and linted like the frontend; the handler only writes the request's path into it
-! the frontend has one mode: its component is always created by the embed control, so the branches for a page of its own are gone (componentData.embedded is no switch any more) - what is left is whether the host handed the page over (ownsPage). A component created without ownsPage no longer takes the hash, the title or the busy indicator of the page
-* on the backend's own page an app's SET_FOCUS and the first page's autofocus work again from the start - the focus guard of a host's page applied there too
-! the embed control is a shell: it loads the bundle and renders what the bundle's z2ui5/embed module creates (create( ), bundle/webapp/core/Embed.js) - the component, its component data and the style of the area come from the backend, for a freestyle app, a custom page or section of Fiori elements and the backend's own page alike. Its stylesheet is gone, and with it GET <node>/embed/Container.css; ownsHash is gone (ownsPage). @abap2ui5/embed-control 0.4.0 needs this release - 0.3.0 keeps working against it
-! src/01/03 holds five generated classes instead of about 140: one per text the HTTP service serves (z2ui5_cl_ui5f_bundle, _devtools, _page, _page_css) and the facade z2ui5_cl_ui5f_preload - the backend no longer joins the frontend from one class per file on every request, and a pull activates about 135 objects fewer. The classes of the single files (z2ui5_cl_ui5f_*_js, _xml, ...) are gone
-! app/ is bundle/: the folder is the source of the bundle the backend serves (?z2ui5-bundle), no longer a UI5 app of its own - webapp/index.html, the launchpad inbound and sap.cloud of its manifest, its start scripts and the direct start of the component (componentData.checkLocal) are gone; the component is created by the embed control, on the backend's own page too
-! the abap2UI5/frontend branches cloud, cloud_v2, standard and standard_v2 and the renamed variants standard_<name> / standard_v2_<name> are not built from this repository any more - they shipped the frontend as an app of its own; neither are cloud_new and standard_new, whose content is part of this repository now (src/03, the branch cloud)
-! the page the HTTP service answers a GET with is a minimal UI5 app around the embed control: a component with one XML view whose one element is a z2ui5.embed.Container, which loads the frontend from the node (?z2ui5-bundle), the way the abap2UI5/frontend branches standard_new and cloud_new start it - the page no longer carries the frontend in its inline script (about 14 KB instead of 700 KB; the bundle is a cached file of its own). The roundtrips of an app on that page go to the page's path without the page's query
-+ app_source/: that app as a UI5 project of its own, with a standard index.html and the control as the npm dependency @abap2ui5/embed-control - the page of the HTTP service and the BSP are written from it
-! developer tools: an embedded component that owns the page (componentData.ownsPage) captures the page's console again - the page is the app's
-* tools/bsp_rename: the page names of the BSP stay paths inside it - renamed with the BSP (thirdparty//abapgit/ui5/embed/Container.js), abapGit found no file for that page and created none of the pages after it, so a renamed frontend stopped with a 404 on view/Main.view.xml
-* @abap2ui5/node-runtime: open-abap-core moves to 1e83502 - cl_abap_typedescr=>describe_by_data_ref raises REFERENCE_IS_INITIAL instead of a JavaScript TypeError, so the RTTI helpers of z2ui5_cl_ui5_util_context call it with EXCEPTIONS on every target
+! One pull is a running installation: the ICF node /sap/bc/z2ui5, its handler z2ui5_cl_ui5_icf_handler (was z2ui5_cl_lp_handler) and the launchpad BSP Z2UI5 are part of abap2UI5 (src/03). abap2UI5/frontend is retired - remove it from abapGit without deleting its objects, then pull
++ ABAP Cloud: the branch cloud, generated from main, carries the HTTP service, its handler, the IAM objects and the app as a Fiori project in app/
++ Navigation: check_on_nav_back( ), nav_app_call( tag ) with get_nav_tag( ), check_nav_pending( ), and keep_messages on nav_app_leave( ) / nav_app_call( )
++ Timers: timer_set( ) / timer_stop( ) declare a timer the framework arms whenever the app gets the screen; START_TIMER can repeat and STOP_TIMER ends it. A tick that changes nothing writes no draft, and a click during a tick is no longer dropped
++ z2ui5_cl_ui5_test: a public test harness that drives an app from ABAP Unit through the real framework, one roundtrip per call
++ Binding: attributes an interface declares and fields with a namespace (/ABC/FIELD) bind; z2ui5_cl_ui5_view_builder=>component_path( ) returns the row-relative path of such a column
++ Launchpad: cs_event-set_title titles the shell as well, get_start_param( ) reads a start parameter however the app was started; message_box_display( icon ) is back
+! Speed: the frontend is a cached, minified bundle that loads while UI5 boots (first view about 0.5 s earlier), the custom controls load only when a view uses one; drafts are smaller and pruned per chain (exit field draft_keep_per_chain, 2 by default)
+! BREAKING: wire protocol 3 (VIEWS / NAV / ACTIONS, S_FRONT.ROUTE, event flags as one object) - apps change nothing, tools that read the response do. Windowed tables are app-driven (t_sort, t_filter and window_get_row( ) are gone), hash_set( ) / hash_replace( ) write only for an app with a hash listener, an own draft store implements prune_chain( ) and touch( )
+- BREAKING: z2ui5_cl_http_handler (use z2ui5_cl_ui5_http_handler), z2ui5_if_exit (use z2ui5_if_ui5_exit), _bind_edit( ) (use _bind( )), the five *_model_update( ) methods (delete the calls) and the experimental offline queue. z2ui5_cl_xml_view(_cc), z2ui5_if_types and the z2ui5_cl_pop_* popups moved to abap2UI5/abap2UI5-ext, with the legacy utilities
 
 
 2026-11-20 v1.150.0
 -------------------
-! drafts: a blank owner (a row from before the UNAME column) is no longer read, found, counted or overwritten as anyone's - the tolerance kept through 1.149.x for the upgrade window is gone, as planned
-! Repositories moved and renamed: the embed control is abap2UI5-addons/embed-ui5-control, the mobile shell abap2UI5-addons/embed-mobile, the web component frontend abap2UI5-addons/embed-webcomponent, the Excel add-in abap2UI5-addons/embed-excel, the playground abap2UI5/browser-playground, the legacy utilities abap2UI5/abap2UI5-obsolet; comments and docs follow
-* window_bind_tab( ) on a table behind a data reference: an edit in the browser (a checkbox, a cell, the selection of a TableSelectDialog) reaches the app - the frontend shipped the whole /<attr>/* node instead of its row delta, and the backend never writes a windowed table back whole, so the edit was dropped
-* RTTI helpers of z2ui5_cl_ui5_util_context: an initial reference no longer ends the request in the runtime error REFERENCE_IS_INITIAL - rtti_get_typedescr_by_data_ref, rtti_get_t_attri_by_oref and rtti_get_t_attri_by_any raise z2ui5_cx_ui5_util_error RTTI_REFERENCE_IS_INITIAL, rtti_check_table_standard and rtti_get_flat_components answer false / empty; the GUID_CREATE fallback catches a message the module sends
-* @abap2ui5/node-runtime: abap2ui5-own-apps keeps the host's DDIC that transpiler 2.14 on writes into output/project/_ddic.mjs and imports it before the host's classes - 1.149.0 took the file for a class named like one of the package's and refused every host with a table or data element of its own
+! Drafts: a row with a blank owner (written before the UNAME column) is no longer read as anyone's - the tolerance of 1.149.x for the upgrade window is gone, as planned
+! Repositories moved and renamed: abap2UI5-addons/embed-ui5-control, embed-mobile, embed-webcomponent and embed-excel, abap2UI5/browser-playground, and the legacy utilities in abap2UI5/abap2UI5-obsolet
+* window_bind_tab( ) on a table behind a data reference: an edit in the browser (a checkbox, a cell, a selection) reaches the app again
+* RTTI helpers of z2ui5_cl_ui5_util_context: an initial reference raises z2ui5_cx_ui5_util_error instead of the runtime error REFERENCE_IS_INITIAL
+* @abap2ui5/node-runtime: abap2ui5-own-apps accepts a host with tables or data elements of its own again
 
 
 2026-11-16 v1.149.0
 -------------------
-+ Various improvements for AIs
++ Windowed tables: window_bind_tab( val window ) sends a large table to the browser a window of rows at a time, as the list grows or scrolls
++ _bind( ) takes a data reference for val and tab - REF #( mt_rows ) or an attribute TYPE REF TO data
++ Language models: z2ui5_if_ui5_llm with chat( ), and z2ui5_cl_ui5_llm with providers for Claude, OpenAI-compatible endpoints and a local rule-based one
++ Custom controls: z2ui5.cc.HTMLFrame shows an HTML document and raises its sapevent links as events; FileUploader has maximumFileSize and fileSizeExceed
++ Launchpad: cs_event-set_app_full_width and cs_event-cross_app_nav_get_links; every roundtrip names the logon client, so a tab in another client no longer breaks the next event
++ Developer tools: the Journey tab records a click-through and exports it as an ABAP Unit test. Coding agents: a GitHub Copilot plugin and the skills in the Agent Skills format
+! message_box_display( ): an error box is never empty, and binding errors name what they are about
+! Upgrade notes: a draft written by 1.148.0 does not restore, the frontend's handler needs a backend from 1.148.0 on, ABAP Cloud bootstraps SAPUI5 from ui5.sap.com by default; the 7.02 build imports on 7.02 SP13
+- BREAKING: the eight invisible custom controls z2ui5.cc.Timer, Focus, Scrolling, Title, LPTitle, Favicon, History and Info - use the cs_event actions (start_timer, set_focus, scroll_to, set_title, ...) instead
+- BREAKING: the frozen utilities (z2ui5_cl_util*, z2ui5_cx_util_error, table Z2UI5_T_91) moved to abap2UI5/abap2UI5-ext - install it next to abap2UI5 and existing code keeps working
 
 
 2026-10-14 v1.148.0
 -------------------
-+ Various improvements for AIs
+! BREAKING for a host that loads apps/index.mjs - @abap2ui5/node-runtime: npx abap2ui5-transpile abap abap2ui5 transpiles the framework and your own classes together into a runtime in abap2ui5/; import serve from ./abap2ui5/host.mjs
+! @abap2ui5/node-runtime: transpiler and runtime 2.14.5 and a newer open-abap-core; eight more framework unit tests run on Node
 
 
 2026-10-14 v1.147.0
 -------------------
-+ Various improvements for AIs
++ Roundtrip monitor: implement z2ui5_if_ui5_monitor and abap2UI5 calls it once per roundtrip (app, event, timings, sizes, errors); switched on with the exit field check_monitor_active
++ Custom controls: z2ui5.cc.ExcelBridge for an app in an Excel add-in, z2ui5.cc.NativeBridgeScan for barcodes in the native mobile shell
++ Tables: copy to the clipboard with sap.m.plugins.CopyProvider (UI5 1.110 and later)
++ Embedded mode: componentData.ownsHash / ownsPage hand the URL hash or the whole page to the component; custom controls load behind a proxy with a path prefix
++ Claude Code plugin: the agent skills, the MCP server, commands such as /abap2ui5:new-app, a reviewer subagent and a lint-on-edit hook
++ Frontend delivery: the abap2UI5/frontend branches standard_new and cloud_new load the frontend from the backend, so an update needs no frontend pull
+! Performance: flat tables are written to JSON directly (4000 bound rows: 1.1 s -> 0.6 s), the developer tools load on first use, the first page is about a fifth smaller
+! @abap2ui5/node-runtime: transpiler 2.14.3, the bin abap2ui5-transpile, TypeScript declarations, stateful sessions, and requests to loopback names only unless allowedHosts adds more
+* Renaming: a renamed installation (build-rename) starts apps and finds its user exit again
+* Many fixes: message boxes, keyboard shortcuts, dates and timestamps in the model, the navigation stack, the launchpad dirty flag and several custom controls
 
 
 2026-09-29 v1.146.0
 -------------------
-+ Various improvements for AIs
+! Embedded mode: an embedded component leaves the URL hash to its host, so a Fiori elements object page keeps its route across roundtrips
+* Embedded mode: an app no longer takes the focus from the host page, leaves no global behind, and Restart restarts the app instead of reloading the host's page
++ Page transitions: view_display( transition = ... ) animates the new view (slide, baseSlide, fade, flip, show); Back plays it reversed
++ cs_event-start_timer: a third argument X keeps the busy indicator down for a tick
+! Security: the default CSP allows 'wasm-unsafe-eval', so the WebAssembly barcode scanners work; 'unsafe-eval' stays out
++ New on npm: @abap2ui5/bsp - a UI5 app as an abapGit BSP and back (app2bsp, bsp2app, check)
+* @abap2ui5/node-runtime: gzip responses, a roundtrip with a large table is linear again, express 4 works next to express 5
 
 
 2026-09-26 v1.145.0
 -------------------
-+ Various improvements for AIs
+! Security: the default Content Security Policy no longer allows 'unsafe-inline' or 'unsafe-eval' for scripts - the page's one inline script runs by its SHA-256 hash
++ Several z2ui5.Component instances run side by side on one page; a host that embeds the component names its backend with componentData.endpoint
++ GET <node>?z2ui5-bundle: the frontend as a script of its own, for a UI5 app that embeds the component
++ Node hosting: every release publishes @abap2ui5/node-runtime on npm - abap2UI5 transpiled to JavaScript, with serve( )
+! The app start checks that the class implements z2ui5_if_app; an app class in a namespace (/NS/CL_X) survives reload, bookmark and Back/Forward
+! The view builder raises VIEW_BUILDER_ERROR on a name that is no XML name; the framework's own views get component-prefixed ids
+* Fixes: navigation (nav_app_leave( ) two levels up, an expired draft), the model (empty date and time fields, negative UTC offsets), popups during Back/Forward, the CSRF check behind a proxy, styles_css from the user exit
+- BREAKING: the global z2ui5 object and the z2ui5.Util / z2ui5.Formatter globals - use core:require of z2ui5/model/formatter
+- BREAKING: cs_event-z2ui5, z2ui5_cl_pop_js_loader, raw JavaScript in follow_up_action( ), and custom_js / title in the exit's HTTP config - use the cs_event actions or a custom control in z2ui5_ccc
 
 
 2026-09-22 v1.144.1
 -------------------
-+ Various improvements for AIs
++ Hash routing owned by the app: hash_set( ) / hash_replace( ), cs_event-hash_back, hash_attach_changed and hash_routing; app_state_set_active( ) and app_state_get_href( ) for share links
++ _event( s_ctrl-check_queue_last ): an event fired during a roundtrip is kept and sent after it - for a live wire such as a search field; check_no_busy keeps the busy overlay down
++ View builder: a( t = ... ) renders text literally, braces included - for data and user input in a view attribute
+! message_box_display( ) shows any data (a table, a structure, an object), with the details open
++ STORE_DATA reads a model-path payload; CONTROL_BY_ID can set a Wizard step by id
+! Performance: the view builder concatenates once per render, a conditional GET of the page is answered before it is built, templating runs only for a view that uses it
++ Hosting outside an SAP system: seams for the draft store and the environment; every release carries the backend already built (backend-<version>.tar.gz)
+* The default headers no longer include Cross-Origin-Opener-Policy, the start page keeps its second roundtrip, and many smaller fixes from code reviews
+! BREAKING renames: set_push_state( ) -> hash_set( ), set_app_state_active( ) -> app_state_set_active( ), cs_event-set_nav_routing -> cs_event-hash_routing, s_ctrl-check_allow_multi_req -> check_queue_last
+- BREAKING: the view parameter of _bind( ), cs_event-clipboard_app_state, wizard_set_next_step, keyboard_set_mode, nav_container_to and image_editor_popup_close, the pure UI5 options of message_toast_display( ) / message_box_display( ), and the DDIC structure Z2UI5_T_02
 
 
 2026-08-30 v1.144.0
 -------------------
-+ Various improvements for AIs
++ client->_event( arg = ... ): the one-value spelling of t_arg
++ client->_bind_path( val ): the path form of _bind( ) under a name of its own
++ Frontend actions: expandSelected / collapseSelected on a tree table, setBadgeMinValue / setBadgeMaxValue, IconPool.registerFont, addCustomCurrencies
+! NavContainer: to( ) takes a page id plus an optional transition, and backToPage( ) works with a plain page id
+* Event arguments: an empty string arrives as an empty string, a date travels as the local date
++ client->get( )-t_model_skipped names the cells a model delta could not convert
+* 7.02 / 7.31: a built-in function in a table-expression key no longer breaks the class pool at compile time
++ MultiInputExt: the suggestion-row half of addValidator; Developer Tools: the cross-tab search has a tab of its own
+! z2ui5_if_exit is now z2ui5_if_ui5_exit - the old interface still ships and existing exits keep working
+! z2ui5_if_types is retired to src/99: its types sit on the objects that use them, and the old names still compile
 
 
 2026-08-16 v1.143.0
 -------------------
-+ Various improvements for AIs
++ z2ui5_cl_ui5_view_builder: the new view builder (factory( ) / ele( ) / tag( ) / a( ) / end( ) / stringify( )); z2ui5_cl_xml_view is frozen and keeps working
+! The model is pushed automatically when an event roundtrip changed it - the *_model_update( ) calls do nothing now and can be deleted
+! Error output: a 500 carries the full diagnostic; the error popup shows the messages, with Details and Copy
+! The HTTP handler gzips its responses where the client accepts it - 70-85% less transfer
++ _bind( json = abap_true ): a bound string that contains JSON becomes a JSON node in the model
+* Control-valued event arguments reach the backend as data; several message toasts and boxes in one roundtrip all show, in call order
+! The startup page was rebuilt; Developer Tools: the POPUP/POPOVER tabs follow a closed dialog, the NEST and System tabs are gone
+* Fixes: a pending timer after the controller is destroyed, keyboard shortcuts after an app switch, the model of a nested view, cc/Storage with structures
+! Obsolete, still works: _event_client( ) (use follow_up_action( )), _bind( custom_mapper / custom_filter ), cs_event-wizard_set_next_step
+- Removed: set_nav_back( ) / set_nav_routing( ), cs_event-nav_to_route and history_back, get( )-viewname, direct writes to check_sticky / check_initialized, five curated formatters
 
 
 2026-07-20 v1.142.0
@@ -148,13 +147,14 @@ unreleased
 * Security: error message sanitization, security response headers, fatal-error overlay
 + Samples repository fully reworked
 * Various small improvements and bugfixes
+- z2ui5_cl_util_api and its variants _c / _s - the methods moved to z2ui5_cl_util and z2ui5_cl_util_ext
+- z2ui5_cl_pop_bal (BAL message popup), without a replacement
 
 
 2025-12-14 v1.141.0
 -------------------
 + Added Image Editor popup for image manipulation
-+ Added Camera Selector control with facing mode support
-+ Added Camera Picture control with configurable height/width
++ Added Camera Selector and Camera Picture controls (facing mode, configurable height/width)
 ! Implemented security headers in HTTP response handling
 + Added experimental check_on_event method for improved event handling
 + Added experimental _event_nav_app_leave method for navigation
