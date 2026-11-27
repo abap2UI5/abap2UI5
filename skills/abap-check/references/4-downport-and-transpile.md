@@ -460,7 +460,7 @@ break one of those four.
   COMPONENTS ... ]` comes out as `READ TABLE ... WITH KEY KEY primary_key
   ...`, which does not compile - name the components without the key name
   (they cover the unique key, the read is the same) or keep `READ TABLE ...
-  WITH TABLE KEY`. Reproduced with abaplint 2.120.120. Gate: none yet -
-  backlog items `abaplint-downport-ref-optional` and
-  `abaplint-downport-key-primary-key`; the downport's own lint catches (2),
-  nothing catches (1).
+  WITH TABLE KEY`. Reproduced with abaplint 2.120.120. (1) is fixed upstream
+  by abaplint/abaplint#4820 (merged 2026-11-27, `line_index( )` is 0 when the
+  row is not found); (2) is backlog item `abaplint-downport-key-primary-key`,
+  filed as abaplint/abaplint#4822 - the downport's own lint catches it.
