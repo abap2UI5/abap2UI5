@@ -19,7 +19,7 @@
  * providers because the guide is what a model is given to build an app.
  *
  * The text is the guide's, line for line, with two changes the ABAP side
- * forces:
+ * forces
  *
  *   - 7-bit ASCII (abaplint's 7bit_ascii, AGENTS.md rule 14): the characters
  *     in TRANSLITERATE are written in ASCII. Any other character outside it
@@ -28,6 +28,9 @@
  *   - 255 characters per ABAP line: a long line of the guide is cut into
  *     several literals joined without a newline, so get( ) still answers it
  *     as one line. Trailing whitespace is dropped (the abapGit format gate).
+ *
+ * and one it chooses: the `<!-- essentials:... -->` marker lines, which only
+ * a generator reads, are left out.
  *
  * Every 80 operands the chain is closed and a new statement starts
  * (`result = result && ...`) - ABAP caps the length of one chained
@@ -51,6 +54,12 @@ const SOURCE = "docs/agents/building-apps.md";
 const CLASS = "z2ui5_cl_ui5_llm_guide";
 const ABAP = `src/01/05/${CLASS}.clas.abap`;
 const XML = `src/01/05/${CLASS}.clas.xml`;
+
+// `<!-- essentials:<id> -->` / `<!-- /essentials:<id> -->`: the lines that
+// mark, in the guide's source, the passages abap2UI5/app-template cuts out for
+// its AGENTS.md (.github/shared/app-guide-deviations.mjs). Comments for a
+// generator, not part of the text - they are left out of the class.
+const ESSENTIALS_MARKER = /^\s*<!-- \/?essentials:[a-z0-9-]+ -->\s*$/;
 
 const TRANSLITERATE = [
   ["—", "-"],
@@ -98,7 +107,8 @@ function abapLines(line) {
 }
 
 export function guideClass(markdown) {
-  const lines = ascii(markdown.replace(/\r\n/g, "\n")).replace(/\n$/, "").split("\n");
+  const lines = ascii(markdown.replace(/\r\n/g, "\n")).replace(/\n$/, "").split("\n")
+    .filter((line) => !ESSENTIALS_MARKER.test(line));
   const body = [];
   let operands = 0;
   lines.forEach((line, i) => {

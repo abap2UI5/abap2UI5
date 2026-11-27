@@ -16,6 +16,40 @@ Two audiences, two entry points:
 
 ## Building apps with abap2UI5
 
+**Arriving with older knowledge of abap2UI5?** Most of what was written about
+it before 1.143.0 - and so most of what a model remembers - names an API that
+has been replaced. If you remember the left side, write the right side:
+
+- `z2ui5_cl_xml_view=>factory( )->shell( )->page( )` (one method per control)
+  -> `z2ui5_cl_ui5_view_builder=>factory( )` with `ele` / `tag` / `a` / `end` /
+  `stringify`, section 3 of the agent guide. The old class left the framework
+  with 1.151.0 and only exists where abap2UI5-ext is installed
+- `client->_bind_edit( var )` -> `client->_bind( var )` - one binding, always
+  both ways; `_bind_edit` is removed
+- `client->view_model_update( )`, `popup_model_update( )` and the like ->
+  delete the call; changed bound data is pushed automatically
+- a `check_initialized` flag of your own, or `z2ui5_if_app~check_initialized`
+  -> `client->check_on_init( )`, with `check_on_navigated( )` and
+  `check_on_event( )` as the other arms of one `IF`/`ELSEIF` chain
+- `CASE client->get( )-event.` and `get( )-t_event_arg` ->
+  `CASE client->get_event( ).` and `client->get_event_arg( )` (the fields
+  still exist; the calls are the idiom)
+- `client->_event_client( … )` -> `client->follow_up_action( … )`, same
+  arguments
+- `client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) )`
+  -> `client->nav_app_leave( )`, which returns to the calling app by itself
+- `z2ui5_cl_pop_to_confirm`, `z2ui5_cl_pop_to_select` and the other built-in
+  `z2ui5_cl_pop_*` -> `z2ui5_cl_popup_to_confirm`, `z2ui5_cl_popup_to_select`,
+  … of the popups addon (below) - a separate install, like every addon
+- `z2ui5_cl_util=>…` -> not part of the framework any more and no API for
+  apps; write the few lines yourself or copy them from
+  [abap-util](https://github.com/abap-util/abap-util)
+
+Every replaced name, with old and new code side by side:
+[Deprecations](https://abap2ui5.github.io/docs/resources/deprecations.html),
+machine-readable as
+[deprecations.json](https://abap2ui5.github.io/docs/api/deprecations.json).
+
 - [app-template](https://github.com/abap2UI5/app-template): starter repo with
   the validation gates, CI and agent setup preconfigured - begin here
 - [Claude Code plugin](plugin/README.md): the four agent skills, the
@@ -51,6 +85,41 @@ Two audiences, two entry points:
 - [samples-stack](https://github.com/abap2UI5/samples-stack) (formerly
   samples-ext): abap2UI5 combined with OData, RAP, WebSockets, the Fiori
   Launchpad and more
+- [Addons](https://abap2ui5-addons.github.io/): finished pieces in
+  repositories of their own under
+  [abap2UI5-addons](https://github.com/abap2UI5-addons), each installed with
+  abapGit next to abap2UI5 - look there before building a dialog, a table
+  layout, a selection screen or a lock by hand. The map for agents is
+  https://abap2ui5-addons.github.io/llms.txt, and
+  https://abap2ui5-addons.github.io/addons.json lists every addon with
+  `useWhen`, `entryPoints` and `dependsOn`. The ones an app calls from code:
+  - [popups](https://github.com/abap2UI5-addons/popups): confirm, inform,
+    select, decide, input, file upload and download, table, messages, range
+    and value help dialogs - `z2ui5_cl_popup_to_confirm`, `_to_inform`,
+    `_to_select`, `_to_decide`, `_get_values`, `_file_ul`, `_file_dl`,
+    `_table`, `_messages`, `_get_range`, `_value_help`; each a `factory( )`
+    handed to `client->nav_app_call( )`. Needs layout-management
+  - [layout-management](https://github.com/abap2UI5-addons/layout-management):
+    tables and forms the user lays out and saves as variants -
+    `z2ui5_cl_layo_manager`, `z2ui5_cl_layo_pop`
+  - [range-filter](https://github.com/abap2UI5-addons/range-filter):
+    select-options with saved variants, from a table name or your data -
+    `z2ui5_cl_sel_multisel`, `z2ui5_cl_sel_multisel_pop`
+  - [lock-manager](https://github.com/abap2UI5-addons/lock-manager): an SAP
+    lock held across roundtrips - `z2ui5_cl_lock_manager=>request( )`
+  - [abap-cloud-gui](https://github.com/abap2UI5-addons/abap-cloud-gui): the
+    classic report model, selection screen, list and ALV - a subclass of
+    `z2ui5_cl_cgui_report`
+  - [rap-ext](https://github.com/abap2UI5-addons/rap-ext): list report,
+    object page and value help from a CDS view -
+    `z2ui5_cl_rap_list_report` and its siblings (experimental)
+  - [custom-controls](https://github.com/abap2UI5-addons/custom-controls):
+    signature pad, charts, barcodes, editors - one `z2ui5_cl_cci_*` class per
+    control
+
+  In a project made from app-template, `npm run add-addon -- <repo>` adds the
+  addon and what it depends on to `abaplint.jsonc`, so the lint gate resolves
+  its classes instead of reporting "Class ... not found"
 - [abap2UI5-linter](https://github.com/abap2UI5/linter): static +
   headless-render checks for app view code (CLI, GitHub Action, VS Code)
 - [mcp-server](https://github.com/abap2UI5/mcp-server): MCP server with the

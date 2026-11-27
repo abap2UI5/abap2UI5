@@ -364,6 +364,15 @@ reported, and never let a merge close it** — no `Fixes #NNNN` / `Closes #NNNN`
 `Resolves #NNNN` in a title, body or commit message; write `Report: #NNNN` or
 `See #NNNN`. Only the reporter can confirm the fix, on their system.
 
+**Pull requests to other repositories** (abaplint, open-abap, the transpiler):
+open them against the upstream repository itself, never against a fork's
+`main`, and with "Allow edits by maintainers" switched on, so the maintainer
+can update the branch. **No customer information** in a PR title or body, a
+commit message, a test or an issue: no customer namespaces or object names, no
+code copied from a customer system, no business details of the case. Write a
+neutral reproducer (`ztab`, SFLIGHT fields, a generic `lv_where`) and describe
+the evidence generically ("an activation on S/4HANA, 2026-11").
+
 ## Important Rules for AI Assistants
 
 For **modifying the framework**. Code, tests and gates cite these by number —
