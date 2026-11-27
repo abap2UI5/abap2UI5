@@ -57,9 +57,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `something to seed once. All three are arms of ONE ``IF``/``ELSEIF`` chain (section 2).` && |\n| &&
              `The app builds a UI5 XML view as a string, binds ABAP attributes into it,` && |\n| &&
              `and registers named events. Between roundtrips the framework` && |\n| &&
-             `serializes the app object into a draft table and restores it - **every PUBLIC` && |\n| &&
-             `attribute is persisted state and travels to the browser with the model**, so` && |\n| &&
-             `bound data goes in ``PUBLIC SECTION``, everything else in ``PROTECTED SECTION``.` && |\n| &&
+             `serializes the app object into a draft table and restores it - **every` && |\n| &&
+             `attribute, whatever its section, is persisted state; only the bound ones` && |\n| &&
+             `travel to the browser**. ``_bind( )`` needs a PUBLIC attribute, so bound data` && |\n| &&
+             `goes in ``PUBLIC SECTION``, everything else in ``PROTECTED SECTION``.` && |\n| &&
              `There is no JavaScript, no OData service and no deployment step: activate the` && |\n| &&
              `class, call the ICF endpoint with ``?app_start=zcl_my_app``.` && |\n| &&
              |\n| &&
@@ -70,10 +71,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `  PUBLIC SECTION.` && |\n| &&
              `    INTERFACES z2ui5_if_app.` && |\n| &&
-             `    " ONLY bound data here - PUBLIC attributes are serialized every roundtrip` && |\n| &&
-             `    TYPES: BEGIN OF ty_s_item,` && |\n| &&
-             `             product  TYPE string,` && |\n|.
+             `    " ONLY bound data here - _bind( ) needs PUBLIC, every attribute is persisted` && |\n| &&
+             `    TYPES: BEGIN OF ty_s_item,` && |\n|.
     result = result &&
+             `             product  TYPE string,` && |\n| &&
              `             quantity TYPE i,` && |\n| &&
              `           END OF ty_s_item.` && |\n| &&
              `    DATA t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY.` && |\n| &&
@@ -118,9 +119,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `                )->a( n = ``title`` v = ``My App``` && |\n| &&
              |\n| &&
              `                )->tag( ``Input``` && |\n| &&
-             `                    )->a( n = ``value`` v = client->_bind( name )` && |\n| &&
-             |\n|.
+             `                    )->a( n = ``value`` v = client->_bind( name )` && |\n|.
     result = result &&
+             |\n| &&
              `                )->ele( ``List``` && |\n| &&
              `                    )->a( n = ``items`` v = client->_bind( t_items )` && |\n| &&
              |\n| &&
@@ -877,10 +878,12 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  using a control/property/aggregation, check its "available since" in the` && |\n| &&
              `  UI5 API - post-1.71 members need a UI5 release that has them; a wrong` && |\n| &&
              `  aggregation name 404s the whole view on old releases.` && |\n| &&
-             `- **State discipline**: every PUBLIC attribute is serialized into the draft` && |\n| &&
-             `  and sent to the browser on every render. Large helper data, catalogs and` && |\n| &&
-             `  anything not bound belongs in PROTECTED (or is re-read per request) - a` && |\n| &&
-             `  bloated public section makes every click slower.` && |\n| &&
+             `- **State discipline**: every attribute - PUBLIC, PROTECTED and PRIVATE` && |\n| &&
+             `  alike - is serialized into the draft on every roundtrip; only the bound` && |\n| &&
+             `  ones are sent to the browser. Moving a large catalog to PROTECTED does not` && |\n| &&
+             `  shrink the draft: data the next roundtrip does not need is CLEARed or` && |\n| &&
+             `  re-read per request. Keep the PUBLIC section to what is bound - the` && |\n| &&
+             `  framework walks every public structure and reference each roundtrip.` && |\n| &&
              `- Authorization is **the app's job**: any user who can reach the ICF node can` && |\n| &&
              `  start any ``z2ui5_if_app`` class. The framework performs no ``AUTHORITY-CHECK``` && |\n| &&
              `  of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).` && |\n| &&
@@ -889,10 +892,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  does it. The shipped Hello World has no check because it guards nothing;` && |\n| &&
              `  an app that reads or writes business data starts like this:` && |\n| &&
              |\n| &&
-             `  ``````abap` && |\n| &&
-             `  METHOD z2ui5_if_app~main.` && |\n| &&
-             |\n|.
+             `  ``````abap` && |\n|.
     result = result &&
+             `  METHOD z2ui5_if_app~main.` && |\n| &&
+             |\n| &&
              `    AUTHORITY-CHECK OBJECT 'Z_MY_APP' ID 'ACTVT' FIELD '03'.` && |\n| &&
              `    IF sy-subrc <> 0.` && |\n| &&
              `      client->message_box_display( text = ``You are not authorized to use this app``` && |\n| &&
@@ -933,9 +936,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `## 9. Validate and iterate like the framework does` && |\n| &&
              |\n| &&
-             `- **Starting a new app repo? Use` && |\n| &&
-             `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** - it` && |\n|.
+             `- **Starting a new app repo? Use` && |\n|.
     result = result &&
+             `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** - it` && |\n| &&
              `  ships the starter app, abaplint + linter CI, this guide (the essentials in` && |\n| &&
              `  its AGENTS.md, the whole as a reference of its ``build-an-app`` skill) and` && |\n| &&
              `  the agent permission setup preconfigured.` && |\n| &&
@@ -974,10 +977,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``check_on_navigated( )`` true), ``set_model( )`` is what the user types into a` && |\n| &&
              `  bound control (it travels as the model delta of the next request and is in` && |\n| &&
              `  the attribute when ``main( )`` runs), ``event( )`` is a press of a control wired` && |\n| &&
-             `  with ``_event( )``:` && |\n| &&
-             |\n| &&
-             `  ``````abap` && |\n|.
+             `  with ``_event( )``:` && |\n|.
     result = result &&
+             |\n| &&
+             `  ``````abap` && |\n| &&
              `  CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.` && |\n| &&
              `    PRIVATE SECTION.` && |\n| &&
              `      METHODS post_names_the_input FOR TESTING RAISING cx_static_check.` && |\n| &&
@@ -1019,9 +1022,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  Two things follow from the draft and are worth knowing: every event` && |\n| &&
              `  restores the app from the draft the previous roundtrip saved, so **read` && |\n| &&
              `  ``app( )`` again after every step** (an older reference is a dead instance)` && |\n| &&
-             `  and change a bound value with ``set_model( )``, not on the instance; and an` && |\n| &&
-             `  attribute the draft cannot carry fails in the test as it fails in the` && |\n|.
+             `  and change a bound value with ``set_model( )``, not on the instance; and an` && |\n|.
     result = result &&
+             `  attribute the draft cannot carry fails in the test as it fails in the` && |\n| &&
              `  browser. The drafts are kept in memory - no row reaches ``Z2UI5_T_01`` - and` && |\n| &&
              `  an app that calls ``set_session_stateful( )`` keeps its instance, as on a` && |\n| &&
              `  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the` && |\n| &&
@@ -1062,10 +1065,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `### Starting them` && |\n| &&
              |\n| &&
              `| How | What it does |` && |\n| &&
-             `|---|---|` && |\n| &&
-             `| **Ctrl+F12** in the running app | Opens the dialog; Ctrl+F12 again closes it. Without a tab named, it reopen` &&
-             `s where you left off (remembered per browser tab in ``sessionStorage``) |` && |\n|.
+             `|---|---|` && |\n|.
     result = result &&
+             `| **Ctrl+F12** in the running app | Opens the dialog; Ctrl+F12 again closes it. Without a tab named, it reopen` &&
+             `s where you left off (remembered per browser tab in ``sessionStorage``) |` && |\n| &&
              `| **``?z2ui5-devtools=1``** on the page URL | Opens the tools as soon as the page has booted, on the Overview. F` &&
              `or a problem that happens during startup, where Ctrl+F12 comes too late. Example: ``https://<host>/sap/bc/z2ui5` &&
              `?sap-client=100&z2ui5-devtools=1`` |` && |\n| &&
@@ -1110,9 +1113,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  nested views as the backend sent it, the model that fills each, and the` && |\n| &&
              `  bindings with a missing-path check and a size ranking. The picker marks a` && |\n| &&
              `  control on screen and jumps to its XML.` && |\n| &&
-             `- **System**: UI5 version, theme, device, the running app's ABAP class.` && |\n| &&
-             `- **Search**: one term across every other tab at once.` && |\n|.
+             `- **System**: UI5 version, theme, device, the running app's ABAP class.` && |\n|.
     result = result &&
+             `- **Search**: one term across every other tab at once.` && |\n| &&
              `- **Report a Bug** (toolbar): puts the whole session state on the clipboard as a` && |\n| &&
              `  GitHub-ready issue body (environment, error, log, roundtrip history, the` && |\n| &&
              `  app's class, each in a collapsed section). Paste it into an issue as it is.` && |\n| &&
@@ -1154,9 +1157,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  configuration and pass a destination (SM59 on Standard, a communication` && |\n| &&
              `  arrangement or BTP destination on Cloud) or a URL plus key; there is no` && |\n| &&
              `  default model.` && |\n| &&
-             `- Create the provider in the method that calls it - never keep it in an` && |\n| &&
-             `  attribute, the app instance is serialized every roundtrip. Keep the` && |\n|.
+             `- Create the provider in the method that calls it - never keep it in an` && |\n|.
     result = result &&
+             `  attribute, the app instance is serialized every roundtrip. Keep the` && |\n| &&
              `  conversation (``mt_chat``) as the attribute instead, and call in an event` && |\n| &&
              `  branch: the user waits for the whole answer.` && |\n| &&
              `- **Do not ``_bind( )`` the conversation you pass to ``chat( )``.** A bound` && |\n| &&

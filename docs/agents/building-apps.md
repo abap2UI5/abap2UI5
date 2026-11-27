@@ -27,9 +27,10 @@ two are the dispatcher; the third is a branch an app only carries when it has
 something to seed once. All three are arms of ONE `IF`/`ELSEIF` chain (§2).
 The app builds a UI5 XML view as a string, binds ABAP attributes into it,
 and registers named events. Between roundtrips the framework
-serializes the app object into a draft table and restores it — **every PUBLIC
-attribute is persisted state and travels to the browser with the model**, so
-bound data goes in `PUBLIC SECTION`, everything else in `PROTECTED SECTION`.
+serializes the app object into a draft table and restores it — **every
+attribute, whatever its section, is persisted state; only the bound ones
+travel to the browser**. `_bind( )` needs a PUBLIC attribute, so bound data
+goes in `PUBLIC SECTION`, everything else in `PROTECTED SECTION`.
 There is no JavaScript, no OData service and no deployment step: activate the
 class, call the ICF endpoint with `?app_start=zcl_my_app`.
 <!-- /essentials:model -->
@@ -42,7 +43,7 @@ CLASS zcl_my_app DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-    " ONLY bound data here - PUBLIC attributes are serialized every roundtrip
+    " ONLY bound data here - _bind( ) needs PUBLIC, every attribute is persisted
     TYPES: BEGIN OF ty_s_item,
              product  TYPE string,
              quantity TYPE i,
@@ -830,10 +831,12 @@ reasoning:
   UI5 API — post-1.71 members need a UI5 release that has them; a wrong
   aggregation name 404s the whole view on old releases.
   <!-- essentials:state -->
-- **State discipline**: every PUBLIC attribute is serialized into the draft
-  and sent to the browser on every render. Large helper data, catalogs and
-  anything not bound belongs in PROTECTED (or is re-read per request) — a
-  bloated public section makes every click slower.
+- **State discipline**: every attribute - PUBLIC, PROTECTED and PRIVATE
+  alike - is serialized into the draft on every roundtrip; only the bound
+  ones are sent to the browser. Moving a large catalog to PROTECTED does not
+  shrink the draft: data the next roundtrip does not need is CLEARed or
+  re-read per request. Keep the PUBLIC section to what is bound - the
+  framework walks every public structure and reference each roundtrip.
   <!-- /essentials:state -->
 - Authorization is **the app's job**: any user who can reach the ICF node can
   start any `z2ui5_if_app` class. The framework performs no `AUTHORITY-CHECK`
