@@ -65,6 +65,7 @@ sap.ui.define(
 
       exit() {
         this._stopWaiting();
+        this._cancelFire?.();
         if (this._oButton) this._oButton.destroy();
       },
 
@@ -87,9 +88,12 @@ sap.ui.define(
         window.removeEventListener(READY_EVENT, this._onReady);
       },
 
+      // through the same wait as OnScan - a cancelled scan answers late too
       _fail(message) {
         if (Lib.isDestroyed(this)) return;
-        this.fireOnError({ message });
+        this._cancelFire = Lib.fireWhenIdle(this, () =>
+          this.fireOnError({ message }),
+        );
       },
 
       // Returns the scan promise (or undefined when nothing was started) so
@@ -114,7 +118,12 @@ sap.ui.define(
             if (Lib.isDestroyed(this)) return;
             const text = Lib.toText(value);
             this.setProperty("value", text, true);
-            this.fireOnScan({ value: text });
+            // the scan answers whenever the user is done - also while a
+            // roundtrip (a push, a timer tick) is in flight, whose busy
+            // guard dropped the event: it waits for that one instead
+            this._cancelFire = Lib.fireWhenIdle(this, () =>
+              this.fireOnScan({ value: text }),
+            );
           },
           (e) => {
             this._scanning = false;
