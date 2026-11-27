@@ -1738,6 +1738,10 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( mo_mock->mv_cdata ).
     cl_abap_unit_assert=>assert_equals( exp = `text/plain; charset=UTF-8`
                                         act = header_value( `content-type` ) ).
+    " the exit's headers are lost with it - nosniff, which the text/plain
+    " body relies on, is the handler's own and stays
+    cl_abap_unit_assert=>assert_equals( exp = `nosniff`
+                                        act = header_value( `x-content-type-options` ) ).
 
   ENDMETHOD.
 
