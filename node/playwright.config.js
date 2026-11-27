@@ -125,10 +125,14 @@ module.exports = defineConfig(
        so its controls are required before Fragment.load (Env.
        preloadFragmentModules) - a custom control among them is there only
        once its bundle is, and the order of the two is what 1.71 would
-       break. */
+       break.
+       And start-failed: the page's component hooks into its root view
+       (createContent, which 1.71 answers with the view and the current
+       release with a promise of it) and loads sap.m.MessagePage at the
+       point of use - both ends of the range have to say a failed start. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details|library-preload|window|cc-bundle)\.spec\.js$/,
+      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details|library-preload|window|cc-bundle|start-failed)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */
