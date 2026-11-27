@@ -1096,11 +1096,12 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `e,    "dependencies": {      "minUI5Version": "1.71.0",      "libs": {        "sap.m": {},        "sap.ui.core": {}      }    },    "contentDensities": {      "compact": true,      "cozy": true    }, ` &&
              `   "services": {      "ShellUIService": {        "factoryName": "sap.ushell.ui5service.ShellUIService",        "lazy": true      }    },    "rootView": {      "viewName": "z2ui5.view.App",      "type"` &&
              `: "XML",      "async": true,      "id": "App"    },    "resourceRoots": {      "z2ui5_cci": "../z2ui5_cci/",      "z2ui5_ccc": "../z2ui5_ccc/"    }  }}',` && |\n| &&
-             `      "z2ui5/model/clipboard.js": function(){sap.ui.define(["sap/base/strings/formatMessage"],formatMessage=>{"use strict";function toCellValue(v){return v===undefined||v===null?"":v}function contextO` &&
-             `f(oContextOrRow){if(!oContextOrRow)return null;if(typeof oContextOrRow.getProperty==="function")return oContextOrRow;if(typeof oContextOrRow.getBindingContext==="function"){return oContextOrRow.getBin` &&
-             `dingContext()||null}return null}return{extractData(oContextOrRow,oColumn,bIncludeHtmlMimeType){const sBindings=oColumn&&typeof oColumn.data==="function"?oColumn.data("bindings"):null;if(!sBindings)ret` &&
-             `urn undefined;const oContext=contextOf(oContextOrRow);const aCellData=String(sBindings).split(",").map(sPath=>sPath.trim()).filter(Boolean).map(sPath=>toCellValue(oContext?oContext.getProperty(sPath):` &&
-             `undefined));if(!bIncludeHtmlMimeType)return aCellData;return{text:aCellData,html:formatMessage(oColumn.data("template")||"{0}",aCellData)}}}});` && |\n| &&
+             `      "z2ui5/model/clipboard.js": function(){sap.ui.define(["sap/base/strings/formatMessage"],formatMessage=>{"use strict";function toCellValue(v){return v===undefined||v===null?"":v}function escapeHt` &&
+             `ml(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}function contextOf(oContextOrRow){if(!oContextOrRow)return null;if(t` &&
+             `ypeof oContextOrRow.getProperty==="function")return oContextOrRow;if(typeof oContextOrRow.getBindingContext==="function"){return oContextOrRow.getBindingContext()||null}return null}return{extractData(` &&
+             `oContextOrRow,oColumn,bIncludeHtmlMimeType){const sBindings=oColumn&&typeof oColumn.data==="function"?oColumn.data("bindings"):null;if(!sBindings)return undefined;const oContext=contextOf(oContextOrRo` &&
+             `w);const aCellData=String(sBindings).split(",").map(sPath=>sPath.trim()).filter(Boolean).map(sPath=>toCellValue(oContext?oContext.getProperty(sPath):undefined));if(!bIncludeHtmlMimeType)return aCellDa` &&
+             `ta;return{text:aCellData,html:formatMessage(oColumn.data("template")||"{0}",aCellData.map(escapeHtml))}}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/model/formatter.js": function(){sap.ui.define(["sap/ui/core/IconPool"],IconPool=>{"use strict";function parseYmd(value){const d=abapDigits(value,ISO_DAY);return[Number(d.slice(0,4)),Numbe` &&
