@@ -14,7 +14,8 @@
       "trimmed": true,
       "settled": {
         "class_constructor": "the master keeps cv_char_util_charsize, which has no caller in this trimmed copy",
-        "uuid_get_c32": "the master keeps its gv_uuid_failed guard, dropped here in the 2026-10 full sync"
+        "uuid_get_c32": "the master keeps its gv_uuid_failed guard, dropped here in the 2026-10 full sync",
+        "c_escape_json": "the master escapes every control character below U+0020 itself; here z2ui5_cl_ui5_util_json_fl=>escape_controls does that once for a whole response, so the per-value escape stays at the five common characters"
       }
     },
     {
