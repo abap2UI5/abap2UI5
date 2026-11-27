@@ -116,6 +116,19 @@ sap.ui.define(
       });
     }
 
+    // One part of an intent's query, decoded - or as it stands when it is
+    // no valid percent-encoding ("100%" or a lone "%E0"): decodeURIComponent
+    // throws a URIError there, which took the whole getLinks answer down
+    // with it, every other link of the list included. The raw text is what
+    // the shell itself would hand on.
+    function decodePart(sPart) {
+      try {
+        return decodeURIComponent(sPart);
+      } catch {
+        return sPart;
+      }
+    }
+
     // An intent as getLinks returns it ("#SO-action?A=1&B=2") split into
     // the parts CROSS_APP_NAV_TO_EXT takes, so the backend can navigate to
     // an entry without parsing a hash. A malformed one keeps only the hash.
@@ -126,9 +139,9 @@ sap.ui.define(
       for (const pair of (m[3] || "").split("&")) {
         if (!pair) continue;
         const i = pair.indexOf("=");
-        const key = decodeURIComponent(i < 0 ? pair : pair.slice(0, i));
+        const key = decodePart(i < 0 ? pair : pair.slice(0, i));
         if (key.startsWith("sap-")) continue; // shell-internal, not the app's
-        params[key] = i < 0 ? "" : decodeURIComponent(pair.slice(i + 1));
+        params[key] = i < 0 ? "" : decodePart(pair.slice(i + 1));
       }
       return { semanticObject: m[1], action: m[2], params };
     }

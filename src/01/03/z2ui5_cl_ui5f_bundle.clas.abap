@@ -725,18 +725,19 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `t":"...","action":"..."}) or pass its model path``);return null}return target}function evCrossAppNavToExt(oController,args){withCrossAppNavigator(oController,nav=>{const target=navTarget(oController,ar` &&
              `gs[1]);if(target===null)return;const params=boundArg(oController,args[2],"params");if(params===null)return;const hash=nav.hrefForExternal({target,params})||"";if(args[3]==="EXT"){const base=window.loc` &&
              `ation.href.split("#")[0];const url=``${base}${hash}``;if(!Lib.isValidRedirectURL(url)){Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);return}_URLHelper.redirect(url,true)}else{nav.toExter` &&
-             `nal({target:{shellHash:hash}})}})}function splitIntent(sIntent){const m=/^#?([^-?&#]+)-([^?&#~]+)(?:\?(.*))?$/.exec(sIntent||"");if(!m)return{};const params={};for(const pair of(m[3]||"").split("&")){` &&
-             `if(!pair)continue;const i=pair.indexOf("=");const key=decodeURIComponent(i<0?pair:pair.slice(0,i));if(key.startsWith("sap-"))continue;params[key]=i<0?"":decodeURIComponent(pair.slice(i+1))}return{sema` &&
-             `nticObject:m[1],action:m[2],params}}function evCrossAppNavGetLinks(oController,args){withCrossAppNavigator(oController,nav=>{const target=navTarget(oController,args[1]);if(target===null)return;const p` &&
-             `arams=boundArg(oController,args[2],"params");if(params===null)return;const sEvent=Lib.toText(args[3]);if(!target?.semanticObject||!sEvent){Lib.logError("CROSS_APP_NAV_GET_LINKS: needs a target with a ` &&
-             `semanticObject and a callback event");return}const query={semanticObject:target.semanticObject};if(target.action)query.action=target.action;if(params)query.params=params;Promise.resolve(nav.getLinks(q` &&
-             `uery)).then(links=>{const result=(links||[]).map(l=>({intent:l.intent,text:l.text||"",subTitle:l.subTitle||"",...splitIntent(l.intent)}));Lib.dispatchWhenIdle(oController,[[sEvent],JSON.stringify(resu` &&
-             `lt)])}).catch(e=>Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed",e))})}function evSetTitleLaunchpad(oController,args){Lib.setShellTitle(oController?.ctx,Lib.toText(args[1]),"SET_TITLE_LAUNCHPA` &&
-             `D")}function evSetAppFullWidth(oController,args){const launchpad=oController?.ctx?.state.oLaunchpad;if(!launchpad)return;const raw=args[1];const fullWidth=raw===true||raw==="X"||raw==="true";const gua` &&
-             `rded=call=>{try{call()}catch(e){Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed",e)}};const shell=launchpad.ShellUIService;if(shell?.setApplicationFullWidth){guarded(()=>shell.setAppl` &&
-             `icationFullWidth(fullWidth));return}const viaAppConfiguration=ac=>guarded(()=>ac.setApplicationFullWidth(fullWidth));if(launchpad.AppConfiguration){viaAppConfiguration(launchpad.AppConfiguration);retu` &&
-             `rn}sap.ui.require(["sap/ushell/services/AppConfiguration"],viaAppConfiguration,e=>Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded",e))}const handlers={CROSS_APP_NAV_TO_PREV_APP:evCrossAp` &&
-             `pNavToPrevApp,CROSS_APP_NAV_TO_EXT:evCrossAppNavToExt,CROSS_APP_NAV_GET_LINKS:evCrossAppNavGetLinks,SET_TITLE_LAUNCHPAD:evSetTitleLaunchpad,SET_APP_FULL_WIDTH:evSetAppFullWidth};return{handlers}});` && |\n| &&
+             `nal({target:{shellHash:hash}})}})}function decodePart(sPart){try{return decodeURIComponent(sPart)}catch{return sPart}}function splitIntent(sIntent){const m=/^#?([^-?&#]+)-([^?&#~]+)(?:\?(.*))?$/.exec(` &&
+             `sIntent||"");if(!m)return{};const params={};for(const pair of(m[3]||"").split("&")){if(!pair)continue;const i=pair.indexOf("=");const key=decodePart(i<0?pair:pair.slice(0,i));if(key.startsWith("sap-")` &&
+             `)continue;params[key]=i<0?"":decodePart(pair.slice(i+1))}return{semanticObject:m[1],action:m[2],params}}function evCrossAppNavGetLinks(oController,args){withCrossAppNavigator(oController,nav=>{const t` &&
+             `arget=navTarget(oController,args[1]);if(target===null)return;const params=boundArg(oController,args[2],"params");if(params===null)return;const sEvent=Lib.toText(args[3]);if(!target?.semanticObject||!s` &&
+             `Event){Lib.logError("CROSS_APP_NAV_GET_LINKS: needs a target with a semanticObject and a callback event");return}const query={semanticObject:target.semanticObject};if(target.action)query.action=target` &&
+             `.action;if(params)query.params=params;Promise.resolve(nav.getLinks(query)).then(links=>{const result=(links||[]).map(l=>({intent:l.intent,text:l.text||"",subTitle:l.subTitle||"",...splitIntent(l.inten` &&
+             `t)}));Lib.dispatchWhenIdle(oController,[[sEvent],JSON.stringify(result)])}).catch(e=>Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed",e))})}function evSetTitleLaunchpad(oController,args){Lib.se` &&
+             `tShellTitle(oController?.ctx,Lib.toText(args[1]),"SET_TITLE_LAUNCHPAD")}function evSetAppFullWidth(oController,args){const launchpad=oController?.ctx?.state.oLaunchpad;if(!launchpad)return;const raw=a` &&
+             `rgs[1];const fullWidth=raw===true||raw==="X"||raw==="true";const guarded=call=>{try{call()}catch(e){Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed",e)}};const shell=launchpad.ShellUI` &&
+             `Service;if(shell?.setApplicationFullWidth){guarded(()=>shell.setApplicationFullWidth(fullWidth));return}const viaAppConfiguration=ac=>guarded(()=>ac.setApplicationFullWidth(fullWidth));if(launchpad.Ap` &&
+             `pConfiguration){viaAppConfiguration(launchpad.AppConfiguration);return}sap.ui.require(["sap/ushell/services/AppConfiguration"],viaAppConfiguration,e=>Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration` &&
+             ` not loaded",e))}const handlers={CROSS_APP_NAV_TO_PREV_APP:evCrossAppNavToPrevApp,CROSS_APP_NAV_TO_EXT:evCrossAppNavToExt,CROSS_APP_NAV_GET_LINKS:evCrossAppNavGetLinks,SET_TITLE_LAUNCHPAD:evSetTitleLa` &&
+             `unchpad,SET_APP_FULL_WIDTH:evSetAppFullWidth};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/Shortcuts.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/ScrollFocus"],(Lib,ViewSlots,ScrollFocus)=>{"use strict";const SHORTCUT_MODIFIERS` &&
@@ -857,9 +858,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `rol.attachChange!=="function")return;control.attachChange(oEvent=>{if(typeof oSVM.currentVariantSetModified==="function"){oSVM.currentVariantSetModified(true)}if(typeof oFilterBar.fireFilterChange==="` &&
              `function"){oFilterBar.fireFilterChange(oEvent)}})})}function withPersonalizableInfo(callback){const name="sap/ui/comp/smartvariants/PersonalizableInfo";if(typeof sap==="undefined"||!sap.ui||typeof sap` &&
              `.ui.require!=="function"){Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");return}const loaded=sap.ui.require(name);if(loaded){callback(loaded);return}sap.ui.require([name],callba` &&
-             `ck,()=>Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available"))}function evFilterBarVariantInit(oController,args){const[,svmId,filterBarId]=args;const activeInits=activeInitsO` &&
-             `f(oController,"FILTER_BAR_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${filterBarId||""}``;if(activeInits.has(key))return;activeInits.add(key);const finish=()=>activeInits.delete(key);let`.
+             `ck,()=>Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available"))}function evFilterBarVariantInit(oController,args){const[,svmId,filterBarId]=args;const activeInits=activeInitsO`.
     result = result &&
+             `f(oController,"FILTER_BAR_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${filterBarId||""}``;if(activeInits.has(key))return;activeInits.add(key);const finish=()=>activeInits.delete(key);let` &&
              ` tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const oFilterBar=ViewSlots.resolveById(oController?.ctx,filterB` &&
              `arId);if(!oSVM||!oFilterBar){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``);finis` &&
              `h();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.addPersonalizableControl!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``);finish();return}if(typeof o` &&
