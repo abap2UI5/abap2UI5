@@ -115,6 +115,79 @@ CLASS ltcl_app_conv IMPLEMENTATION.
 ENDCLASS.
 
 
+" the edges of a binding: a structure written as one value (its dates, its
+" references), a table of references to rows, and numbers with more digits
+" than a double keeps - on every road the model goes out by
+CLASS ltcl_app_edge DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_form,
+        name TYPE string,
+        dt   TYPE d,
+        tm   TYPE t,
+      END OF ty_s_form.
+    TYPES ty_t_form TYPE STANDARD TABLE OF ty_s_form WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_line,
+        id     TYPE i,
+        s_form TYPE ty_s_form,
+      END OF ty_s_line.
+    TYPES ty_t_line TYPE STANDARD TABLE OF ty_s_line WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_withref,
+        name TYPE string,
+        r    TYPE REF TO data,
+        o    TYPE REF TO object,
+      END OF ty_s_withref.
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+        qty  TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_refs TYPE STANDARD TABLE OF REF TO ty_s_row WITH EMPTY KEY.
+    " the shape of a TZNTSTMPL, DEC 21,7 - more digits than a double keeps
+    TYPES ty_stamp TYPE p LENGTH 11 DECIMALS 7.
+    TYPES:
+      BEGIN OF ty_s_wide,
+        name       TYPE string,
+        changed_at TYPE ty_stamp,
+        big        TYPE decfloat34,
+        price      TYPE p LENGTH 8 DECIMALS 2,
+        ratio      TYPE f,
+      END OF ty_s_wide.
+    TYPES ty_t_wide TYPE STANDARD TABLE OF ty_s_wide WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_deep,
+        s_wide TYPE ty_s_wide,
+        t_wide TYPE ty_t_wide,
+      END OF ty_s_deep.
+
+    DATA ms_form    TYPE ty_s_form.
+    DATA mt_form    TYPE ty_t_form.
+    DATA mt_line    TYPE ty_t_line.
+    DATA ms_withref TYPE ty_s_withref.
+    DATA mt_refs    TYPE ty_t_refs.
+    " bound component by component - the general road's scalars
+    DATA ms_wide    TYPE ty_s_wide.
+    " bound whole - the fast road
+    DATA ms_flat    TYPE ty_s_wide.
+    DATA mt_wide    TYPE ty_t_wide.
+    " a deep value - the general road, walked
+    DATA ms_deep    TYPE ty_s_deep.
+    DATA mv_big     TYPE decfloat34.
+ENDCLASS.
+
+
+CLASS ltcl_app_edge IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
 " three levels of tables - a delta that walks two nested __delta nodes
 CLASS ltcl_app_deep3 DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
@@ -2002,6 +2075,36 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a date or time in a spelling that is neither ISO nor plain digits is
     " refused and traced - it used to be cut to its first characters
     METHODS date_time_text_refused   FOR TESTING RAISING cx_static_check.
+    " a structure, a structure cell and a table written as one value read
+    " an emptied date or time as initial and plain digits like the ISO form
+    METHODS whole_value_dates        FOR TESTING RAISING cx_static_check.
+    " the reference components of a structure written as one value take
+    " nothing from the wire and keep what they held - the edit of a sibling
+    " field lands
+    METHODS whole_value_refs_kept    FOR TESTING RAISING cx_static_check.
+    " a row delta into a table of references goes into the rows they point
+    " to; a reference that points nowhere is traced
+    METHODS delta_ref_rows           FOR TESTING RAISING cx_static_check.
+    " a number with more digits than a double keeps goes out as text on
+    " every road, and comes back unchanged with the edit of a sibling
+    METHODS wide_numbers_quoted      FOR TESTING RAISING cx_static_check.
+    " a numeric text takes digits only, and no more than it has places
+    METHODS delta_numc_refused       FOR TESTING RAISING cx_static_check.
+
+    METHODS edge_model
+      IMPORTING
+        io_app        TYPE REF TO ltcl_app_edge
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
+    " the wide row of wide_numbers_quoted, every field set from its text
+    METHODS wide_fill
+      CHANGING
+        cs_wide TYPE ltcl_app_edge=>ty_s_wide.
+    METHODS edge_bind
+      IMPORTING
+        io_model TYPE REF TO z2ui5_cl_ui5_srv_model
+        ir_val   TYPE REF TO data
+        iv_name  TYPE string.
 
     METHODS typed_app
       RETURNING
@@ -3184,6 +3287,324 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                 && `u` && z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( `C3A4` ).
     cl_abap_unit_assert=>assert_equals( exp = lv_exp
                                         act = lo_app->mt_tab[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD edge_model.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    result = NEW #( attri = lr_attri
+                    app   = io_app ).
+
+  ENDMETHOD.
+
+  METHOD edge_bind.
+
+    DATA(lr_attri) = io_model->main_attri_search( ir_val ).
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = iv_name.
+
+  ENDMETHOD.
+
+  METHOD wide_fill.
+
+    cs_wide-name       = `a`.
+    cs_wide-changed_at = '20240115123045.1234567'.
+    cs_wide-big        = '1234567890.123456789'.
+    cs_wide-price      = '12.50'.
+    " a float with every digit a double has: it IS one, and stays a number
+    cs_wide-ratio      = 1 / 3.
+
+  ENDMETHOD.
+
+  METHOD whole_value_dates.
+
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    lo_app->ms_form = VALUE #( name = `a`
+                               dt   = '20240115'
+                               tm   = '123000' ).
+    lo_app->mt_line = VALUE #( ( id     = 1
+                                 s_form = VALUE #( name = `l1`
+                                                   dt   = '20240115'
+                                                   tm   = '123000' ) ) ).
+    lo_app->mt_form = VALUE #( ( name = `r1`
+                                 dt   = '20240115' ) ).
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_form )
+               iv_name  = `/MS_FORM` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_line )
+               iv_name  = `/MT_LINE` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_form )
+               iv_name  = `/MT_FORM` ).
+
+    " an emptied date and time are initial: ajson ships an initial one as
+    " "", and assigned as it came that was a date of blanks on a system
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"b","DT":"","TM":""}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `b`
+                                        act = lo_app->ms_form-name ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-dt ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " the blanks such a date went out as come back initial - they used to
+    " refuse the structure, and every later edit of it with them
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"c","DT":"    -  -  ","TM":"  :  :  "}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `c`
+                                        act = lo_app->ms_form-name ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-dt ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " plain digits (valueFormat yyyyMMdd / HHmmss) read like the ISO form,
+    " as a cell reads them
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"d","DT":"20240301","TM":"123000"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240301`
+                                        act = CONV string( lo_app->ms_form-dt ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `123000`
+                                        act = CONV string( lo_app->ms_form-tm ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " a date that is none still refuses the value - traced, the old one kept
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"e","DT":"Jan 15, 2024"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `d`
+                                        act = lo_app->ms_form-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240301`
+                                        act = CONV string( lo_app->ms_form-dt ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    CLEAR lo_model->mt_skipped.
+
+    " the same for a structure cell of a row ...
+    lo_model->main_json_to_attri(
+        delta( `{"MT_LINE":{"__delta":{"0":{"S_FORM":{"NAME":"l2","DT":"20240302","TM":""}}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `l2`
+                                        act = lo_app->mt_line[ 1 ]-s_form-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240302`
+                                        act = CONV string( lo_app->mt_line[ 1 ]-s_form-dt ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_line[ 1 ]-s_form-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " ... and for a whole table
+    lo_model->main_json_to_attri(
+        delta( `{"MT_FORM":[{"NAME":"r1","DT":""},{"NAME":"r2","DT":"20240102","TM":"  :  :  "}]}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_form ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_form[ 1 ]-dt ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240102`
+                                        act = CONV string( lo_app->mt_form[ 2 ]-dt ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_form[ 2 ]-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD whole_value_refs_kept.
+
+    FIELD-SYMBOLS <inner> TYPE any.
+    DATA lr_inner TYPE REF TO string.
+
+    " CREATE DATA, not NEW: the downport turns a NEW of data into a CREATE
+    " OBJECT (abap-check, section 4)
+    CREATE DATA lr_inner.
+    lr_inner->* = `inner`.
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    lo_app->ms_withref-name = `x`.
+    lo_app->ms_withref-r = lr_inner.
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_withref )
+               iv_name  = `/MS_WITHREF` ).
+
+    " what the client sends back when NAME is edited: the whole structure,
+    " the data reference as ajson wrote it - its target's value, under a
+    " lower-case name - and the object reference as null
+    lo_model->main_json_to_attri( delta( `{"MS_WITHREF":{"NAME":"edited","r":"typed","O":null}}` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lo_app->ms_withref-name ).
+    cl_abap_unit_assert=>assert_bound( lo_app->ms_withref-r ).
+    ASSIGN lo_app->ms_withref-r->* TO <inner>.
+    cl_abap_unit_assert=>assert_equals( exp = `inner`
+                                        act = <inner> ).
+    cl_abap_unit_assert=>assert_not_bound( lo_app->ms_withref-o ).
+
+    " a bound object reference stays what it was as well
+    lo_app->ms_withref-o = lo_app.
+    lo_model->main_json_to_attri( delta( `{"MS_WITHREF":{"NAME":"again","O":null}}` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+    cl_abap_unit_assert=>assert_equals( exp = `again`
+                                        act = lo_app->ms_withref-name ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_app->ms_withref-o = lo_app ) ).
+    cl_abap_unit_assert=>assert_bound( lo_app->ms_withref-r ).
+
+  ENDMETHOD.
+
+  METHOD delta_ref_rows.
+
+    DATA lr_row  TYPE REF TO ltcl_app_edge=>ty_s_row.
+    DATA lr_none TYPE REF TO ltcl_app_edge=>ty_s_row.
+
+    CREATE DATA lr_row.
+    lr_row->name = `r1`.
+    lr_row->qty  = 1.
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    INSERT lr_row INTO TABLE lo_app->mt_refs.
+    INSERT lr_none INTO TABLE lo_app->mt_refs.
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_refs )
+               iv_name  = `/MT_REFS` ).
+
+    " ajson writes the row a reference points to - that is what the client
+    " edits, and where the cells go
+    lo_model->main_json_to_attri( delta( `{"MT_REFS":{"__delta":{"0":{"NAME":"edited","QTY":7}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lr_row->name ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = lr_row->qty ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " a refused cell keeps its old value and is traced, and so is every
+    " cell of a row whose reference points nowhere
+    lo_model->main_json_to_attri( delta( `{"MT_REFS":{"__delta":{"0":{"QTY":"seven"},"1":{"NAME":"lost"}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = lr_row->qty ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 1
+                                                                                 field = `QTY` ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 2
+                                                                                 field = `NAME` ] ) ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD wide_numbers_quoted.
+
+    DATA lv_path TYPE string.
+
+    " every wide value set from its text, never copied from another
+    " field: the transpiled runtime copies a packed through a double
+    " (abap-check, section 4), a system does not
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    wide_fill( CHANGING cs_wide = lo_app->ms_wide ).
+    wide_fill( CHANGING cs_wide = lo_app->ms_flat ).
+    wide_fill( CHANGING cs_wide = lo_app->ms_deep-s_wide ).
+    INSERT INITIAL LINE INTO TABLE lo_app->mt_wide ASSIGNING FIELD-SYMBOL(<row>).
+    wide_fill( CHANGING cs_wide = <row> ).
+    INSERT INITIAL LINE INTO TABLE lo_app->ms_deep-t_wide ASSIGNING <row>.
+    wide_fill( CHANGING cs_wide = <row> ).
+    lo_app->mv_big = '12.5'.
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_wide-name )
+               iv_name  = `/MS_WIDE/NAME` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_wide-changed_at )
+               iv_name  = `/MS_WIDE/CHANGED_AT` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_flat )
+               iv_name  = `/MS_FLAT` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_wide )
+               iv_name  = `/MT_WIDE` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_deep )
+               iv_name  = `/MS_DEEP` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mv_big )
+               iv_name  = `/MV_BIG` ).
+
+    DATA(lo_out) = delta( lo_model->main_json_stringify( ) ).
+
+    " a number a double rounds goes out as text - a component bound on its
+    " own, a flat structure and the rows of a table (the fast road), a deep
+    " value (the general road)
+    DATA(lt_quoted) = VALUE string_table( ( `/MS_WIDE/CHANGED_AT` )
+                                          ( `/MS_FLAT/CHANGED_AT` )
+                                          ( `/MT_WIDE/1/CHANGED_AT` )
+                                          ( `/MS_DEEP/S_WIDE/CHANGED_AT` )
+                                          ( `/MS_DEEP/T_WIDE/1/CHANGED_AT` ) ).
+    LOOP AT lt_quoted INTO lv_path.
+      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+                                          act = lo_out->get_node_type( lv_path )
+                                          msg = lv_path ).
+      cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
+                                          act = lo_out->get_string( lv_path )
+                                          msg = lv_path ).
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+                                        act = lo_out->get_node_type( `/MS_FLAT/BIG` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+                                        act = lo_out->get_node_type( `/MS_DEEP/S_WIDE/BIG` ) ).
+
+    " what a double holds stays a number: a price of 8 bytes, a short
+    " decfloat, a float
+    DATA(lt_number) = VALUE string_table( ( `/MS_FLAT/PRICE` )
+                                          ( `/MS_FLAT/RATIO` )
+                                          ( `/MT_WIDE/1/PRICE` )
+                                          ( `/MS_DEEP/S_WIDE/PRICE` )
+                                          ( `/MS_DEEP/S_WIDE/RATIO` )
+                                          ( `/MV_BIG` ) ).
+    LOOP AT lt_number INTO lv_path.
+      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-number
+                                          act = lo_out->get_node_type( lv_path )
+                                          msg = lv_path ).
+    ENDLOOP.
+
+    " the edit of a sibling sends the text back as it came: nothing moves
+    lo_model->main_json_to_attri( delta( `{"MS_WIDE":{"NAME":"b","CHANGED_AT":"20240115123045.1234567"},` &&
+                                         `"MS_FLAT":{"NAME":"b","CHANGED_AT":"20240115123045.1234567",` &&
+                                         `"PRICE":12.5,"RATIO":0.5}}` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+    cl_abap_unit_assert=>assert_equals( exp = `b`
+                                        act = lo_app->ms_wide-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
+                                        act = |{ lo_app->ms_wide-changed_at }| ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
+                                        act = |{ lo_app->ms_flat-changed_at }| ).
+
+  ENDMETHOD.
+
+  METHOD delta_numc_refused.
+
+    DATA(lo_app) = NEW ltcl_app_conv( ).
+    lo_app->mt_row = VALUE #( ( numc = '00042' ) ).
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " a letter, a sign, a digit more than the field has places: assigned,
+    " the first lost the letter, the second kept the sign on the transpiled
+    " runtime, the third lost its first digit - refused now, the old value
+    " kept
+    DATA(lt_refused) = VALUE string_table( ( `12a3` ) ( `-5` ) ( `123456` ) ).
+    LOOP AT lt_refused INTO DATA(lv_value).
+      CLEAR lo_model->mt_skipped.
+      lo_model->delta_apply_to_table(
+          io_val_front = delta( |\{"__delta":\{"0":\{"NUMC":"{ lv_value }"\}\}\}| )
+          iv_name      = `MT_ROW` ).
+      cl_abap_unit_assert=>assert_equals( exp = `00042`
+                                          act = CONV string( lo_app->mt_row[ 1 ]-numc )
+                                          msg = lv_value ).
+      cl_abap_unit_assert=>assert_equals( exp = lv_value
+                                          act = lo_model->mt_skipped[ 1 ]-value ).
+    ENDLOOP.
+
+    " leading zeros are no digits of the value, and the emptied field is 0
+    CLEAR lo_model->mt_skipped.
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"NUMC":"0000007"}}}` )
+                                    iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = `00007`
+                                        act = CONV string( lo_app->mt_row[ 1 ]-numc ) ).
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"NUMC":""}}}` )
+                                    iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = `00000`
+                                        act = CONV string( lo_app->mt_row[ 1 ]-numc ) ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
   ENDMETHOD.
@@ -5152,7 +5573,8 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE ty_t_kinds.
 
-    " the general road: ajson under the upper-case mapping
+    " the general road: ajson under the upper-case mapping, a wide number
+    " quoted when its digits need it (json_quote_lossy) as on the fast road
     METHODS ajson_text
       IMPORTING
         iv_val        TYPE any
@@ -5289,10 +5711,16 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
   METHOD ajson_text.
 
-    result = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
-               )->set( iv_ignore_empty = abap_false
-                       iv_path         = `/`
-                       iv_val          = iv_val )->stringify( ).
+    DATA lr_val TYPE REF TO data.
+    DATA(li_json) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
+                      )->set( iv_ignore_empty = abap_false
+                              iv_path         = `/`
+                              iv_val          = iv_val ).
+    lr_val = REF #( iv_val ).
+    mo_model->json_quote_lossy( io_json = li_json
+                                iv_path = ``
+                                ir_ref  = lr_val ).
+    result = li_json->stringify( ).
 
   ENDMETHOD.
 
@@ -5321,6 +5749,9 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_X":"A0FF"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_C":"ab c"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_INT2":-32768` ) ).
+    " more digits than a double keeps - quoted; fewer stay a number
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_DEC34":"123456789012345678901234567890"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_DEC34":-1234.5678` ) ).
 
   ENDMETHOD.
 

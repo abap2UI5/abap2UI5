@@ -163,14 +163,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/core/Context.js": function(){sap.ui.define(["z2ui5/core/AppState"],AppState=>{"use strict";const byComponent=new WeakMap;const byView=new WeakMap;function create(component){const ctx={com` &&
              `ponent:component||null,id:typeof component?.getId==="function"?component.getId():"",alive:true,state:AppState.createState(),server:{requestSeq:0,restoreSeq:0,inflight:new Set,viewBuild:null,csrfToken:` &&
-             `""},session:{configSent:false,ui5Sent:false,liveSent:"",pending:null,locationSent:false},router:{navigate:null,startRoute:null,hashListener:null,trail:[],trailPos:-1},shortcuts:{listener:null},variant` &&
-             `s:{activeInits:new Set},scroll:{target:undefined,ui5El:undefined,slotKey:undefined},focus:{userInside:false,listener:null},errorView:{title:"",details:"",options:{},dialog:null},restart:null,devtools:` &&
-             `{}};if(component)byComponent.set(component,ctx);return ctx}function destroy(ctx){if(!ctx)return;ctx.alive=false;ctx.state=AppState.createState();if(ctx.component)byComponent.delete(ctx.component)}func` &&
-             `tion resetApp(ctx){if(ctx?.state)AppState.resetApp(ctx.state)}function registerView(ctx,view){if(ctx&&view&&typeof view==="object")byView.set(view,ctx)}function runAsOwner(ctx,fn){const component=ctx?` &&
-             `.component;if(component&&typeof component.runAsOwner==="function"){return component.runAsOwner(fn)}return fn()}function of(anchor){if(!anchor||typeof anchor!=="object")return null;if(anchor.ctx&&ancho` &&
-             `r.ctx.state)return anchor.ctx;const own=byComponent.get(anchor);if(own)return own;const Component=sap.ui.require?.("sap/ui/core/Component");if(Component&&typeof Component.getOwnerComponentFor==="funct` &&
-             `ion"){const owner=Component.getOwnerComponentFor(anchor);const found=owner&&byComponent.get(owner);if(found)return found}let node=anchor;for(let i=0;node&&i<200;i++){const found=byView.get(node);if(fo` &&
-             `und)return found;node=typeof node.getParent==="function"?node.getParent():null}return null}return{create,destroy,resetApp,registerView,runAsOwner,of}});` && |\n| &&
+             `""},session:{configSent:false,ui5Sent:false,liveSent:"",pending:null,locationSent:false},router:{navigate:null,startRoute:null,hashListener:null,trail:[],trailPos:-1,failedDraft:""},shortcuts:{listene` &&
+             `r:null},variants:{activeInits:new Set},scroll:{target:undefined,ui5El:undefined,slotKey:undefined},focus:{userInside:false,listener:null},errorView:{title:"",details:"",options:{},dialog:null},restart` &&
+             `:null,devtools:{}};if(component)byComponent.set(component,ctx);return ctx}function destroy(ctx){if(!ctx)return;ctx.alive=false;ctx.state=AppState.createState();if(ctx.component)byComponent.delete(ctx.` &&
+             `component)}function resetApp(ctx){if(ctx?.state)AppState.resetApp(ctx.state)}function registerView(ctx,view){if(ctx&&view&&typeof view==="object")byView.set(view,ctx)}function runAsOwner(ctx,fn){const` &&
+             ` component=ctx?.component;if(component&&typeof component.runAsOwner==="function"){return component.runAsOwner(fn)}return fn()}function of(anchor){if(!anchor||typeof anchor!=="object")return null;if(an` &&
+             `chor.ctx&&anchor.ctx.state)return anchor.ctx;const own=byComponent.get(anchor);if(own)return own;const Component=sap.ui.require?.("sap/ui/core/Component");if(Component&&typeof Component.getOwnerCompon` &&
+             `entFor==="function"){const owner=Component.getOwnerComponentFor(anchor);const found=owner&&byComponent.get(owner);if(found)return found}let node=anchor;for(let i=0;node&&i<200;i++){const found=byView.` &&
+             `get(node);if(found)return found;node=typeof node.getParent==="function"?node.getParent():null}return null}return{create,destroy,resetApp,registerView,runAsOwner,of}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/CustomControls.js": function(){sap.ui.define([],()=>{"use strict";const BUNDLE_PARAM="z2ui5-bundle";const BUNDLE_CC="cc";const VERSION_PARAM="z2ui5-version";const EMBED_MODULE="z2ui5` &&
@@ -481,51 +481,53 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/core/Server.js": function(){sap.ui.define(["sap/ui/VersionInfo","z2ui5/core/Lib","z2ui5/core/Session","z2ui5/core/ScrollFocus","z2ui5/core/ViewSlots","z2ui5/core/ErrorView"],(VersionInfo,` &&
              `Lib,Session,ScrollFocus,ViewSlots,ErrorView)=>{"use strict";const REQUEST_TIMEOUT_MS=6e5;const MAY_HAVE_RUN="The backend may still have processed the action. Restart the app and "+"check its result be` &&
-             `fore you do it again.";const showBusy=(ctx,delay)=>Lib.showBusy(ctx,delay);const hideBusy=ctx=>Lib.hideBusy(ctx);return{PROTOCOL:3,endSession(ctx){if(!Lib.isValidContextId(ctx.state.contextId))return;` &&
-             `fetch(ctx.state.url,{method:"HEAD",keepalive:true,headers:{"sap-terminate":"session","sap-contextid":ctx.state.contextId,"sap-contextid-accept":"header"}}).catch(()=>{});ctx.state.contextId=null},rese` &&
-             `t(ctx){ctx.server.requestSeq+=1;this._abortInflight(ctx);ctx.server.viewBuild=Promise.resolve(ctx.server.viewBuild).catch(()=>{});Lib.dropQueuedEvents(ctx.state);ctx.state.timerRepeat=null;ErrorView.r` &&
-             `eset(ctx)},restoreFromRoute(ctx){if(ctx.state.terminated)return;ctx.state.isBusy=true;ctx.state.tickInFlight=false;showBusy(ctx,0);Lib.cancelPendingTimers(ctx);ctx.state.timerRepeat=null;Lib.dropQueue` &&
-             `dEvents(ctx.state);this.roundtrip(ctx,{});ctx.server.restoreSeq=ctx.server.requestSeq},roundtrip(ctx,oBody={}){const state=ctx.state;state.oBody=oBody;const eventName=oBody.ARGUMENTS?.[0]?.[0];const o` &&
-             `Config=state.oConfig;const config={...Session.config(ctx,oConfig,oBody.ID),S_FOCUS:ScrollFocus.getFocusInfo(ctx),S_SCROLL:ScrollFocus.getScrollInfo(ctx)};oBody.S_FRONT={ID:oBody.ID,EVENT:eventName,HAS` &&
-             `H:state.ownsPage?window.location.hash:""};const sFront=oBody.S_FRONT;if(oBody.TIMER)sFront.TIMER=true;delete oBody.TIMER;if(!oBody.ID){const route=ctx.router?.startRoute?.();if(route)sFront.ROUTE=rout` &&
-             `e}if(Object.values(config).some(v=>v!==undefined)){sFront.CONFIG=config}if(state.lastRoundtripMs){sFront.MS_CLIENT_PREV=state.lastRoundtripMs}Object.assign(sFront,Session.location(ctx,oBody.ID));if(oB` &&
-             `ody.ARGUMENTS)oBody.ARGUMENTS.shift();sFront.T_EVENT_ARG=oBody.ARGUMENTS;delete oBody.ID;delete oBody.ARGUMENTS;if(!sFront.T_EVENT_ARG?.length)delete sFront.T_EVENT_ARG;if(sFront.SEARCH==="")delete sF` &&
-             `ront.SEARCH;if(!sFront.HASH)delete sFront.HASH;if(!oBody.MODEL)delete oBody.MODEL;this.readHttp(ctx,oBody,Session.takePending(ctx))},_openRequest(ctx,ms){const controller=new AbortController;const req` &&
-             `uest={signal:controller.signal,timedOut:false,abort:()=>controller.abort()};const timer=setTimeout(()=>{request.timedOut=true;controller.abort()},ms);request.close=()=>{clearTimeout(timer);ctx.server.` &&
-             `inflight.delete(request)};ctx.server.inflight.add(request);return request},_abortInflight(ctx){for(const request of[...ctx.server.inflight]){request.close();request.abort()}},async readHttp(ctx,oBody,` &&
-             `sessionCarried){const oRetry={onRetry:()=>{ctx.state.terminated=false;ctx.state.isBusy=true;showBusy(ctx,0);if(oRetry.timerRepeat){ctx.state.timerRepeat=oRetry.timerRepeat;oRetry.timerRepeat=null}this`.
+             `fore you do it again.";const SESSION_EXPIRED="Session expired - restart the app. The state of the previous step is "+"no longer on the server: it expired, was cleaned up, or belongs to "+"another logo` &&
+             `n. What was entered in the last step is lost.";const showBusy=(ctx,delay)=>Lib.showBusy(ctx,delay);const hideBusy=ctx=>Lib.hideBusy(ctx);return{PROTOCOL:3,endSession(ctx){if(!Lib.isValidContextId(ctx.` &&
+             `state.contextId))return;fetch(ctx.state.url,{method:"HEAD",keepalive:true,headers:{"sap-terminate":"session","sap-contextid":ctx.state.contextId,"sap-contextid-accept":"header"}}).catch(()=>{});ctx.st` &&
+             `ate.contextId=null},reset(ctx){ctx.server.requestSeq+=1;this._abortInflight(ctx);ctx.server.viewBuild=Promise.resolve(ctx.server.viewBuild).catch(()=>{});Lib.dropQueuedEvents(ctx.state);ctx.state.time` &&
+             `rRepeat=null;ErrorView.reset(ctx)},restoreFromRoute(ctx){if(ctx.state.terminated)return;ctx.state.isBusy=true;ctx.state.tickInFlight=false;showBusy(ctx,0);Lib.cancelPendingTimers(ctx);ctx.state.timerR` &&
+             `epeat=null;Lib.dropQueuedEvents(ctx.state);this.roundtrip(ctx,{});ctx.server.restoreSeq=ctx.server.requestSeq},roundtrip(ctx,oBody={}){const state=ctx.state;state.oBody=oBody;const eventName=oBody.ARG` &&
+             `UMENTS?.[0]?.[0];const oConfig=state.oConfig;const config={...Session.config(ctx,oConfig,oBody.ID),S_FOCUS:ScrollFocus.getFocusInfo(ctx),S_SCROLL:ScrollFocus.getScrollInfo(ctx)};oBody.S_FRONT={ID:oBod` &&
+             `y.ID,EVENT:eventName,HASH:state.ownsPage?window.location.hash:""};const sFront=oBody.S_FRONT;if(oBody.TIMER)sFront.TIMER=true;delete oBody.TIMER;if(!oBody.ID){const route=ctx.router?.startRoute?.();if` &&
+             `(route?.DRAFT&&route.DRAFT===ctx.router?.failedDraft){delete route.DRAFT}if(route)sFront.ROUTE=route}if(Object.values(config).some(v=>v!==undefined)){sFront.CONFIG=config}if(state.lastRoundtripMs){sFr` &&
+             `ont.MS_CLIENT_PREV=state.lastRoundtripMs}Object.assign(sFront,Session.location(ctx,oBody.ID));if(oBody.ARGUMENTS)oBody.ARGUMENTS.shift();sFront.T_EVENT_ARG=oBody.ARGUMENTS;delete oBody.ID;delete oBody` &&
+             `.ARGUMENTS;if(!sFront.T_EVENT_ARG?.length)delete sFront.T_EVENT_ARG;if(sFront.SEARCH==="")delete sFront.SEARCH;if(!sFront.HASH)delete sFront.HASH;if(!oBody.MODEL)delete oBody.MODEL;this.readHttp(ctx,o` &&
+             `Body,Session.takePending(ctx))},_openRequest(ctx,ms){const controller=new AbortController;const request={signal:controller.signal,timedOut:false,abort:()=>controller.abort()};const timer=setTimeout(()` &&
+             `=>{request.timedOut=true;controller.abort()},ms);request.close=()=>{clearTimeout(timer);ctx.server.inflight.delete(request)};ctx.server.inflight.add(request);return request},_abortInflight(ctx){for(co`.
     result = result &&
-             `.readHttp(ctx,oBody,sessionCarried)},timerRepeat:null};const reportTimeout=()=>this.responseError(ctx,``No backend response within ${REQUEST_TIMEOUT_MS/1e3} seconds - request aborted. ${MAY_HAVE_RUN}` &&
-             ```);const seq=++ctx.server.requestSeq;const isStale=()=>seq!==ctx.server.requestSeq;this._abortInflight(ctx);let sentAt;let body;try{body=JSON.stringify({value:oBody})}catch(e){this.responseError(ctx,` &&
-             ```The request could not be serialized - an event argument is no plain data (${e.message})``);return}const request=this._openRequest(ctx,REQUEST_TIMEOUT_MS);const{signal}=request;try{let response;try{c` &&
-             `tx.state.lastRequestBytes=Lib.lazyByteLength(body);sentAt=Date.now();response=await this._post(ctx,body,signal);if(this._csrfTokenRequired(response)&&await this._fetchCsrfToken(ctx,signal)&&!isStale()` &&
-             `){response=await this._post(ctx,body,signal)}}catch(e){if(isStale())return;if(request.timedOut){reportTimeout()}else{const hint=e.name==="TypeError"?" - the backend could not be reached. Common causes` &&
-             `: an expired "+"logon session redirecting to another origin (SSO), a CORS rule, "+"or the backend being offline.":"";this.responseError(ctx,``Network error: ${e.message}${hint}``,undefined,oRetry)}ret` &&
-             `urn}if(isStale())return;const contextId=response.headers.get("sap-contextid");if(Lib.isValidContextId(contextId)){ctx.state.contextId=contextId}if(!response.ok){let text;try{text=await response.text()` &&
-             `}catch{if(isStale())return;if(request.timedOut){reportTimeout();return}text=``HTTP ${response.status}: could not read error body``}if(isStale())return;const status=response.status;const fallback=``HTT` &&
-             `P ${status}``;this.responseError(ctx,status===504?``${text||fallback} - ${MAY_HAVE_RUN}``:text||fallback,undefined,status===502||status===503?oRetry:undefined);return}let responseData;try{responseData` &&
-             `=await response.json()}catch(e){if(isStale())return;if(request.timedOut){reportTimeout();return}const type=response.headers.get("content-type")||"";if(type.toLowerCase().includes("text/html")){this.re` &&
-             `sponseError(ctx,"The server answered with an HTML page instead of the app's data - "+"usually a logon page after the session expired, or the page of a "+"proxy in between. Restart the app, logging on ` &&
-             `again if asked.");return}this.responseError(ctx,``Invalid JSON response: ${e.message}``);return}if(isStale())return;if(!responseData?.S_FRONT){this.responseError(ctx,"Invalid response: missing S_FRONT` &&
-             ` - the URL probably does not reach "+"the abap2UI5 handler. Check that the ICF service (or route) of this "+"page calls z2ui5_cl_ui5_http_handler.");return}if(responseData.S_FRONT.PROTOCOL!==undefined` &&
-             `&&responseData.S_FRONT.PROTOCOL!==this.PROTOCOL){this.responseError(ctx,"Protocol mismatch: this frontend speaks "+this.PROTOCOL+", the backend answered "+responseData.S_FRONT.PROTOCOL+". Update which` &&
-             `ever of the two is older - they ship together.");return}ctx.state.responseData=responseData;Session.confirmSent(ctx,sessionCarried);ctx.state.lastRoundtripMs=Date.now()-sentAt;this._clearSentPaths(ctx` &&
-             `.state.oSentModel);ctx.state.oSentModel=null;this.responseSuccess(ctx,{ID:responseData.S_FRONT.ID,VIEWS:responseData.S_FRONT.VIEWS,NAV:responseData.S_FRONT.NAV,ACTIONS:responseData.S_FRONT.ACTIONS,OVI` &&
-             `EWMODEL:responseData.MODEL??{},MODELPRESENT:responseData.MODEL!==undefined,APP:responseData.S_FRONT.APP,TOKEN:Object.freeze({seq})},seq)}catch(e){if(!isStale())this.responseError(ctx,e)}finally{reques` &&
-             `t.close()}},_post(ctx,body,signal){const headers={"Content-Type":"application/json","sap-contextid-accept":"header"};if(Lib.isValidContextId(ctx.state.contextId)){headers["sap-contextid"]=ctx.state.co` &&
-             `ntextId}if(ctx.server.csrfToken){headers["X-CSRF-Token"]=ctx.server.csrfToken}return fetch(ctx.state.url,{method:"POST",headers,body,signal})},_csrfTokenRequired(response){const value=response.headers` &&
-             `.get("x-csrf-token")||"";return response.status===403&&value.trim().toLowerCase()==="required"},async _fetchCsrfToken(ctx,signal){ctx.server.csrfToken="";try{const response=await fetch(ctx.state.url,{` &&
-             `method:"HEAD",headers:{"X-CSRF-Token":"Fetch"},signal});const token=(response.headers.get("x-csrf-token")||"").trim();const lower=token.toLowerCase();if(response.ok&&token&&lower!=="required"&&lower!=` &&
-             `="fetch"){ctx.server.csrfToken=token}}catch(e){if(e?.name!=="AbortError"){Lib.logError("_fetchCsrfToken: token fetch failed",e)}}return ctx.server.csrfToken!==""},_clearSentPaths(oModel){const pending` &&
-             `=oModel?._z2ui5ChangedPaths;if(!pending)return;const sentValues=oModel._z2ui5SentValues;oModel._z2ui5SentValues=null;if(!sentValues)return;for(const path of Array.from(pending)){if(sentValues.has(path` &&
-             `)&&sentValues.get(path)===oModel.getProperty(path)){pending.delete(path)}}},async responseSuccess(ctx,response,reqSeq){const oController=ViewSlots.getController(ctx,"MAIN");try{ctx.state.oResponse=res` &&
-             `ponse;response._pendingActions=response.ACTIONS||null;await oController._processAfterRendering(reqSeq)}catch(e){hideBusy(ctx);ctx.state.isBusy=false;Lib.logError("responseSuccess: unexpected error",e)` &&
-             `;this.showRenderError(ctx,e)}},showRenderError(ctx,e,title){const msg=e?.message||"";if(msg.includes("openui5")&&msg.includes("script load error")){this._checkSDKcompatibility(ctx,e)}else{this.respons` &&
-             `eError(ctx,e,title)}},async _checkSDKcompatibility(ctx,err){let gav;try{const info=await VersionInfo.load();gav=info.gav}catch(e){Lib.logError("_checkSDKcompatibility: VersionInfo.load failed",e);this` &&
-             `.responseError(ctx,err);return}if(!gav?.includes("com.sap.ui5")){const moduleMatch=/['"]([\w./-]+)['"]/.exec(err?.message||"");const missingModule=err?._modules||moduleMatch?.[1]||"the requested modul` &&
-             `e";this.responseError(ctx,``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``);return}this.responseError(ctx,err)},responseError(ctx,response,title,oOptions){hideBusy(ctx);` &&
-             `ctx.state.isBusy=false;ctx.state.terminated=true;Lib.dropQueuedEvents(ctx.state);if(ctx.state.timerRepeat){if(typeof oOptions?.onRetry==="function"){oOptions.timerRepeat=ctx.state.timerRepeat}ctx.stat` &&
-             `e.timerRepeat=null;Lib.cancelPendingTimers(ctx)}ErrorView.show(ctx,response,title,oOptions)}}});` && |\n| &&
+             `nst request of[...ctx.server.inflight]){request.close();request.abort()}},async readHttp(ctx,oBody,sessionCarried){const oRetry={onRetry:()=>{ctx.state.terminated=false;ctx.state.isBusy=true;showBusy(` &&
+             `ctx,0);if(oRetry.timerRepeat){ctx.state.timerRepeat=oRetry.timerRepeat;oRetry.timerRepeat=null}this.readHttp(ctx,oBody,sessionCarried)},timerRepeat:null};const reportTimeout=()=>this.responseError(ctx` &&
+             `,``No backend response within ${REQUEST_TIMEOUT_MS/1e3} seconds - request aborted. ${MAY_HAVE_RUN}``);const seq=++ctx.server.requestSeq;const isStale=()=>seq!==ctx.server.requestSeq;this._abortInfligh` &&
+             `t(ctx);let sentAt;let body;try{body=JSON.stringify({value:oBody})}catch(e){this.responseError(ctx,``The request could not be serialized - an event argument is no plain data (${e.message})``);return}co` &&
+             `nst request=this._openRequest(ctx,REQUEST_TIMEOUT_MS);const{signal}=request;try{let response;try{ctx.state.lastRequestBytes=Lib.lazyByteLength(body);sentAt=Date.now();response=await this._post(ctx,bod` &&
+             `y,signal);if(this._csrfTokenRequired(response)&&await this._fetchCsrfToken(ctx,signal)&&!isStale()){response=await this._post(ctx,body,signal)}}catch(e){if(isStale())return;if(request.timedOut){report` &&
+             `Timeout()}else{const hint=e.name==="TypeError"?" - the backend could not be reached. Common causes: an expired "+"logon session redirecting to another origin (SSO), a CORS rule, "+"or the backend bein` &&
+             `g offline.":"";this.responseError(ctx,``Network error: ${e.message}${hint}``,undefined,oRetry)}return}if(isStale())return;const contextId=response.headers.get("sap-contextid");if(Lib.isValidContextId(` &&
+             `contextId)){ctx.state.contextId=contextId}if(!response.ok){let text;try{text=await response.text()}catch{if(isStale())return;if(request.timedOut){reportTimeout();return}text=``HTTP ${response.status}:` &&
+             ` could not read error body``}if(isStale())return;const status=response.status;const fallback=``HTTP ${status}``;if(!oBody.ID&&oBody.S_FRONT?.ROUTE?.DRAFT&&ctx.router){ctx.router.failedDraft=oBody.S_FR` &&
+             `ONT.ROUTE.DRAFT}if(status===410){this.responseError(ctx,SESSION_EXPIRED);return}this.responseError(ctx,status===504?``${text||fallback} - ${MAY_HAVE_RUN}``:text||fallback,undefined,status===502||statu` &&
+             `s===503?oRetry:undefined);return}let responseData;try{responseData=await response.json()}catch(e){if(isStale())return;if(request.timedOut){reportTimeout();return}const type=response.headers.get("conte` &&
+             `nt-type")||"";if(type.toLowerCase().includes("text/html")){this.responseError(ctx,"The server answered with an HTML page instead of the app's data - "+"usually a logon page after the session expired, ` &&
+             `or the page of a "+"proxy in between. Restart the app, logging on again if asked.");return}this.responseError(ctx,``Invalid JSON response: ${e.message}``);return}if(isStale())return;if(!responseData?.` &&
+             `S_FRONT){this.responseError(ctx,"Invalid response: missing S_FRONT - the URL probably does not reach "+"the abap2UI5 handler. Check that the ICF service (or route) of this "+"page calls z2ui5_cl_ui5_h` &&
+             `ttp_handler.");return}if(responseData.S_FRONT.PROTOCOL!==undefined&&responseData.S_FRONT.PROTOCOL!==this.PROTOCOL){this.responseError(ctx,"Protocol mismatch: this frontend speaks "+this.PROTOCOL+", th` &&
+             `e backend answered "+responseData.S_FRONT.PROTOCOL+". Update whichever of the two is older - they ship together.");return}ctx.state.responseData=responseData;Session.confirmSent(ctx,sessionCarried);ct` &&
+             `x.state.lastRoundtripMs=Date.now()-sentAt;this._clearSentPaths(ctx.state.oSentModel);ctx.state.oSentModel=null;this.responseSuccess(ctx,{ID:responseData.S_FRONT.ID,VIEWS:responseData.S_FRONT.VIEWS,NAV` &&
+             `:responseData.S_FRONT.NAV,ACTIONS:responseData.S_FRONT.ACTIONS,OVIEWMODEL:responseData.MODEL??{},MODELPRESENT:responseData.MODEL!==undefined,APP:responseData.S_FRONT.APP,TOKEN:Object.freeze({seq})},se` &&
+             `q)}catch(e){if(!isStale())this.responseError(ctx,e)}finally{request.close()}},_post(ctx,body,signal){const headers={"Content-Type":"application/json","sap-contextid-accept":"header"};if(Lib.isValidCon` &&
+             `textId(ctx.state.contextId)){headers["sap-contextid"]=ctx.state.contextId}if(ctx.server.csrfToken){headers["X-CSRF-Token"]=ctx.server.csrfToken}return fetch(ctx.state.url,{method:"POST",headers,body,s` &&
+             `ignal})},_csrfTokenRequired(response){const value=response.headers.get("x-csrf-token")||"";return response.status===403&&value.trim().toLowerCase()==="required"},async _fetchCsrfToken(ctx,signal){ctx.` &&
+             `server.csrfToken="";try{const response=await fetch(ctx.state.url,{method:"HEAD",headers:{"X-CSRF-Token":"Fetch"},signal});const token=(response.headers.get("x-csrf-token")||"").trim();const lower=toke` &&
+             `n.toLowerCase();if(response.ok&&token&&lower!=="required"&&lower!=="fetch"){ctx.server.csrfToken=token}}catch(e){if(e?.name!=="AbortError"){Lib.logError("_fetchCsrfToken: token fetch failed",e)}}retur` &&
+             `n ctx.server.csrfToken!==""},_clearSentPaths(oModel){const pending=oModel?._z2ui5ChangedPaths;if(!pending)return;const sentValues=oModel._z2ui5SentValues;oModel._z2ui5SentValues=null;if(!sentValues)re` &&
+             `turn;for(const path of Array.from(pending)){if(sentValues.has(path)&&sentValues.get(path)===oModel.getProperty(path)){pending.delete(path)}}},async responseSuccess(ctx,response,reqSeq){const oControll` &&
+             `er=ViewSlots.getController(ctx,"MAIN");try{ctx.state.oResponse=response;response._pendingActions=response.ACTIONS||null;await oController._processAfterRendering(reqSeq)}catch(e){hideBusy(ctx);ctx.stat` &&
+             `e.isBusy=false;Lib.logError("responseSuccess: unexpected error",e);this.showRenderError(ctx,e)}},showRenderError(ctx,e,title){const msg=e?.message||"";if(msg.includes("openui5")&&msg.includes("script ` &&
+             `load error")){this._checkSDKcompatibility(ctx,e)}else{this.responseError(ctx,e,title)}},async _checkSDKcompatibility(ctx,err){let gav;try{const info=await VersionInfo.load();gav=info.gav}catch(e){Lib.` &&
+             `logError("_checkSDKcompatibility: VersionInfo.load failed",e);this.responseError(ctx,err);return}if(!gav?.includes("com.sap.ui5")){const moduleMatch=/['"]([\w./-]+)['"]/.exec(err?.message||"");const m` &&
+             `issingModule=err?._modules||moduleMatch?.[1]||"the requested module";this.responseError(ctx,``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``);return}this.responseError(c` &&
+             `tx,err)},responseError(ctx,response,title,oOptions){hideBusy(ctx);ctx.state.isBusy=false;ctx.state.terminated=true;Lib.dropQueuedEvents(ctx.state);if(ctx.state.timerRepeat){if(typeof oOptions?.onRetry` &&
+             `==="function"){oOptions.timerRepeat=ctx.state.timerRepeat}ctx.state.timerRepeat=null;Lib.cancelPendingTimers(ctx)}ErrorView.show(ctx,response,title,oOptions)}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/Session.js": function(){sap.ui.define(["sap/ui/Device","z2ui5/core/Lib"],(Device,Lib)=>{"use strict";let deviceStatic;function getDeviceStatic(){if(!deviceStatic){deviceStatic={SYSTE` &&
@@ -565,9 +567,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `w.destroy() failed for ${key}``,e)}ctx.state[slot.prop]=null}function isInside(control,container){let node=control?.getParent?.();for(let depth=0;node&&depth<200;depth++){if(node===container)return tr` &&
              `ue;node=node.getParent?.()}return false}function detach(ctx,key){const slot=byKey(key);if(!slot||!ctx?.state)return undefined;for(const dep of slot.dependentSlots??[])detach(ctx,dep);delete slotXmlSto` &&
              `re(ctx)[key];delete slotAppStore(ctx)[key];delete ctx.state.slotToken[key];const view=ctx.state[slot.prop];if(!view)return undefined;try{Env.getMessaging?.()?.unregisterObject(view)}catch(e){Lib.logEr` &&
-             `ror(``ViewSlots.detach: unregisterObject failed for ${key}``,e)}ctx.state[slot.prop]=null;return view}return{slots,getView,getViewXml,getViewApp,getViewToken,setView,getController,keyOfController,byId` &&
-             `,byIdOfOwner,ownId,fragmentIdOf,resolveById,containingSlotKey,trackedModel,responseModel,destroy,detach}});` && |\n|.
+             `ror(``ViewSlots.detach: unregisterObject failed for ${key}``,e)}ctx.state[slot.prop]=null;return view}return{slots,getView,getViewXml,getViewApp,getViewToken,setView,getController,keyOfController,byId`.
     result = result &&
+             `,byIdOfOwner,ownId,fragmentIdOf,resolveById,containingSlotKey,trackedModel,responseModel,destroy,detach}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/WindowModel.js": function(){sap.ui.define(["sap/ui/model/json/JSONModel","sap/ui/model/json/JSONListBinding","z2ui5/core/Lib","z2ui5/core/Env"],(JSONModel,JSONListBinding,Lib,Env)=>{` &&
@@ -636,10 +638,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ut();return}}catch(e){Lib.logError("SYSTEM_LOGOUT: ushell logout failed",e)}logoutViaBspTerminate(logoutUrl)}function logoutViaBspTerminate(logoutUrl){const path=window.location.pathname;if(!path.star` &&
              `tsWith("/sap/bc/bsp/")){redirectToLogout(logoutUrl);return}const bspKill=``${path}?sap-sessioncmd=logoff``;let done=false;let frame;const finish=()=>{if(done)return;done=true;if(frame){try{frame.remov` &&
              `e()}catch{}frame=null}redirectToLogout(logoutUrl)};try{frame=document.createElement("iframe");frame.style.display="none";frame.src=bspKill;frame.addEventListener("load",finish);document.body.appendChi` &&
-             `ld(frame)}catch(e){Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed",e);finish();return}setTimeout(finish,1500)}function redirectToLogout(logoutUrl){if(Lib.isValidRedirectURL(logoutUrl)){windo` &&
-             `w.location.href=logoutUrl}else{MessageBox.error("Invalid logout URL. Only relative URLs to the same domain are allowed.")}}function evOpenNewTab(oController,args){if(!Lib.isValidRedirectURL(args[1])){` &&
-             `MessageBox.error("Invalid URL. Only relative URLs to the same domain are allowed.");return}window.open(args[1],"_blank","noopener,noreferrer")}function evUrlHelper(oController,args){const params=typeo`.
+             `ld(frame)}catch(e){Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed",e);finish();return}setTimeout(finish,1500)}function redirectToLogout(logoutUrl){if(Lib.isValidRedirectURL(logoutUrl)){windo`.
     result = result &&
+             `w.location.href=logoutUrl}else{MessageBox.error("Invalid logout URL. Only relative URLs to the same domain are allowed.")}}function evOpenNewTab(oController,args){if(!Lib.isValidRedirectURL(args[1])){` &&
+             `MessageBox.error("Invalid URL. Only relative URLs to the same domain are allowed.");return}window.open(args[1],"_blank","noopener,noreferrer")}function evUrlHelper(oController,args){const params=typeo` &&
              `f args[2]==="string"?boundPayload(oController,args[2],"URLHELPER"):args[2]??{};if(params==null)return;const hasCrLf=v=>typeof v==="string"&&/[\r\n]/.test(v);if(Object.values(params).some(hasCrLf)){Lib` &&
              `.logError("URLHELPER: blocked CR/LF in parameters");return}const actions={REDIRECT:()=>{if(!Lib.isSafeRedirectProtocol(params.URL)){MessageBox.error("Invalid redirect URL. Only http/https protocols ar` &&
              `e allowed.");return}if(params.NEW_WINDOW){window.open(params.URL,"_blank","noopener,noreferrer");return}_URLHelper.redirect(params.URL,false)},TRIGGER_EMAIL:()=>_URLHelper.triggerEmail(params.EMAIL,pa` &&
@@ -713,10 +715,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `etProperty(prop,String(args[5]??""))}function pseudoExpandCollapse({control,id,method}){const op=method==="expandSelected"?"expand":"collapse";if(!control||typeof control[op]!=="function"){Lib.logErro` &&
              `r(``CONTROL_BY_ID: '${method}' not callable on control '${id}'``);return}const indices=selectedIndicesOf(control);if(indices===null){Lib.logError(``CONTROL_BY_ID: '${method}' - control '${id}' exposes` &&
              ` no selection``);return}if(indices.length)control[op](indices)}function pseudoSetAsyncURLHandler({control,id,args}){const policy=String(args[4]??"").toUpperCase();const isAllowed=URL_POLICIES[policy];` &&
-             `if(!isAllowed){Lib.logError(``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``);return}if(!control||typeof control.setAsyncURLHandler!=="function"){L` &&
-             `ib.logError(``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``);return}control.setAsyncURLHandler(config=>{config?.promise?.resolve({allowed:isAllowed(config.url),id:config.id})})` &&
-             `}function isRootPrototypeMethod(obj,method){let owner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&`.
+             `if(!isAllowed){Lib.logError(``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``);return}if(!control||typeof control.setAsyncURLHandler!=="function"){L`.
     result = result &&
+             `ib.logError(``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``);return}control.setAsyncURLHandler(config=>{config?.promise?.resolve({allowed:isAllowed(config.url),id:config.id})})` &&
+             `}function isRootPrototypeMethod(obj,method){let owner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&` &&
              `Object.getPrototypeOf(owner)===null}const PSEUDO_METHODS=Object.assign(Object.create(null),{toggleBy:pseudoToggleBy,openBy:pseudoOpenBy,css:pseudoCss,expandSelected:pseudoExpandCollapse,collapseSelect` &&
              `ed:pseudoExpandCollapse,setAsyncURLHandler:pseudoSetAsyncURLHandler});function evControlCallById(oController,args){const[,id,view,method]=args;let kinds=CONTROL_METHODS[method];if(!kinds){if(!isSafeCo` &&
              `ntrolMethod(method)){Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);return}kinds=null}const ctx=oController?.ctx;if(method==="focus"&&!ScrollFocus.mayMoveFocus(ctx))return;const contr` &&
@@ -784,10 +786,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `hortcuts[combo];return}scopes[scope]={event:args[2],controller:oController};installShortcutListener(ctx)}const handlers={KEYBOARD_SHORTCUT:evKeyboardShortcut};return{handlers,reset,normalizeShortcut,s` &&
              `hortcutFromEvent,shortcutCandidates}});` && |\n| &&
              `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/core/actions/Slots.js": function(){sap.ui.define(["sap/ui/core/mvc/XMLView","sap/ui/core/Fragment","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/cor` &&
-             `e/WindowModel","z2ui5/core/CustomControls"],(XMLView,Fragment,Lib,Env,ViewSlots,Context,WindowModel,CustomControls)=>{"use strict";function applyStoredSizeLimit(ctx,viewKey,oModel){if(!oModel)return;c`.
+             `},` && |\n|.
     result = result &&
+             `      "z2ui5/core/actions/Slots.js": function(){sap.ui.define(["sap/ui/core/mvc/XMLView","sap/ui/core/Fragment","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/cor` &&
+             `e/WindowModel","z2ui5/core/CustomControls"],(XMLView,Fragment,Lib,Env,ViewSlots,Context,WindowModel,CustomControls)=>{"use strict";function applyStoredSizeLimit(ctx,viewKey,oModel){if(!oModel)return;c` &&
              `onst limit=Lib.effectiveSizeLimit(ctx.state.viewSizeLimits,viewKey);if(limit!==undefined)oModel.setSizeLimit(limit)}function trackChanges(oModel){oModel._z2ui5Tracked=true;oModel._z2ui5ChangedPaths=ne` &&
              `w Set;oModel.attachPropertyChange(e=>{const params=e.getParameters();const raw=params.path;const ctx=params.context;if(!raw)return;const changedPath=ctx&&!raw.startsWith("/")?``${ctx.getPath()}/${raw}` &&
              ```:raw;if(changedPath.startsWith("/")){oModel._z2ui5ChangedPaths.add(changedPath)}});return oModel}function resolveTrackedModel(oView){return ViewSlots.trackedModel(oView)}function dataForSlot(slotKey` &&
@@ -861,10 +863,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `reInitialised(oSVM,target,attempt,fnCallback){if(Lib.isDestroyed(oSVM))return;const wrapper=oSVM._getControlWrapper?oSVM._getControlWrapper(target):null;if(!wrapper){if(attempt<SMART_VARIANT_INIT_TRIE` &&
              `S){setTimeout(()=>ensureInitialised(oSVM,target,attempt+1,fnCallback),SMART_VARIANT_INIT_DELAY)}return}if(wrapper.bInitialized)return;oSVM.initialise(fnCallback||(()=>{}),target)}function activeInitsO` &&
              `f(oController,action){const ctx=oController?.ctx;if(!ctx){Lib.logError(``${action}: no context to register in``);return null}return ctx.variants.activeInits}function evSmartVariantInit(oController,arg` &&
-             `s){const[,svmId,controlId]=args;const activeInits=activeInitsOf(oController,"SMART_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${controlId||""}``;if(activeInits.has(key))return;activeIn` &&
-             `its.add(key);const finish=()=>activeInits.delete(key);let tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const ` &&
-             `control=controlId?ViewSlots.resolveById(oController?.ctx,controlId):null;if(!oSVM||controlId&&!control){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logErro`.
+             `s){const[,svmId,controlId]=args;const activeInits=activeInitsOf(oController,"SMART_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${controlId||""}``;if(activeInits.has(key))return;activeIn`.
     result = result &&
+             `its.add(key);const finish=()=>activeInits.delete(key);let tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const ` &&
+             `control=controlId?ViewSlots.resolveById(oController?.ctx,controlId):null;if(!oSVM||controlId&&!control){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logErro` &&
              `r(``SMART_VARIANT_INIT: '${controlId?``${svmId}' / '${controlId}``:svmId}' not found``);finish();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.initialise!=="function"){Lib.logError(``SMART_VARIANT_INIT` &&
              `: no SmartVariantManagement for id '${svmId}'``);finish();return}let target=control;if(!target){const registered=oSVM.getPersonalizableControls?oSVM.getPersonalizableControls():[];if(!registered.lengt` &&
              `h){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``);finish();return}target=` &&
@@ -934,10 +936,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `}const entry={ts:(new Date).toISOString(),level,source,text:body};entries.push(entry);if(level==="error"&&onErrorEntry.size&&isAlertOnError()){for(const fn of onErrorEntry){try{fn(entry)}catch{}}}}fun` &&
              `ction addOnError(fn){if(typeof fn==="function")onErrorEntry.add(fn)}function removeOnError(fn){onErrorEntry.delete(fn)}function isAlertOnError(){return Persist.readFlag(ALERT_KEY)}function setAlertOnE` &&
              `rror(enabled){Persist.writeFlag(ALERT_KEY,enabled)}function persist(){const errors=entries.filter(entry=>entry.level==="error").slice(-RELOAD_MAX_ENTRIES).map(entry=>({...entry,previousLoad:true}));Pe` &&
-             `rsist.saveList(RELOAD_KEY,errors)}function restore(){const stored=Persist.takeList(RELOAD_KEY);if(stored.length)entries=stored.slice(-RELOAD_MAX_ENTRIES)}function isErrorLike(value){if(!value||typeof ` &&
-             `value!=="object")return false;if(Object.prototype.toString.call(value)==="[object Error]")return true;return typeof value.stack==="string"&&typeof value.message==="string"}function renderArg(value){if` &&
-             `(value===undefined)return"undefined";if(value===null)return"null";const type=typeof value;if(type==="string")return value;if(type==="number"||type==="boolean"||type==="bigint"){return String(value)}if`.
+             `rsist.saveList(RELOAD_KEY,errors)}function restore(){const stored=Persist.takeList(RELOAD_KEY);if(stored.length)entries=stored.slice(-RELOAD_MAX_ENTRIES)}function isErrorLike(value){if(!value||typeof `.
     result = result &&
+             `value!=="object")return false;if(Object.prototype.toString.call(value)==="[object Error]")return true;return typeof value.stack==="string"&&typeof value.message==="string"}function renderArg(value){if` &&
+             `(value===undefined)return"undefined";if(value===null)return"null";const type=typeof value;if(type==="string")return value;if(type==="number"||type==="boolean"||type==="bigint"){return String(value)}if` &&
              `(type==="function")return``[function ${value.name||"anonymous"}]``;if(type==="symbol")return String(value);if(isErrorLike(value)){return value.stack||``${value.name||"Error"}: ${value.message}``}try{c` &&
              `onst ancestors=[];const walked=new WeakMap;let nodes=0;return JSON.stringify(value,function replace(key,val){if(typeof val==="object"&&val!==null){if(++nodes>MAX_NODES)return"[...]";const holder=walke` &&
              `d.get(this)||this;while(ancestors.length>0&&ancestors[ancestors.length-1]!==holder){ancestors.pop()}if(ancestors.includes(val))return"[Circular]";if(ancestors.length>=MAX_DEPTH)return"[...]";ancestors` &&
@@ -1005,10 +1007,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/devtools/Format.js": function(){sap.ui.define([],()=>{"use strict";const INDENT_UNIT=3;function toJson(val){const safe=val===undefined?null:val;const ancestors=[];try{return JSON.stringif` &&
              `y(safe,function(key,value){if(typeof value==="object"&&value!==null){while(ancestors.length>0&&ancestors[ancestors.length-1]!==this){ancestors.pop()}if(ancestors.includes(value))return"[Circular]";anc` &&
-             `estors.push(value)}return value},INDENT_UNIT)}catch{return String(safe)}}const XML_INDENT_UNIT=2;const ELEMENT_NODE=1;const TEXT_NODE=3;const CDATA_SECTION_NODE=4;const PROCESSING_INSTRUCTION_NODE=7;c` &&
-             `onst COMMENT_NODE=8;let _domParser=null;function getDomParser(){if(!_domParser)_domParser=new DOMParser;return _domParser}function escapeText(text){return text.replace(/&/g,"&amp;").replace(/</g,"&lt;` &&
-             `").replace(/]]>/g,"]]&gt;")}function escapeAttribute(value){return value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;").replace(/\t/g,"&#9;").replace(/\n/g,"&#10;").replace(/\r/g,"&`.
+             `estors.push(value)}return value},INDENT_UNIT)}catch{return String(safe)}}const XML_INDENT_UNIT=2;const ELEMENT_NODE=1;const TEXT_NODE=3;const CDATA_SECTION_NODE=4;const PROCESSING_INSTRUCTION_NODE=7;c`.
     result = result &&
+             `onst COMMENT_NODE=8;let _domParser=null;function getDomParser(){if(!_domParser)_domParser=new DOMParser;return _domParser}function escapeText(text){return text.replace(/&/g,"&amp;").replace(/</g,"&lt;` &&
+             `").replace(/]]>/g,"]]&gt;")}function escapeAttribute(value){return value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;").replace(/\t/g,"&#9;").replace(/\n/g,"&#10;").replace(/\r/g,"&` &&
              `#13;")}function isTextLike(node){return node.nodeType===TEXT_NODE||node.nodeType===CDATA_SECTION_NODE}function isBlank(node){return isTextLike(node)&&!/\S/.test(node.nodeValue)}function serializeNode(` &&
              `node,depth,indented){const pad=indented?" ".repeat(depth*XML_INDENT_UNIT):"";switch(node.nodeType){case ELEMENT_NODE:return pad+serializeElement(node,depth,indented);case TEXT_NODE:return pad+escapeTe` &&
              `xt(node.nodeValue);case CDATA_SECTION_NODE:return``${pad}<![CDATA[${node.nodeValue}]]>``;case COMMENT_NODE:return``${pad}\x3c!--${node.nodeValue}--\x3e``;case PROCESSING_INSTRUCTION_NODE:return``${pad` &&
@@ -1079,10 +1081,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `rec.onPageHide){window.removeEventListener("pagehide",rec.onPageHide);rec.onPageHide=null}if(rec.observer){try{rec.observer.disconnect()}catch{}rec.observer=null}}function getRecords(ctx){const rec=re` &&
              `corderOf(ctx);if(!rec)return[];flushStaleUnpaired(rec);return rec.records}function pad(value,width,right){const text=value===null||value===undefined?"-":String(value);if(text.length>=width)return text` &&
              `;const fill=" ".repeat(width-text.length);return right?fill+text:text+fill}function formatMs(ms){return ms===null||ms===undefined?"-":``${ms} ms``}function shortId(id){if(!id)return"-";return id.lengt` &&
-             `h>8?``..${id.slice(-6)}``:id}function navigationLines(list){const hops=[];let previous=null;for(const record of list){if(!record.app||record.app===previous)continue;hops.push({seq:record.seq,from:prev` &&
-             `ious,to:record.app,event:record.event,draft:record.idReceived});previous=record.app}if(hops.length<2)return[];const out=["App navigation observed this session"];for(const hop of hops){out.push(``  #${` &&
-             `String(hop.seq).padEnd(4)}``+``${hop.from?``${hop.from} -> ``:"start "}${hop.to}``+``${hop.event?``   via ${hop.event}``:""}``+``   draft ${shortId(hop.draft)}``)}out.push("");return out}function summ`.
+             `h>8?``..${id.slice(-6)}``:id}function navigationLines(list){const hops=[];let previous=null;for(const record of list){if(!record.app||record.app===previous)continue;hops.push({seq:record.seq,from:prev`.
     result = result &&
+             `ious,to:record.app,event:record.event,draft:record.idReceived});previous=record.app}if(hops.length<2)return[];const out=["App navigation observed this session"];for(const hop of hops){out.push(``  #${` &&
+             `String(hop.seq).padEnd(4)}``+``${hop.from?``${hop.from} -> ``:"start "}${hop.to}``+``${hop.event?``   via ${hop.event}``:""}``+``   draft ${shortId(hop.draft)}``)}out.push("");return out}function summ` &&
              `aryLines(list){const timed=list.filter(r=>r.backendMs!==null);if(!timed.length)return[];const out=["Summary"];const backend=timed.map(r=>r.backendMs);const avg=Math.round(backend.reduce((a,b)=>a+b,0)/` &&
              `backend.length);const slowest=timed.reduce((a,b)=>b.backendMs>a.backendMs?b:a);out.push(``  Backend: avg ${avg} ms over ${timed.length} roundtrip(s),``+`` slowest #${slowest.seq} ${slowest.event||"(st` &&
              `art)"}``+`` at ${slowest.backendMs} ms``);const sized=list.filter(r=>r.respBytes!==null);if(sized.length){const biggest=sized.reduce((a,b)=>b.respBytes>a.respBytes?b:a);const total=sized.reduce((sum,r` &&
@@ -1148,9 +1150,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      "z2ui5/model/models.js": function(){sap.ui.define(["sap/ui/model/json/JSONModel","sap/ui/Device"],(JSONModel,Device)=>{"use strict";const RANGE_SET="Std";return{createDeviceModel(){const oModel=` &&
              `new JSONModel(Device);oModel.setDefaultBindingMode("OneWay");if(!Device.media.hasRangeSet(RANGE_SET)){Device.media.initRangeSet(RANGE_SET)}const refresh=()=>{const oRange=Device.media.getCurrentRange(` &&
              `RANGE_SET);oModel.setProperty("/media/range",oRange?oRange.name:"");oModel.checkUpdate()};Device.resize.attachHandler(refresh);Device.orientation.attachHandler(refresh);Device.media.attachHandler(refr` &&
-             `esh,null,RANGE_SET);refresh();oModel.destroy=function(){Device.resize.detachHandler(refresh);Device.orientation.detachHandler(refresh);Device.media.detachHandler(refresh,null,RANGE_SET);JSONModel.prot` &&
-             `otype.destroy.apply(this,arguments)};return oModel}}});` && |\n|.
+             `esh,null,RANGE_SET);refresh();oModel.destroy=function(){Device.resize.detachHandler(refresh);Device.orientation.detachHandler(refresh);Device.media.detachHandler(refresh,null,RANGE_SET);JSONModel.prot`.
     result = result &&
+             `otype.destroy.apply(this,arguments)};return oModel}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/view/App.view.xml": '\x3cmvc:View controllerName="z2ui5.controller.App"    xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5core="z2ui5.core"    displayBlock="true" height="100%">    \x3c!-- The ro` &&
