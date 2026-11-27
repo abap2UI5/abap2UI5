@@ -250,9 +250,24 @@ aggregation and namespace, nothing is wrapped or approximated. Four verbs:
   `z2ui5_cl_ui5_view_builder=>escape_literal( )` inside `v`. XML escaping is
   separate and always applied.
 
-The legacy fluent builder `z2ui5_cl_xml_view` (one method per control) still
-ships for existing apps but is **frozen** — new apps and new code use
-`z2ui5_cl_ui5_view_builder`.
+**Names that changed.** Most of what was written about abap2UI5 before
+1.143.0 names an API that has been replaced; when one of these comes to mind,
+write the right-hand side:
+
+| Remembered | Write |
+|---|---|
+| `z2ui5_cl_xml_view=>factory( )->shell( )->page( )` | `z2ui5_cl_ui5_view_builder` as above — the legacy fluent builder (one method per control) is frozen and since 1.151.0 only exists where [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext) is installed |
+| `_bind_edit( )`, `view_model_update( )` | `_bind( )`; delete the update call (§4) |
+| a `check_initialized` flag | `client->check_on_init( )` (§2) |
+| `client->get( )-event`, `get( )-t_event_arg` | `client->get_event( )`, `client->get_event_arg( )` (§5) |
+| `_event_client( )` | `follow_up_action( )` (§5) |
+| `nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) )` | `client->nav_app_leave( )` (§7) |
+| `z2ui5_cl_pop_to_confirm` and the other `z2ui5_cl_pop_*` | `z2ui5_cl_popup_*` of the popups addon (§6) |
+| `z2ui5_cl_util=>…` | no longer in the framework and no API for apps — write the few lines yourself |
+
+Every replaced name with old and new code:
+<https://abap2ui5.github.io/docs/resources/deprecations.html>, as data
+<https://abap2ui5.github.io/docs/api/deprecations.json>.
 
 ### Formatting the chain (strict, and machine-checked)
 
@@ -643,6 +658,20 @@ reasoning:
 - `client->message_toast_display( text )` and
   `client->message_box_display( text type title actions … )` for messages —
   never build your own toast/dialog for these.
+- **Before building a dialog by hand, check the addons.** Confirm, inform,
+  select from a list, decide, input values, file upload and download, a
+  table, messages, a range or a value help are finished classes in
+  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups):
+  `` client->nav_app_call( z2ui5_cl_popup_to_confirm=>factory( i_question_text = `Delete?` i_event_confirm = `DELETE_OK` ) ) ``,
+  and the answer arrives as that event (or `check_on_nav_back( )` and
+  `result( )`, §7). The same holds for a table layout the user saves
+  (layout-management), a selection screen with ranges and variants
+  (range-filter) and a lock held across roundtrips (lock-manager). The
+  catalogue, with what each addon is for, its entry classes and what it
+  depends on: <https://abap2ui5-addons.github.io/llms.txt> and
+  <https://abap2ui5-addons.github.io/addons.json>. An addon is not part of
+  the framework: it is a repository of its own that the system pulls with
+  abapGit next to abap2UI5, so say which one the app needs (§9).
 - **`message_box_display( text )` takes anything.** `text` is `TYPE any`, so
   throw in what you have: a string, a BAPIRET2 / T100 / RAP / `symsg`
   structure or table, a log object, an exception, an HTML string, a business
@@ -939,6 +968,11 @@ reasoning:
   framework's endpoint with `?app_start=zcl_my_app`. An agent without a
   connection to the system stops at the files — say so, and say which of the
   gates above ran.
+- **`npm run add-addon -- <repo>`** in a project made from app-template
+  (`popups`, `range-filter`, …): registers an addon, and what it depends on,
+  in the dependencies of `abaplint.jsonc`, so the lint gate resolves its
+  classes. Without it a call to an addon class ends in "Class ... not found" —
+  which says the gate does not know the addon, not that the class is wrong.
 - **`npm run doctor`** in a project made from app-template: the environment
   check — Node, the two gates, Chromium for the render gate, the framework
   pin, the sidecars — that names the remedy for each failure.
