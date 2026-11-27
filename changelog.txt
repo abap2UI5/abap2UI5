@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* tools/bsp_rename: a namespace that holds the old name (/Z2UI5/) keeps it in the urls of its ICF nodes and gets its namespace nodes - the node came out as /sap/bc/ui5/ui5 and without them
 * Range tokens: a CP / NP range row whose LOW already is a pattern (abc*, *abc) renders as that pattern - the token template wrapped it in asterisks once more (*abc**). From abap-util, where a pattern token is now stored as typed
 ! ABAP Cloud: the branch cloud carries the whole repository, as 702 does, and is rebuilt on every push to main - always one commit ahead of main, never behind. An installation pulls src/ as before
 * 702: the test include of z2ui5_cl_ui5_srv_model activates on 7.02 - the downport declared 14 field symbols LIKE LINE OF a generically typed table ("<TAB> is a generic type"), which took the whole class pool down; the rows are assigned first now, and check-generic-like also catches FIELD-SYMBOLS ... LIKE, not only DATA ... LIKE
