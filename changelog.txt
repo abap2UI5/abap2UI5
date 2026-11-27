@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! CI: the jobs that publish (release.yaml, backend-prebuilt.yaml) run in the environment release, which a maintainer has to set up with reviewers and deployment rules (RELEASING.md); release.yaml keeps no write token in .git/config while npm runs and pushes the 702 tag with the token for that command only
 * CI: autofix (/fix on a pull request, which runs in main's cache scope) takes the setup action from the default branch and only restores caches - a pull request could save an abap-deps cache that release.yaml and backend-prebuilt.yaml restore before they publish; npm run deps resets and cleans a checkout at its pin before accepting it
 ! @abap2ui5/bsp: engines.node is >=22, like everything else of this repository and every CI job - it said >=18, which nothing tested
 - Tooling: tools/app2app_v2 (the legacy-free UI5 2.x bootstrap patch), tools/check-v2-sdk.mjs and the monthly check-v2-sdk workflow - the build no longer ran (bundle/webapp has no index.html since the embed control) and the check filed issues about a pin nothing used

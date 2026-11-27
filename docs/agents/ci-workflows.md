@@ -192,7 +192,11 @@ by hand from the workflow artefact (RELEASING.md, "One-time setup — the npm
 package"); until then the script ends in a **warning** and the run stays
 green. Once the package exists, a failed publish is an error; a version
 already there is a no-op, so a re-dispatch for a tag does not go red. A stored
-`NPM_TOKEN` still works and takes precedence.
+`NPM_TOKEN` still works and takes precedence. Every job that publishes - this
+one, `bsp` and the `release` job of `release.yaml` - runs in the environment
+`release`, whose required reviewers, deployment rules and the `NPM_TOKEN`
+fallback are repository settings (RELEASING.md, "One-time setup — the release
+environment").
 
 **The name.** Drafted first as `@abap2ui5/runtime` (next to the linter's
 unrelated `@abap2ui5/render-runtime`), then as `@abap2ui5/node`; neither was

@@ -56,6 +56,12 @@ concurrency:
 jobs:
   release:
     if: github.repository == 'abap2UI5/abap2UI5'
+    # The environment that guards everything that publishes: its protection
+    # rules (required reviewers, the tags and the branch it may run from)
+    # and its secrets are settings of the repository, not of this file -
+    # RELEASING.md, "One-time setup - the release environment". The
+    # rehearsal (a dispatch) asks for the same approval.
+    environment: release
     permissions:
       contents: write
       # gh workflow run backend-prebuilt.yaml (see the last step)
