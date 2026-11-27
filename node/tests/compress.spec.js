@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
-const fs = require("fs");
+const { needsTranspiledBackend } = require("./helpers/transpiledBackend");
 const http = require("http");
 const path = require("path");
 const zlib = require("zlib");
@@ -22,7 +22,6 @@ const { pathToFileURL } = require("url");
 // ---------------------------------------------------------------------
 
 const MODULE = path.join(__dirname, "..", "srv", "compress.mjs");
-const OUTPUT = path.join(__dirname, "..", "output", "init.mjs");
 const FRAMEWORK = path.join(__dirname, "helpers", "compressFramework.mjs");
 
 const PAGE = "<!doctype html>" + "<p>abap2UI5</p>".repeat(400);
@@ -228,8 +227,8 @@ test.describe("the middleware", () => {
 test.describe("in front of the framework", () => {
   // `npm run check:js` runs on a tree that was never transpiled (node/output
   // is built by `npm run downport && npm run auto_transpile`), so this half
-  // skips there; test.yaml's test_node runs it on the transpiled tree
-  test.skip(!fs.existsSync(OUTPUT), "needs the transpiled backend: npm run downport && npm run auto_transpile");
+  // skips there locally; test.yaml's test_node runs it on the transpiled tree
+  needsTranspiledBackend(test);
 
   /** @type {any} */
   let seen;

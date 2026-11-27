@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
-const fs = require("fs");
+const { needsTranspiledBackend } = require("./helpers/transpiledBackend");
 const http = require("http");
 const path = require("path");
 const { execFileSync } = require("child_process");
@@ -15,12 +15,12 @@ const { pathToFileURL } = require("url");
 // Two halves, like compress.spec.js. The guard on its own, in front of a
 // stub handler: the names it allows, Host and Origin, the 403, the switch.
 // And serve() in front of the REAL framework (helpers/hostGuardFramework.mjs,
-// a child process) - that half needs the transpiled tree and skips without
-// it; test.yaml's test_node job runs it on one.
+// a child process) - that half needs the transpiled tree, skips without it
+// locally and fails without it in CI (helpers/transpiledBackend.js);
+// test.yaml's test_node job runs it on one.
 // ---------------------------------------------------------------------
 
 const MODULE = path.join(__dirname, "..", "srv", "hostguard.mjs");
-const OUTPUT = path.join(__dirname, "..", "output", "init.mjs");
 const FRAMEWORK = path.join(__dirname, "helpers", "hostGuardFramework.mjs");
 
 /** @type {any} */
@@ -126,8 +126,8 @@ test.describe("the guard", () => {
 
 test.describe("serve() in front of the framework", () => {
   // `npm run check:js` runs on a tree that was never transpiled, so this half
-  // skips there; test.yaml's test_node runs it on the transpiled tree
-  test.skip(!fs.existsSync(OUTPUT), "needs the transpiled backend: npm run downport && npm run auto_transpile");
+  // skips there locally; test.yaml's test_node runs it on the transpiled tree
+  needsTranspiledBackend(test);
 
   /** @type {any} */
   let seen;
