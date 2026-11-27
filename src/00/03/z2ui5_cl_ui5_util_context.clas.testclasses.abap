@@ -2579,6 +2579,7 @@ CLASS ltcl_edge DEFINITION FINAL
     METHODS test_class_exists_lower     FOR TESTING RAISING cx_static_check.
     METHODS test_bool_to_json           FOR TESTING RAISING cx_static_check.
     METHODS test_token_excluding_bt     FOR TESTING RAISING cx_static_check.
+    METHODS test_token_pattern          FOR TESTING RAISING cx_static_check.
     METHODS test_uuid_shape             FOR TESTING RAISING cx_static_check.
     METHODS test_subtract_leap_day      FOR TESTING RAISING cx_static_check.
     METHODS test_subtract_year_end      FOR TESTING RAISING cx_static_check.
@@ -2853,6 +2854,26 @@ CLASS ltcl_edge IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `!(1...5)`
                                         act = lt_token[ 1 ]-key ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( VALUE z2ui5_cl_ui5_util_context=>ty_t_range( ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_token_pattern.
+
+    " a CP / NP row whose LOW is a pattern already renders as that pattern -
+    " the template's asterisks around it turned `abc*` into `*abc**`. A row
+    " without an asterisk keeps the rendering it always had
+    DATA(lt_range) = VALUE z2ui5_cl_ui5_util_context=>ty_t_range( ( sign = `I` option = `CP` low = `abc*` )
+                                                                  ( sign = `I` option = `NP` low = `*x` )
+                                                                  ( sign = `I` option = `CP` low = `xyz` ) ).
+
+    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `abc*`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `!(*x)`
+                                        act = lt_token[ 2 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `*xyz*`
+                                        act = lt_token[ 3 ]-key ).
 
   ENDMETHOD.
 
