@@ -23,7 +23,7 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "bin": {
     "abap2ui5-bsp": "cli.mjs"

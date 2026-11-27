@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! @abap2ui5/bsp: engines.node is >=22, like everything else of this repository and every CI job - it said >=18, which nothing tested
 - Tooling: tools/app2app_v2 (the legacy-free UI5 2.x bootstrap patch), tools/check-v2-sdk.mjs and the monthly check-v2-sdk workflow - the build no longer ran (bundle/webapp has no index.html since the embed control) and the check filed issues about a pin nothing used
 ! @abap2ui5/node-runtime: serve() without a host binds 127.0.0.1 - it bound every interface, and its Host/Origin guard keeps browsers out, not other programs; host: "*" binds every interface (npm run express still does, HOST=127.0.0.1 narrows it)
 * @abap2ui5/node-runtime, compress(): the cached gzip of a GET page is keyed by its path as well - the ?z2ui5-bundle answer of one node path, which carries that path, went out for another one under the same ETag
