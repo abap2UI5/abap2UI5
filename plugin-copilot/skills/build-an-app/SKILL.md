@@ -30,9 +30,23 @@ sample is gated, a snippet is a copy somebody has to keep in step.
 - Without it: [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
   is the same catalogue as a page.
 
+**The same question for a dialog, a table layout the user saves, a selection
+screen or a lock: the addons.** They are finished classes in repositories of
+their own under [abap2UI5-addons](https://github.com/abap2UI5-addons) —
+`z2ui5_cl_popup_to_confirm` and its siblings in popups, for one. The catalogue
+for agents is <https://abap2ui5-addons.github.io/llms.txt> (as data:
+<https://abap2ui5-addons.github.io/addons.json>). An addon is a separate
+abapGit install; in a project made from app-template,
+`npm run add-addon -- <repo>` registers it so abaplint resolves its classes
+(guide §6 and §9).
+
 The rules that go wrong most often. Each is one line here and a section of
 the guide — read the section before you rely on the line.
 
+- **What you remember may be the old API.** `z2ui5_cl_xml_view`,
+  `_bind_edit( )`, `view_model_update( )`, a `check_initialized` flag,
+  `z2ui5_cl_pop_*` and `z2ui5_cl_util` are all replaced or gone — the table
+  "Names that changed" in guide §3 says what to write instead.
 - **One class implements `z2ui5_if_app`; `main( client )` runs once per
   roundtrip and is ONE `IF`/`ELSEIF` chain**, so exactly one arm runs:
   `IF client->check_on_init( ).` seeds and displays, `ELSEIF

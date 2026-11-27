@@ -38,6 +38,12 @@ gated, rendered and downported.
   `.../samples-controls/main/` and `.../samples-stack/main/`.
 - Only propose a samples-stack sample when the user has what it needs
   (OData, RAP, APC, the launchpad).
+- A dialog (confirm, select, input, file), a table layout the user saves, a
+  selection screen or a lock may be a finished addon instead of code to
+  write: https://abap2ui5-addons.github.io/llms.txt is the catalogue. An
+  addon is a separate abapGit install - name it in the report; in an
+  app-template project `npm run add-addon -- <repo>` makes abaplint resolve
+  its classes.
 
 Tell the user in one line which sample(s) you build on, or that none fits.
 
