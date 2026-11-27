@@ -1032,7 +1032,12 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  attribute the draft cannot carry fails in the test as it fails in the` && |\n| &&
              `  browser. The drafts are kept in memory - no row reaches ``Z2UI5_T_01`` - and` && |\n| &&
              `  an app that calls ``set_session_stateful( )`` keeps its instance, as on a` && |\n| &&
-             `  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the` && |\n| &&
+             `  system. The LUW is the system's too: the framework runs ``ROLLBACK WORK``` && |\n| &&
+             `  before and after ``main( )`` of an app that is not stateful, so data a test` && |\n| &&
+             `  inserts in ``setup`` without ``COMMIT WORK`` is gone when ``main( )`` reads it -` && |\n| &&
+             `  seed the data the app SELECTs through a test double that survives a` && |\n| &&
+             `  rollback, or commit it and delete it in ``teardown``. The harness runs on a system, on ABAP Cloud, on 7.02 and` &&
+             ` in the` && |\n| &&
              `  transpiled backend (``run_unit_tests`` of the MCP server, ``npm run test:unit``` && |\n| &&
              `  in an app-template project). It ships with the release after 1.150.0; on an older` && |\n| &&
              `  installation a hand-written ``ltd_client`` with ``INTERFACES z2ui5_if_client` && |\n| &&
@@ -1056,14 +1061,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  pin, the sidecars - that names the remedy for each failure.` && |\n| &&
              `- **``npm create abap2ui5-app@latest my-app -- --class zcl_my_app``**: the` && |\n| &&
              `  project scaffold without a GitHub template button or an editor.` && |\n| &&
-             `- **``interact_app``** in the MCP server: click, type and fire events in the` && |\n| &&
+             `- **``interact_app``** in the MCP server: click, type and fire events in the` && |\n|.
+    result = result &&
              `  headless app and look at the result - the event branch, not just the boot.` && |\n| &&
              |\n| &&
              `## 10. The in-app developer tools (Ctrl+F12)` && |\n| &&
              |\n| &&
              `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n| &&
-             `app that shows the roundtrips, the view XML and the model, the log and the` && |\n|.
-    result = result &&
+             `app that shows the roundtrips, the view XML and the model, the log and the` && |\n| &&
              `environment, without the browser's devtools. They are part of the frontend` && |\n| &&
              `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
              `app, with nothing to install and nothing to configure.` && |\n| &&
@@ -1106,13 +1111,13 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  messages the user was shown.` && |\n| &&
              `- **Roundtrips**: every roundtrip with backend vs. render time, payload sizes` && |\n| &&
              `  and draft ids, the raw request and response JSON, the follow-up actions and` && |\n| &&
-             `  a diff of the model between two roundtrips. The **Journey** view records a` && |\n| &&
+             `  a diff of the model between two roundtrips. The **Journey** view records a` && |\n|.
+    result = result &&
              `  click-through: press "Record Journey", use the app, press it again, and` && |\n| &&
              `  "Export ABAP Unit" hands over a local test class that replays the steps on` && |\n| &&
              `  ``z2ui5_cl_frontend_sim`` ([headless-frontend](https://github.com/abap2UI5/headless-frontend))` && |\n| &&
              `  - ``set_value( )`` for what was typed, ``click( )`` for every event, assertions` && |\n| &&
-             `  on the messages, layers, control ids and events the screens showed. Paste it` && |\n|.
-    result = result &&
+             `  on the messages, layers, control ids and events the screens showed. Paste it` && |\n| &&
              `  into the app's test include; record from the app start, because the test` && |\n| &&
              `  starts the app fresh.` && |\n| &&
              `- **View & Data**: the XML of the main view, the popup, the popover and the` && |\n| &&
@@ -1149,14 +1154,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              ```z2ui5_cl_ui5_llm``: ``create_claude( )`` (Messages API), ``create_openai( )``` && |\n| &&
              `(Chat Completions - OpenAI, Azure with ``auth_header`` set to ``api-key``, Ollama,` && |\n| &&
              `LM Studio, gateways) or ``create_local( t_rule = ... )``, a deterministic` && |\n| &&
-             `rule-based provider without HTTP for 7.02, unit tests and demos.` && |\n| &&
+             `rule-based provider without HTTP for 7.02, unit tests and demos.` && |\n|.
+    result = result &&
              |\n| &&
              ```````abap` && |\n| &&
              `DATA(li_llm) = z2ui5_cl_ui5_llm=>create_claude( model       = ls_cfg-model` && |\n| &&
              `                                                destination = ls_cfg-destination ).` && |\n| &&
              `DATA(ls_answer) = li_llm->chat( system    = ``Answer briefly.``` && |\n| &&
-             `                                t_message = mt_chat ).` && |\n|.
-    result = result &&
+             `                                t_message = mt_chat ).` && |\n| &&
              ```````` && |\n| &&
              |\n| &&
              `- **No key, model or endpoint in the class.** Read them from your own` && |\n| &&

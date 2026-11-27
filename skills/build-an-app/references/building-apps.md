@@ -983,7 +983,11 @@ reasoning:
   attribute the draft cannot carry fails in the test as it fails in the
   browser. The drafts are kept in memory - no row reaches `Z2UI5_T_01` - and
   an app that calls `set_session_stateful( )` keeps its instance, as on a
-  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the
+  system. The LUW is the system's too: the framework runs `ROLLBACK WORK`
+  before and after `main( )` of an app that is not stateful, so data a test
+  inserts in `setup` without `COMMIT WORK` is gone when `main( )` reads it -
+  seed the data the app SELECTs through a test double that survives a
+  rollback, or commit it and delete it in `teardown`. The harness runs on a system, on ABAP Cloud, on 7.02 and in the
   transpiled backend (`run_unit_tests` of the MCP server, `npm run test:unit`
   in an app-template project). It ships with the release after 1.150.0; on an older
   installation a hand-written `ltd_client` with `INTERFACES z2ui5_if_client

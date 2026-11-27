@@ -28,7 +28,9 @@
 "! draft - read app( ) again after every step, and change a value through
 "! set_model( ) (a bound value) rather than on an old reference. An app that
 "! switched to a stateful session (set_session_stateful) keeps its instance
-"! across roundtrips, as on a system.
+"! across roundtrips, as on a system. So does the LUW: the framework runs a
+"! ROLLBACK WORK before and after main( ) of an app that is not stateful, and
+"! data a test inserted without COMMIT WORK is gone when main( ) reads it.
 "!
 "! Readers: view_xml( ), nest_xml( ), nest2_xml( ), popup_xml( ) and
 "! popover_xml( ) answer what each view slot shows NOW - a slot keeps its
