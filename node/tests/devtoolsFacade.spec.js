@@ -34,6 +34,14 @@ function loadDevTools({
   // files itself (not embedded)
   embedded = true,
   url = "http://localhost:3000/sap/bc/z2ui5?app_start=ZCL_X#/x",
+  // the page's URL (the logon client of a fallback endpoint comes off it)
+  href = "http://localhost:3000/sap/bc/z2ui5",
+  // what the double's show( ) does: "open" opens the dialog, "closed"
+  // returns without opening it (DeveloperTools.show swallows its own
+  // failures), "throw" throws
+  dialogShow = "open",
+  // timer doubles for the load timeout; the host's timers otherwise
+  timers = {},
 } = {}) {
   const listeners = [];
   const recorderCalls = [];
@@ -46,6 +54,8 @@ function loadDevTools({
   const scripts = [];
   const requires = [];
   const pickerStops = [];
+  // the contexts the friendly error popup was reopened for
+  const reopened = [];
 
   // The real core/Lib: the error-details hook lands on the context's
   // own callback array through the shipped registerCallback, which is
@@ -63,6 +73,8 @@ function loadDevTools({
     }
     show(tab) {
       this.shown.push(tab);
+      if (dialogShow === "throw") throw new Error("show failed");
+      if (dialogShow === "open") this.oDialog = { isOpen: () => true };
     }
     toggle() {
       this.toggled += 1;
@@ -101,6 +113,9 @@ function loadDevTools({
   const { module } = loadModule("devtools/DevTools.js", {
     deps: {
       "z2ui5/core/Lib": Lib,
+      "z2ui5/core/ErrorView": {
+        reopenErrorDialog: (c) => reopened.push(c),
+      },
       // page-wide and use-counted (devtools/Console.js): the facade takes
       // one use per install and gives it back per exit
       "z2ui5/devtools/Console": {
@@ -127,8 +142,9 @@ function loadDevTools({
     sandbox: {
       URLSearchParams,
       URL,
+      ...timers,
       window: {
-        location: { search, href: "http://localhost:3000/sap/bc/z2ui5" },
+        location: { search, href },
       },
       sap: {
         ui: {
@@ -147,7 +163,13 @@ function loadDevTools({
           const i = listeners.findIndex((l) => l.type === type && l.fn === fn);
           if (i >= 0) listeners.splice(i, 1);
         },
-        createElement: (tag) => ({ tag }),
+        createElement: (tag) => {
+          const el = { tag, removed: false };
+          el.remove = () => {
+            el.removed = true;
+          };
+          return el;
+        },
         head: { appendChild: (el) => scripts.push(el) },
       },
     },
@@ -180,6 +202,7 @@ function loadDevTools({
     hooks: (c = ctx) => c.state.onErrorDetails,
     recorderCalls,
     pickerStops,
+    reopened,
     instances,
     consoleUsers,
     modules,
@@ -402,6 +425,59 @@ test.describe("the devtools bundle", () => {
     expect(h.instances.length).toBe(1);
   });
 
+  test("a failed load takes its <script> element out of the head again", async () => {
+    const h = loadDevTools();
+    h.DevTools.install(h.ctx);
+    h.press(CTRL_F12);
+    await h.tick();
+    await h.failBundle();
+    expect(h.scripts[0].removed).toBe(true);
+    // a load that arrived keeps its element
+    h.press(CTRL_F12);
+    await h.tick();
+    await h.loadBundle();
+    expect(h.scripts[1].removed).toBe(false);
+  });
+
+  // A proxy holding the request open left record.loading pending for the
+  // life of the page: every later open joined it, the tools never came up
+  test("a load that never answers gives up after 60 seconds, and the next open tries again", async () => {
+    const pending = [];
+    const h = loadDevTools({
+      timers: {
+        setTimeout: (fn, ms) => {
+          pending.push({ fn, ms });
+          return pending.length;
+        },
+        clearTimeout: () => {},
+      },
+    });
+    h.DevTools.install(h.ctx);
+    h.press(CTRL_F12);
+    await h.tick();
+    expect(h.scripts.length).toBe(1);
+    expect(pending.map((t) => t.ms)).toEqual([60000]);
+    pending[0].fn();
+    await h.tick();
+    await h.tick();
+    expect(h.scripts[0].removed).toBe(true);
+    expect(h.ctx.devtools.loading).toBe(null);
+    expect(
+      h.ctx.state.errors.some((e) =>
+        String(e.error?.message).includes("no answer within 60 seconds"),
+      ),
+    ).toBe(true);
+    // a late onload of the abandoned element changes nothing
+    h.scripts[0].onload();
+    await h.tick();
+    expect(h.instances.length).toBe(0);
+    h.press(CTRL_F12);
+    await h.tick();
+    expect(h.scripts.length).toBe(2);
+    await h.loadBundle();
+    expect(h.instances.length).toBe(1);
+  });
+
   test("without an endpoint there is nothing to load from - logged, never thrown", async () => {
     const h = loadDevTools({ url: null });
     h.DevTools.install(h.ctx);
@@ -456,6 +532,43 @@ test.describe("auto open", () => {
     expect(h.instances[0].shown).toEqual(["HISTORY"]);
   });
 
+  // install( ) runs in Component.init; App.controller.onInit sets state.url
+  // only once the async root view is in - the auto open used to find no
+  // endpoint and was refused on every page
+  test("opens before the shell controller set the roundtrip URL, from the component's endpoint", async () => {
+    const h = loadDevTools({ search: "?z2ui5-devtools=1", url: null });
+    h.ctx.state.endpoint = "/sap/bc/z2ui5_other";
+    h.DevTools.install(h.ctx);
+    await h.tick();
+    expect(h.scripts.length).toBe(1);
+    expect(h.scripts[0].src).toBe(
+      "http://localhost:3000/sap/bc/z2ui5_other?z2ui5-bundle=devtools",
+    );
+    await h.loadBundle();
+    expect(h.instances[0].shown).toEqual([undefined]);
+  });
+
+  test("... or from the manifest's data source, with the page's logon client", async () => {
+    const h = loadDevTools({
+      search: "?sap-client=100&z2ui5-devtools=1",
+      href: "http://localhost:3000/index.html?sap-client=100&z2ui5-devtools=1",
+      url: null,
+    });
+    h.ctx.component = {
+      getManifest: () => ({
+        "sap.app": { dataSources: { http: { uri: "/sap/bc/z2ui5" } } },
+      }),
+    };
+    h.DevTools.install(h.ctx);
+    await h.tick();
+    expect(h.scripts.length).toBe(1);
+    expect(h.scripts[0].src).toBe(
+      "http://localhost:3000/sap/bc/z2ui5?sap-client=100&z2ui5-bundle=devtools",
+    );
+    await h.loadBundle();
+    expect(h.instances.length).toBe(1);
+  });
+
   test("survives alongside other query parameters", () => {
     const h = loadDevTools({ search: "?app_start=ZCL_X&z2ui5-devtools=ENV" });
     expect(h.DevTools.autoOpenTab()).toBe("ENV");
@@ -475,6 +588,50 @@ test.describe("error details provider", () => {
     expect(h.instances[0].ctx).toBe(h.ctx);
     // closing the dialog must land the user back on the error popup, not
     // on the dismissed, broken app
+    expect(h.instances[0].reopenErrorOnClose).toBe(true);
+    // the tools are up - the popup stays closed until they close
+    expect(h.reopened).toEqual([]);
+  });
+
+  // The popup closed itself before the provider ran: when the tools do
+  // not come up, nothing else would ever show it again - no Retry, no
+  // Restart, and state.terminated refusing every event
+  test("a bundle that cannot be loaded hands the error popup back", async () => {
+    const h = loadDevTools();
+    h.DevTools.install(h.ctx);
+    const opened = h.hooks()[0]();
+    await h.tick();
+    await h.failBundle();
+    await opened;
+    expect(h.instances.length).toBe(0);
+    expect(h.reopened).toEqual([h.ctx]);
+  });
+
+  test("a show that throws hands the error popup back", async () => {
+    const h = loadDevTools({ dialogShow: "throw", dialogLoaded: true });
+    h.DevTools.install(h.ctx);
+    await h.hooks()[0]();
+    expect(h.instances[0].shown).toEqual(["ERROR"]);
+    expect(h.reopened).toEqual([h.ctx]);
+    // and the closed tools will not reopen it a second time
+    expect(h.instances[0].reopenErrorOnClose).toBe(false);
+  });
+
+  test("a show that leaves the dialog closed hands the error popup back", async () => {
+    const h = loadDevTools({ dialogShow: "closed", dialogLoaded: true });
+    h.DevTools.install(h.ctx);
+    await h.hooks()[0]();
+    expect(h.reopened).toEqual([h.ctx]);
+  });
+
+  test("a show still pending from an earlier open is left to finish", async () => {
+    const h = loadDevTools({ dialogShow: "closed", dialogLoaded: true });
+    h.DevTools.install(h.ctx);
+    await h.open();
+    h.instances[0]._showPending = true;
+    await h.hooks()[0]();
+    expect(h.reopened).toEqual([]);
+    // its close brings the popup back
     expect(h.instances[0].reopenErrorOnClose).toBe(true);
   });
 });
