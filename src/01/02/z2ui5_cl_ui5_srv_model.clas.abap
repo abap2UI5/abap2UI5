@@ -3804,11 +3804,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ASSIGN lr_before->* TO <before>.
     <before> = <val>.
 
-    " a CATCH that answers the exception, not the CLEANUP block the style
-    " rule prefers: the transpiled runtime the unit suite runs on ignores
-    " CLEANUP ("Transpiler todo" in the generated module), and the restore
-    " below is exactly what scalar_refused_traced pins. The exception does
-    " not travel on - it is the answer, and the caller traces the attribute
+    " a CATCH that answers the exception, not a CLEANUP block: the exception
+    " does not travel on - it IS the answer, and the caller traces the
+    " attribute - so there is no way out for a CLEANUP to run on. The restore
+    " below is what scalar_refused_traced pins
     TRY.
         IF lo_val_front IS BOUND.
           json_to_abap( io_json = lo_val_front
