@@ -281,6 +281,15 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
+    " the bodyless 304 for a request whose If-None-Match (sv_if_none_match,
+    " consumed here) holds iv_etag - initial when it does not, and the GET
+    " assembles its body
+    CLASS-METHODS _http_not_modified
+      IMPORTING
+        iv_etag       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
     " the validator of a bundle response: the frontend bundle's, the
     " devtools bundle's, which changes with the devtools files alone, or
     " the custom controls bundle's, which changes with the controls alone
@@ -953,13 +962,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     sv_get_etag     = lv_etag.
     sv_get_etag_key = lv_cache_key.
 
-    " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
-    CLEAR sv_if_none_match.
-    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
-                                                         etag          = lv_etag ) = abap_true.
-      result-status_code   = 304.
-      result-status_reason = `Not Modified`.
+    result = _http_not_modified( lv_etag ).
+    IF result IS NOT INITIAL.
       RETURN.
     ENDIF.
 
@@ -1152,6 +1156,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _http_not_modified.
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
+                                                         etag          = iv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD _http_get_devtools.
 
     " GET <node>?z2ui5-bundle=devtools - the developer tools as a script of
@@ -1170,13 +1187,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " and this is a file. No user or app data, the same for everybody.
     DATA(lv_etag) = _bundle_etag( abap_true ).
 
-    " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
-    CLEAR sv_if_none_match.
-    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
-                                                         etag          = lv_etag ) = abap_true.
-      result-status_code   = 304.
-      result-status_reason = `Not Modified`.
+    result = _http_not_modified( lv_etag ).
+    IF result IS NOT INITIAL.
       RETURN.
     ENDIF.
 
@@ -1203,13 +1215,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_etag) = _bundle_etag( iv_devtools = abap_false
                                   iv_cc       = abap_true ).
 
-    " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
-    CLEAR sv_if_none_match.
-    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
-                                                         etag          = lv_etag ) = abap_true.
-      result-status_code   = 304.
-      result-status_reason = `Not Modified`.
+    result = _http_not_modified( lv_etag ).
+    IF result IS NOT INITIAL.
       RETURN.
     ENDIF.
 
@@ -1266,13 +1273,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " bundle's own.
     DATA(lv_etag) = _get_etag( c_bundle_param ).
 
-    " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
-    CLEAR sv_if_none_match.
-    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
-                                                         etag          = lv_etag ) = abap_true.
-      result-status_code   = 304.
-      result-status_reason = `Not Modified`.
+    result = _http_not_modified( lv_etag ).
+    IF result IS NOT INITIAL.
       RETURN.
     ENDIF.
 

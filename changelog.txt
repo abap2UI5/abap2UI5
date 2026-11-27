@@ -12,6 +12,14 @@ Legend
 unreleased
 ----------
 * 702: z2ui5_cl_ui5f_bundle, z2ui5_cl_ui5f_cc and z2ui5_cl_ui5f_devtools compile on 7.02 again - the generator joined up to 441 literals with && in one statement, more than the 7.02 class scanner takes; it closes the statement every 80 operands now, and check:abapgit fails a statement in src/ over 90 (#3074)
+* Drafts: a table that a public REF TO data attribute got after the first roundtrip, and that is never bound, is kept in the draft - it was gone on the next roundtrip
+* Binding: a bound attribute that can no longer be reached (its reference was cleared) no longer makes every roundtrip send the whole model and mark the client model stale after nav_app_call( )
+* Windowed tables and z2ui5_cl_ui5_test: sorters and response actions are read in array order - from ten entries on, the eleventh came before the third
+* Language models: a temperature with a leading zero (01, 00.5) is refused like any other malformed one - it went out as a JSON number no parser accepts
+* Messages: a MESG- or T100-shaped row (fields ARBGB, TXTNR) keeps its message class and number - both were lost
+! Language models: the Claude provider reads an error that is a plain string (Ollama's shape); the OpenAI-compatible provider names its endpoint in the texts for a missing model and an empty message, as the Claude provider does
+* z2ui5_cl_ui5_util_http on ABAP Cloud: the client, request and response are called by their interface names (IF_WEB_HTTP_CLIENT~EXECUTE, ...) - a bare name resolved only where the implementing class declares an alias. From abap-util
+! conv_get_string_by_xstring( ): bytes that are no UTF-8 raise INVALID_UTF8 instead of UNSUPPORTED_CODEPAGE_API. From abap-util
 * tools/bsp_rename: a namespace that holds the old name (/Z2UI5/) keeps it in the urls of its ICF nodes and gets its namespace nodes - the node came out as /sap/bc/ui5/ui5 and without them
 * Range tokens: a CP / NP range row whose LOW already is a pattern (abc*, *abc) renders as that pattern - the token template wrapped it in asterisks once more (*abc**). From abap-util, where a pattern token is now stored as typed
 ! ABAP Cloud: the branch cloud carries the whole repository, as 702 does, and is rebuilt on every push to main - always one commit ahead of main, never behind. An installation pulls src/ as before

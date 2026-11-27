@@ -252,6 +252,16 @@ CLASS z2ui5_cl_ui5_test DEFINITION PUBLIC FINAL CREATE PRIVATE FOR TESTING.
         io_handler TYPE REF TO z2ui5_cl_ui5_handler
         iv_count   TYPE i.
 
+    " the request of a new page: its origin and path, and with iv_app the
+    " route '#/app/<CLASS>/<DRAFT>' as the router parses it - start( )
+    " names no app, restore( ) the draft it restores
+    CLASS-METHODS request_page
+      IMPORTING
+        iv_app        TYPE string OPTIONAL
+        iv_draft      TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS request_event
       IMPORTING
         iv_event      TYPE string
@@ -317,21 +327,9 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     result = NEW #( ).
     result->mi_store = NEW lcl_store( ).
 
-    TRY.
-        DATA(li_request) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        li_request->set( iv_path = `/value/S_FRONT/ORIGIN`
-                         iv_val  = c_origin ).
-        li_request->set( iv_path = `/value/S_FRONT/PATHNAME`
-                         iv_val  = c_pathname ).
-        DATA(lv_request) = li_request->stringify( ).
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = x.
-    ENDTRY.
-
     " the request names no app - the handler starts the instance itself
     " (z2ui5_cl_ui5_handler->mo_app_start)
-    result->roundtrip( iv_request = lv_request
+    result->roundtrip( iv_request = request_page( )
                        io_app     = app ).
 
   ENDMETHOD.
@@ -376,22 +374,9 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
         EXPORTING val = `restore( ) - the last roundtrip saved no draft (a stateful app without KEEP routing)`.
     ENDIF.
 
-    TRY.
-        DATA(li_request) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        li_request->set( iv_path = `/value/S_FRONT/ORIGIN`
-                         iv_val  = c_origin ).
-        li_request->set( iv_path = `/value/S_FRONT/PATHNAME`
-                         iv_val  = c_pathname ).
-        " a route restore, '#/app/<CLASS>/<DRAFT>' as the router parses it
-        li_request->set( iv_path = `/value/S_FRONT/ROUTE/APP`
-                         iv_val  = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mi_app ) ).
-        li_request->set( iv_path = `/value/S_FRONT/ROUTE/DRAFT`
-                         iv_val  = mv_id ).
-        DATA(lv_request) = li_request->stringify( ).
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = x.
-    ENDTRY.
+    " a route restore
+    DATA(lv_request) = request_page( iv_app   = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mi_app )
+                                     iv_draft = mv_id ).
 
     " a new page: nothing on screen, no model, no session kept
     CLEAR: mt_slot, mv_model, mt_edit, mo_handler, mv_timer, mv_timer_again.
@@ -424,6 +409,28 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
       INSERT lv_path INTO TABLE mt_edit.
     ENDIF.
     result = me.
+
+  ENDMETHOD.
+
+  METHOD request_page.
+
+    TRY.
+        DATA(li_request) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        li_request->set( iv_path = `/value/S_FRONT/ORIGIN`
+                         iv_val  = c_origin ).
+        li_request->set( iv_path = `/value/S_FRONT/PATHNAME`
+                         iv_val  = c_pathname ).
+        IF iv_app IS NOT INITIAL.
+          li_request->set( iv_path = `/value/S_FRONT/ROUTE/APP`
+                           iv_val  = iv_app ).
+          li_request->set( iv_path = `/value/S_FRONT/ROUTE/DRAFT`
+                           iv_val  = iv_draft ).
+        ENDIF.
+        result = li_request->stringify( ).
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING val = x.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -626,7 +633,12 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    LOOP AT ii_json->members( `/S_FRONT/ACTIONS` ) INTO DATA(lv_index).
+    " by index, not over members( ): ajson sorts the member names as text,
+    " so the eleventh action (`10`) came before the third (`2`)
+    DATA lv_index TYPE i.
+    DATA(lv_count) = lines( ii_json->members( `/S_FRONT/ACTIONS` ) ).
+    WHILE lv_index < lv_count.
+      lv_index = lv_index + 1.
       DATA(lv_entry) = |/S_FRONT/ACTIONS/{ lv_index }|.
       DATA(ls_action) = VALUE ty_s_action( name = ii_json->get_string( lv_entry && `/1` )
                                            json = ii_json->slice( lv_entry )->stringify( ) ).
@@ -637,7 +649,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
         lv_arg = lv_arg + 1.
       ENDWHILE.
       INSERT ls_action INTO TABLE mt_action.
-    ENDLOOP.
+    ENDWHILE.
 
   ENDMETHOD.
 

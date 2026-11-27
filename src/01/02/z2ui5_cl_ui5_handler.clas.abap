@@ -164,15 +164,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-    " the prologue of hash_get_shell_part - see the method body
-    CLASS-METHODS hash_split
-      IMPORTING
-        iv_hash      TYPE string
-      EXPORTING
-        ev_hash      TYPE string
-        ev_off       TYPE i
-        ev_check_app TYPE abap_bool.
-
     " upper bound for nav_app_call/nav_app_leave hops within a single
     " request - an app that navigates unconditionally in main( ) would
     " otherwise loop the work process forever. Writable instance DATA, not a
@@ -693,43 +684,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD hash_split.
-
-    " The prologue of the split (it had a second caller, the app half, until
-    " the frontend took over reading routes). Strip the leading '#'; then decide the
-    " one shape that needs no search: an app hash starts with '/', a shell
-    " hash never does, and checking this BEFORE the '&/' search matters,
-    " because an app hash may itself contain '&/' in a parameter and
-    " splitting on that would truncate it (or fabricate a shell part out
-    " of an app-owned prefix). ev_off is the offset of '&/' in ev_hash, or
-    " -1 when there is none; ev_check_app says the leading-'/' shape was
-    " met, which the shell half answers differently from "no separator"
-    ev_hash      = iv_hash.
-    ev_off       = -1.
-    ev_check_app = abap_false.
-
-    IF ev_hash IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    IF ev_hash(1) = `#`.
-      ev_hash = substring( val = ev_hash
-                           off = 1 ).
-      IF ev_hash IS INITIAL.
-        RETURN.
-      ENDIF.
-    ENDIF.
-
-    IF ev_hash(1) = `/`.
-      ev_check_app = abap_true.
-      RETURN.
-    ENDIF.
-
-    ev_off = find( val = ev_hash
-                   sub = `&/` ).
-
-  ENDMETHOD.
-
   METHOD hash_get_shell_part.
     " The part of a browser hash the
     " launchpad SHELL owns - everything in front of '&/'
@@ -739,15 +693,28 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " z2ui5_cl_ui5_client->app_state_get_href keeps the shell part in the
     " link it composes, so the recipient lands in this app instead of on the
     " launchpad home page.
-    hash_split( EXPORTING iv_hash      = iv_hash
-                IMPORTING ev_hash      = DATA(lv_hash)
-                          ev_off       = DATA(lv_off)
-                          ev_check_app = DATA(lv_check_app) ).
+    DATA(lv_hash) = iv_hash.
+    IF lv_hash IS INITIAL.
+      RETURN.
+    ENDIF.
+    IF lv_hash(1) = `#`.
+      lv_hash = substring( val = lv_hash
+                           off = 1 ).
+      IF lv_hash IS INITIAL.
+        RETURN.
+      ENDIF.
+    ENDIF.
 
-    IF lv_hash IS INITIAL OR lv_check_app = abap_true.
+    " an app hash starts with '/', a shell hash never does - decided BEFORE
+    " the '&/' search, because an app hash may itself contain '&/' in a
+    " parameter, and splitting on that would truncate it (or fabricate a
+    " shell part out of an app-owned prefix)
+    IF lv_hash(1) = `/`.
       RETURN.
     ENDIF.
 
+    DATA(lv_off) = find( val = lv_hash
+                         sub = `&/` ).
     IF lv_off < 0.
       " no separator: an inner hash reads as app (canonical, the default),
       " a raw location hash as a bare launchpad intent - all shell. See the

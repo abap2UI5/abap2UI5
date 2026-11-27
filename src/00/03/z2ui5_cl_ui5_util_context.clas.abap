@@ -354,6 +354,16 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    "! Is val, surrounding blanks aside, one to nine digits - a text that
+    "! converts into an i without rounding (`1.5`), a sign (`+1`, `-1`), an
+    "! exponent (`1e3`) or an overflow. For a number that comes from outside
+    "! (a browser, a request) and must never end it with a dump.
+    CLASS-METHODS check_int_digits
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS unassign_object
       IMPORTING
         val           TYPE any
@@ -1295,6 +1305,28 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " whether a type kind is a number: i, int1, int2, int8, p, f,
+    " decfloat16, decfloat34 - the one list the number checks share. int8
+    " by its value `8`, a constant lower releases do not have
+    CLASS-METHODS rtti_check_typekind_number
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " codepage: the IANA name CL_ABAP_CONV_CODEPAGE takes; encoding: the
+    " name or SAP code page number CL_ABAP_CONV_IN_CE takes. invalid is set
+    " when a converter ran and rejected the bytes; no converter at all
+    " raises UNSUPPORTED_CODEPAGE_API.
+    CLASS-METHODS conv_get_string_by_xstring_cp
+      IMPORTING
+        val      TYPE xstring
+        codepage TYPE string
+        encoding TYPE string
+      EXPORTING
+        result   TYPE string
+        invalid  TYPE abap_bool.
+
 ENDCLASS.
 
 
@@ -1387,6 +1419,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD check_bound_a_not_initial.
 
     result = xsdbool( check_unassign_initial( val ) = abap_false ).
+
+  ENDMETHOD.
+
+  METHOD check_int_digits.
+
+    " condensed first: `1 000` would pass a check that allows blanks and
+    " then dump in a conversion, and a blanks-only value is no number
+    DATA(lv_val) = condense( val ).
+    result = xsdbool( lv_val IS NOT INITIAL AND lv_val CO `0123456789` AND strlen( lv_val ) <= 9 ).
 
   ENDMETHOD.
 
@@ -2413,17 +2454,23 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CASE rtti_get_type_kind( val ).
-      WHEN cl_abap_datadescr=>typekind_int OR
-          cl_abap_datadescr=>typekind_int1 OR
-          cl_abap_datadescr=>typekind_int2 OR
-          cl_abap_datadescr=>typekind_packed OR
-          cl_abap_datadescr=>typekind_float OR
-          cl_abap_datadescr=>typekind_decfloat16 OR
-          cl_abap_datadescr=>typekind_decfloat34 OR
-          cl_abap_datadescr=>typekind_hex OR
-          `8`.
-        " `8`: typekind_int8, a constant lower releases do not have
+    DATA(lv_type_kind) = rtti_get_type_kind( val ).
+    result = xsdbool( lv_type_kind = cl_abap_datadescr=>typekind_hex
+                      OR rtti_check_typekind_number( lv_type_kind ) = abap_true ).
+
+  ENDMETHOD.
+
+  METHOD rtti_check_typekind_number.
+
+    CASE val.
+      WHEN cl_abap_typedescr=>typekind_int
+          OR cl_abap_typedescr=>typekind_int1
+          OR cl_abap_typedescr=>typekind_int2
+          OR cl_abap_typedescr=>typekind_packed
+          OR cl_abap_typedescr=>typekind_float
+          OR cl_abap_typedescr=>typekind_decfloat16
+          OR cl_abap_typedescr=>typekind_decfloat34
+          OR `8`.
         result = abap_true.
     ENDCASE.
 
@@ -3214,20 +3261,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     TRY.
         " a number through a string template: the assignment puts the sign
         " BEHIND it - -5 came out as `5-`, a packed -12.50 as `12.50-`
-        CASE rtti_get_type_kind( val ).
-          WHEN cl_abap_datadescr=>typekind_int OR
-              cl_abap_datadescr=>typekind_int1 OR
-              cl_abap_datadescr=>typekind_int2 OR
-              cl_abap_datadescr=>typekind_packed OR
-              cl_abap_datadescr=>typekind_float OR
-              cl_abap_datadescr=>typekind_decfloat16 OR
-              cl_abap_datadescr=>typekind_decfloat34 OR
-              `8`.
-            " `8`: typekind_int8, a constant lower releases do not have
-            result = |{ val }|.
-          WHEN OTHERS.
-            result = val.
-        ENDCASE.
+        IF rtti_check_typekind_number( rtti_get_type_kind( val ) ) = abap_true.
+          result = |{ val }|.
+        ELSE.
+          result = val.
+        ENDIF.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -3821,15 +3859,40 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD conv_get_string_by_xstring.
 
+    DATA lv_invalid TYPE abap_bool.
+
+    " UTF-8 through the code-page method: one implementation of the two
+    " conversion APIs and their fallback, not two
+    conv_get_string_by_xstring_cp( EXPORTING val      = val
+                                             codepage = `UTF-8`
+                                             encoding = `UTF-8`
+                                   IMPORTING result   = result
+                                             invalid  = lv_invalid ).
+    IF lv_invalid = abap_true.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `INVALID_UTF8 - the bytes are no valid UTF-8`.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD conv_get_string_by_xstring_cp.
+
     DATA conv          TYPE REF TO object.
     DATA conv_codepage TYPE c LENGTH 21.
     DATA conv_in_class TYPE c LENGTH 18.
+    DATA lv_encoding   TYPE c LENGTH 20.
     DATA lx_first      TYPE REF TO cx_root.
+
+    CLEAR result.
+    invalid = abap_false.
 
     TRY.
 
         conv_codepage = `CL_ABAP_CONV_CODEPAGE`.
         CALL METHOD (conv_codepage)=>create_in
+          EXPORTING
+            codepage = codepage
           RECEIVING
             instance = conv.
 
@@ -3840,11 +3903,19 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             result = result.
         RETURN.
 
+      CATCH cx_sy_conversion_codepage.
+        " the API is there and the bytes are not valid in this code page -
+        " the classic API would reject them too
+        CLEAR result.
+        invalid = abap_true.
+        RETURN.
+
       CATCH cx_root INTO lx_first ##NO_HANDLER.
         " deliberate: capturing the cause IS the handling - it is chained into
         " UNSUPPORTED_CODEPAGE_API below if the classic API fails too. Falling
         " through is the point; the modern class is absent on older releases,
-        " which is the whole reason both paths exist
+        " which is the whole reason both paths exist. A code page the modern
+        " class does not know (CX_PARAMETER_INVALID_RANGE) falls through too
     ENDTRY.
 
     " The classic API. Guarded by its own TRY since 2026-09: it used to be the
@@ -3860,9 +3931,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     TRY.
 
         conv_in_class = `CL_ABAP_CONV_IN_CE`.
+        lv_encoding = encoding.
         CALL METHOD (conv_in_class)=>create
           EXPORTING
-            encoding = `UTF-8`
+            encoding = lv_encoding
           RECEIVING
             conv     = conv.
 
@@ -3871,6 +3943,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             input = val
           IMPORTING
             data  = result.
+
+      CATCH cx_sy_conversion_codepage.
+        CLEAR result.
+        invalid = abap_true.
 
       CATCH cx_root.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -4584,9 +4660,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDIF.
 
     CASE name.
-      WHEN `ID` OR `MSGID`.
+      WHEN `ID` OR `MSGID` OR `ARBGB`.
         result-id = val.
-      WHEN `NO` OR `NUMBER` OR `MSGNO`.
+      WHEN `NO` OR `NUMBER` OR `MSGNO` OR `TXTNR`.
         result-no = val.
       WHEN `MESSAGE` OR `TEXT`.
         result-text = val.
