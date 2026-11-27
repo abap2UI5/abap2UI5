@@ -620,37 +620,39 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/core/actions/Browser.js": function(){sap.ui.define(["sap/m/MessageBox","sap/m/library","sap/ui/util/Storage","z2ui5/core/Router","z2ui5/core/Lib","z2ui5/core/ViewSlots"],(MessageBox,mobil` &&
              `eLibrary,Storage,Router,Lib,ViewSlots)=>{"use strict";const _URLHelper=mobileLibrary.URLHelper;function evClipboardCopy(oController,args){const value=args[1];Lib.copyToClipboard(value!==null&&typeof v` &&
-             `alue==="object"?JSON.stringify(value):value)}const ACTIVE_DATA_MIME=/^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i;const UNSAFE_FILENAME_CHARS=/[\\/:*?"<>|\x00-\x1f]/g;function evDow` &&
-             `nloadB64File(oController,args){if(!Lib.isSafeDownloadURL(args[1])){Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");return}const href=new URL(args[1],window.location.origin).href;if(ACTIVE_DATA_M` &&
-             `IME.test(href)){Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");return}const a=document.createElement("a");a.href=args[1];a.download=String(args[2]||"").replace(UNSAFE_FILENAME_CHARS` &&
-             `,"_");document.body.appendChild(a);a.click();document.body.removeChild(a)}function boundPayload(oController,raw,action){if(raw==null||typeof raw!=="string")return raw;const path=Lib.modelPathOf(raw);i` &&
-             `f(!path){Lib.logError(``${action}: '${raw}' is neither a payload nor a model path``);return undefined}const oModel=ViewSlots.responseModel(oController?.ctx,oController);const value=oModel?.getProperty` &&
-             `(path);if(value==null){Lib.logError(``${action}: nothing bound at the model path '${path}'``)}return value}function evStoreData(oController,args){const payload=boundPayload(oController,args[1],"STORE_` &&
-             `DATA");if(payload==null){if(args[1]==null){Lib.logError("STORE_DATA: no payload - pass the storage structure or its model path")}return}const{TYPE,PREFIX,VALUE,KEY}=payload;try{const storageType=Lib.r` &&
-             `esolveStorageType(Storage,TYPE,"STORE_DATA","writing to");const oStorage=new Storage(storageType,PREFIX);if(VALUE===""||VALUE==null){oStorage.remove(KEY)}else{oStorage.put(KEY,VALUE)}}catch(e){Lib.log` &&
-             `Error(``STORE_DATA: storage operation failed for key '${KEY}'``,e)}}function evHashBack(oController,args){Router.navBack(oController?.ctx,args?args[1]:undefined)}function evLocationReload(oController,` &&
-             `args){if(Lib.isValidRedirectURL(args[1])){window.location.href=args[1]}else{MessageBox.error("Invalid redirect URL. Only relative URLs to the same domain are allowed.")}}function evSystemLogout(oContr` &&
-             `oller,args){const explicitUrl=args[1];const logoutUrl=explicitUrl||"/sap/public/bc/icf/logoff";try{const container=oController?.ctx?.state.oLaunchpad?.Container;if(container?.logout&&!explicitUrl){con` &&
-             `tainer.logout();return}}catch(e){Lib.logError("SYSTEM_LOGOUT: ushell logout failed",e)}logoutViaBspTerminate(logoutUrl)}function logoutViaBspTerminate(logoutUrl){const path=window.location.pathname;if` &&
-             `(!path.startsWith("/sap/bc/bsp/")){redirectToLogout(logoutUrl);return}const bspKill=``${path}?sap-sessioncmd=logoff``;let done=false;let frame;const finish=()=>{if(done)return;done=true;if(frame){try{` &&
-             `frame.remove()}catch{}frame=null}redirectToLogout(logoutUrl)};try{frame=document.createElement("iframe");frame.style.display="none";frame.src=bspKill;frame.addEventListener("load",finish);document.bod` &&
-             `y.appendChild(frame)}catch(e){Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed",e);finish();return}setTimeout(finish,1500)}function redirectToLogout(logoutUrl){if(Lib.isValidRedirectURL(logout` &&
-             `Url)){window.location.href=logoutUrl}else{MessageBox.error("Invalid logout URL. Only relative URLs to the same domain are allowed.")}}function evOpenNewTab(oController,args){if(!Lib.isValidRedirectURL` &&
-             `(args[1])){MessageBox.error("Invalid URL. Only relative URLs to the same domain are allowed.");return}window.open(args[1],"_blank","noopener,noreferrer")}function evUrlHelper(oController,args){const p` &&
-             `arams=typeof args[2]==="string"?boundPayload(oController,args[2],"URLHELPER"):args[2]??{};if(params==null)return;const hasCrLf=v=>typeof v==="string"&&/[\r\n]/.test(v);if(Object.values(params).some(ha` &&
-             `sCrLf)){Lib.logError("URLHELPER: blocked CR/LF in parameters");return}const actions={REDIRECT:()=>{if(!Lib.isSafeRedirectProtocol(params.URL)){MessageBox.error("Invalid redirect URL. Only http/https p`.
+             `alue==="object"?JSON.stringify(value):value)}const ACTIVE_DATA_MIME=/^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i;const ACTIVE_FILE_EXTENSION=/\.(html?|shtml|xht(ml)?|svgz?|hta|mht(` &&
+             `ml)?)\s*$/i;const UNSAFE_FILENAME_CHARS=/[\\/:*?"<>|\x00-\x1f]/g;function evDownloadB64File(oController,args){if(!Lib.isSafeDownloadURL(args[1])){Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` &&
+             `return}const href=new URL(args[1],window.location.origin).href;if(ACTIVE_DATA_MIME.test(href)){Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");return}const filename=String(args[2]||"` &&
+             `").replace(UNSAFE_FILENAME_CHARS,"_");if(ACTIVE_FILE_EXTENSION.test(filename)){Lib.logError("DOWNLOAD_B64_FILE: blocked active file extension");return}const a=document.createElement("a");a.href=args[1` &&
+             `];a.download=filename;const parsed=new URL(href);if((parsed.protocol==="http:"||parsed.protocol==="https:")&&parsed.origin!==window.location.origin){a.target="_blank";a.rel="noopener noreferrer"}docum` &&
+             `ent.body.appendChild(a);a.click();document.body.removeChild(a)}function boundPayload(oController,raw,action){if(raw==null||typeof raw!=="string")return raw;const path=Lib.modelPathOf(raw);if(!path){Li` &&
+             `b.logError(``${action}: '${raw}' is neither a payload nor a model path``);return undefined}const oModel=ViewSlots.responseModel(oController?.ctx,oController);const value=oModel?.getProperty(path);if(v` &&
+             `alue==null){Lib.logError(``${action}: nothing bound at the model path '${path}'``)}return value}function evStoreData(oController,args){const payload=boundPayload(oController,args[1],"STORE_DATA");if(p` &&
+             `ayload==null){if(args[1]==null){Lib.logError("STORE_DATA: no payload - pass the storage structure or its model path")}return}const{TYPE,PREFIX,VALUE,KEY}=payload;try{const storageType=Lib.resolveStora` &&
+             `geType(Storage,TYPE,"STORE_DATA","writing to");const oStorage=new Storage(storageType,PREFIX);if(VALUE===""||VALUE==null){oStorage.remove(KEY)}else{oStorage.put(KEY,VALUE)}}catch(e){Lib.logError(``STO` &&
+             `RE_DATA: storage operation failed for key '${KEY}'``,e)}}function evHashBack(oController,args){Router.navBack(oController?.ctx,args?args[1]:undefined)}function evLocationReload(oController,args){if(Li` &&
+             `b.isValidRedirectURL(args[1])){window.location.href=args[1]}else{MessageBox.error("Invalid redirect URL. Only relative URLs to the same domain are allowed.")}}function evSystemLogout(oController,args)` &&
+             `{const explicitUrl=args[1];const logoutUrl=explicitUrl||"/sap/public/bc/icf/logoff";try{const container=oController?.ctx?.state.oLaunchpad?.Container;if(container?.logout&&!explicitUrl){container.logo` &&
+             `ut();return}}catch(e){Lib.logError("SYSTEM_LOGOUT: ushell logout failed",e)}logoutViaBspTerminate(logoutUrl)}function logoutViaBspTerminate(logoutUrl){const path=window.location.pathname;if(!path.star` &&
+             `tsWith("/sap/bc/bsp/")){redirectToLogout(logoutUrl);return}const bspKill=``${path}?sap-sessioncmd=logoff``;let done=false;let frame;const finish=()=>{if(done)return;done=true;if(frame){try{frame.remov` &&
+             `e()}catch{}frame=null}redirectToLogout(logoutUrl)};try{frame=document.createElement("iframe");frame.style.display="none";frame.src=bspKill;frame.addEventListener("load",finish);document.body.appendChi` &&
+             `ld(frame)}catch(e){Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed",e);finish();return}setTimeout(finish,1500)}function redirectToLogout(logoutUrl){if(Lib.isValidRedirectURL(logoutUrl)){windo` &&
+             `w.location.href=logoutUrl}else{MessageBox.error("Invalid logout URL. Only relative URLs to the same domain are allowed.")}}function evOpenNewTab(oController,args){if(!Lib.isValidRedirectURL(args[1])){` &&
+             `MessageBox.error("Invalid URL. Only relative URLs to the same domain are allowed.");return}window.open(args[1],"_blank","noopener,noreferrer")}function evUrlHelper(oController,args){const params=typeo`.
     result = result &&
-             `rotocols are allowed.");return}if(params.NEW_WINDOW){window.open(params.URL,"_blank","noopener,noreferrer");return}_URLHelper.redirect(params.URL,false)},TRIGGER_EMAIL:()=>_URLHelper.triggerEmail(para` &&
-             `ms.EMAIL,params.SUBJECT,params.BODY,params.CC,params.BCC,params.NEW_WINDOW),TRIGGER_SMS:()=>_URLHelper.triggerSms(params.TEL,params.TEXT,params.NEW_WINDOW),TRIGGER_TEL:()=>_URLHelper.triggerTel(params` &&
-             `.TEL)};Object.setPrototypeOf(actions,null);try{const fn=actions[args[1]];if(fn)fn()}catch(e){Lib.logError(``URLHELPER: '${args[1]}' failed``,e)}}function ownsPage(oController){return oController?.ctx?` &&
-             `.state?.ownsPage!==false}function evSetTitle(oController,args){if(!ownsPage(oController))return;const title=Lib.toText(args[1]);Lib.setShellTitle(oController?.ctx,title,"SET_TITLE");try{document.title` &&
-             `=title}catch(e){Lib.logError("SET_TITLE: setting document.title failed",e)}}function evSetFavicon(oController,args){if(!ownsPage(oController))return;const href=Lib.toText(args[1]);if(!Lib.isSafeDownlo` &&
-             `adURL(href)){Lib.logError(``SET_FAVICON: refused unsafe URL "${href}"``);return}try{const existing=document.head.querySelector('link[rel~="icon"]');if(existing){existing.href=href;return}const link=do` &&
-             `cument.createElement("link");link.rel="icon";link.href=href;document.head.appendChild(link)}catch(e){Lib.logError("SET_FAVICON: setting the favicon failed",e)}}function evPlayAudio(oController,args){i` &&
-             `f(!Lib.isSafeDownloadURL(args[1])){Lib.logError("PLAY_AUDIO: blocked unsafe audio URL");return}try{const playing=new Audio(args[1]).play();if(playing?.catch){playing.catch(e=>Lib.logError(``PLAY_AUDIO` &&
-             `: failed for '${args[1]}'``,e))}}catch(e){Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``,e)}}const handlers={CLIPBOARD_COPY:evClipboardCopy,DOWNLOAD_B64_FILE:evDownloadB64File,STORE_DATA:evStore` &&
-             `Data,HASH_BACK:evHashBack,LOCATION_RELOAD:evLocationReload,SYSTEM_LOGOUT:evSystemLogout,OPEN_NEW_TAB:evOpenNewTab,URLHELPER:evUrlHelper,SET_TITLE:evSetTitle,SET_FAVICON:evSetFavicon,PLAY_AUDIO:evPlayA` &&
-             `udio};return{handlers}});` && |\n| &&
+             `f args[2]==="string"?boundPayload(oController,args[2],"URLHELPER"):args[2]??{};if(params==null)return;const hasCrLf=v=>typeof v==="string"&&/[\r\n]/.test(v);if(Object.values(params).some(hasCrLf)){Lib` &&
+             `.logError("URLHELPER: blocked CR/LF in parameters");return}const actions={REDIRECT:()=>{if(!Lib.isSafeRedirectProtocol(params.URL)){MessageBox.error("Invalid redirect URL. Only http/https protocols ar` &&
+             `e allowed.");return}if(params.NEW_WINDOW){window.open(params.URL,"_blank","noopener,noreferrer");return}_URLHelper.redirect(params.URL,false)},TRIGGER_EMAIL:()=>_URLHelper.triggerEmail(params.EMAIL,pa` &&
+             `rams.SUBJECT,params.BODY,params.CC,params.BCC,params.NEW_WINDOW),TRIGGER_SMS:()=>_URLHelper.triggerSms(params.TEL,params.TEXT,params.NEW_WINDOW),TRIGGER_TEL:()=>_URLHelper.triggerTel(params.TEL)};Obje` &&
+             `ct.setPrototypeOf(actions,null);try{const fn=actions[args[1]];if(fn)fn()}catch(e){Lib.logError(``URLHELPER: '${args[1]}' failed``,e)}}function ownsPage(oController){return oController?.ctx?.state?.own` &&
+             `sPage!==false}function evSetTitle(oController,args){if(!ownsPage(oController))return;const title=Lib.toText(args[1]);Lib.setShellTitle(oController?.ctx,title,"SET_TITLE");try{document.title=title}catc` &&
+             `h(e){Lib.logError("SET_TITLE: setting document.title failed",e)}}function evSetFavicon(oController,args){if(!ownsPage(oController))return;const href=Lib.toText(args[1]);if(!Lib.isSafeDownloadURL(href)` &&
+             `){Lib.logError(``SET_FAVICON: refused unsafe URL "${href}"``);return}try{const existing=document.head.querySelector('link[rel~="icon"]');if(existing){existing.href=href;return}const link=document.crea` &&
+             `teElement("link");link.rel="icon";link.href=href;document.head.appendChild(link)}catch(e){Lib.logError("SET_FAVICON: setting the favicon failed",e)}}function evPlayAudio(oController,args){if(!Lib.isSa` &&
+             `feDownloadURL(args[1])){Lib.logError("PLAY_AUDIO: blocked unsafe audio URL");return}try{const playing=new Audio(args[1]).play();if(playing?.catch){playing.catch(e=>Lib.logError(``PLAY_AUDIO: failed fo` &&
+             `r '${args[1]}'``,e))}}catch(e){Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``,e)}}const handlers={CLIPBOARD_COPY:evClipboardCopy,DOWNLOAD_B64_FILE:evDownloadB64File,STORE_DATA:evStoreData,HASH_B` &&
+             `ACK:evHashBack,LOCATION_RELOAD:evLocationReload,SYSTEM_LOGOUT:evSystemLogout,OPEN_NEW_TAB:evOpenNewTab,URLHELPER:evUrlHelper,SET_TITLE:evSetTitle,SET_FAVICON:evSetFavicon,PLAY_AUDIO:evPlayAudio};retur` &&
+             `n{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/ControlCall.js": function(){sap.ui.define(["sap/m/MessageBox","sap/ui/core/BusyIndicator","sap/ui/core/Popup","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/` &&
@@ -713,10 +715,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              ` no selection``);return}if(indices.length)control[op](indices)}function pseudoSetAsyncURLHandler({control,id,args}){const policy=String(args[4]??"").toUpperCase();const isAllowed=URL_POLICIES[policy];` &&
              `if(!isAllowed){Lib.logError(``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``);return}if(!control||typeof control.setAsyncURLHandler!=="function"){L` &&
              `ib.logError(``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``);return}control.setAsyncURLHandler(config=>{config?.promise?.resolve({allowed:isAllowed(config.url),id:config.id})})` &&
-             `}function isRootPrototypeMethod(obj,method){let owner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&` &&
-             `Object.getPrototypeOf(owner)===null}const PSEUDO_METHODS=Object.assign(Object.create(null),{toggleBy:pseudoToggleBy,openBy:pseudoOpenBy,css:pseudoCss,expandSelected:pseudoExpandCollapse,collapseSelect` &&
-             `ed:pseudoExpandCollapse,setAsyncURLHandler:pseudoSetAsyncURLHandler});function evControlCallById(oController,args){const[,id,view,method]=args;let kinds=CONTROL_METHODS[method];if(!kinds){if(!isSafeCo`.
+             `}function isRootPrototypeMethod(obj,method){let owner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&`.
     result = result &&
+             `Object.getPrototypeOf(owner)===null}const PSEUDO_METHODS=Object.assign(Object.create(null),{toggleBy:pseudoToggleBy,openBy:pseudoOpenBy,css:pseudoCss,expandSelected:pseudoExpandCollapse,collapseSelect` &&
+             `ed:pseudoExpandCollapse,setAsyncURLHandler:pseudoSetAsyncURLHandler});function evControlCallById(oController,args){const[,id,view,method]=args;let kinds=CONTROL_METHODS[method];if(!kinds){if(!isSafeCo` &&
              `ntrolMethod(method)){Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);return}kinds=null}const ctx=oController?.ctx;if(method==="focus"&&!ScrollFocus.mayMoveFocus(ctx))return;const contr` &&
              `ol=resolveControl(id,view,ctx);const pseudo=PSEUDO_METHODS[method];if(pseudo){pseudo({control,id,view,method,kinds,args,oController});return}if(!control){Lib.logError(``CONTROL_BY_ID: no control '${id` &&
              `}'${view?`` in view '${view}'``:""} - '${method}' not called``);return}const inherited=method==="constructor"||isRootPrototypeMethod(control,method);if(inherited||typeof control[method]!=="function"){` &&
@@ -784,10 +786,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/Slots.js": function(){sap.ui.define(["sap/ui/core/mvc/XMLView","sap/ui/core/Fragment","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/cor` &&
-             `e/WindowModel","z2ui5/core/CustomControls"],(XMLView,Fragment,Lib,Env,ViewSlots,Context,WindowModel,CustomControls)=>{"use strict";function applyStoredSizeLimit(ctx,viewKey,oModel){if(!oModel)return;c` &&
-             `onst limit=Lib.effectiveSizeLimit(ctx.state.viewSizeLimits,viewKey);if(limit!==undefined)oModel.setSizeLimit(limit)}function trackChanges(oModel){oModel._z2ui5Tracked=true;oModel._z2ui5ChangedPaths=ne` &&
-             `w Set;oModel.attachPropertyChange(e=>{const params=e.getParameters();const raw=params.path;const ctx=params.context;if(!raw)return;const changedPath=ctx&&!raw.startsWith("/")?``${ctx.getPath()}/${raw}`.
+             `e/WindowModel","z2ui5/core/CustomControls"],(XMLView,Fragment,Lib,Env,ViewSlots,Context,WindowModel,CustomControls)=>{"use strict";function applyStoredSizeLimit(ctx,viewKey,oModel){if(!oModel)return;c`.
     result = result &&
+             `onst limit=Lib.effectiveSizeLimit(ctx.state.viewSizeLimits,viewKey);if(limit!==undefined)oModel.setSizeLimit(limit)}function trackChanges(oModel){oModel._z2ui5Tracked=true;oModel._z2ui5ChangedPaths=ne` &&
+             `w Set;oModel.attachPropertyChange(e=>{const params=e.getParameters();const raw=params.path;const ctx=params.context;if(!raw)return;const changedPath=ctx&&!raw.startsWith("/")?``${ctx.getPath()}/${raw}` &&
              ```:raw;if(changedPath.startsWith("/")){oModel._z2ui5ChangedPaths.add(changedPath)}});return oModel}function resolveTrackedModel(oView){return ViewSlots.trackedModel(oView)}function dataForSlot(slotKey` &&
              `,data){if(!data||Lib.isRootModelSlot(slotKey))return data;if(typeof structuredClone==="function")return structuredClone(data);return JSON.parse(JSON.stringify(data))}function keepWindowRequest(ctx,oMo` &&
              `del,slotKey,args,noBusy){const path=String(args[0]);const windows=ctx.state.oQueuedWindow||{};const kept=windows[path];windows[path]={model:oModel,slotKey,args:kept?.model===oModel?WindowModel.keepRes` &&
@@ -861,10 +863,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `f(oController,action){const ctx=oController?.ctx;if(!ctx){Lib.logError(``${action}: no context to register in``);return null}return ctx.variants.activeInits}function evSmartVariantInit(oController,arg` &&
              `s){const[,svmId,controlId]=args;const activeInits=activeInitsOf(oController,"SMART_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${controlId||""}``;if(activeInits.has(key))return;activeIn` &&
              `its.add(key);const finish=()=>activeInits.delete(key);let tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const ` &&
-             `control=controlId?ViewSlots.resolveById(oController?.ctx,controlId):null;if(!oSVM||controlId&&!control){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logErro` &&
-             `r(``SMART_VARIANT_INIT: '${controlId?``${svmId}' / '${controlId}``:svmId}' not found``);finish();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.initialise!=="function"){Lib.logError(``SMART_VARIANT_INIT` &&
-             `: no SmartVariantManagement for id '${svmId}'``);finish();return}let target=control;if(!target){const registered=oSVM.getPersonalizableControls?oSVM.getPersonalizableControls():[];if(!registered.lengt`.
+             `control=controlId?ViewSlots.resolveById(oController?.ctx,controlId):null;if(!oSVM||controlId&&!control){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logErro`.
     result = result &&
+             `r(``SMART_VARIANT_INIT: '${controlId?``${svmId}' / '${controlId}``:svmId}' not found``);finish();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.initialise!=="function"){Lib.logError(``SMART_VARIANT_INIT` &&
+             `: no SmartVariantManagement for id '${svmId}'``);finish();return}let target=control;if(!target){const registered=oSVM.getPersonalizableControls?oSVM.getPersonalizableControls():[];if(!registered.lengt` &&
              `h){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``);finish();return}target=` &&
              `ViewSlots.resolveById(oController?.ctx,registered[0].getControl());if(!target){finish();return}}anchorPersoControl(oSVM,target);ensureInitialised(oSVM,target,0);finish()};run()}const FILTER_BAR_WIRED=` &&
              `"_z2ui5FilterBarVariantWired";function filterItemControl(item){return item&&typeof item.getControl==="function"?item.getControl():null}function filterItemValue(item){const control=filterItemControl(it` &&
@@ -934,10 +936,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `rror(enabled){Persist.writeFlag(ALERT_KEY,enabled)}function persist(){const errors=entries.filter(entry=>entry.level==="error").slice(-RELOAD_MAX_ENTRIES).map(entry=>({...entry,previousLoad:true}));Pe` &&
              `rsist.saveList(RELOAD_KEY,errors)}function restore(){const stored=Persist.takeList(RELOAD_KEY);if(stored.length)entries=stored.slice(-RELOAD_MAX_ENTRIES)}function isErrorLike(value){if(!value||typeof ` &&
              `value!=="object")return false;if(Object.prototype.toString.call(value)==="[object Error]")return true;return typeof value.stack==="string"&&typeof value.message==="string"}function renderArg(value){if` &&
-             `(value===undefined)return"undefined";if(value===null)return"null";const type=typeof value;if(type==="string")return value;if(type==="number"||type==="boolean"||type==="bigint"){return String(value)}if` &&
-             `(type==="function")return``[function ${value.name||"anonymous"}]``;if(type==="symbol")return String(value);if(isErrorLike(value)){return value.stack||``${value.name||"Error"}: ${value.message}``}try{c` &&
-             `onst ancestors=[];const walked=new WeakMap;let nodes=0;return JSON.stringify(value,function replace(key,val){if(typeof val==="object"&&val!==null){if(++nodes>MAX_NODES)return"[...]";const holder=walke`.
+             `(value===undefined)return"undefined";if(value===null)return"null";const type=typeof value;if(type==="string")return value;if(type==="number"||type==="boolean"||type==="bigint"){return String(value)}if`.
     result = result &&
+             `(type==="function")return``[function ${value.name||"anonymous"}]``;if(type==="symbol")return String(value);if(isErrorLike(value)){return value.stack||``${value.name||"Error"}: ${value.message}``}try{c` &&
+             `onst ancestors=[];const walked=new WeakMap;let nodes=0;return JSON.stringify(value,function replace(key,val){if(typeof val==="object"&&val!==null){if(++nodes>MAX_NODES)return"[...]";const holder=walke` &&
              `d.get(this)||this;while(ancestors.length>0&&ancestors[ancestors.length-1]!==holder){ancestors.pop()}if(ancestors.includes(val))return"[Circular]";if(ancestors.length>=MAX_DEPTH)return"[...]";ancestors` &&
              `.push(val);if(Array.isArray(val)&&val.length>MAX_ITEMS){const head=val.slice(0,MAX_ITEMS);head.push(``[... ${val.length-MAX_ITEMS} more]``);walked.set(head,val);return head}const keys=Object.keys(val)` &&
              `;if(keys.length>MAX_ITEMS){const head={};for(const k of keys.slice(0,MAX_ITEMS))head[k]=val[k];head[``... ${keys.length-MAX_ITEMS} more``]="[...]";walked.set(head,val);return head}}if(isErrorLike(val)` &&
@@ -1005,10 +1007,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `xt(node.nodeValue);case CDATA_SECTION_NODE:return``${pad}<![CDATA[${node.nodeValue}]]>``;case COMMENT_NODE:return``${pad}\x3c!--${node.nodeValue}--\x3e``;case PROCESSING_INSTRUCTION_NODE:return``${pad` &&
              `}<?${node.target} ${node.data}?>``;default:return""}}function serializeElement(el,depth,indented){let open=``<${el.nodeName}``;const attrs=el.attributes||[];for(let i=0;i<attrs.length;i++){open+=`` ${` &&
              `attrs[i].name}="${escapeAttribute(attrs[i].value)}"``}const children=Array.prototype.slice.call(el.childNodes||[]);if(children.length===0)return``${open}/>``;const close=``</${el.nodeName}>``;const mi` &&
-             `xed=children.some(c=>isTextLike(c)&&!isBlank(c));if(mixed||!indented){return``${open}>${children.map(c=>serializeNode(c,0,false)).join("")}${close}``}const kept=children.filter(c=>!isBlank(c));if(kept` &&
-             `.length===0)return``${open}/>``;const pad=" ".repeat(depth*XML_INDENT_UNIT);return``${open}>\n${kept.map(c=>serializeNode(c,depth+1,true)).join("\n")}\n${pad}${close}``}function prettifyXml(sourceXml)` &&
-             `{if(!sourceXml)return"";try{const xmlDoc=getDomParser().parseFromString(sourceXml,"application/xml");if(!xmlDoc||!xmlDoc.documentElement)return sourceXml;if(xmlDoc.documentElement.nodeName==="parserer`.
+             `xed=children.some(c=>isTextLike(c)&&!isBlank(c));if(mixed||!indented){return``${open}>${children.map(c=>serializeNode(c,0,false)).join("")}${close}``}const kept=children.filter(c=>!isBlank(c));if(kept`.
     result = result &&
+             `.length===0)return``${open}/>``;const pad=" ".repeat(depth*XML_INDENT_UNIT);return``${open}>\n${kept.map(c=>serializeNode(c,depth+1,true)).join("\n")}\n${pad}${close}``}function prettifyXml(sourceXml)` &&
+             `{if(!sourceXml)return"";try{const xmlDoc=getDomParser().parseFromString(sourceXml,"application/xml");if(!xmlDoc||!xmlDoc.documentElement)return sourceXml;if(xmlDoc.documentElement.nodeName==="parserer` &&
              `ror"||xmlDoc.getElementsByTagName("parsererror").length>0){return sourceXml}return Array.prototype.slice.call(xmlDoc.childNodes).filter(node=>!isBlank(node)).map(node=>serializeNode(node,0,true)).join` &&
              `("\n")}catch{return sourceXml}}function truncate(text,max){const str=String(text);if(str.length<=max)return str;return``${str.slice(0,max)}... (${str.length} chars)``}function formatBytes(bytes){if(by` &&
              `tes===null||bytes===undefined)return"-";if(bytes<1024)return``${bytes} B``;if(bytes<1024*1024)return``${Math.round(bytes/1024)} KB``;return``${(bytes/(1024*1024)).toFixed(1)} MB``}function section(tit` &&
@@ -1079,10 +1081,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `esponse: ${formatBytes(total)} total,``+`` largest #${biggest.seq} ${biggest.event||"(start)"}``+`` at ${formatBytes(biggest.respBytes)}``)}const failed=list.filter(r=>!r.rendered).length;if(failed){o` &&
              `ut.push(``  ${failed} roundtrip(s) never reached the render phase.``)}return out}function formatHistory(ctx){const list=getRecords(ctx);const lines=[];lines.push(``Roundtrip history - ${list.length} o` &&
              `f max ${MAX_RECORDS} records``);const recording=isRecordingPayloads();lines.push(``Payload recording: ${recording?"ON":"OFF"}``+`` (retained ${formatBytes(recorderOf(ctx)?.payloadBytes||0)} of ``+``${` &&
-             `formatBytes(PAYLOAD_BUDGET_BYTES)} budget)``);if(!recording){lines.push(``Switch "Record Payloads" on to keep request/response bodies and``+`` enable the Model Diff and View Diff tabs.``)}lines.push("` &&
-             `");if(!list.length){lines.push("(no roundtrip recorded yet)");return lines.join("\n")}lines.push(pad("#",5)+pad("TIME",14)+pad("EVENT",22)+pad("TOTAL",10,true)+pad("BACKEND",10,true)+pad("RENDER",10,t` &&
-             `rue)+pad("REQ",10,true)+pad("RESP",10,true)+"  "+pad("DRAFT",10)+pad("ACT",8)+"PAYLOAD");lines.push("-".repeat(118));for(const record of list){const time=record.ts.slice(11,23);const actions=``${recor`.
+             `formatBytes(PAYLOAD_BUDGET_BYTES)} budget)``);if(!recording){lines.push(``Switch "Record Payloads" on to keep request/response bodies and``+`` enable the Model Diff and View Diff tabs.``)}lines.push("`.
     result = result &&
+             `");if(!list.length){lines.push("(no roundtrip recorded yet)");return lines.join("\n")}lines.push(pad("#",5)+pad("TIME",14)+pad("EVENT",22)+pad("TOTAL",10,true)+pad("BACKEND",10,true)+pad("RENDER",10,t` &&
+             `rue)+pad("REQ",10,true)+pad("RESP",10,true)+"  "+pad("DRAFT",10)+pad("ACT",8)+"PAYLOAD");lines.push("-".repeat(118));for(const record of list){const time=record.ts.slice(11,23);const actions=``${recor` &&
              `d.viewCount}/${record.actionCount}``;let payload="-";if(record.request||record.response)payload="kept";else if(record.payloadEvicted)payload="evicted";lines.push(pad(record.previousLoad?``${record.seq` &&
              `}*``:record.seq,5)+pad(time,14)+pad(record.rendered?record.event||"(start)":"(no render)",22)+pad(formatMs(record.totalMs),10,true)+pad(formatMs(record.backendMs),10,true)+pad(formatMs(record.renderMs` &&
              `),10,true)+pad(formatBytes(record.reqBytes),10,true)+pad(formatBytes(record.respBytes),10,true)+"  "+pad(shortId(record.idReceived),10)+pad(actions,8)+payload)}lines.push("");lines.push(...navigationL` &&
@@ -1145,9 +1147,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/view/App.view.xml": '\x3cmvc:View controllerName="z2ui5.controller.App"    xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5core="z2ui5.core"    displayBlock="true" height="100%">    \x3c!-- The ro` &&
              `ot control, id "app", is created by the controller: a         sap.m.App on a page of the app\'s own, a sap.m.NavContainer for an         embedded component (App.controller.js, createRoot). -->    \x3c` &&
-             `z2ui5core:RootSlot id="rootSlot"/>\x3c/mvc:View>',` && |\n| &&
-             `  };` && |\n|.
+             `z2ui5core:RootSlot id="rootSlot"/>\x3c/mvc:View>',` && |\n|.
     result = result &&
+             `  };` && |\n| &&
              `  sap.ui.require.preload(entries);` && |\n| &&
              `  sap.ui.require.preload({` && |\n| &&
              `    "z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"],` && |\n| &&
