@@ -54,6 +54,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_first_start_no_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_not_an_app FOR TESTING RAISING cx_static_check.
+    METHODS test_first_start_absolute_name FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_draft_broken FOR TESTING RAISING cx_static_check.
     METHODS test_app_start_safe      FOR TESTING RAISING cx_static_check.
@@ -292,6 +293,34 @@ CLASS ltcl_test IMPLEMENTATION.
       CATCH z2ui5_cx_ui5_util_error INTO lx.
         cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `Z2UI5_CL_UI5_UTIL_CONTEXT` ) ).
         cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `does not implement z2ui5_if_app` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_first_start_absolute_name.
+
+    " an absolute type name reaches a local class of any program - a start
+    " names a global class only, and anything else is refused before the
+    " type lookup
+    DATA lv_payload TYPE string.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"ROUTE":{"APP":"\\CLASS=Z2UI5_CL_UI5_APP_HI_WORLD"}}}}`.
+
+    lo_http = NEW #( val = lv_payload ).
+    lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_equals( exp = `\CLASS=Z2UI5_CL_UI5_APP_HI_WORLD`
+                                        act = lo_http->ms_request-s_control-app_start ).
+    lo_action = NEW #( val = lo_http ).
+
+    TRY.
+        lo_action->factory_first_start( ).
+        cl_abap_unit_assert=>fail( `Expected exception for an absolute type name` ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx.
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `does not exist in the system` ) ).
     ENDTRY.
 
   ENDMETHOD.
