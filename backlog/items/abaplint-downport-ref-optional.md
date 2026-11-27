@@ -3,7 +3,8 @@ target: abaplint
 title: 'The 702 downport drops the not-found case: REF #( itab[ ... ] OPTIONAL ) and a bare line_index( )'
 summary: 'REF #( itab[ k = 1 ] OPTIONAL ) is lowered to READ TABLE ... ASSIGNING + RAISE EXCEPTION TYPE cx_sy_itab_line_not_found - a row that is not found aborts on 7.02 where the source returns an initial reference'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4820
 first_seen: 2026-11-25
 checked_upstream: 2026-11-27
 upstream: abaplint/abaplint
@@ -13,6 +14,7 @@ evidence:
   - 'VALUE #( itab[ ... ] OPTIONAL ) is lowered correctly (the not-found branch clears the target)'
   - 'samples-controls 2026-11-25: x = line_index( itab[ ... ] ) is lowered to READ TABLE ... followed by temp = sy-tabix without a sy-subrc check - a row that is not found yields the sy-tabix of an earlier statement instead of 0; written as IF line_exists( ... ) first (samples-controls 3c7f86d); the bare form exists on samples-controls main (e.g. samples 645, 569)'
   - 'abaplint/abaplint#4797 (merged 2026-11-27, after 2.120.122) adds the downport option tableExpressionNotFound - the statement written into the not-found branch, so a 7.02 system gets something that compiles; it does not change which expressions get that branch. Probed 2026-11-27 against abaplint main: r = REF #( it[ k = 1 ] OPTIONAL ) still becomes READ TABLE ... ASSIGNING <temp1>. IF sy-subrc <> 0. RAISE EXCEPTION TYPE cx_sy_itab_line_not_found. ENDIF. GET REFERENCE OF <temp1> INTO r., and x = line_index( it[ k = 1 ] ) still becomes READ TABLE ... TRANSPORTING NO FIELDS. temp1 = sy-tabix. without a sy-subrc check - both halves of this item are open'
+  - 'filed 2026-11-27 as abaplint/abaplint#4820, both halves: REF #( tab[ ... ] OPTIONAL ) clears the target in an ELSE in place of the RAISE, line_index( ) is 0 when sy-subrc is not 0'
 ---
 
 # The 702 downport drops OPTIONAL from `REF #( itab[ ... ] OPTIONAL )`

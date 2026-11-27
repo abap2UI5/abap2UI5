@@ -3,13 +3,16 @@ target: abaplint
 title: 'New rule: a statement longer than the 28 kilobytes a system accepts'
 summary: 'one view-builder chain of about 40,000 characters failed to import on a 7.40 system ("The length of the current statement is greater than the allowed maximum length of 28 kilobytes") - CI green, the repository now measures it with a script of its own'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4815
 first_seen: 2026-11-27
+checked_upstream: 2026-11-27
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5/samples-controls 91b4497, 2026-11-25: the 702 branch did not import on a 7.40 system, a sample was one chained statement of about 40,000 characters; scripts/check-statement-size-702.mjs was added with a budget of 28,000 condensed characters'
   - 'measured there: a statement of 40,261 condensed characters failed, one of 20,433 passed; by raw characters a statement of 53,273 failed while one of 42,483 - mostly indentation - passed in the same pull, so only the condensed size separates them'
   - 'abaplint rules folder 2026-11-27: line_length and method_length are the closest, nothing measures a statement'
+  - 'upstream search 2026-11-27 (open issues and pull requests of abaplint/abaplint): nothing on it; filed the same day as abaplint/abaplint#4815 - the rule statement_length with maxLength 28000, measured on the condensed statement in characters; whether the kernel counts characters or bytes, and a chain as a whole or per part, is still not known'
 ---
 
 # New rule: a statement longer than the system accepts
