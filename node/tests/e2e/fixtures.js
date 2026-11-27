@@ -55,6 +55,78 @@ const DEV_BOOTSTRAP_HASHES = [
   )
   .join(" ");
 
+/**
+ * Pin the UI5 build (and theme) a page boots with - what the `page` fixture
+ * below does for every spec that takes it. A spec that shares one page
+ * across its tests (browser.newPage() in a beforeAll, where no test-scoped
+ * fixture is available) calls it itself, with its project's options:
+ *
+ *   test.beforeAll(async ({ browser }, testInfo) => {
+ *     page = await browser.newPage();
+ *     await pinUi5(page, testInfo.project.use);
+ *     ...
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{ ui5Src?: string, ui5Theme?: string }} options
+ */
+async function pinUi5(page, { ui5Src, ui5Theme } = {}) {
+  if (ui5Src) {
+    const localResources = process.env.UI5_PINNED_RESOURCES;
+    if (localResources) {
+      const resourceBase = ui5Src.replace(/sap-ui-core\.js$/, "");
+      await page.route(
+        (url) => url.href.startsWith(resourceBase),
+        (route) => {
+          const rel = decodeURIComponent(
+            route.request().url().slice(resourceBase.length).split("?")[0],
+          );
+          const file = path.join(localResources, rel);
+          // Guard the join against escaping the resources dir, and answer
+          // a missing file (library-preload.js or the built theme css of
+          // a source-only tree) with a plain 404 so the ui5loader falls
+          // back instead of waiting on the unreachable network.
+          if (
+            file.startsWith(path.resolve(localResources) + path.sep) &&
+            fs.existsSync(file)
+          ) {
+            return route.fulfill({ path: file });
+          }
+          return route.fulfill({ status: 404, body: "not found" });
+        },
+      );
+    }
+    await page.route(
+      (url) => url.origin === "http://localhost:3000",
+      async (route) => {
+        if (route.request().resourceType() !== "document") {
+          return route.fallback();
+        }
+        const response = await route.fetch();
+        const contentType = response.headers()["content-type"] || "";
+        if (!contentType.includes("text/html")) {
+          return route.fulfill({ response });
+        }
+        let body = await response.text();
+        body = body.split(DEFAULT_BOOTSTRAP).join(`src="${ui5Src}"`);
+        if (localResources) {
+          // the source-only tree evals and its dev bootstrap writes two
+          // inline scripts - see the header
+          body = body.replace(
+            "script-src 'self'",
+            `script-src 'self' 'unsafe-eval' ${DEV_BOOTSTRAP_HASHES}`,
+          );
+        }
+        if (ui5Theme) {
+          body = body
+            .split(DEFAULT_THEME)
+            .join(`data-sap-ui-theme="${ui5Theme}"`);
+        }
+        return route.fulfill({ response, body });
+      },
+    );
+  }
+}
+
 const test = base.test.extend({
   // Full URL of the sap-ui-core.js to boot instead of the evergreen CDN
   // build (project option; unset = leave the page untouched).
@@ -63,63 +135,9 @@ const test = base.test.extend({
   // UI5 1.102, so a pinned 1.71 run needs sap_fiori_3.
   ui5Theme: [undefined, { option: true }],
   page: async ({ page, ui5Src, ui5Theme }, use) => {
-    if (ui5Src) {
-      const localResources = process.env.UI5_PINNED_RESOURCES;
-      if (localResources) {
-        const resourceBase = ui5Src.replace(/sap-ui-core\.js$/, "");
-        await page.route(
-          (url) => url.href.startsWith(resourceBase),
-          (route) => {
-            const rel = decodeURIComponent(
-              route.request().url().slice(resourceBase.length).split("?")[0],
-            );
-            const file = path.join(localResources, rel);
-            // Guard the join against escaping the resources dir, and answer
-            // a missing file (library-preload.js or the built theme css of
-            // a source-only tree) with a plain 404 so the ui5loader falls
-            // back instead of waiting on the unreachable network.
-            if (
-              file.startsWith(path.resolve(localResources) + path.sep) &&
-              fs.existsSync(file)
-            ) {
-              return route.fulfill({ path: file });
-            }
-            return route.fulfill({ status: 404, body: "not found" });
-          },
-        );
-      }
-      await page.route(
-        (url) => url.origin === "http://localhost:3000",
-        async (route) => {
-          if (route.request().resourceType() !== "document") {
-            return route.fallback();
-          }
-          const response = await route.fetch();
-          const contentType = response.headers()["content-type"] || "";
-          if (!contentType.includes("text/html")) {
-            return route.fulfill({ response });
-          }
-          let body = await response.text();
-          body = body.split(DEFAULT_BOOTSTRAP).join(`src="${ui5Src}"`);
-          if (localResources) {
-            // the source-only tree evals and its dev bootstrap writes two
-            // inline scripts - see the header
-            body = body.replace(
-              "script-src 'self'",
-              `script-src 'self' 'unsafe-eval' ${DEV_BOOTSTRAP_HASHES}`,
-            );
-          }
-          if (ui5Theme) {
-            body = body
-              .split(DEFAULT_THEME)
-              .join(`data-sap-ui-theme="${ui5Theme}"`);
-          }
-          return route.fulfill({ response, body });
-        },
-      );
-    }
+    await pinUi5(page, { ui5Src, ui5Theme });
     await use(page);
   },
 });
 
-module.exports = { test, expect: base.expect };
+module.exports = { test, expect: base.expect, pinUi5 };

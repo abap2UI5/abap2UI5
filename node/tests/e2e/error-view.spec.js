@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require("@playwright/test");
+const { test, expect, pinUi5 } = require("./fixtures");
 const { pageComponentId } = require("./pageComponent");
 
 // Exercises the fatal-error overlay (core/ErrorView) in a real browser:
@@ -12,8 +12,11 @@ const { pageComponentId } = require("./pageComponent");
 /** @type {import('@playwright/test').Page} */
 let page;
 
-test.beforeAll(async ({ browser }) => {
+test.beforeAll(async ({ browser }, testInfo) => {
   page = await browser.newPage();
+  // the UI5 build the project pins - the page fixture cannot reach a page
+  // made here (fixtures.js, pinUi5)
+  await pinUi5(page, testInfo.project.use);
   await page.goto("http://localhost:3000/");
   // The component starts only AFTER the bundle the page's control loads
   // (?z2ui5-bundle) registered the z2ui5/* modules, and it loads

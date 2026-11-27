@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures");
 
 // Reproduces the browser Back/Forward cycle over a FRESH-mode routed app
 // (the z2ui5_cl_demo_app_468 / 469 scenario) against the transpiled backend:

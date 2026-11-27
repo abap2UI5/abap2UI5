@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require("@playwright/test");
+const { test, expect, pinUi5 } = require("./fixtures");
 
 // XSS regression tests for Lib.sanitizeMessageDetails, which turns
 // backend-supplied HTML into safe markup for the message-box display hook
@@ -14,8 +14,11 @@ const { test, expect } = require("@playwright/test");
 /** @type {import('@playwright/test').Page} */
 let page;
 
-test.beforeAll(async ({ browser }) => {
+test.beforeAll(async ({ browser }, testInfo) => {
   page = await browser.newPage();
+  // the UI5 build the project pins - the page fixture cannot reach a page
+  // made here (fixtures.js, pinUi5)
+  await pinUi5(page, testInfo.project.use);
   await page.goto("http://localhost:3000/");
   // The component starts only AFTER sap.ui.require.preload registered the
   // embedded z2ui5/* modules, and it loads core/AppState - so once that
