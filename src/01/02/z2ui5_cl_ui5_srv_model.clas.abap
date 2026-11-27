@@ -750,16 +750,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         ir_res      TYPE REF TO ty_s_resolved
         it_resolved TYPE ty_t_resolved.
 
-    "! Is the table behind the reference a STANDARD table - the only kind a
-    "! row delta can be written into by index. Asked BEFORE any ASSIGN to a
-    "! TYPE STANDARD TABLE field symbol: on a system that ASSIGN is the
-    "! runtime error ASSIGN_TYPE_CONFLICT for a sorted or hashed table.
-    METHODS check_table_standard
-      IMPORTING
-        ir_ref        TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
     "! iv_type_kind is the component's type kind, resolved by the caller
     "! once per column (ty_t_col_kind) - it used to be asked per cell
     METHODS delta_apply_scalar
@@ -2967,7 +2957,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " are keyed reads on the sorted node table
     DATA(lv_delta) = |{ iv_path }/__delta|.
 
-    IF check_table_standard( lr_ref_d ) = abap_false.
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( lr_ref_d ) = abap_false.
       delta_skip_nodes( io_delta = io_val_front
                         iv_base  = lv_delta
                         iv_table = iv_name ).
@@ -3185,12 +3175,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF result < 1.
       result = 0.
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD check_table_standard.
-
-    result = z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ).
 
   ENDMETHOD.
 
@@ -3439,11 +3423,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     DATA(ls_col_kind) = VALUE ty_s_col_kind(
         field     = is_cell-field
         type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ) ).
-    " the table kind only where there is a table: check_table_standard on
+    " the table kind only where there is a table: rtti_check_table_standard on
     " a REF TO data sees the reference itself and answers no - which is
     " what keeps a delta from being followed through such a column
     IF ls_col_kind-type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-      ls_col_kind-standard = check_table_standard( ir_comp ).
+      ls_col_kind-standard = z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_comp ).
     ENDIF.
     INSERT ls_col_kind INTO TABLE ct_col_kind REFERENCE INTO er_col_kind.
 
@@ -3614,7 +3598,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " standard table is matched row by row (and decided by RTTI before the
     " typed ASSIGN, abap-check section 5)
     IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-        OR check_table_standard( ir_ref ) = abap_false.
+        OR z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
       RETURN.
     ENDIF.
     ASSIGN ir_ref->* TO <tab>.
