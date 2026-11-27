@@ -216,14 +216,40 @@ sap.ui.define(
     //
     // The sweep alone would not be enough: once the browser's resource buffer
     // is full it silently drops NEW entries, which a long-running SPA reaches.
-    // PerformanceObserver delivery is not bound by that buffer, so the two
-    // together cover both the ordering and the overflow case.
+    // PerformanceObserver delivery is not bound by that buffer - but it is
+    // asynchronous, so in that state the render ran before its own entry
+    // arrived, found nothing to pair with and was recorded without timing,
+    // and the entry, arriving after it, was flushed later as a roundtrip
+    // that "never rendered" - a failure that did not happen. So the sweep
+    // also takes what the observer holds but has not delivered yet
+    // (takeRecords, synchronous): together they cover the ordering and the
+    // overflow case on the render path itself.
     function sweepEntries(ctx, rec) {
+      const url = backendUrl(ctx);
+      if (!url) return;
+      const fresh = [];
+      try {
+        for (const entry of rec.observer?.takeRecords?.() || []) {
+          if (entry.name === url && entry.startTime > rec.lastEntryStart) {
+            fresh.push(entry);
+          }
+        }
+      } catch {
+        // an observer that cannot hand over - the buffer below still can
+      }
+      sweepBuffer(url, rec, fresh);
+      // both sources overlap on purpose: oldest first, and acceptEntry's
+      // watermark takes an entry the other source also had only once
+      fresh.sort((a, b) => a.startTime - b.startTime);
+      for (const entry of fresh) acceptEntry(rec, entry);
+    }
+
+    // The resource buffer's entries for the endpoint newer than the
+    // watermark, appended to `fresh`.
+    function sweepBuffer(url, rec, fresh) {
       if (typeof performance === "undefined" || !performance.getEntriesByName) {
         return;
       }
-      const url = backendUrl(ctx);
-      if (!url) return;
       let entries;
       try {
         entries = performance.getEntriesByName(url, "resource");
@@ -234,12 +260,10 @@ sap.ui.define(
       // browser's WHOLE buffer for this url (chronological), and after N
       // roundtrips the loop was N accept calls per roundtrip for at most a
       // handful of new entries at the tail
-      const fresh = [];
       for (let i = entries.length - 1; i >= 0; i -= 1) {
         if (entries[i].startTime <= rec.lastEntryStart) break;
         fresh.push(entries[i]);
       }
-      for (let i = fresh.length - 1; i >= 0; i -= 1) acceptEntry(rec, fresh[i]);
     }
 
     // Take the network observation belonging to a render that happened at

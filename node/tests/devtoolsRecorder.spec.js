@@ -27,6 +27,9 @@ function loadRecorder({ storage = {} } = {}) {
   // `deliver()` is what the PerformanceObserver hands over, so the ordering
   // of the two sources can be exercised independently.
   const entries = [];
+  // what the observer holds but has not delivered yet - takeRecords( )
+  // hands it over synchronously and empties it
+  const queued = [];
   let observerCallback = null;
   const clock = { value: 0 };
 
@@ -42,6 +45,9 @@ function loadRecorder({ storage = {} } = {}) {
       observerCallback = callback;
     }
     observe() {}
+    takeRecords() {
+      return queued.splice(0);
+    }
     disconnect() {
       observerCallback = null;
     }
@@ -96,6 +102,17 @@ function loadRecorder({ storage = {} } = {}) {
     });
   }
 
+  // A finished backend request the full resource buffer dropped: only the
+  // observer has it, queued for its next callback task.
+  function queueForObserver({ start, end, bytes = 0 }) {
+    queued.push({
+      name: BACKEND_URL,
+      startTime: start,
+      responseEnd: end,
+      decodedBodySize: bytes,
+    });
+  }
+
   // Hand the buffered entries to the observer, the way the browser does
   // when its callback task runs.
   function deliverToObserver() {
@@ -115,6 +132,8 @@ function loadRecorder({ storage = {} } = {}) {
     // Lib.logError's ring, page-wide - what the render hook logs into
     logged: Lib.errors,
     addEntry,
+    queueForObserver,
+    queued,
     deliverToObserver,
     fireAfterRendering,
     pagehide: () => windowListeners.pagehide?.(),
@@ -324,6 +343,48 @@ test.describe("network pairing", () => {
     expect(list.length).toBe(1);
     expect(list[0].rendered).toBe(true);
     expect(list[0].backendMs).toBe(50);
+  });
+});
+
+// Once the browser's resource buffer is full, a new entry reaches the
+// observer alone - in a callback task that runs AFTER the render. The render
+// found nothing, and the entry was later flushed as a roundtrip that never
+// rendered: a failure that did not happen.
+test.describe("a full resource buffer", () => {
+  test("the render takes its entry from the observer's queue", () => {
+    const h = loadRecorder();
+    h.Recorder.install(h.ctx);
+    h.queueForObserver({ start: 100, end: 150, bytes: 500 });
+    h.state.oBody = fakeRequest({ event: "GO" });
+    h.state.responseData = fakeResponse();
+    h.clock.value = 170;
+    h.fireAfterRendering();
+    expect(h.queued.length).toBe(0);
+
+    // long after, when the history is read: still the one rendered row
+    h.clock.value = 60000;
+    const list = h.Recorder.getRecords(h.ctx);
+    expect(list.length).toBe(1);
+    expect(list[0].rendered).toBe(true);
+    expect(list[0].event).toBe("GO");
+    expect(list[0].backendMs).toBe(50);
+    expect(list[0].respBytes).toBe(500);
+  });
+
+  test("an entry both sources hold is taken once, in the order of the requests", () => {
+    const h = loadRecorder();
+    h.Recorder.install(h.ctx);
+    // the buffer still had the older one, the queue has both
+    h.addEntry({ start: 10, end: 20, bytes: 10 });
+    h.queueForObserver({ start: 10, end: 20, bytes: 10 });
+    h.queueForObserver({ start: 100, end: 150, bytes: 500 });
+    h.state.oBody = fakeRequest({ event: "GO" });
+    h.state.responseData = fakeResponse();
+    h.clock.value = 170;
+    h.fireAfterRendering();
+    const list = h.Recorder.getRecords(h.ctx);
+    expect(list.map((r) => r.rendered)).toEqual([false, true]);
+    expect(list[1].backendMs).toBe(50);
   });
 });
 

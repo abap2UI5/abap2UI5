@@ -10,14 +10,20 @@
 // Which app is running is a question about ONE component context
 // (core/Context.js): every function takes it first and reads the last
 // response off ctx.state. The source cache stays page-wide on purpose -
-// it is keyed by the class name, and a class's source is the same
-// whichever instance asks for it.
+// it is keyed by the source URL (sourceUrl: the system's origin and the
+// class), and that URL answers the same whichever instance asks for it.
 sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
   "use strict";
 
-  // { app, source } of the last SUCCESSFUL fetch - the class name is part of it
-  // because a navigation swaps the app under the tools and the cached
-  // source would otherwise be attributed to the new one.
+  // { url, source } of the last SUCCESSFUL fetch. Keyed by the source URL,
+  // not the class name alone: a navigation swaps the app under the tools,
+  // and two components on one page may talk to two SYSTEMS (an embedded
+  // one's endpoint on another origin, systemOrigin) that both have a class
+  // of that name - keyed by the name, the second showed the first one's
+  // source. Not kept for the life of the page either: the developer
+  // edits the class in ADT while the app runs, so the Source tab refetches
+  // whenever it is opened (fetchSource's `refresh`), and the deep link
+  // and the export read what it fetched last.
   let cache = null;
 
   // The class name of the running app, as the backend reported it in
@@ -62,7 +68,7 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
     const url = sourceUrl(ctx);
     if (!url) return "";
     const event = ctx?.state?.oBody?.S_FRONT?.EVENT;
-    if (!event || cache?.app !== appName(ctx) || !cache?.source) return url;
+    if (!event || cache?.url !== url || !cache?.source) return url;
     const lineNumber = Inspect.findEventLine(cache.source, event);
     return lineNumber ? `${url}#start=${lineNumber},1` : url;
   }
@@ -102,12 +108,14 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
   // text, or "" when the class name is unknown or the request fails
   // (the endpoint needs an authenticated, ADT-enabled session, which is
   // not always available - the export must still work without it).
+  // `refresh` asks the endpoint even when the source is cached (the
+  // Source tab, see the cache); a refresh that fails answers "" and keeps
+  // the cached source for the deep link and the export.
   // Never throws.
-  async function fetchSource(ctx) {
+  async function fetchSource(ctx, { refresh = false } = {}) {
     const url = sourceUrl(ctx);
     if (!url) return "";
-    const name = appName(ctx);
-    if (cache?.app === name) return cache.source;
+    if (!refresh && cache?.url === url) return cache.source;
     let source = "";
     try {
       const response = await fetch(url, {
@@ -126,7 +134,7 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
     // sourceless no matter how often they were pressed. An empty answer
     // is retried on the next request instead; that is one request per
     // press, and only while it keeps failing.
-    if (source) cache = { app: name, source };
+    if (source) cache = { url, source };
     return source;
   }
 
@@ -134,8 +142,8 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
   // synchronously, for a caller that has to act inside the user's press:
   // the clipboard refuses a write after an await on the network (Safari)
   function cachedSource(ctx) {
-    const name = appName(ctx);
-    return name && cache?.app === name ? cache.source : null;
+    const url = sourceUrl(ctx);
+    return url && cache?.url === url ? cache.source : null;
   }
 
   return {

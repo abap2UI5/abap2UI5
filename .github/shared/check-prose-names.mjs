@@ -214,6 +214,10 @@ const raw = (repo) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/S
 
 /* Every class a checkout ships, by file name. Read once. */
 let frameworkCache = null;
+// a fixed collation, not the machine's locale: under sk_SK or da_DK a bare
+// localeCompare orders names differently and the report churns between hosts
+const BY_NAME = new Intl.Collator('en');
+
 function frameworkClasses(root) {
   frameworkCache ??= classNames(root);
   return frameworkCache;
@@ -256,7 +260,7 @@ const rel = (at) => path.relative(ROOT, at).split(path.sep).join('/');
 
 const markdownUnder = (dir, out = []) => {
   if (!fs.existsSync(dir)) return out;
-  for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => BY_NAME.compare(a.name, b.name))) {
     const at = path.join(dir, e.name);
     if (e.isDirectory()) markdownUnder(at, out);
     else if (e.name.endsWith('.md')) out.push(at);

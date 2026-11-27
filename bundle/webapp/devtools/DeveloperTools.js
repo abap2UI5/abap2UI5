@@ -378,7 +378,10 @@ sap.ui.define(
         // deep-link at the current event's line. Opening this view is the
         // moment a developer is heading for the source, and the fetch must
         // not block the switch - failures are swallowed by fetchSource.
-        AbapSource.fetchSource(this.ctx);
+        // A refresh, not the cached answer: the iframe above shows the
+        // class as it is now, and the deep link must resolve its line in
+        // that text - the class may have been edited since the last fetch.
+        AbapSource.fetchSource(this.ctx, { refresh: true });
 
         if (!oModel) return;
         const data = oModel.getData();
