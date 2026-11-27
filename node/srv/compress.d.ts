@@ -8,7 +8,7 @@ export interface CompressOptions {
   threshold?: number;
   /** The zlib level (default 6). */
   level?: number;
-  /** How many compressed GET pages are kept, one per ETag (default 16). */
+  /** How many compressed GET pages are kept, one per ETag and path (default 16). */
   pages?: number;
 }
 

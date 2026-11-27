@@ -192,6 +192,37 @@ test.describe("the middleware", () => {
       server.close();
     }
   });
+
+  test("keys the cached page by its path as well - one tag, a body per path", async () => {
+    // the shape of the ?z2ui5-bundle answer: the framework writes the path it
+    // was asked under into the body (the nodePath token) and sends the same
+    // tag for every path - and /aaaa and /bbbb make bodies of one length
+    const { compress } = await load();
+    const middleware = compress();
+    const bundle = (pathname) => `sap.ui.define("z2ui5/embed",{nodePath:"${pathname}"});`.padEnd(4096, " ");
+    const server = http.createServer((req, res) => middleware(req, res, () => {
+      const pathname = String(req.url).split("?")[0];
+      page(200, { "content-type": "application/javascript", etag: "\"bundle-v1\"" }, bundle(pathname))(req, res);
+    }));
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve(undefined)));
+    const address = /** @type {import("net").AddressInfo} */ (server.address());
+    const get = (pathname) => new Promise((resolve, reject) => {
+      http.get({ host: "127.0.0.1", port: address.port, path: pathname, headers: { "accept-encoding": "gzip" } }, (res) => {
+        const chunks = [];
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () => resolve(zlib.gunzipSync(Buffer.concat(chunks)).toString("utf8")));
+      }).on("error", reject);
+    });
+    try {
+      expect(await get("/aaaa?z2ui5-bundle")).toBe(bundle("/aaaa"));
+      expect(await get("/bbbb?z2ui5-bundle")).toBe(bundle("/bbbb"));
+      // the query is not part of the key: the version a page asks by changes
+      // no byte - and the first path's entry is still its own
+      expect(await get("/aaaa?z2ui5-bundle=v1")).toBe(bundle("/aaaa"));
+    } finally {
+      server.close();
+    }
+  });
 });
 
 test.describe("in front of the framework", () => {
@@ -244,6 +275,16 @@ test.describe("in front of the framework", () => {
     expect(doubled.gzip.etag).not.toMatch(/-gzip-gzip"$/);
     expect(doubled.revalidated.status).toBe(304);
     expect(doubled.revalidated.etag).toBe(doubled.gzip.etag);
+  });
+
+  test("the bundle of each node path is its own - one tag for both, gzipped", () => {
+    const { bundles } = framework();
+    expect(bundles.aaaa.encoding).toBe("gzip");
+    expect(bundles.bbbb.encoding).toBe("gzip");
+    expect(bundles.aaaa.etag).toBe(bundles.bbbb.etag);
+    expect(bundles.aaaa.nodePath).toBe("/aaaa");
+    expect(bundles.bbbb.nodePath).toBe("/bbbb");
+    expect(bundles.bbbbPlain.nodePath).toBe("/bbbb");
   });
 
   test("createApp({ compression: false }) leaves the responses as they are", () => {

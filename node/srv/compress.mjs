@@ -35,9 +35,16 @@
  * the body is collected, and compressed on the thread pool (zlib.gzip, not
  * the Sync variant: no request waits on another's compression). A response
  * whose headers went out already (an explicit writeHead) passes untouched.
- * The GET page is compressed once per ETag: a strong tag names one
+ * The GET page is compressed once per ETag and path: a strong tag names one
  * representation, so the compressed page is cached under it (bounded,
  * oldest out first) and a reload that does not revalidate costs no gzip.
+ * The path is part of the key because the framework's tag is not: the
+ * ?z2ui5-bundle answer carries the path it was asked under (its nodePath
+ * token, z2ui5_cl_ui5_http_handler=>_http_get_bundle) under one tag for
+ * every path, so keyed by the tag alone the bundle compressed for /aaaa was
+ * handed to /bbbb - a body of the same length, with the other node's path in
+ * it. The query stays out: the version a page asks the bundle by
+ * (?z2ui5-bundle=<version>) changes no byte of it.
  *
  * TWICE IS ONCE. A host may mount compress() in front of createApp(), which
  * has one of its own (abap2UI5/mcp-server's npm host does, for releases that
@@ -96,11 +103,11 @@ function gzipTag(etag) {
  * @param {{ threshold?: number, level?: number, pages?: number }} [options]
  *   `threshold` the smallest body compressed, in bytes (default 1024);
  *   `level` the zlib level (default 6); `pages` how many compressed GET pages
- *   are kept, one per ETag (default 16)
+ *   are kept, one per ETag and path (default 16)
  * @returns {(req: object, res: object, next: Function) => void}
  */
 export function compress({ threshold = 1024, level = 6, pages = 16 } = {}) {
-  const cache = new Map();   // `${etag} ${length}` -> Promise<Buffer>
+  const cache = new Map();   // `${etag} ${length} ${path}` -> Promise<Buffer>
 
   const gzip = (body) => new Promise((resolve, reject) => {
     zlib.gzip(body, { level }, (err, out) => (err ? reject(err) : resolve(out)));
@@ -111,7 +118,10 @@ export function compress({ threshold = 1024, level = 6, pages = 16 } = {}) {
     if (req.method !== "GET" || res.statusCode !== 200 || typeof etag !== "string" || !etag.startsWith("\"")) {
       return gzip(body);
     }
-    const key = `${etag} ${body.length}`;
+    // originalUrl: the whole path, also under a mount (req.url is the part
+    // after it there); a plain node:http request has url only
+    const path = String(req.originalUrl ?? req.url ?? "").split("?")[0];
+    const key = `${etag} ${body.length} ${path}`;
     let out = cache.get(key);
     if (out === undefined) {
       out = gzip(body);
