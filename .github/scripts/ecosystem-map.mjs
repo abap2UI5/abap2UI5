@@ -24,7 +24,8 @@
  *        GITHUB_TOKEN / GH_TOKEN raise the rate limit, nothing needs one).
  *        It also lists, as "behind" and never as a finding, every npm pin
  *        on a package of the family (@abap2ui5/*, @cap2ui5/*) that the
- *        package's newest release does not satisfy.
+ *        package's newest release does not satisfy - or that admits it while
+ *        the package-lock.json beside it still installs an older version.
  *
  * --live is NOT part of `npm run gates`: it reads forty repositories over the
  * network, and a pin that moved over there is news about that repository, not
@@ -288,6 +289,21 @@ const OWN_SCOPES = /^@(abap2ui5|cap2ui5)\//;
  * the range is not one of the shapes the ecosystem writes (X.Y.Z, ^X.Y.Z,
  * ~X.Y.Z, >=X.Y.Z, >=X.Y.Z <A.B.C). No dependency on semver: a caret on
  * 0.x stays within the minor, as npm resolves it. */
+/* The version package-lock.json beside `file` installs for `pkgName` on the
+ * default branch, or null (no lockfile, not in it, not reachable). */
+const lockCache = new Map();
+async function lockedVersion(e, file, pkgName) {
+  const lockFile = path.posix.join(path.posix.dirname(file), "package-lock.json");
+  const key = `${e.repo}/${lockFile}`;
+  if (!lockCache.has(key)) {
+    const { status, text } = await fetchText(`https://raw.githubusercontent.com/${e.repo}/${e.defaultBranch}/${lockFile}`);
+    let lock = null;
+    if (status === 200) { try { lock = JSON.parse(text); } catch { lock = null; } }
+    lockCache.set(key, lock);
+  }
+  return lockCache.get(key)?.packages?.[`node_modules/${pkgName}`]?.version ?? null;
+}
+
 function admits(range, v) {
   const num = (s) => s.split(".").map(Number);
   const cmp = (a, b) => { for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; };
@@ -393,6 +409,13 @@ async function live() {
           } else if (status === 200 && OWN_SCOPES.test(pkgName)) {
             const latest = JSON.parse(text)["dist-tags"]?.latest;
             if (latest && admits(p.ref, latest) === false) behind.push(`${e.repo}: ${pkgName} ${p.ref} - latest is ${latest} (${p.file})`);
+            else if (latest) {
+              /* The range admits the release, but CI installs what the
+               * lockfile holds: embed-ui5-control's ^1.148.0 locked 1.149.0
+               * - wire protocol 2 - a day after 1.151.0 shipped protocol 3. */
+              const locked = await lockedVersion(e, p.file, pkgName);
+              if (locked && locked !== latest) behind.push(`${e.repo}: ${pkgName} locked at ${locked} under ${p.ref} - latest is ${latest} (${path.posix.join(path.posix.dirname(p.file), "package-lock.json")})`);
+            }
           }
         }
         checked += 1;
