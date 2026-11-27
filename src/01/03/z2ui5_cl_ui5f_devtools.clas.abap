@@ -116,7 +116,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `>                \x3cButton                    text="Retry"                    tooltip="Re-run the request that failed"                    press=".onErrorRetry"                    visible="{/hasRetry}` &&
              `"                />                \x3cButton                    text="Restart"                    tooltip="Restart the app"                    press=".onErrorRestart"                    visible="{/is` &&
              `ErrorView}"                />                \x3cButton                    text="Logout"                    press=".onErrorLogout"                    visible="{/isErrorView}"                />        ` &&
-             `        \x3c!-- View & Data: closes the dialog, lets the user click any                     control in the app and reopens with its bindings and                     current values (devtools/Picker.js)` &&
+             `        \x3c!-- View & Data: closes the dialog, lets the user click any                     control in the app and reopens with its bindings and                     current values (devtools/Picker.js)`.
+    result = result &&
              `. -->                \x3cButton                    text="Pick Control"                    type="Emphasized"                    tooltip="Closes these tools, then click any control in the app. Escape ca` &&
              `ncels."                    press=".onPickControl"                    visible="{/isViewData}"                />                \x3cToggleButton                    text="After Templating"               ` &&
              `     tooltip="Show the XML after XML templating ran"                    pressed="{/templatingSource}"                    press=".onTemplatingPress"                    visible="{/isTemplating}"        ` &&
@@ -194,7 +195,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `try again.");return}const tabKey=data.selectedTab;const before=this.backendXml(tabKey);const result=await LiveEdit.apply(this.ctx,tabKey,data.value);if(Lib.isDestroyed(this))return;if(!this._appliedXm` &&
              `l)this._appliedXml={};this._appliedXml[tabKey]={original:before,applied:Tabs.render(this.ctx,tabKey)};this.showStatus(oModel,result)},backendXml(tabKey){const current=Tabs.render(this.ctx,tabKey);cons` &&
              `t record=this._appliedXml?.[tabKey];if(!record)return current;if(record.applied!==current){delete this._appliedXml[tabKey];return current}return record.original},onResetXml(oEvent){const oModel=oEvent` &&
-             `.getSource().getModel();const data=oModel.getData();const xml=this.backendXml(data.selectedTab);data.value=xml;data.previousValue=xml;oModel.refresh();this.showStatus(oModel,"")},onShowHelp(){openText` &&
+             `.getSource().getModel();const data=oModel.getData();const xml=this.backendXml(data.selectedTab);data.value=xml;data.previousValue=xml;oModel.refresh();this.showStatus(oModel,"")},onShowHelp(){openText`.
+    result = result &&
              `Dialog({title:"abap2UI5 - Developer Tools Help",text:Inspect.formatHelp(),editable:false})},onClose(){this.close()},onEscape(oPromise){oPromise.reject();this.close()},async show(initialTab){if(this._s` &&
              `howPending)return;this._showPending=true;try{if(!this.oDialog){await preloadCodeEditor();this.oDialog=await Fragment.load({name:"z2ui5.devtools.DeveloperTools",controller:this,id:this.fragmentId()});t` &&
              `his.oDialog.setEscapeHandler?.(oPromise=>this.onEscape(oPromise))}if(Lib.isDestroyed(this)){if(this.oDialog)this.oDialog.destroy();this.oDialog=null;return}const requested=typeof initialTab==="string"` &&
@@ -267,7 +269,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `l.src||bootstrapAttr(el,"src")));for(const[label,attr]of BOOTSTRAP_ATTRS){const value=bootstrapAttr(el,attr);if(value)out.push(line(label,truncate(value,MAX_ARG_CHARS)))}}out.push("");out.push(line("R` &&
              `esource base",resourceUrl("")));out.push(line("z2ui5 root",resourceUrl("z2ui5")));const cci=ctx.state.ccResourceRoot;const ccc=ctx.state.cccResourceRoot;if(cci)out.push(line("z2ui5_cci root",cci));if(` &&
              `ccc)out.push(line("z2ui5_ccc root",ccc));return out}function formatFrontendInfo(ctx){const out=[section("Frontend info sent to the backend")];out.push("  (client->get( )-s_focus / -s_scroll, live for ` &&
-             `the next");out.push("  roundtrip - see -s_ui5 / -s_device above)");out.push("");let focus;let scroll;try{focus=ScrollFocus.getFocusInfo(ctx);scroll=ScrollFocus.getScrollInfo(ctx)}catch(e){Lib.logError` &&
+             `the next");out.push("  roundtrip - see -s_ui5 / -s_device above)");out.push("");let focus;let scroll;try{focus=ScrollFocus.getFocusInfo(ctx);scroll=ScrollFocus.getScrollInfo(ctx)}catch(e){Lib.logError`.
+    result = result &&
              `("DevTools Inspect: reading focus/scroll failed",e);out.push("  (focus / scroll info unavailable)");return out}out.push(line("Focused control",focus?.ID));if(focus?.SELECTION_START!==undefined){out.pu` &&
              `sh(line("Caret",``${focus.SELECTION_START} - ${focus.SELECTION_END}``))}out.push("");let anyScroll=false;for(const slot of ViewSlots.slots){const entry=scroll?.[slot.key];if(!entry)continue;anyScroll=tr` &&
              `ue;out.push(line(``Scroll ${slot.key}``,``${entry.ID||"(unnamed)"}  x ${entry.X||0} / y ${entry.Y||0}``))}if(!anyScroll)out.push(line("Scroll","nothing scrolled yet"));return out}function scrapeEvents(xml` &&
@@ -343,7 +346,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `->set_json( path = ${pathLit}``);out.push(``${pad}               json = ${lit} ).``)}function clickStatement(step,indent){const pad=" ".repeat(indent);const event=literal(step.event,indent)||"````";if(!ste` &&
              `p.args.length)return[``${pad}sim->click( ${event} ).``];const out=[``${pad}sim->click( event = ${event}``];const argPad=``${pad}            t_arg = VALUE #( ``;step.args.forEach((arg,i)=>{const lit=literal(` &&
              `arg,argPad.length+2)||jsonLiteral(arg,argPad.length+2);const lead=i===0?argPad:" ".repeat(argPad.length);const tail=i===step.args.length-1?" ) ).":"";out.push(``${lead}( ${lit} )${tail}``)});return out}` &&
-             `function assertEquals(pad,exp,act){const lit=literal(exp,pad.length+42)||jsonLiteral(exp,pad.length+42);return[``${pad}cl_abap_unit_assert=>assert_equals( exp = ${lit}``,``${pad}                         ` &&
+             `function assertEquals(pad,exp,act){const lit=literal(exp,pad.length+42)||jsonLiteral(exp,pad.length+42);return[``${pad}cl_abap_unit_assert=>assert_equals( exp = ${lit}``,``${pad}                         `.
+    result = result &&
              `           act = ${act} ).``]}function assertTrue(pad,expression){return[``${pad}cl_abap_unit_assert=>assert_true( ${expression} ).``]}function assertionStatements(step,previousApp,indent){const pad=" ".` &&
              `repeat(indent);const out=[];if(step.messages.length){const last=step.messages[step.messages.length-1];out.push(...assertEquals(pad,last,"sim->get_message( )"))}if(step.app&&previousApp&&step.app!==pre` &&
              `viousApp){out.push(...assertEquals(pad,step.app,"sim->get_app( )"))}const top=SLOT_ORDER.find(slot=>step.views.some(view=>view.slot===slot));if(top){out.push(...assertEquals(pad,top,"sim->get_layer( )` &&
@@ -413,7 +417,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/devtools/Picker.js": function(){sap.ui.define(["sap/ui/core/Element","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/SlotXml"],(Element,Li` &&
              `b,Env,ViewSlots,Format,SlotXml)=>{"use strict";const{FRAMEWORK_CALL,describeValue}=Format;const MAX_VALUE_CHARS=80;const OVERLAY_ID="z2ui5DevToolsPickerOverlay";let active=false;let activeCtx=null;let` &&
-             ` onDone=null;let boundMove=null;let boundClick=null;let boundKey=null;let lastNode=null;let frameId=0;function controlFromDom(node){if(!node)return null;if(Element.closestTo){try{return Element.closes` &&
+             ` onDone=null;let boundMove=null;let boundClick=null;let boundKey=null;let lastNode=null;let frameId=0;function controlFromDom(node){if(!node)return null;if(Element.closestTo){try{return Element.closes`.
+    result = result &&
              `tTo(node)||null}catch{return null}}let current=node;while(current&&current!==document.body){const id=current.id;if(id){const control=Env.getElementById(id);if(control)return control}current=current.pa` &&
              `rentElement}return null}function overlay(){let el=document.getElementById(OVERLAY_ID);if(!el){el=document.createElement("div");el.id=OVERLAY_ID;el.style.position="fixed";el.style.pointerEvents="none";` &&
              `el.style.zIndex="2147483647";el.style.background="rgba(0, 112, 242, 0.25)";el.style.border="2px solid #0070f2";el.style.borderRadius="2px";el.style.display="none";document.body.appendChild(el)}return ` &&
@@ -443,8 +448,7 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `nternals:{collectBindings,collectEvents,renderValue}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Report.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/devtools/Recorder","z2ui5/devtools/Tabs"],(Lib,Recorder,Tabs)=>{"use strict";const MAX_SECTION=1e5;const ABAP_SOURCE`.
-    result = result &&
+             `      "z2ui5/devtools/Report.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/devtools/Recorder","z2ui5/devtools/Tabs"],(Lib,Recorder,Tabs)=>{"use strict";const MAX_SECTION=1e5;const ABAP_SOURCE` &&
              `_ORDER=55;const ABAP_SOURCE_TITLE="ABAP SOURCE";const SECRET_KEY=/^[A-Za-z0-9_/-]*(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)[A-Za-z0-9_/-]*$/i;const MASK="***";function redactForExport(text){r` &&
              `eturn String(text).replace(/^(\s*sap-contextid\s+)(\S.*)$/gim,(_m,lead,value)=>value==="-"?lead+value:lead+MASK).replace(/"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,(match,key,colo` &&
              `n)=>SECRET_KEY.test(key)?``"${key}"${colon}"${MASK}"``:match)}function buildExport(ctx,abapSource){const sections=[];const push=(title,content)=>{if(!content)return;let body=String(content);if(body.leng` &&
@@ -484,7 +488,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `tError(ctx),enabled:ctx=>Boolean(ctx.state.lastError),exportOrder:20},{key:"LOG",group:"PROBLEMS",label:"Log",kind:"text",produce:ctx=>Inspect.formatLog(ctx),exportOrder:30},{key:"HISTORY",group:"ROUN` &&
              `DTRIPS",label:"History",kind:"text",produce:ctx=>Recorder.formatHistory(ctx),exportOrder:40},{key:"REQUEST",group:"ROUNDTRIPS",label:"Request",kind:"json",produce:ctx=>Format.toJson(ctx.state.oBody),e` &&
              `xportOrder:80},{key:"PLAIN",group:"ROUNDTRIPS",label:"Response",kind:"json",produce:ctx=>Format.toJson(ctx.state.responseData),exportOrder:70},{key:"ACTIONS",group:"ROUNDTRIPS",label:"Actions",kind:"t` &&
-             `ext",produce:ctx=>Inspect.formatActions(ctx),exportOrder:60},{key:"DIFF",group:"ROUNDTRIPS",label:"Model Diff",kind:"text",produce:ctx=>Recorder.formatModelDiff(ctx),exportOrder:50,inExport:_ctx=>Reco` &&
+             `ext",produce:ctx=>Inspect.formatActions(ctx),exportOrder:60},{key:"DIFF",group:"ROUNDTRIPS",label:"Model Diff",kind:"text",produce:ctx=>Recorder.formatModelDiff(ctx),exportOrder:50,inExport:_ctx=>Reco`.
+    result = result &&
              `rder.isRecordingPayloads()},{key:"VIEWDIFF",group:"ROUNDTRIPS",label:"View Diff",kind:"text",produce:ctx=>Recorder.formatViewDiff(ctx),exportOrder:51,inExport:_ctx=>Recorder.isRecordingPayloads()},{ke` &&
              `y:"JOURNEY",group:"ROUNDTRIPS",label:"Journey",kind:"text",produce:ctx=>Journey.formatJourney(ctx),exportOrder:45,inExport:ctx=>Journey.stepCount(ctx)>0},{key:"VIEW",group:"VIEWDATA",slot:"MAIN",aspec` &&
              `t:"XML",label:"XML",kind:"xml",produce:ctx=>Format.prettifyXml(getSlotXml(ctx,"MAIN")),rendered:ctx=>Format.prettifyXml(getRenderedContent(ViewSlots.getView(ctx,"MAIN"))),enabled:ctx=>slotFilled(ctx,"` &&
