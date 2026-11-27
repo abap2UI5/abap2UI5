@@ -1450,6 +1450,8 @@ INTERFACE z2ui5_if_client
   "! REPLACE instead of falling out of the app - and the change fires the
   "! registered event, which shows the fallback route:
   "! ``client->follow_up_action( val = client->cs_event-hash_back t_arg = VALUE #( ( `/` ) ) )``.
+  "! An app embedded on a host's page that did not hand it the page leaves the
+  "! host's history and hash alone: there the action is refused and logged.
   "!
   "! **cs_event-store_data** - write a structure into the browser's local or
   "! session storage, the write half of the invisible z2ui5:Storage control
