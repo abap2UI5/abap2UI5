@@ -68,6 +68,12 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     CLASS-DATA cv_typedescr_typekind_packed  TYPE c LENGTH 1 READ-ONLY.
 
+    " a float, which a JSON writer never quotes (it IS a double, see
+    " rtti_check_wide_number), and a numeric text, which takes digits only
+    CLASS-DATA cv_typedescr_typekind_float   TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_num     TYPE c LENGTH 1 READ-ONLY.
+
     CLASS-DATA cv_typedescr_kind_struct      TYPE c LENGTH 1 READ-ONLY.
 
     CLASS-DATA cv_typedescr_kind_elem        TYPE c LENGTH 1 READ-ONLY.
@@ -253,7 +259,11 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " one component of a flat structure, with the one fact a JSON writer
     " decides by: json_kind is B for a boolean (abap_bool and its DDIC
     " twins, by type name - as ajson tells them apart), N for a number
-    " (every numeric kind), S for a string (character, numeric text, string
+    " (every numeric kind but a wide one), P for a WIDE number - one that
+    " can carry more digits than a double keeps (rtti_check_wide_number) -
+    " which ajson writes as a number like N, and a writer whose reader
+    " parses into doubles quotes when its text needs the digits, S for a
+    " string (character, numeric text, string
     " and binary - all of which |{ }| renders as ajson does), D for a date
     " and T for a time (which ajson writes as ISO text, YYYY-MM-DD and
     " HH:MM:SS, and empty when initial), U for a packed field TYPED
@@ -285,6 +295,17 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         val           TYPE REF TO data
       RETURNING
         VALUE(result) TYPE ty_t_flat_comp.
+
+    "! Whether the data object behind a data reference is, or holds anywhere
+    "! below it (structure components, table lines - references are not
+    "! followed), a WIDE number: one that can carry more significant digits
+    "! than the 15 a double keeps (rtti_check_wide_number). A reference RTTI
+    "! cannot describe answers false
+    CLASS-METHODS rtti_check_wide_numbers
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     "! Whether the type of the data object behind a data reference names a
     "! component with a namespace (`/ABC/FIELD`) - in the structure itself,
@@ -1000,6 +1021,28 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     CLASS-DATA gv_xml_escape_specials TYPE string.
     CLASS-DATA gv_xml_escape_controls TYPE string.
 
+    " Whether an elementary type can carry more significant digits than the
+    " 15 a double keeps - a packed number longer than 8 bytes (more than 15
+    " digits: TZNTSTMPL, DEC 21), an int8 and both decfloats. A JSON reader
+    " that parses numbers into doubles (every browser) rounds such a value;
+    " a JSON writer quotes it when its text needs the digits. A float is no
+    " wide number - it IS a double - and a timestamp is not asked: it
+    " travels as ISO text (json_kind U / L)
+    CLASS-METHODS rtti_check_wide_number
+      IMPORTING
+        val           TYPE REF TO cl_abap_datadescr
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " the type half of rtti_check_wide_numbers, walked like
+    " rtti_check_namespaced_type
+    CLASS-METHODS rtti_check_wide_numbers_type
+      IMPORTING
+        type          TYPE REF TO cl_abap_typedescr
+        depth         TYPE i DEFAULT 0
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " the type half of rtti_check_namespaced: a structure, the line of a
     " table, and what is below them - depth-bounded like expand_components
     CLASS-METHODS rtti_check_namespaced_type
@@ -1347,6 +1390,8 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     cv_typedescr_typekind_date       = cl_abap_typedescr=>typekind_date.
     cv_typedescr_typekind_time       = cl_abap_typedescr=>typekind_time.
     cv_typedescr_typekind_packed     = cl_abap_typedescr=>typekind_packed.
+    cv_typedescr_typekind_float      = cl_abap_typedescr=>typekind_float.
+    cv_typedescr_typekind_num        = cl_abap_typedescr=>typekind_num.
     cv_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
     cv_typedescr_kind_elem           = cl_abap_typedescr=>kind_elem.
     cv_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
@@ -2778,6 +2823,69 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD rtti_check_wide_numbers.
+
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    " REFERENCE_IS_INITIAL is a classic exception, the CATCH below cannot see it
+    cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
+                                             RECEIVING p_descr_ref           = lo_type
+                                             EXCEPTIONS reference_is_initial = 1
+                                                        OTHERS               = 2 ).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    TRY.
+        result = rtti_check_wide_numbers_type( lo_type ).
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_wide_numbers_type.
+
+    IF depth > 32.
+      RETURN.
+    ENDIF.
+    DATA(lo_type) = type.
+    IF lo_type->kind = cl_abap_typedescr=>kind_table.
+      lo_type = CAST cl_abap_tabledescr( lo_type )->get_table_line_type( ).
+    ENDIF.
+    IF lo_type->kind = cl_abap_typedescr=>kind_elem.
+      result = rtti_check_wide_number( CAST cl_abap_datadescr( lo_type ) ).
+      RETURN.
+    ENDIF.
+    IF lo_type->kind <> cl_abap_typedescr=>kind_struct.
+      RETURN.
+    ENDIF.
+    DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_included_view( ).
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      IF lr_comp->type->kind <> cl_abap_typedescr=>kind_ref
+          AND rtti_check_wide_numbers_type( type  = lr_comp->type
+                                            depth = depth + 1 ) = abap_true.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_wide_number.
+
+    CASE val->type_kind.
+      WHEN cl_abap_typedescr=>typekind_packed.
+        " 2n - 1 digits in n bytes: 8 bytes hold 15, 9 bytes 17. A
+        " timestamp is wide by length and travels as ISO text - by name, as
+        " ajson tells it apart
+        result = xsdbool( val->length > 8
+                          AND val->absolute_name <> `\TYPE=TIMESTAMPL` ).
+      WHEN cl_abap_typedescr=>typekind_decfloat16 OR cl_abap_typedescr=>typekind_decfloat34 OR `8`.
+        " `8`: typekind_int8, a constant lower releases do not have
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
   METHOD rtti_check_namespaced_type.
 
     " no type nests deeper than this without a reference, which is not
@@ -2894,7 +3002,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           OR cl_abap_typedescr=>typekind_packed OR cl_abap_typedescr=>typekind_decfloat16
           OR cl_abap_typedescr=>typekind_decfloat34 OR `8`.
         " `8`: typekind_int8, a constant lower releases do not have
-        result = `N`.
+        result = COND #( WHEN rtti_check_wide_number( val ) = abap_true THEN `P` ELSE `N` ).
     ENDCASE.
 
   ENDMETHOD.

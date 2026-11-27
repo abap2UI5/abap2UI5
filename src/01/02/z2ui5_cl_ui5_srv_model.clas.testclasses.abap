@@ -115,6 +115,49 @@ CLASS ltcl_app_conv IMPLEMENTATION.
 ENDCLASS.
 
 
+" the edges of a binding: a structure written as one value (its dates, its
+" references), a table of references to rows, and numbers with more digits
+" than a double keeps - on every road the model goes out by
+CLASS ltcl_app_edge DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    " the shape of a TZNTSTMPL, DEC 21,7 - more digits than a double keeps
+    TYPES ty_stamp TYPE p LENGTH 11 DECIMALS 7.
+    TYPES:
+      BEGIN OF ty_s_wide,
+        name       TYPE string,
+        changed_at TYPE ty_stamp,
+        big        TYPE decfloat34,
+        price      TYPE p LENGTH 8 DECIMALS 2,
+        ratio      TYPE f,
+      END OF ty_s_wide.
+    TYPES ty_t_wide TYPE STANDARD TABLE OF ty_s_wide WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_deep,
+        s_wide TYPE ty_s_wide,
+        t_wide TYPE ty_t_wide,
+      END OF ty_s_deep.
+
+    " bound component by component - the general road's scalars
+    DATA ms_wide    TYPE ty_s_wide.
+    " bound whole - the fast road
+    DATA ms_flat    TYPE ty_s_wide.
+    DATA mt_wide    TYPE ty_t_wide.
+    " a deep value - the general road, walked
+    DATA ms_deep    TYPE ty_s_deep.
+    DATA mv_big     TYPE decfloat34.
+ENDCLASS.
+
+
+CLASS ltcl_app_edge IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
 " three levels of tables - a delta that walks two nested __delta nodes
 CLASS ltcl_app_deep3 DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
@@ -2002,6 +2045,24 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a date or time in a spelling that is neither ISO nor plain digits is
     " refused and traced - it used to be cut to its first characters
     METHODS date_time_text_refused   FOR TESTING RAISING cx_static_check.
+    " a number with more digits than a double keeps goes out as text on
+    " every road, and comes back unchanged with the edit of a sibling
+    METHODS wide_numbers_quoted      FOR TESTING RAISING cx_static_check.
+
+    METHODS edge_model
+      IMPORTING
+        io_app        TYPE REF TO ltcl_app_edge
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
+    " the wide row of wide_numbers_quoted, every field set from its text
+    METHODS wide_fill
+      CHANGING
+        cs_wide TYPE ltcl_app_edge=>ty_s_wide.
+    METHODS edge_bind
+      IMPORTING
+        io_model TYPE REF TO z2ui5_cl_ui5_srv_model
+        ir_val   TYPE REF TO data
+        iv_name  TYPE string.
 
     METHODS typed_app
       RETURNING
@@ -3185,6 +3246,121 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = lv_exp
                                         act = lo_app->mt_tab[ 2 ]-name ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD edge_model.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    result = NEW #( attri = lr_attri
+                    app   = io_app ).
+
+  ENDMETHOD.
+
+  METHOD edge_bind.
+
+    DATA(lr_attri) = io_model->main_attri_search( ir_val ).
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = iv_name.
+
+  ENDMETHOD.
+
+  METHOD wide_fill.
+
+    cs_wide-name       = `a`.
+    cs_wide-changed_at = '20240115123045.1234567'.
+    cs_wide-big        = '1234567890.123456789'.
+    cs_wide-price      = '12.50'.
+    " a float with every digit a double has: it IS one, and stays a number
+    cs_wide-ratio      = 1 / 3.
+
+  ENDMETHOD.
+
+  METHOD wide_numbers_quoted.
+
+    DATA lv_path TYPE string.
+
+    " every wide value set from its text, never copied from another
+    " field: the transpiled runtime copies a packed through a double
+    " (abap-check, section 4), a system does not
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    wide_fill( CHANGING cs_wide = lo_app->ms_wide ).
+    wide_fill( CHANGING cs_wide = lo_app->ms_flat ).
+    wide_fill( CHANGING cs_wide = lo_app->ms_deep-s_wide ).
+    INSERT INITIAL LINE INTO TABLE lo_app->mt_wide ASSIGNING FIELD-SYMBOL(<row>).
+    wide_fill( CHANGING cs_wide = <row> ).
+    INSERT INITIAL LINE INTO TABLE lo_app->ms_deep-t_wide ASSIGNING <row>.
+    wide_fill( CHANGING cs_wide = <row> ).
+    lo_app->mv_big = '12.5'.
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_wide-name )
+               iv_name  = `/MS_WIDE/NAME` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_wide-changed_at )
+               iv_name  = `/MS_WIDE/CHANGED_AT` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_flat )
+               iv_name  = `/MS_FLAT` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_wide )
+               iv_name  = `/MT_WIDE` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_deep )
+               iv_name  = `/MS_DEEP` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mv_big )
+               iv_name  = `/MV_BIG` ).
+
+    DATA(lo_out) = delta( lo_model->main_json_stringify( ) ).
+
+    " a number a double rounds goes out as text - a component bound on its
+    " own, a flat structure and the rows of a table (the fast road), a deep
+    " value (the general road)
+    DATA(lt_quoted) = VALUE string_table( ( `/MS_WIDE/CHANGED_AT` )
+                                          ( `/MS_FLAT/CHANGED_AT` )
+                                          ( `/MT_WIDE/1/CHANGED_AT` )
+                                          ( `/MS_DEEP/S_WIDE/CHANGED_AT` )
+                                          ( `/MS_DEEP/T_WIDE/1/CHANGED_AT` ) ).
+    LOOP AT lt_quoted INTO lv_path.
+      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+                                          act = lo_out->get_node_type( lv_path )
+                                          msg = lv_path ).
+      cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
+                                          act = lo_out->get_string( lv_path )
+                                          msg = lv_path ).
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+                                        act = lo_out->get_node_type( `/MS_FLAT/BIG` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+                                        act = lo_out->get_node_type( `/MS_DEEP/S_WIDE/BIG` ) ).
+
+    " what a double holds stays a number: a price of 8 bytes, a short
+    " decfloat, a float
+    DATA(lt_number) = VALUE string_table( ( `/MS_FLAT/PRICE` )
+                                          ( `/MS_FLAT/RATIO` )
+                                          ( `/MT_WIDE/1/PRICE` )
+                                          ( `/MS_DEEP/S_WIDE/PRICE` )
+                                          ( `/MS_DEEP/S_WIDE/RATIO` )
+                                          ( `/MV_BIG` ) ).
+    LOOP AT lt_number INTO lv_path.
+      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-number
+                                          act = lo_out->get_node_type( lv_path )
+                                          msg = lv_path ).
+    ENDLOOP.
+
+    " the edit of a sibling sends the text back as it came: nothing moves
+    lo_model->main_json_to_attri( delta( `{"MS_WIDE":{"NAME":"b","CHANGED_AT":"20240115123045.1234567"},` &&
+                                         `"MS_FLAT":{"NAME":"b","CHANGED_AT":"20240115123045.1234567",` &&
+                                         `"PRICE":12.5,"RATIO":0.5}}` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+    cl_abap_unit_assert=>assert_equals( exp = `b`
+                                        act = lo_app->ms_wide-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
+                                        act = |{ lo_app->ms_wide-changed_at }| ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
+                                        act = |{ lo_app->ms_flat-changed_at }| ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -5152,7 +5328,8 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE ty_t_kinds.
 
-    " the general road: ajson under the upper-case mapping
+    " the general road: ajson under the upper-case mapping, a wide number
+    " quoted when its digits need it (json_quote_lossy) as on the fast road
     METHODS ajson_text
       IMPORTING
         iv_val        TYPE any
@@ -5289,10 +5466,16 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
   METHOD ajson_text.
 
-    result = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
-               )->set( iv_ignore_empty = abap_false
-                       iv_path         = `/`
-                       iv_val          = iv_val )->stringify( ).
+    DATA lr_val TYPE REF TO data.
+    DATA(li_json) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
+                      )->set( iv_ignore_empty = abap_false
+                              iv_path         = `/`
+                              iv_val          = iv_val ).
+    lr_val = REF #( iv_val ).
+    mo_model->json_quote_lossy( io_json = li_json
+                                iv_path = ``
+                                ir_ref  = lr_val ).
+    result = li_json->stringify( ).
 
   ENDMETHOD.
 
@@ -5321,6 +5504,9 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_X":"A0FF"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_C":"ab c"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_INT2":-32768` ) ).
+    " more digits than a double keeps - quoted; fewer stay a number
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_DEC34":"123456789012345678901234567890"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_DEC34":-1234.5678` ) ).
 
   ENDMETHOD.
 

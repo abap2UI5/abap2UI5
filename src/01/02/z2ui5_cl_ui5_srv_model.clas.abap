@@ -324,6 +324,37 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         cv_json TYPE string.
 
     "! one elementary cell as JSON text - the rendering ajson writes for
+    "! Whether the text of a number has more significant digits than the 15
+    "! a double keeps - what a browser's JSON.parse makes of it
+    CLASS-METHODS json_number_lossy
+      IMPORTING
+        iv_text       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    "! json_quote_lossy for one bound attribute written at iv_path of
+    "! io_json, asked by its type first
+    METHODS json_quote_lossy_attri
+      IMPORTING
+        io_json  TYPE REF TO z2ui5_if_ajson
+        iv_path  TYPE string
+        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        ir_ref   TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! Every number node at and below iv_path of io_json whose digits a
+    "! double would round (json_number_lossy), turned into a string node -
+    "! ir_ref is the data object the node was written from, which tells a
+    "! float (never quoted) from a wide number
+    METHODS json_quote_lossy
+      IMPORTING
+        io_json TYPE REF TO z2ui5_if_ajson
+        iv_path TYPE string
+        ir_ref  TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
     "! the json_kind of its column (see json_row)
     CLASS-METHODS json_cell
       IMPORTING
@@ -1084,6 +1115,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           li_ajson_result->set( iv_ignore_empty = abap_false
                              iv_path            = lr_attri->name_client
                              iv_val             = <val> ).
+          json_quote_lossy_attri( io_json  = li_ajson_result
+                                  iv_path  = lr_attri->name_client
+                                  ir_attri = lr_attri
+                                  ir_ref   = lr_ref ).
         ENDLOOP.
 
         json_fast_check( EXPORTING io_result = li_ajson_result
@@ -1229,6 +1264,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     li_scratch->set( iv_ignore_empty = abap_false
                      iv_path         = `/`
                      iv_val          = <val> ).
+    json_quote_lossy_attri( io_json  = li_scratch
+                            iv_path  = ``
+                            ir_attri = ir_attri
+                            ir_ref   = ir_ref ).
     json_fast_token( EXPORTING iv_json   = json_ns_text( li_scratch->mt_json_tree )
                                iv_path   = ir_attri->name_client
                                io_result = io_result
@@ -1597,6 +1636,138 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         result = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stamp( iv_cell ) }"|.
       WHEN `L`.
         result = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( iv_cell ) }"|.
+      WHEN `P`.
+        " a wide number with more digits than a double keeps - see
+        " json_number_lossy. Digits, a sign and a point: nothing to escape
+        IF json_number_lossy( result ) = abap_true.
+          result = |"{ result }"|.
+        ENDIF.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD json_number_lossy.
+
+    " A browser parses a JSON number into a double, which keeps 15
+    " significant digits for sure - any decimal text of at most 15 comes
+    " back from JSON.stringify unchanged, a longer one is rounded: a
+    " TZNTSTMPL 20240115123045.1234567 came back as 20240115123045.125, an
+    " int8 9007199254740993 as ...992. Such a number was rewritten with
+    " the next edit of any sibling field (an edit below an attribute sends
+    " it whole), with no trace. Counted on the digits alone: the sign, the
+    " point, an exponent and the zeros in front of the first and behind the
+    " last significant one carry no precision
+    IF strlen( iv_text ) <= 15.
+      RETURN.
+    ENDIF.
+    DATA(lv_digits) = to_upper( iv_text ).
+    DATA(lv_exp) = find( val = lv_digits
+                         sub = `E` ).
+    IF lv_exp >= 0.
+      lv_digits = substring( val = lv_digits
+                             len = lv_exp ).
+    ENDIF.
+    lv_digits = replace( val  = lv_digits
+                         sub  = `-`
+                         with = ``
+                         occ  = 0 ).
+    lv_digits = replace( val  = lv_digits
+                         sub  = `.`
+                         with = ``
+                         occ  = 0 ).
+    lv_digits = shift_left( val = lv_digits
+                            sub = `0` ).
+    lv_digits = shift_right( val = lv_digits
+                             sub = `0` ).
+    result = xsdbool( strlen( lv_digits ) > 15 ).
+
+  ENDMETHOD.
+
+  METHOD json_quote_lossy_attri.
+
+    " the general road and the namespaced one write a number as ajson
+    " does, unquoted - a wide one (rtti_check_wide_number) is quoted here
+    " when its digits need it (json_number_lossy), as json_cell quotes it on
+    " the fast road. The inbound reads the string losslessly (the cells by
+    " get_string, a whole value by to_abap( ), which assigns the text).
+    " Asked by the attribute's type kind first: a scalar is one keyed
+    " read, a structure or a table is walked only when its type holds a
+    " wide number at all - the common price is a packed of 8 bytes and
+    " never is one
+    CASE ir_attri->type_kind.
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+        IF z2ui5_cl_ui5_util_context=>rtti_check_wide_numbers( ir_ref ) = abap_false.
+          RETURN.
+        ENDIF.
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
+        RETURN.
+    ENDCASE.
+    json_quote_lossy( io_json = io_json
+                      iv_path = iv_path
+                      ir_ref  = ir_ref ).
+
+  ENDMETHOD.
+
+  METHOD json_quote_lossy.
+
+    FIELD-SYMBOLS <val>  TYPE any.
+    FIELD-SYMBOLS <comp> TYPE any.
+    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
+    DATA lv_name TYPE string.
+    ASSIGN ir_ref->* TO <val>.
+
+    CASE io_json->get_node_type( iv_path ).
+
+      WHEN z2ui5_if_ajson_types=>node_type-number.
+        " the only number with that many digits that is no wide one is a
+        " float - a double already, it survives the browser as it is
+        IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> )
+            <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_float
+            AND json_number_lossy( io_json->get( iv_path ) ) = abap_true.
+          io_json->set_string( iv_path = iv_path
+                               iv_val  = io_json->get( iv_path ) ).
+        ENDIF.
+
+      WHEN z2ui5_if_ajson_types=>node_type-object.
+        " a structure - and not the target of a reference, which ajson
+        " writes in its place: references are not followed, like
+        " rtti_check_wide_numbers does not follow them
+        DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
+        IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+            AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+          RETURN.
+        ENDIF.
+        DATA(lt_member) = io_json->members( iv_path ).
+        LOOP AT lt_member INTO DATA(lv_member).
+          " a member named with a namespace (`/ABC/FIELD`) is no path ajson
+          " can address - left as it is
+          lv_name = to_upper( lv_member ).
+          ASSIGN COMPONENT lv_name OF STRUCTURE <val> TO <comp>.
+          IF sy-subrc <> 0 OR find( val = lv_member
+                                    sub = `/` ) >= 0.
+            CONTINUE.
+          ENDIF.
+          json_quote_lossy( io_json = io_json
+                            iv_path = |{ iv_path }/{ lv_member }|
+                            ir_ref  = REF #( <comp> ) ).
+        ENDLOOP.
+
+      WHEN z2ui5_if_ajson_types=>node_type-array.
+        IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> )
+            <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+          RETURN.
+        ENDIF.
+        " ajson numbers the items in the order the table is read, from 1
+        ASSIGN ir_ref->* TO <tab>.
+        LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
+          json_quote_lossy( io_json = io_json
+                            iv_path = |{ iv_path }/{ sy-tabix }|
+                            ir_ref  = REF #( <row> ) ).
+        ENDLOOP.
+
     ENDCASE.
 
   ENDMETHOD.
