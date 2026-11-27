@@ -2088,6 +2088,8 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a number with more digits than a double keeps goes out as text on
     " every road, and comes back unchanged with the edit of a sibling
     METHODS wide_numbers_quoted      FOR TESTING RAISING cx_static_check.
+    " a numeric text takes digits only, and no more than it has places
+    METHODS delta_numc_refused       FOR TESTING RAISING cx_static_check.
 
     METHODS edge_model
       IMPORTING
@@ -3564,6 +3566,46 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                         act = |{ lo_app->ms_wide-changed_at }| ).
     cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
                                         act = |{ lo_app->ms_flat-changed_at }| ).
+
+  ENDMETHOD.
+
+  METHOD delta_numc_refused.
+
+    DATA(lo_app) = NEW ltcl_app_conv( ).
+    lo_app->mt_row = VALUE #( ( numc = '00042' ) ).
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " a letter, a sign, a digit more than the field has places: assigned,
+    " the first lost the letter, the second kept the sign on the transpiled
+    " runtime, the third lost its first digit - refused now, the old value
+    " kept
+    DATA(lt_refused) = VALUE string_table( ( `12a3` ) ( `-5` ) ( `123456` ) ).
+    LOOP AT lt_refused INTO DATA(lv_value).
+      CLEAR lo_model->mt_skipped.
+      lo_model->delta_apply_to_table(
+          io_val_front = delta( |\{"__delta":\{"0":\{"NUMC":"{ lv_value }"\}\}\}| )
+          iv_name      = `MT_ROW` ).
+      cl_abap_unit_assert=>assert_equals( exp = `00042`
+                                          act = CONV string( lo_app->mt_row[ 1 ]-numc )
+                                          msg = lv_value ).
+      cl_abap_unit_assert=>assert_equals( exp = lv_value
+                                          act = lo_model->mt_skipped[ 1 ]-value ).
+    ENDLOOP.
+
+    " leading zeros are no digits of the value, and the emptied field is 0
+    CLEAR lo_model->mt_skipped.
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"NUMC":"0000007"}}}` )
+                                    iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = `00007`
+                                        act = CONV string( lo_app->mt_row[ 1 ]-numc ) ).
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"NUMC":""}}}` )
+                                    iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = `00000`
+                                        act = CONV string( lo_app->mt_row[ 1 ]-numc ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
   ENDMETHOD.
 ENDCLASS.

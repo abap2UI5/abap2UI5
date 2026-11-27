@@ -737,6 +737,17 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! A numeric text (NUMC) takes digits only, and no more of them than it
+    "! has places - the assignment does not check: on a system it drops
+    "! what is no digit (`12a3` became 00123), the transpiled runtime keeps
+    "! it (`-5` became 000-5), and a value too long loses its leading
+    "! digits. Refused like a date that is no date (delta_check_digits).
+    "! Called after the assignment, with the text that was assigned
+    METHODS delta_check_numc
+      IMPORTING
+        iv_value TYPE string
+        iv_comp  TYPE any.
+
     "! the namespaced components below ir_ref filled from the node iv_path
     "! of io_json (`/ABC/FIELD` from `&lt;iv_path&gt;/ABC/FIELD`) - the rows
     "! of a standard table and the components of a structure, at every depth
@@ -3538,6 +3549,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           RETURN.
         ENDIF.
 
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_num.
+        <comp> = lv_value.
+        delta_check_numc( iv_value = lv_value
+                          iv_comp  = <comp> ).
+        RETURN.
+
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
         " ISO instant on the wire; the `T` at offset 10 is what tells it
@@ -3604,6 +3621,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     delta_check_digits( iv_value  = result
                         iv_length = 6
                         iv_kind   = `time` ).
+
+  ENDMETHOD.
+
+  METHOD delta_check_numc.
+
+    " what the field holds, read back - the leading zeros the type pads
+    " with and the ones the client sent are no digits of the value
+    DATA lv_held TYPE string.
+    lv_held = iv_comp.
+    IF iv_value CO `0123456789`
+        AND shift_left( val = lv_held
+                        sub = `0` ) = shift_left( val = iv_value
+                                                  sub = `0` ).
+      RETURN.
+    ENDIF.
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING
+        val = |MODEL_VALUE_REFUSED - '{ iv_value }' is no number this numeric text can hold (digits only, as many as it has places)|.
 
   ENDMETHOD.
 
