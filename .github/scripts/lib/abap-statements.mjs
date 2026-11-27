@@ -90,6 +90,9 @@ function scanLine(raw) {
   const stack = ["code"];
   let code = "";
   let terminator = -1;
+  // every terminating period of the line, and where its trailing comment
+  // starts (-1: none) - for the literal-KEEPING split below
+  const terminators = [];
 
   for (let i = 0; i < raw.length; i += 1) {
     const c = raw[i];
@@ -115,11 +118,14 @@ function scanLine(raw) {
     if (c === "'") { stack.push("quote"); continue; }
     if (c === "|") { stack.push("tmpl"); continue; }
     if (c === "}" && stack.length > 1) { stack.pop(); continue; } // embedding closes
-    if (c === '"' && stack.length === 1) return { code, terminator }; // rest is a comment
-    if (c === "." && stack.length === 1 && terminator < 0) terminator = i;
+    if (c === '"' && stack.length === 1) return { code, terminator, terminators, comment: i }; // rest is a comment
+    if (c === "." && stack.length === 1) {
+      if (terminator < 0) terminator = i;
+      terminators.push(i);
+    }
     code += c;
   }
-  return { code, terminator };
+  return { code, terminator, terminators, comment: -1 };
 }
 
 /**
@@ -133,4 +139,45 @@ function scanLine(raw) {
  */
 export function stripNoise(line) {
   return scanLine(line).code;
+}
+
+/**
+ * One line with its trailing comment cut off and every literal KEPT, byte
+ * for byte - for a reader to whom a literal is content rather than noise
+ * (the public-API snapshot records a constant's value). The same lexer, so a
+ * `"` or a `.` inside a `|...|` template is not mistaken for a comment or a
+ * terminator. Full-line `*` comments are the caller's, as for stripNoise.
+ *
+ * @param {string} line  one source line
+ * @returns {string}     the line up to its trailing comment
+ */
+export function stripComment(line) {
+  const { comment } = scanLine(line);
+  return comment < 0 ? line : line.slice(0, comment);
+}
+
+/**
+ * Split comment-free source at every terminating period - several on one
+ * line included - keeping the literals: the statements' texts, trimmed,
+ * without their period. Text after the last period is not a statement and
+ * is dropped. Pass it through stripComment first; a `"` left in would end
+ * the scan of its line like a comment.
+ *
+ * @param {string} source  ABAP source without comments
+ * @returns {string[]}
+ */
+export function periodStatements(source) {
+  const out = [];
+  let cur = "";
+  for (const line of source.split("\n")) {
+    let from = 0;
+    for (const t of scanLine(line).terminators) {
+      cur += line.slice(from, t);
+      if (cur.trim()) out.push(cur.trim());
+      cur = "";
+      from = t + 1;
+    }
+    cur += `${line.slice(from)}\n`;
+  }
+  return out;
 }
