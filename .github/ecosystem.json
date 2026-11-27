@@ -192,7 +192,7 @@
       "release": { "mode": "with-core" },
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "workflow", "file": ".github/workflows/ci.yml", "field": "ref", "ref": "1.151.0", "note": "bundle/webapp, the frontend under test" },
-        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.150.0", "note": "conformance/apps/abaplint.jsonc lints against its downport/ folder" }
+        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.151.0", "note": "conformance/apps/abaplint.jsonc lints against its downport/ folder" }
       ],
       "check": "npm test",
       "canary": null,
@@ -599,7 +599,7 @@
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
-        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.150.0" },
+        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.151.0" },
         { "repo": "abap2UI5-addons/embed-ui5-control", "via": "npm", "file": "package.json", "field": "dependencies.@abap2ui5/embed-control", "ref": "0.3.0" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
         { "repo": "abap2UI5-addons/rap-ext", "via": "workflow", "file": ".github/workflows/ci.yaml", "field": "jobs.check.uses", "ref": "c81dfd461f69e42bb3678f51f80804066e2c9f96", "note": "the shared CI template of abap2UI5-addons (addon-check.yaml), called by commit; bump-deps moves it" }
@@ -631,7 +631,7 @@
       "branches": {},
       "release": { "mode": "none" },
       "dependsOn": [
-        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.146.0" }
+        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/node-runtime", "ref": "1.151.0" }
       ],
       "check": "npm test",
       "canary": null,
