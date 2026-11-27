@@ -209,6 +209,15 @@ tab: same gates, same notes, no tag and no release.
   1.143.0 is the first one that does.
 - **`docs`** documents the version it describes; a release is the moment to
   check that what it teaches is in the tag.
+- **Carry the release along.** Once `@abap2ui5/node-runtime` (and, with
+  step 2 of the release order, `@abap2ui5/linter`) is on npm, run
+  `npm run check:ecosystem -- --live`: its "behind" list names every
+  repository whose npm pin the new version does not satisfy - a protocol
+  suite measuring the previous wire, an embed testing an older runtime, a
+  corpus linting with a linter that does not know what was just removed.
+  Bump them, or say in the repository why it stays. Text that calls the
+  release's content "unreleased" or "DEV only" (the protocol README, a
+  linter message) goes stale at the same moment and is worth one search.
 
 ## Release order
 
