@@ -932,9 +932,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `- **Starting a new app repo? Use` && |\n| &&
              `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** - it` && |\n| &&
-             `  ships the starter app, abaplint + linter CI, this guide as its AGENTS.md` && |\n| &&
-             `  and the agent permission setup preconfigured.` && |\n|.
+             `  ships the starter app, abaplint + linter CI, this guide (the essentials in` && |\n| &&
+             `  its AGENTS.md, the whole as a reference of its ``build-an-app`` skill) and` && |\n|.
     result = result &&
+             `  the agent permission setup preconfigured.` && |\n| &&
              `- **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks` && |\n| &&
              `  app classes statically (unknown/deprecated/too-new controls and members,` && |\n| &&
              `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n| &&
@@ -974,9 +975,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``````abap` && |\n| &&
              `  CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.` && |\n| &&
              `    PRIVATE SECTION.` && |\n| &&
-             `      METHODS post_names_the_input FOR TESTING RAISING cx_static_check.` && |\n| &&
-             `  ENDCLASS.` && |\n|.
+             `      METHODS post_names_the_input FOR TESTING RAISING cx_static_check.` && |\n|.
     result = result &&
+             `  ENDCLASS.` && |\n| &&
              |\n| &&
              `  CLASS ltcl_app IMPLEMENTATION.` && |\n| &&
              `    METHOD post_names_the_input.` && |\n| &&
@@ -1018,9 +1019,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  attribute the draft cannot carry fails in the test as it fails in the` && |\n| &&
              `  browser. The drafts are kept in memory - no row reaches ``Z2UI5_T_01`` - and` && |\n| &&
              `  an app that calls ``set_session_stateful( )`` keeps its instance, as on a` && |\n| &&
-             `  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the` && |\n| &&
-             `  transpiled backend (``run_unit_tests`` of the MCP server, ``npm run test:unit``` && |\n|.
+             `  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the` && |\n|.
     result = result &&
+             `  transpiled backend (``run_unit_tests`` of the MCP server, ``npm run test:unit``` && |\n| &&
              `  in an app-template project). It ships with the release after 1.150.0; on an older` && |\n| &&
              `  installation a hand-written ``ltd_client`` with ``INTERFACES z2ui5_if_client` && |\n| &&
              `  PARTIALLY IMPLEMENTED.`` is the fallback. What only the browser does - a` && |\n| &&

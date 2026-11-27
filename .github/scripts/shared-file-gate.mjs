@@ -43,7 +43,9 @@ import { fileURLToPath } from 'url';
  * out of it. In `.github/shared/` rather than in this file because app-template
  * now GENERATES its copy from the same two functions — see the entry for
  * `app-guide-deviations.mjs` below. */
-import { applyGuideDeviations, guideBody } from '../shared/app-guide-deviations.mjs';
+import {
+  applyGuideDeviations, guideBody, renderEssentials, essentialsBlock, TEMPLATE_GUIDE_FILE,
+} from '../shared/app-guide-deviations.mjs';
 import { read as ecoRead, REPOS } from './lib-ecosystem.mjs';
 
 const repoEntry = (name) => REPOS.find((e) => e.org === 'abap2UI5' && e.repo === name);
@@ -134,8 +136,11 @@ const SHARED = [
     mine: appRulesMine,
   },
   {
-    /* The app-building guide, mirrored into app-template's AGENTS.md so a new
-     * project needs no framework checkout to brief an agent. It had drifted
+    /* The app-building guide, mirrored into app-template so a new project
+     * needs no framework checkout to brief an agent - as ONE file there, a
+     * reference of its build-an-app skill (TEMPLATE_GUIDE_FILE), since
+     * 2026-11; until then it was the lower half of the template's AGENTS.md,
+     * 65 KB every agent read before its first line. It had drifted
      * both ways within a fortnight — the dispatcher branches in the wrong
      * order there, a corpus count and a claim about samples' baseline stale
      * here — because the file SAYS it is a mirror and nothing checked it.
@@ -153,18 +158,38 @@ const SHARED = [
      * copy.
      *
      * The mirror is no longer maintained by hand on the other side.
-     * app-template GENERATES its half with `npm run agents`, from this guide
-     * and from that same deviation list, and its `npm run check:agents` fails
+     * app-template GENERATES it with `node scripts/generate-agents.mjs`, from
+     * this guide and from that same deviation list, and its `--check` fails
      * on drift — so the copy is produced rather than transcribed, and this
      * gate is the second opinion rather than the only one.
      */
     file: 'docs/agents/building-apps.md',
     consumers: ['app-template'],
-    consumerFile: 'AGENTS.md',
+    consumerFile: TEMPLATE_GUIDE_FILE,
     why: 'the app-building guide every new project briefs its agent with —'
       + ' mirrored so the template needs no framework checkout',
     section: (text) => guideBody(text),
     mine: (text) => applyGuideDeviations(guideBody(text)),
+  },
+  {
+    /* What the template's AGENTS.md carries of the guide instead of the whole
+     * of it: the passages marked `<!-- essentials:<id> -->` here, cut out and
+     * laid out by `renderEssentials` (in the shared file below, so the
+     * template's generator and this gate run the same code), with the table
+     * of sections after them. Compared with the block between the
+     * guide-essentials markers of that AGENTS.md; everything around the block
+     * is the template's own and is not read.
+     *
+     * A marker removed from the guide, or a new one the layout does not
+     * place, is a finding on THIS side before anything is compared.
+     */
+    file: 'docs/agents/building-apps.md',
+    consumers: ['app-template'],
+    consumerFile: 'AGENTS.md',
+    why: 'the essentials of the guide in the template\'s AGENTS.md — the marked'
+      + ' passages, extracted rather than retold',
+    section: (text) => essentialsBlock(text),
+    mine: (text) => renderEssentials(applyGuideDeviations(guideBody(text))),
   },
   {
     /* The deviation list itself, and the two functions that execute it.

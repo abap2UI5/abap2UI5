@@ -18,6 +18,7 @@ For working **on the framework itself**, read `AGENTS.md` instead.
 
 ## 1. The model in one paragraph
 
+<!-- essentials:model -->
 An abap2UI5 app is **one ABAP class** implementing `z2ui5_if_app`. The
 framework calls its `main( client )` method on every HTTP roundtrip, and the
 app dispatches on why it was called: it has to put its view on screen
@@ -33,9 +34,11 @@ attribute is persisted state and travels to the browser with the model**, so
 bound data goes in `PUBLIC SECTION`, everything else in `PROTECTED SECTION`.
 There is no JavaScript, no OData service and no deployment step: activate the
 class, call the ICF endpoint with `?app_start=zcl_my_app`.
+<!-- /essentials:model -->
 
 ## 2. The canonical app template
 
+<!-- essentials:template -->
 ```abap
 CLASS zcl_my_app DEFINITION PUBLIC.
 
@@ -128,6 +131,7 @@ CLASS zcl_my_app IMPLEMENTATION.
 
 ENDCLASS.
 ```
+<!-- /essentials:template -->
 
 Conventions that keep apps uniform (proven in the samples-controls corpus):
 `main` is a pure dispatcher; methods follow in call order with `model_init`
@@ -166,9 +170,11 @@ Keep the `check_on_init( )` arm where it earns its place — a `model_init( )`
 call, or the one or two control-state flags an app seeds inline — followed by
 the same `view_display( )` the navigated arm makes.
 
+<!-- essentials:dispatcher -->
 - **Do:** one chain — `IF client->check_on_init( ).` (seed, then display),
   `ELSEIF client->check_on_navigated( ).` (display), `ELSEIF
   client->check_on_event( ).` (dispatch), as in the template.
+  <!-- /essentials:dispatcher -->
 - **Don't:** seed in an `IF client->check_on_init( ). … ENDIF.` block of its own
   and display in a second `IF client->check_on_navigated( ).` block, or nest one
   lifecycle `IF` inside another arm. The flags overlap — init implies
@@ -226,6 +232,7 @@ aggregation and namespace, nothing is wrapped or approximated. Four verbs:
   the final `).` are optional — `end` only moves the cursor to add siblings.
   That is also what lets the whole view hang off the `factory( )` in one
   statement (see "Formatting the chain" below).
+  <!-- essentials:builder -->
 - **Booleans from ABAP variables** go through `b` instead of `v`:
   `` )->a( n = `editable` b = mv_edit_mode ) `` renders `true`/`false` (a
   literal is just `` v = `true` `` — never feed `abap_true` into `v` raw, it
@@ -234,6 +241,7 @@ aggregation and namespace, nothing is wrapped or approximated. Four verbs:
   the element the chain is pointing at — the child just added by `ele( )` or
   `tag( )`, or the node itself while it has none. Once an element has a
   child, `a( )` can no longer reach it.
+  <!-- /essentials:builder -->
 - Braces `{ }` inside an ABAP `|…|` string template must be escaped
   `\{ \}` — an unescaped `{` is parsed as a UI5 binding.
 - **Text from data goes through `t`, not `v`.** The same brace rule holds at
@@ -252,6 +260,7 @@ aggregation and namespace, nothing is wrapped or approximated. Four verbs:
   `z2ui5_cl_ui5_view_builder=>escape_literal( )` inside `v`. XML escaping is
   separate and always applied.
 
+<!-- essentials:names -->
 **Names that changed.** Most of what was written about abap2UI5 before
 1.143.0 names an API that has been replaced; when one of these comes to mind,
 write the right-hand side:
@@ -270,6 +279,7 @@ write the right-hand side:
 Every replaced name with old and new code:
 <https://abap2ui5.github.io/docs/resources/deprecations.html>, as data
 <https://abap2ui5.github.io/docs/api/deprecations.json>.
+<!-- /essentials:names -->
 
 ### Formatting the chain (strict, and machine-checked)
 
@@ -379,11 +389,13 @@ reasoning:
   template a relative `{FIELD}` resolves against the row and silently renders
   empty if the row has no such column; bind root values with
   `client->_bind( field )` even inside templates.
+  <!-- essentials:binding -->
 - **Never hard-code a model path as text** (`'/T_ITEMS'`): paths come from
   `_bind`, so renames cannot break bindings. For raw binding-info strings
   (typed bindings, sorters) get the bare path via
   `client->_bind_path( t_items )`, e.g.
   `` v = |\{ path: '{ client->_bind_path( t_items ) }', sorter: \{ path: 'PRODUCT' \} \}| ``.
+  <!-- /essentials:binding -->
 - Typed/complex bindings pass through verbatim (braces escaped):
   `` v = |\{ path: 'PRICE', type: 'sap.ui.model.type.Float' \}| `` — note the
   `path:` uses the upper-cased ABAP field name.
@@ -816,10 +828,12 @@ reasoning:
   using a control/property/aggregation, check its "available since" in the
   UI5 API — post-1.71 members need a UI5 release that has them; a wrong
   aggregation name 404s the whole view on old releases.
+  <!-- essentials:state -->
 - **State discipline**: every PUBLIC attribute is serialized into the draft
   and sent to the browser on every render. Large helper data, catalogs and
   anything not bound belongs in PROTECTED (or is re-read per request) — a
   bloated public section makes every click slower.
+  <!-- /essentials:state -->
 - Authorization is **the app's job**: any user who can reach the ICF node can
   start any `z2ui5_if_app` class. The framework performs no `AUTHORITY-CHECK`
   of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).
@@ -873,8 +887,9 @@ reasoning:
 
 - **Starting a new app repo? Use
   [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** — it
-  ships the starter app, abaplint + linter CI, this guide as its AGENTS.md
-  and the agent permission setup preconfigured.
+  ships the starter app, abaplint + linter CI, this guide (the essentials in
+  its AGENTS.md, the whole as a reference of its `build-an-app` skill) and
+  the agent permission setup preconfigured.
 - **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks
   app classes statically (unknown/deprecated/too-new controls and members,
   binding mistakes, builder-tree defects) and can render the view headless:
@@ -970,11 +985,13 @@ reasoning:
   framework's endpoint with `?app_start=zcl_my_app`. An agent without a
   connection to the system stops at the files — say so, and say which of the
   gates above ran.
+  <!-- essentials:addons -->
 - **`npm run add-addon -- <repo>`** in a project made from app-template
   (`popups`, `range-filter`, …): registers an addon, and what it depends on,
   in the dependencies of `abaplint.jsonc`, so the lint gate resolves its
   classes. Without it a call to an addon class ends in "Class ... not found" —
   which says the gate does not know the addon, not that the class is wrong.
+  <!-- /essentials:addons -->
 - **`npm run doctor`** in a project made from app-template: the environment
   check — Node, the two gates, Chromium for the render gate, the framework
   pin, the sidecars — that names the remedy for each failure.
