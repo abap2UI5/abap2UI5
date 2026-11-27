@@ -17,6 +17,7 @@
 // a plain sap.m.Input renders no inputmode at all, so the attribute is the
 // control at work.
 const { test, expect } = require("./fixtures");
+const { appSettled } = require("./pageComponent");
 
 const APP = "/?app_start=zcl_tst_cc";
 const isCcBundle = (url) => /[?&]z2ui5-bundle=cc(&|$)/.test(url);
@@ -54,8 +55,9 @@ test("the start page does not request the custom controls bundle", async ({
   const requests = watchRequests(page);
   await page.goto("/");
   await page.locator("input").first().waitFor();
-  // one roundtrip done, the page settled
-  await page.waitForTimeout(500);
+  // the roundtrip done and its view built: CustomControls.ensure decides
+  // before the build, so a request for the bundle would have gone out
+  await appSettled(page);
   expect(requests.filter(isCcBundle)).toEqual([]);
   expect(requests.filter(isCcModule)).toEqual([]);
   // ...and no control is registered: the frontend bundle carries none
@@ -78,7 +80,7 @@ test("a popup is the first view with a control: the bundle is loaded once, every
   await watchCsp(page);
   await page.goto(APP);
   await page.getByText("no custom control in this view").waitFor();
-  await page.waitForTimeout(300);
+  await appSettled(page);
   // an app whose view names no control has not asked for them
   expect(requests.filter(isCcBundle)).toEqual([]);
 

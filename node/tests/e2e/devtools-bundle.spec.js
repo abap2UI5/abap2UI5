@@ -10,6 +10,7 @@
 // facade, the console capture, the roundtrip recorder - stays in the
 // shell's inline script, which is what the spec's first request proves.
 const { test, expect } = require("./fixtures");
+const { appSettled } = require("./pageComponent");
 
 const APP = "/?app_start=z2ui5_cl_ui5_app_hi_world";
 const isDevtoolsBundle = (url) => /[?&]z2ui5-bundle=devtools(&|$)/.test(url);
@@ -37,8 +38,10 @@ test("a plain app start does not request the devtools bundle", async ({
   page.on("request", (request) => requests.push(request.url()));
   await page.goto(APP);
   await page.locator("input").first().waitFor();
-  // one roundtrip done, the page settled
-  await page.waitForTimeout(500);
+  // the first roundtrip done and applied: the tools are installed with the
+  // component and an auto open asks for the bundle before that roundtrip
+  // ends - a request would have gone out by now
+  await appSettled(page);
   expect(requests.filter(isDevtoolsBundle)).toEqual([]);
   // the eager half rides in the page itself: no request for it either
   expect(requests.filter((url) => url.includes("devtools/"))).toEqual([]);
