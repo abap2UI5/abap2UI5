@@ -890,14 +890,17 @@ test.describe("Search", () => {
 });
 
 test.describe("Copy", () => {
-  test("copies what is shown and confirms on the button", () => {
+  test("copies what is shown and confirms on the button", async () => {
     const copied = [];
     const { DeveloperTools } = loadDeveloperTools({
       extraDeps: {
         "z2ui5/core/Lib": {
           isDestroyed: () => false,
           logError() {},
-          copyToClipboard: (text) => copied.push(text),
+          copyToClipboard: (text) => {
+            copied.push(text);
+            return Promise.resolve(true);
+          },
         },
       },
     });
@@ -909,7 +912,7 @@ test.describe("Copy", () => {
         label = t;
       },
     };
-    DeveloperTools.onCopyTab({ getSource: () => oSource });
+    await DeveloperTools.onCopyTab({ getSource: () => oSource });
     expect(copied).toEqual(["REPORT BODY"]);
     expect(label).toBe("Copied");
   });
@@ -925,7 +928,10 @@ test.describe("Copy", () => {
         "z2ui5/core/Lib": {
           isDestroyed: () => false,
           logError() {},
-          copyToClipboard: (text) => copied.push(text),
+          copyToClipboard: (text) => {
+            copied.push(text);
+            return Promise.resolve(true);
+          },
         },
       },
       extraSandbox: {
@@ -947,25 +953,57 @@ test.describe("Copy", () => {
     expect(label).toBe("Copied");
   });
 
-  test("an empty view copies an empty string rather than undefined", () => {
+  // "Copied" said regardless used to stand over an empty clipboard and
+  // over one the browser had refused
+  test("an empty view copies nothing and says so", async () => {
     const copied = [];
     const { DeveloperTools } = loadDeveloperTools({
       extraDeps: {
         "z2ui5/core/Lib": {
           isDestroyed: () => false,
           logError() {},
-          copyToClipboard: (text) => copied.push(text),
+          copyToClipboard: (text) => {
+            copied.push(text);
+            return Promise.resolve(true);
+          },
         },
       },
     });
-    DeveloperTools.onCopyTab({
+    let label = "Copy";
+    await DeveloperTools.onCopyTab({
       getSource: () => ({
         getModel: () => ({ getData: () => ({}) }),
-        getText: () => "Copy",
-        setText() {},
+        getText: () => label,
+        setText: (t) => {
+          label = t;
+        },
       }),
     });
-    expect(copied).toEqual([""]);
+    expect(copied).toEqual([]);
+    expect(label).toBe("Nothing to copy");
+  });
+
+  test("a copy the browser refused is not confirmed as copied", async () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard: () => Promise.resolve(false),
+        },
+      },
+    });
+    let label = "Copy";
+    await DeveloperTools.onCopyTab({
+      getSource: () => ({
+        getModel: () => ({ getData: () => ({ value: "REPORT BODY" }) }),
+        getText: () => label,
+        setText: (t) => {
+          label = t;
+        },
+      }),
+    });
+    expect(label).toBe("Copy failed");
   });
 });
 

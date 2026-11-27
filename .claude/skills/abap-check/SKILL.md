@@ -195,6 +195,13 @@ imported; the app is gone.
   No script decides this one; it is a character count over a whole statement
   and the threshold is not documented as a fixed number.
 
+  **One shape of it is gated: the `&&` chain.** A statement that joins more
+  than 90 operands with `&&` is a `check:abapgit` finding (`operands`) — 82
+  are measured to import on 7.02, 311 and up are refused by the class
+  scanner (#2947, #3074, both generated text classes). Close the chain and
+  continue with `result = result && …`. The rule counts operands, not
+  characters, so a view builder chain is not touched by it.
+
   The same PR carries the second lesson: the file was **generated**, the split
   was first made by hand, and the next `npm run overview` would have restored
   the over-length statement. **Fix the generator, then regenerate** — see
@@ -1572,6 +1579,13 @@ break one of those four.
   it on import); and a generated statement of ~400 lines, which the 7.02
   class scanner refuses - abapGit then creates an empty class shell
   (`generate-guide-class.mjs` now closes the chain every 80 operands).
+  **It came back in 1.151.0** (abap2UI5/abap2UI5#3074): only the guide
+  generator was fixed, `tools/app2abap/trans2abap.js` still closed its
+  chain every 400 LINES, and `z2ui5_cl_ui5f_bundle`, `_cc` and `_devtools`
+  - statements of 311 to 441 operands - did not compile on 7.02. It closes
+  at 80 operands now, and `check:abapgit` (`operands`) fails any statement
+  in `src/` that joins more than 90 operands with `&&`, whatever wrote it.
+  Measured: 82 import (the guide class), 311 and up do not.
   **Gate: this repo** — the downport rewrites `assert_true/false( x )` into
   `assert_equals( exp = abap_true/abap_false act = x )` (`assert-bool` in
   `node/setup/downport-fix.mjs`, main keeps the idiomatic call), and

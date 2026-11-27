@@ -11,6 +11,27 @@ Legend
 
 unreleased
 ----------
+* Developer tools: Report a Bug, the history download and the ABAP Unit export mask secrets in every view - a value bound to a name like PASSWORD went out in the Bindings, Journey and Model Diff text, in the raw history JSON, and in structure fields and table cells of the unit test
+* Developer tools: "Copied" only when the clipboard took it - a refused or empty copy said Copied anyway
+* After a fatal error nothing is sent until Retry or Restart - a shortcut, a hash change or a websocket message still sent a roundtrip behind the error dialog, and Retry then replayed an older draft
+* Embedded on a host page: app shortcuts leave keystrokes outside the component to the host - Ctrl+S or Enter in a host field was taken by the app
+* Clipboard: the html flavour of a table copy escapes the cell values - a value with < or & broke the pasted table
+* Launchpad: one link parameter that is no valid percent-encoding no longer drops every link of CROSS_APP_NAV_GET_LINKS
+* A view that names a library being loaded waits for that load instead of fetching its controls one module at a time; the variant wiring skips a view replaced while sap.ui.comp loads
+* HTMLFrame: a submit button's formaction / formmethod decide the event, as in a browser - every button raised the form's own action
+* Websocket: the reconnect budget is kept per URL across view rebuilds - an app answering a failed connect with view_display reconnected in a loop
+* FileUploader: direct upload reads the file on change - it first posted the whole file to the page's own URL
+* SmartMultiInputExt: range data is applied when the inner controls existed before the companion attached - it waited forever
+! rename.mjs and update-deps.mjs have one source, .github/shared/, checked by check:shared in every repository that carries a copy; the rename survives @abaplint/cli 2.120.122, which moved the output of a run config below .github
+* 702: z2ui5_cl_ui5f_bundle, z2ui5_cl_ui5f_cc and z2ui5_cl_ui5f_devtools compile on 7.02 again - the generator joined up to 441 literals with && in one statement, more than the 7.02 class scanner takes; it closes the statement every 80 operands now, and check:abapgit fails a statement in src/ over 90 (#3074)
+* Drafts: a table that a public REF TO data attribute got after the first roundtrip, and that is never bound, is kept in the draft - it was gone on the next roundtrip
+* Binding: a bound attribute that can no longer be reached (its reference was cleared) no longer makes every roundtrip send the whole model and mark the client model stale after nav_app_call( )
+* Windowed tables and z2ui5_cl_ui5_test: sorters and response actions are read in array order - from ten entries on, the eleventh came before the third
+* Language models: a temperature with a leading zero (01, 00.5) is refused like any other malformed one - it went out as a JSON number no parser accepts
+* Messages: a MESG- or T100-shaped row (fields ARBGB, TXTNR) keeps its message class and number - both were lost
+! Language models: the Claude provider reads an error that is a plain string (Ollama's shape); the OpenAI-compatible provider names its endpoint in the texts for a missing model and an empty message, as the Claude provider does
+* z2ui5_cl_ui5_util_http on ABAP Cloud: the client, request and response are called by their interface names (IF_WEB_HTTP_CLIENT~EXECUTE, ...) - a bare name resolved only where the implementing class declares an alias. From abap-util
+! conv_get_string_by_xstring( ): bytes that are no UTF-8 raise INVALID_UTF8 instead of UNSUPPORTED_CODEPAGE_API. From abap-util
 * tools/bsp_rename: a namespace that holds the old name (/Z2UI5/) keeps it in the urls of its ICF nodes and gets its namespace nodes - the node came out as /sap/bc/ui5/ui5 and without them
 * Range tokens: a CP / NP range row whose LOW already is a pattern (abc*, *abc) renders as that pattern - the token template wrapped it in asterisks once more (*abc**). From abap-util, where a pattern token is now stored as typed
 ! ABAP Cloud: the branch cloud carries the whole repository, as 702 does, and is rebuilt on every push to main - always one commit ahead of main, never behind. An installation pulls src/ as before

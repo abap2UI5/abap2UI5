@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext } = require("./loadLibModule");
+const { specContext, withBusy } = require("./loadLibModule");
 
 // Tests the abort plumbing of one request (Server._openRequest): ONE
 // AbortController per request, armed by a setTimeout - the client-side
@@ -25,15 +25,14 @@ function loadForAbort() {
   const ctx = specContext({ oSentModel: null, url: "/sap/z2ui5" });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": {
-        show: (delay) => busy.push(["show", delay]),
-        hide: () => busy.push(["hide"]),
-      },
-      "z2ui5/core/Lib": {
+      "z2ui5/core/Lib": withBusy({
         isValidContextId: () => false,
         byteLength: (s) => s.length,
         lazyByteLength: (s) => () => s.length,
-      },
+      }, {
+        show: (delay) => busy.push(["show", delay]),
+        hide: () => busy.push(["hide"]),
+      }),
       "z2ui5/core/Session": { confirmSent: () => {} },
       "z2ui5/core/ErrorView": { reset: () => {} },
     },

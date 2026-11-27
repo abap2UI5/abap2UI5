@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext } = require("./loadLibModule");
+const { specContext, withBusy } = require("./loadLibModule");
 
 // Tests Server's error routing outside the inner try/catches of readHttp:
 // readHttp is fire-and-forget, so an unexpected throw between those inner
@@ -28,13 +28,12 @@ function load({ confirmSent = () => {} } = {}) {
 
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": {
+      "z2ui5/core/Lib": withBusy({
         isValidContextId: () => false,
         logError: () => {},
         byteLength: (s) => s.length,
         lazyByteLength: (s) => () => s.length,
-      },
+      }, { show: () => {}, hide: () => {} }),
       "z2ui5/core/Session": { confirmSent },
     },
     sandbox: {
@@ -106,8 +105,7 @@ test("a rejection escaping _processAfterRendering lands in responseSuccess's cat
   };
   const { module: ServerWithSlots } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": { logError: () => {} },
+      "z2ui5/core/Lib": withBusy({ logError: () => {} }, { show: () => {}, hide: () => {} }),
       "z2ui5/core/ViewSlots": { getController: () => controller },
     },
   });

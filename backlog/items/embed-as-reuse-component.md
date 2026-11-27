@@ -200,6 +200,18 @@ and scroll tracking (`Component._installScrollListener`, capture on
 component-scoped only in embedded mode, and that mode has to handle the
 static area explicitly.
 
+**Done 2026-11-27 - the keyboard shortcuts.** The `keydown` listener stays
+on `document` (the static area), but on a host's page (`state.ownsPage`
+false) it answers only a keystroke whose target is the component's -
+`ScrollFocus.isInComponent`, which asks the control's owner component and
+so counts the component's popups in the static area - or, with the focus
+on the body, one after the user's last focus or click went into the
+component (`ctx.focus.userInside`, the rule of `ScrollFocus.mayMoveFocus`).
+Ctrl+S in the host's own form no longer fires the app's save
+(`ownsKeystroke` in `core/actions/Shortcuts.js`, pinned by
+`shortcuts.spec.js`). The scroll tracking and the full-page error overlay
+are as described above.
+
 Before building stage 1: a 1-2 day spike with a freestyle test page hosting
 the component in a `ComponentContainer`, to see what actually breaks.
 

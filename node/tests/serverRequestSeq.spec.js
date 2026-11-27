@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext } = require("./loadLibModule");
+const { specContext, withBusy } = require("./loadLibModule");
 
 // Tests Server.readHttp request sequencing (last-write-wins). Only the newest
 // dispatched request may commit its result; a slower older response is dropped
@@ -53,11 +53,11 @@ function load() {
 
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "z2ui5/core/Lib": {
+      "z2ui5/core/Lib": withBusy({
         isValidContextId: () => false,
         byteLength: (s) => s.length,
         lazyByteLength: (s) => () => s.length,
-      },
+      }),
       "z2ui5/core/Session": { confirmSent: () => {} },
       "z2ui5/core/ErrorView": { reset: () => {} },
     },
@@ -292,8 +292,7 @@ test("restoreFromRoute() drops a queued event - the restore replaces its screen"
   });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": { cancelPendingTimers: (c) => cancelled.push(c) },
+      "z2ui5/core/Lib": withBusy({ cancelPendingTimers: (c) => cancelled.push(c) }, { show: () => {}, hide: () => {} }),
     },
   });
   Server.roundtrip = (_ctx, body) => roundtrips.push(body);
@@ -313,7 +312,7 @@ test("responseError drops a queued event - the overlay ends the app", () => {
   const appState = { state: ctx.state };
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/Lib": withBusy({}),
       "z2ui5/core/ErrorView": {
         show: (_ctx, e) => shown.push(e),
         reset: () => {},
@@ -326,6 +325,22 @@ test("responseError drops a queued event - the overlay ends the app", () => {
   expect(shown).toEqual(["HTTP 500"]);
   expect(appState.state.isBusy).toBe(false);
   expect(appState.state.oQueuedEvent).toBeNull();
+  // the app has ended: eB, a restore and an app hash change turn away
+  expect(appState.state.terminated).toBe(true);
+});
+
+test("restoreFromRoute() sends nothing under the fatal overlay", () => {
+  const roundtrips = [];
+  const ctx = specContext({ terminated: true });
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: { "z2ui5/core/Lib": withBusy({ cancelPendingTimers: () => {} }) },
+  });
+  Server.roundtrip = (_ctx, body) => roundtrips.push(body);
+
+  Server.restoreFromRoute(ctx);
+
+  expect(roundtrips).toEqual([]);
+  expect(ctx.state.isBusy).toBe(false);
 });
 
 // A repeating START_TIMER (actions/ViewOps) ends with the screen it polls:
@@ -335,8 +350,7 @@ test("restoreFromRoute() ends a repeating timer", () => {
   const ctx = specContext({ timerRepeat: { event: "POLL", delay: 10 } });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": { cancelPendingTimers: () => {} },
+      "z2ui5/core/Lib": withBusy({ cancelPendingTimers: () => {} }, { show: () => {}, hide: () => {} }),
     },
   });
   Server.roundtrip = () => {};
@@ -354,8 +368,7 @@ test("responseError ends a repeating timer and cancels its tick", () => {
   });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": { cancelPendingTimers: (c) => cancelled.push(c) },
+      "z2ui5/core/Lib": withBusy({ cancelPendingTimers: (c) => cancelled.push(c) }, { show: () => {}, hide: () => {} }),
       "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
     },
   });
@@ -378,8 +391,7 @@ test("responseError hands the repeating timer to the Retry it offers", () => {
   const repeat = ctx.state.timerRepeat;
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": { cancelPendingTimers: () => {} },
+      "z2ui5/core/Lib": withBusy({ cancelPendingTimers: () => {} }, { show: () => {}, hide: () => {} }),
       "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
     },
   });
@@ -400,8 +412,7 @@ test("an error without a Retry keeps nothing for later", () => {
   });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": { cancelPendingTimers: () => {} },
+      "z2ui5/core/Lib": withBusy({ cancelPendingTimers: () => {} }, { show: () => {}, hide: () => {} }),
       "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
     },
   });
@@ -418,8 +429,7 @@ test("responseError leaves the timer slot alone when nothing repeats", () => {
   const ctx = specContext({ isBusy: true });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/Lib": { cancelPendingTimers: (c) => cancelled.push(c) },
+      "z2ui5/core/Lib": withBusy({ cancelPendingTimers: (c) => cancelled.push(c) }, { show: () => {}, hide: () => {} }),
       "z2ui5/core/ErrorView": { show: () => {}, reset: () => {} },
     },
   });
@@ -433,6 +443,7 @@ test("reset() ends a repeating timer", () => {
   const ctx = specContext({ timerRepeat: { event: "POLL", delay: 10 } });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
+      "z2ui5/core/Lib": withBusy({}),
       "z2ui5/core/ErrorView": { reset: () => {} },
     },
   });

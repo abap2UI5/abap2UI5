@@ -448,3 +448,57 @@ test("a commit that starts a roundtrip makes the shortcut's event wait for it", 
   await new Promise((resolve) => setTimeout(resolve, 0));
   expect(order).toEqual(["CHG", ["SAVE"]]);
 });
+
+// On a host's page (state.ownsPage false) the listener still sits on the
+// document - the popups render outside the component - but a keystroke in
+// the host's own fields is not the component's: Ctrl+S in the host's form
+// fired this app's SAVE and swallowed the host's.
+test.describe("a component on a host's page answers only its own keystrokes", () => {
+  function loadEmbedded() {
+    const doc = docStub();
+    doc.document.body = { tag: "body" };
+    doc.document.documentElement = { tag: "html" };
+    const fired = [];
+    const ctx = specContext({ ownsPage: false });
+    const inside = { tag: "inside" };
+    const oController = { ctx, eB: (args) => fired.push(args) };
+    const { module: Shortcuts } = loadModule("core/actions/Shortcuts.js", {
+      sandbox: { document: doc.document },
+      deps: {
+        "z2ui5/core/Lib": { logError() {}, isControllerAlive: () => true },
+        "z2ui5/core/ViewSlots": { getView: () => null, resolveById: () => null },
+        "z2ui5/core/ScrollFocus": {
+          closestUi5Element: () => null,
+          isInComponent: (_ctx, node) => node === inside,
+        },
+      },
+    });
+    Shortcuts.handlers.KEYBOARD_SHORTCUT(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
+    return { doc, ctx, fired, inside };
+  }
+
+  test("a key pressed inside the component fires the event", () => {
+    const { doc, fired, inside } = loadEmbedded();
+    expect(doc.press("s", { ctrlKey: true, target: inside })).toBe(true);
+    expect(fired).toEqual([["SAVE"]]);
+  });
+
+  test("a key pressed in the host's field is left to the host", () => {
+    const { doc, fired } = loadEmbedded();
+    expect(doc.press("s", { ctrlKey: true, target: { tag: "host" } })).toBe(false);
+    expect(fired).toEqual([]);
+  });
+
+  test("with the focus nowhere it counts where the user last worked", () => {
+    const { doc, ctx, fired } = loadEmbedded();
+    const body = doc.document.body;
+    expect(doc.press("s", { ctrlKey: true, target: body })).toBe(false);
+    ctx.focus.userInside = true;
+    expect(doc.press("s", { ctrlKey: true, target: body })).toBe(true);
+    expect(fired).toEqual([["SAVE"]]);
+  });
+});

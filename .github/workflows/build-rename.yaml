@@ -107,14 +107,12 @@ jobs:
         # released APIs, the lint of the renamed src/03 against open-abap-core
         deps: "true"
 
-    # set the chosen prefix in the rename config and run the abaplint
-    # rename; it writes the renamed sources to
-    # .github/abaplint/output/<workspace path>/src. `|` as the sed
-    # delimiter: a namespace prefix carries slashes, neither carries a `|`
+    # the chosen prefix in the rename config, and the abaplint rename; it
+    # writes the renamed sources to .github/abaplint/output/src - from a run
+    # config at the root, which is what keeps them there from
+    # @abaplint/cli 2.120.122 on (rename-run.mjs has why)
     - name: Rename to ${{ inputs.namespace }}
-      run: |
-        sed "s|znamespace_|$PREFIX|g" .github/abaplint/rename.jsonc > .github/abaplint/rename_run.jsonc
-        npx abaplint .github/abaplint/rename_run.jsonc --rename
+      run: node .github/scripts/rename-run.mjs "$PREFIX"
 
     # abaplint --rename rewrites references, never string literals: a literal
     # still naming an object by its original name makes the renamed
@@ -134,8 +132,8 @@ jobs:
     # (version constant turned to the renamed interface) and the license
     - name: Assemble branch content
       run: |
-        src=$(find .github/abaplint/output -type d -name src | head -n 1)
-        if [ -z "$src" ]; then
+        src=.github/abaplint/output/src
+        if [ ! -d "$src" ]; then
           echo "::error::no renamed src folder found under .github/abaplint/output"
           exit 1
         fi

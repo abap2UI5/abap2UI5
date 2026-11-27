@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext, bindContext } = require("./loadLibModule");
+const { specContext, bindContext, withBusy } = require("./loadLibModule");
 
 // Tests the location cadence of Server.roundtrip: ORIGIN/PATHNAME/SEARCH are
 // session-constant, so the backend stores them with the draft
@@ -50,10 +50,9 @@ function loadServer(stateOverrides = {}) {
       },
       // restoreFromRoute hands the timer cancel to the shared helper - the
       // stub only records that it was asked (Lib's own spec proves it clears)
-      "z2ui5/core/Lib": {
+      "z2ui5/core/Lib": withBusy({
         cancelPendingTimers: () => cancels.push("cancelPendingTimers"),
-      },
-      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      }, { show: () => {}, hide: () => {} }),
     },
     sandbox: {
       window: {

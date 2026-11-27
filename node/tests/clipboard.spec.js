@@ -68,6 +68,23 @@ test.describe("Clipboard module", () => {
     ).toEqual({ text: ["Notebook"], html: "Notebook" });
   });
 
+  // the template is the app's HTML, the values are data: a value holding
+  // markup was pasted as markup, "Smith & <Sons>" lost its text
+  test("the html variant escapes the values, the text variant keeps them raw", () => {
+    const { Clipboard } = load();
+    const oCtx = context({ NAME: 'Smith & <Sons>', NOTE: `"5'"` });
+    expect(
+      Clipboard.extractData(
+        oCtx,
+        column({ bindings: "NAME,NOTE", template: "<b>{0}</b> {1}" }),
+        true,
+      ),
+    ).toEqual({
+      text: ["Smith & <Sons>", `"5'"`],
+      html: "<b>Smith &amp; &lt;Sons&gt;</b> &quot;5&#39;&quot;",
+    });
+  });
+
   test("a column without app:bindings is skipped", () => {
     const { Clipboard } = load();
     const oCtx = context({ NAME: "Notebook" });

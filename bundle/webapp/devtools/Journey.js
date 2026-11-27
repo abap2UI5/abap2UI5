@@ -46,9 +46,16 @@
 //     to the layer the control sits in - the same layer in every ordinary
 //     flow, but not for a value typed into the page behind an open popup
 sap.ui.define(
-  ["z2ui5/core/Lib", "z2ui5/devtools/AbapSource", "z2ui5/devtools/Recorder"],
-  (Lib, AbapSource, Recorder) => {
+  [
+    "z2ui5/core/Lib",
+    "z2ui5/devtools/AbapSource",
+    "z2ui5/devtools/Format",
+    "z2ui5/devtools/Recorder",
+  ],
+  (Lib, AbapSource, Format, Recorder) => {
     "use strict";
+
+    const { MASK, isSecretName, maskSecrets, secretValues } = Format;
 
     // Steps kept per journey. A test with more steps than this is not a
     // test anybody reads; the recording stops taking steps and says so.
@@ -377,20 +384,27 @@ sap.ui.define(
       );
     }
 
-    // An attribute whose name says it holds a secret: what the user typed
-    // into it is not written into the test class as a literal - the class
-    // is exported to be pasted into a repository or an issue. The test
-    // gets a placeholder and a line that says to put a test value there.
-    const SECRET_NAME = /(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)/i;
-
-    function attributeStatements(out, pad, name, value) {
-      const plain = isPlainName(name);
-      if (typeof value === "string" && SECRET_NAME.test(name)) {
+    // A value whose name says it holds a secret: what the user typed into
+    // it is not written into the test class as a literal - the class is
+    // exported to be pasted into a repository or an issue. The test gets a
+    // placeholder and a line that says to put a test value there. The name
+    // is the whole path (Format.isSecretName): a top-level MV_PASSWORD, a
+    // field of a structure (MS_LOGIN with a PASSWORD component, or the flat
+    // MS_LOGIN-PASSWORD) and a table cell /T_USERS/0/PASSWORD alike - the
+    // top-level name alone let the other two through.
+    function masked(out, pad, name, value) {
+      const shown = maskSecrets(value, { secret: isSecretName(name) });
+      if (safeJson(shown) !== safeJson(value)) {
         out.push(
           `${pad}" ${name}: the value typed is not exported - put a test value here`,
         );
-        value = "***";
       }
+      return shown;
+    }
+
+    function attributeStatements(out, pad, name, value) {
+      const plain = isPlainName(name);
+      value = masked(out, pad, name, value);
       if (typeof value === "string" && plain) {
         const lit = literal(value, pad.length + 24);
         if (lit !== null) {
@@ -415,12 +429,20 @@ sap.ui.define(
       for (const [row, cells] of Object.entries(rows)) {
         const rowIndex = Number(row);
         if (!cells || typeof cells !== "object") continue;
-        for (const [column, cell] of Object.entries(cells)) {
+        for (const [column, rawCell] of Object.entries(cells)) {
           const cellPath = `${path}/${row}/${column}`;
-          if (isRowDelta(cell)) {
-            rowDeltaStatements(out, pad, column, cellPath, cell.__delta, true);
+          if (isRowDelta(rawCell)) {
+            rowDeltaStatements(
+              out,
+              pad,
+              column,
+              cellPath,
+              rawCell.__delta,
+              true,
+            );
             continue;
           }
+          const cell = masked(out, pad, cellPath, rawCell);
           const lit =
             typeof cell === "string" ? literal(cell, pad.length + 23) : null;
           if (
@@ -448,19 +470,54 @@ sap.ui.define(
       out.push(`${pad}               json = ${lit} ).`);
     }
 
+    // The secrets typed during a journey: every string the recorded deltas
+    // carry under a secret-named key (Format.secretValues). T_EVENT_ARG is
+    // positional and names nothing, so this is how an argument is known to
+    // be a password - `${/PASSWORD}` handed to the event is the value the
+    // same journey typed under that name, in this step or an earlier one.
+    function journeySecrets(journey) {
+      return secretValues(
+        journey.steps.map((step) => step.delta?.value).filter(Boolean),
+      );
+    }
+
+    // The event arguments of a step as they may be shown or exported: one
+    // equal to a typed secret is masked, and one that is JSON (an object
+    // argument, stored as its JSON text by readStep) is masked by key. A
+    // string that only looks like JSON is kept as it was.
+    function maskedArgs(args, values) {
+      return args.map((arg) => {
+        if (values.has(arg)) return MASK;
+        if (!/^[[{]/.test(arg)) return arg;
+        try {
+          const parsed = JSON.parse(arg);
+          const shown = maskSecrets(parsed, { values });
+          return safeJson(shown) === safeJson(parsed) ? arg : safeJson(shown);
+        } catch {
+          return arg;
+        }
+      });
+    }
+
     // The click( ) of a step: the event alone, or with its arguments.
-    function clickStatement(step, indent) {
+    function clickStatement(step, indent, values = new Set()) {
       const pad = " ".repeat(indent);
       const event = literal(step.event, indent) || "``";
       if (!step.args.length) return [`${pad}sim->click( ${event} ).`];
       const out = [`${pad}sim->click( event = ${event}`];
       const argPad = `${pad}            t_arg = VALUE #( `;
-      step.args.forEach((arg, i) => {
+      const args = maskedArgs(step.args, values);
+      if (args.some((arg, i) => arg !== step.args[i])) {
+        out.unshift(
+          `${pad}" an argument typed into a secret is not exported - put a test value here`,
+        );
+      }
+      args.forEach((arg, i) => {
         const lit =
           literal(arg, argPad.length + 2) ||
           jsonLiteral(arg, argPad.length + 2);
         const lead = i === 0 ? argPad : " ".repeat(argPad.length);
-        const tail = i === step.args.length - 1 ? " ) )." : "";
+        const tail = i === args.length - 1 ? " ) )." : "";
         out.push(`${lead}( ${lit} )${tail}`);
       });
       return out;
@@ -567,6 +624,7 @@ sap.ui.define(
         );
       }
       let previousApp = app;
+      const secrets = journeySecrets(journey);
       journey.steps.forEach((step, index) => {
         if (index === 0 && !step.event) {
           out.push(...assertionStatements(step, previousApp, pad.length));
@@ -582,7 +640,7 @@ sap.ui.define(
         }
         out.push(`${pad}" step ${step.seq}: ${step.event}`);
         out.push(...editStatements(step.delta, pad.length));
-        out.push(...clickStatement(step, pad.length));
+        out.push(...clickStatement(step, pad.length, secrets));
         out.push(...assertionStatements(step, previousApp, pad.length));
         previousApp = step.app || previousApp;
       });
@@ -660,8 +718,10 @@ sap.ui.define(
           const rows = Object.keys(value.__delta);
           parts.push(`${name}[${rows.join(",")}]`);
         } else {
+          // masked like the export: this tab is copied into the bug report
+          const shown = maskSecrets(value, { secret: isSecretName(name) });
           let text =
-            typeof value === "string" ? JSON.stringify(value) : safeJson(value);
+            typeof shown === "string" ? JSON.stringify(shown) : safeJson(shown);
           if (text.length > 40) text = `${text.slice(0, 37)}...`;
           parts.push(`${name} = ${text}`);
         }
@@ -705,6 +765,7 @@ sap.ui.define(
         return lines.join("\n");
       }
       journeys.forEach((journey, i) => {
+        const secrets = journeySecrets(journey);
         lines.push(
           `Journey ${i + 1} - ${journey.app || "(app unknown)"} - ` +
             `${journey.steps.length} step(s), started ${journey.startedAt.slice(11, 19)}` +
@@ -712,7 +773,9 @@ sap.ui.define(
         );
         for (const step of journey.steps) {
           const event = step.event || "(start)";
-          const args = step.args.length ? ` (${step.args.join(", ")})` : "";
+          const args = step.args.length
+            ? ` (${maskedArgs(step.args, secrets).join(", ")})`
+            : "";
           lines.push(`  #${String(step.seq).padEnd(4)}${event}${args}`);
           const delta = describeDelta(step.delta);
           if (delta) lines.push(`        typed:  ${delta}`);
@@ -747,6 +810,7 @@ sap.ui.define(
         eventsOf,
         literal,
         editStatements,
+        clickStatement,
       },
     };
   },

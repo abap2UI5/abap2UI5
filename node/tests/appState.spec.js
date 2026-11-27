@@ -26,6 +26,7 @@ test.describe("createState", () => {
     expect(state.cccResourceRoot).toBeNull();
     expect(state.nodePath).toBeNull();
     expect(state.isBusy).toBe(false);
+    expect(state.terminated).toBe(false);
     expect(state.oView).toBeNull();
     expect(state.timers).toEqual({});
     expect(state.viewSizeLimits).toEqual({});
@@ -110,6 +111,8 @@ test("resetApp resets the app's fields in place and keeps the component's", () =
     contextId: "SID:ANON:x",
     renderedApp: "ZCL_APP",
     lastError: { title: "t" },
+    // the fatal overlay ended the app - the restart is its way out
+    terminated: true,
   });
   state.onErrorDetails.push(hook);
   state.timers.poll = 1;
@@ -127,6 +130,7 @@ test("resetApp resets the app's fields in place and keeps the component's", () =
   expect(state.contextId).toBe(null);
   expect(state.renderedApp).toBe(null);
   expect(state.lastError).toBe(null);
+  expect(state.terminated).toBe(false);
   expect(Object.keys(state.timers)).toEqual([]);
   // every field it keeps exists in the state - a renamed field cannot
   // silently turn into one that restarts with the app

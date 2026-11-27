@@ -2465,6 +2465,32 @@ test.describe("FILTER_BAR_VARIANT_INIT (classic FilterBar + variant management)"
     expect(oSVM.added.length).toBe(1);
   });
 
+  test("a view replaced while sap.ui.comp loads is left alone", () => {
+    const { FrontendAction, controls, ctx, errors } = load();
+    let pending = null;
+    ctx.sap.ui.require = (name, callback) => {
+      if (Array.isArray(name)) {
+        pending = callback;
+        return undefined;
+      }
+      return null;
+    };
+    const oSVM = svm();
+    const oFilterBar = filterBar([field("PRODUCT", "table")]);
+    controls.svm = oSVM;
+    controls.fbar = oFilterBar;
+    FrontendAction.execute(null, ["FILTER_BAR_VARIANT_INIT", "svm", "fbar"]);
+    // the roundtrip that replaced the view destroyed the variant management
+    oSVM.addPersonalizableControl = () => {
+      throw new Error("destroyed");
+    };
+    oSVM.isDestroyed = () => true;
+    pending(PersonalizableInfo);
+    expect(oSVM.added.length).toBe(0);
+    expect(oSVM._oPersoControl).toBe(null);
+    expect(errors).toEqual([]);
+  });
+
   test("logs when the named control is not a FilterBar", () => {
     const { FrontendAction, controls, errors } = load();
     controls.svm = svm();
