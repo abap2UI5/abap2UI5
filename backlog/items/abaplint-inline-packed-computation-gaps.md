@@ -4,7 +4,7 @@ title: 'inline_packed_computation: a parenthesised right-hand side and a VALUE o
 summary: 'DATA(x) = ( a + b ). and DATA(t) = a + VALUE #( lt[ 1 ]-quan OPTIONAL ). get type P(8,0) on the system and lose their decimals - the rule reports a - b, a * b, a + b and meth( ) + b, not these'
 priority: high
 state: filed
-filed: https://github.com/oblomov-dev/fork-abaplint/pull/6
+filed: https://github.com/abaplint/abaplint/pull/4792
 first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
