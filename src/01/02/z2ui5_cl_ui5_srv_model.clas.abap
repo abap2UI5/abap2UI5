@@ -615,6 +615,33 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! The cells of ONE delta row (iv_row_path) into the row ir_row, the
+    "! old values kept aside in ir_work_row - see delta_apply_nodes
+    METHODS delta_apply_row
+      IMPORTING
+        io_delta      TYPE REF TO z2ui5_if_ajson
+        iv_row_path   TYPE string
+        iv_table      TYPE string
+        iv_row        TYPE i
+        iv_row_parent TYPE i
+        ir_row        TYPE REF TO data
+        ir_work_row   TYPE REF TO data
+      CHANGING
+        ct_col_kind   TYPE ty_t_col_kind
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! The data object the cells of one delta row go into: the row itself,
+    "! or - iv_ref_rows, a table of references - the row its reference
+    "! points to. Nothing for a row no cell can go into: an unbound
+    "! reference, a line that is no structure
+    METHODS delta_row_target
+      IMPORTING
+        ir_row        TYPE REF TO data
+        iv_ref_rows   TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
     "! A delta member that names no component of the row but a NAMESPACE
     "! of some (`CWM` for `/CWM/XCWMAT`, json_ns_text): every member of its
     "! object is applied to the component `/CWM/&lt;member&gt;` as a cell of
@@ -3163,8 +3190,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD delta_apply_nodes.
 
     FIELD-SYMBOLS <work_row> TYPE any.
-    FIELD-SYMBOLS <before>   TYPE any.
     DATA lr_work_row TYPE REF TO data.
+    DATA lr_target   TYPE REF TO data.
     DATA lt_col_kind TYPE ty_t_col_kind.
 
     " ONE work row per table for the old values delta_apply_field keeps
@@ -3172,6 +3199,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " data object per cell for that copy
     CREATE DATA lr_work_row LIKE LINE OF ct_tab.
     ASSIGN lr_work_row->* TO <work_row>.
+    " a table of REFERENCES to rows (STANDARD TABLE OF REF TO struc): ajson
+    " writes the row each one points to, so that is what the client shows
+    " and edits - the cells go into the target (delta_row_target)
+    DATA(lv_ref_rows) = xsdbool( z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <work_row> )
+                                 = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref ).
 
     DATA(lt_idx) = io_delta->members( iv_base ).
     LOOP AT lt_idx INTO DATA(lv_idx_str).
@@ -3187,13 +3219,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " its full path instead
       DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
       UNASSIGN <delta_row>.
+      CLEAR lr_target.
       ASSIGN ct_tab[ lv_tabix ] TO <delta_row>.
-      IF <delta_row> IS NOT ASSIGNED.
+      IF <delta_row> IS ASSIGNED.
+        lr_target = delta_row_target( ir_row      = REF #( <delta_row> )
+                                      iv_ref_rows = lv_ref_rows ).
+      ENDIF.
+      IF lr_target IS NOT BOUND.
         " an index past the table's end - the client edited a row the
         " backend no longer has (the app shrank the table without the model
-        " going out again). Traced like a sorted-table row: a bare CONTINUE
-        " dropped the edit with nothing in t_model_skipped, while the
-        " browser went on showing what the user typed
+        " going out again) - or a row no cell can go into (an unbound row
+        " reference, a line that is no structure). Traced like a sorted-table
+        " row: a bare CONTINUE dropped the edit with nothing in
+        " t_model_skipped, while the browser went on showing what the user
+        " typed
         delta_skip_row( io_delta      = io_delta
                         iv_row_path   = lv_row_path
                         iv_row        = lv_tabix
@@ -3201,52 +3240,105 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                         iv_row_parent = iv_row_parent ).
         CONTINUE.
       ENDIF.
-      DATA(lt_fld) = io_delta->members( lv_row_path ).
-      LOOP AT lt_fld INTO DATA(lv_fld).
-        FIELD-SYMBOLS <comp> TYPE any.
-        " a component is addressed by NAME: a digit-only key addresses it
-        " by position on a system (and `0` the whole row), which is nothing
-        " the frontend ever sends - skipped like an unknown name
-        IF lv_fld CO `0123456789`.
-          CONTINUE.
-        ENDIF.
-        " a namespace of the row's columns (`CWM` for `/CWM/XCWMAT`) - the
-        " level the model writes them below (json_ns_text), and the one
-        " a relative binding `{CWM/XCWMAT}` edits. Asked first: a column
-        " named `CWM` next to them is not in the model (it gave way to the
-        " namespace object), so the object is never its value
-        delta_apply_ns( EXPORTING io_delta      = io_delta
-                                  iv_row_path   = lv_row_path
-                                  iv_fld        = lv_fld
-                                  iv_table      = iv_table
-                                  iv_row        = lv_tabix
-                                  iv_row_parent = iv_row_parent
-                                  ir_row        = REF #( <delta_row> )
-                                  ir_work_row   = lr_work_row
-                        IMPORTING ev_taken      = DATA(lv_ns_taken)
-                        CHANGING  ct_col_kind   = lt_col_kind ).
-        IF lv_ns_taken = abap_true.
-          CONTINUE.
-        ENDIF.
-        ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
-        IF sy-subrc <> 0.
-          CONTINUE.
-        ENDIF.
-        ASSIGN COMPONENT lv_fld OF STRUCTURE <work_row> TO <before>.
-        IF sy-subrc <> 0.
-          CONTINUE.
-        ENDIF.
-        delta_apply_field( EXPORTING io_delta    = io_delta
-                                     iv_path     = |{ lv_row_path }/{ lv_fld }|
-                                     is_cell     = VALUE #( name       = iv_table
-                                                            row        = lv_tabix
-                                                            field      = lv_fld
-                                                            row_parent = iv_row_parent )
-                                     ir_comp     = REF #( <comp> )
-                                     ir_before   = REF #( <before> )
-                           CHANGING  ct_col_kind = lt_col_kind ).
-      ENDLOOP.
+      IF lv_ref_rows = abap_true.
+        " the target, and a work row of ITS type for the old values - a
+        " typed reference points every row at the same type, so the column
+        " kinds remembered in lt_col_kind still hold
+        ASSIGN lr_target->* TO <delta_row>.
+        CREATE DATA lr_work_row LIKE <delta_row>.
+      ENDIF.
+      delta_apply_row( EXPORTING io_delta      = io_delta
+                                 iv_row_path   = lv_row_path
+                                 iv_table      = iv_table
+                                 iv_row        = lv_tabix
+                                 iv_row_parent = iv_row_parent
+                                 ir_row        = REF #( <delta_row> )
+                                 ir_work_row   = lr_work_row
+                       CHANGING  ct_col_kind   = lt_col_kind ).
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD delta_apply_row.
+
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <work>   TYPE any.
+    FIELD-SYMBOLS <before> TYPE any.
+    ASSIGN ir_row->* TO <row>.
+    ASSIGN ir_work_row->* TO <work>.
+
+    DATA(lt_fld) = io_delta->members( iv_row_path ).
+    LOOP AT lt_fld INTO DATA(lv_fld).
+      FIELD-SYMBOLS <comp> TYPE any.
+      " a component is addressed by NAME: a digit-only key addresses it
+      " by position on a system (and `0` the whole row), which is nothing
+      " the frontend ever sends - skipped like an unknown name
+      IF lv_fld CO `0123456789`.
+        CONTINUE.
+      ENDIF.
+      " a namespace of the row's columns (`CWM` for `/CWM/XCWMAT`) - the
+      " level the model writes them below (json_ns_text), and the one
+      " a relative binding `{CWM/XCWMAT}` edits. Asked first: a column
+      " named `CWM` next to them is not in the model (it gave way to the
+      " namespace object), so the object is never its value
+      delta_apply_ns( EXPORTING io_delta      = io_delta
+                                iv_row_path   = iv_row_path
+                                iv_fld        = lv_fld
+                                iv_table      = iv_table
+                                iv_row        = iv_row
+                                iv_row_parent = iv_row_parent
+                                ir_row        = ir_row
+                                ir_work_row   = ir_work_row
+                      IMPORTING ev_taken      = DATA(lv_ns_taken)
+                      CHANGING  ct_col_kind   = ct_col_kind ).
+      IF lv_ns_taken = abap_true.
+        CONTINUE.
+      ENDIF.
+      " a member that names no column is passed over: no edit of a bound
+      " value writes one, so it is nothing the user typed
+      ASSIGN COMPONENT lv_fld OF STRUCTURE <row> TO <comp>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      ASSIGN COMPONENT lv_fld OF STRUCTURE <work> TO <before>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      delta_apply_field( EXPORTING io_delta    = io_delta
+                                   iv_path     = |{ iv_row_path }/{ lv_fld }|
+                                   is_cell     = VALUE #( name       = iv_table
+                                                          row        = iv_row
+                                                          field      = lv_fld
+                                                          row_parent = iv_row_parent )
+                                   ir_comp     = REF #( <comp> )
+                                   ir_before   = REF #( <before> )
+                         CHANGING  ct_col_kind = ct_col_kind ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD delta_row_target.
+
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <target> TYPE any.
+    DATA lr_target TYPE REF TO data.
+
+    result = ir_row.
+    IF iv_ref_rows = abap_true.
+      ASSIGN ir_row->* TO <row>.
+      lr_target = <row>.
+      IF lr_target IS NOT BOUND.
+        CLEAR result.
+        RETURN.
+      ENDIF.
+      result = lr_target.
+    ENDIF.
+    ASSIGN result->* TO <target>.
+    DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <target> ).
+    IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+        AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+      CLEAR result.
+    ENDIF.
 
   ENDMETHOD.
 

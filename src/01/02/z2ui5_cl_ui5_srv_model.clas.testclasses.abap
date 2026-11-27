@@ -124,6 +124,12 @@ CLASS ltcl_app_edge DEFINITION FINAL
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+        qty  TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_refs TYPE STANDARD TABLE OF REF TO ty_s_row WITH EMPTY KEY.
     " the shape of a TZNTSTMPL, DEC 21,7 - more digits than a double keeps
     TYPES ty_stamp TYPE p LENGTH 11 DECIMALS 7.
     TYPES:
@@ -141,6 +147,7 @@ CLASS ltcl_app_edge DEFINITION FINAL
         t_wide TYPE ty_t_wide,
       END OF ty_s_deep.
 
+    DATA mt_refs    TYPE ty_t_refs.
     " bound component by component - the general road's scalars
     DATA ms_wide    TYPE ty_s_wide.
     " bound whole - the fast road
@@ -2045,6 +2052,9 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a date or time in a spelling that is neither ISO nor plain digits is
     " refused and traced - it used to be cut to its first characters
     METHODS date_time_text_refused   FOR TESTING RAISING cx_static_check.
+    " a row delta into a table of references goes into the rows they point
+    " to; a reference that points nowhere is traced
+    METHODS delta_ref_rows           FOR TESTING RAISING cx_static_check.
     " a number with more digits than a double keeps goes out as text on
     " every road, and comes back unchanged with the edit of a sibling
     METHODS wide_numbers_quoted      FOR TESTING RAISING cx_static_check.
@@ -3274,6 +3284,45 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cs_wide-price      = '12.50'.
     " a float with every digit a double has: it IS one, and stays a number
     cs_wide-ratio      = 1 / 3.
+
+  ENDMETHOD.
+
+  METHOD delta_ref_rows.
+
+    DATA lr_row  TYPE REF TO ltcl_app_edge=>ty_s_row.
+    DATA lr_none TYPE REF TO ltcl_app_edge=>ty_s_row.
+
+    CREATE DATA lr_row.
+    lr_row->name = `r1`.
+    lr_row->qty  = 1.
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    INSERT lr_row INTO TABLE lo_app->mt_refs.
+    INSERT lr_none INTO TABLE lo_app->mt_refs.
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_refs )
+               iv_name  = `/MT_REFS` ).
+
+    " ajson writes the row a reference points to - that is what the client
+    " edits, and where the cells go
+    lo_model->main_json_to_attri( delta( `{"MT_REFS":{"__delta":{"0":{"NAME":"edited","QTY":7}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lr_row->name ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = lr_row->qty ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " a refused cell keeps its old value and is traced, and so is every
+    " cell of a row whose reference points nowhere
+    lo_model->main_json_to_attri( delta( `{"MT_REFS":{"__delta":{"0":{"QTY":"seven"},"1":{"NAME":"lost"}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = lr_row->qty ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 1
+                                                                                 field = `QTY` ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 2
+                                                                                 field = `NAME` ] ) ) ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
