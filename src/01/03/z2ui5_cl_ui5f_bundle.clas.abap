@@ -753,16 +753,18 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `_GLOBAL||SHORTCUT_SLOTS.includes(key))continue;if(scopeControlOpen(ctx,key))return scopes[key]}for(const key of SHORTCUT_SLOTS){if(scopes[key]&&ViewSlots.getView(ctx,key)){const own=ViewSlots.getContr` &&
              `oller(ctx,key);return own?{...scopes[key],controller:own}:scopes[key]}}return scopes[SHORTCUT_GLOBAL]}function commitFocusedValue(){if(typeof document==="undefined")return;const active=document.active` &&
              `Element;if(!active||active===document.body)return;try{const control=ScrollFocus.closestUi5Element(active);if(control?.isA?.("sap.m.InputBase")&&typeof control.onChange==="function"){control.onChange()` &&
-             `}}catch(e){Lib.logError("KEYBOARD_SHORTCUT: committing the focused field failed",e)}}function installShortcutListener(ctx){if(ctx.shortcuts.listener||typeof document==="undefined")return;const listene` &&
-             `r=oEvent=>{try{let entry;for(const combo of shortcutCandidates(oEvent)){entry=shortcutEntry(ctx,combo);if(entry)break}if(!entry)return;if(!Lib.isControllerAlive(entry.controller))return;oEvent.prevent` &&
-             `Default();const wasBusy=ctx.state.isBusy;commitFocusedValue();if(!wasBusy&&ctx.state.isBusy){const controller=entry.controller;Lib.afterRoundtrip(controller,()=>setTimeout(()=>{if(Lib.isControllerAliv` &&
-             `e(controller)){controller.eB([entry.event])}},0));return}entry.controller.eB([entry.event])}catch(e){Lib.logError("KEYBOARD_SHORTCUT: dispatch failed",e)}};ctx.shortcuts.listener=listener;document.add` &&
-             `EventListener("keydown",listener)}function reset(ctx){const listener=ctx?.shortcuts?.listener;if(!listener||typeof document==="undefined")return;document.removeEventListener("keydown",listener);ctx.sh` &&
-             `ortcuts.listener=null}function evKeyboardShortcut(oController,args){const ctx=oController?.ctx;if(!ctx){Lib.logError("KEYBOARD_SHORTCUT: no context to register in");return}const combo=normalizeShortcu` &&
-             `t(args[1]);if(!combo){Lib.logError(``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``);return}const raw=String(args[3]??"");const upper=raw.toUpperCase();const scope=SHORTCUT_SLO` &&
-             `TS.includes(upper)?upper:raw;const shortcuts=ctx.state.shortcuts;if(combo in Object.prototype){Lib.logError(``KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination``);return}const scopes=shortcuts[co` &&
-             `mbo]??(shortcuts[combo]=Object.create(null));if(!args[2]){delete scopes[scope];if(Object.keys(scopes).length===0)delete shortcuts[combo];return}scopes[scope]={event:args[2],controller:oController};ins` &&
-             `tallShortcutListener(ctx)}const handlers={KEYBOARD_SHORTCUT:evKeyboardShortcut};return{handlers,reset,normalizeShortcut,shortcutFromEvent,shortcutCandidates}});` && |\n| &&
+             `}}catch(e){Lib.logError("KEYBOARD_SHORTCUT: committing the focused field failed",e)}}function ownsKeystroke(ctx,target){if(ctx.state.ownsPage!==false)return true;if(!target||target===document.body||ta` &&
+             `rget===document.documentElement){return Boolean(ctx.focus?.userInside)}return ScrollFocus.isInComponent(ctx,target)}function installShortcutListener(ctx){if(ctx.shortcuts.listener||typeof document==="` &&
+             `undefined")return;const listener=oEvent=>{try{if(!ownsKeystroke(ctx,oEvent.target))return;let entry;for(const combo of shortcutCandidates(oEvent)){entry=shortcutEntry(ctx,combo);if(entry)break}if(!ent` &&
+             `ry)return;if(!Lib.isControllerAlive(entry.controller))return;oEvent.preventDefault();const wasBusy=ctx.state.isBusy;commitFocusedValue();if(!wasBusy&&ctx.state.isBusy){const controller=entry.controlle` &&
+             `r;Lib.afterRoundtrip(controller,()=>setTimeout(()=>{if(Lib.isControllerAlive(controller)){controller.eB([entry.event])}},0));return}entry.controller.eB([entry.event])}catch(e){Lib.logError("KEYBOARD_S` &&
+             `HORTCUT: dispatch failed",e)}};ctx.shortcuts.listener=listener;document.addEventListener("keydown",listener)}function reset(ctx){const listener=ctx?.shortcuts?.listener;if(!listener||typeof document==` &&
+             `="undefined")return;document.removeEventListener("keydown",listener);ctx.shortcuts.listener=null}function evKeyboardShortcut(oController,args){const ctx=oController?.ctx;if(!ctx){Lib.logError("KEYBOAR` &&
+             `D_SHORTCUT: no context to register in");return}const combo=normalizeShortcut(args[1]);if(!combo){Lib.logError(``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``);return}const raw` &&
+             `=String(args[3]??"");const upper=raw.toUpperCase();const scope=SHORTCUT_SLOTS.includes(upper)?upper:raw;const shortcuts=ctx.state.shortcuts;if(combo in Object.prototype){Lib.logError(``KEYBOARD_SHORTCU` &&
+             `T: '${args[1]}' is not a key combination``);return}const scopes=shortcuts[combo]??(shortcuts[combo]=Object.create(null));if(!args[2]){delete scopes[scope];if(Object.keys(scopes).length===0)delete short` &&
+             `cuts[combo];return}scopes[scope]={event:args[2],controller:oController};installShortcutListener(ctx)}const handlers={KEYBOARD_SHORTCUT:evKeyboardShortcut};return{handlers,reset,normalizeShortcut,short` &&
+             `cutFromEvent,shortcutCandidates}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/Slots.js": function(){sap.ui.define(["sap/ui/core/mvc/XMLView","sap/ui/core/Fragment","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/cor` &&
@@ -856,10 +858,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `function"){oFilterBar.fireFilterChange(oEvent)}})})}function withPersonalizableInfo(callback){const name="sap/ui/comp/smartvariants/PersonalizableInfo";if(typeof sap==="undefined"||!sap.ui||typeof sap` &&
              `.ui.require!=="function"){Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");return}const loaded=sap.ui.require(name);if(loaded){callback(loaded);return}sap.ui.require([name],callba` &&
              `ck,()=>Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available"))}function evFilterBarVariantInit(oController,args){const[,svmId,filterBarId]=args;const activeInits=activeInitsO` &&
-             `f(oController,"FILTER_BAR_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${filterBarId||""}``;if(activeInits.has(key))return;activeInits.add(key);const finish=()=>activeInits.delete(key);let` &&
-             ` tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const oFilterBar=ViewSlots.resolveById(oController?.ctx,filterB` &&
-             `arId);if(!oSVM||!oFilterBar){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``);finis`.
+             `f(oController,"FILTER_BAR_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${filterBarId||""}``;if(activeInits.has(key))return;activeInits.add(key);const finish=()=>activeInits.delete(key);let`.
     result = result &&
+             ` tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const oFilterBar=ViewSlots.resolveById(oController?.ctx,filterB` &&
+             `arId);if(!oSVM||!oFilterBar){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``);finis` &&
              `h();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.addPersonalizableControl!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``);finish();return}if(typeof o` &&
              `FilterBar.registerFetchData!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'``);finish();return}if(oFilterBar[FILTER_BAR_WIRED]){finish();return}oFilterBar[FILT` &&
              `ER_BAR_WIRED]=true;finish();registerFilterBarCallbacks(oFilterBar);attachFilterBarChange(oSVM,oFilterBar);withPersonalizableInfo(PersonalizableInfo=>{oSVM.addPersonalizableControl(new PersonalizableIn` &&
