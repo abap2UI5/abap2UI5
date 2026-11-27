@@ -55,7 +55,7 @@ const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*\.(yml|yaml)$/;
  *
  *   1. DONE - the two that produce no pull-request check at all.
  *      `build_rename` (workflow_dispatch only) and `check_v2_sdk` (schedule +
- *      dispatch) never report on a pull request, so no branch-protection rule
+ *      dispatch; deleted on 2026-11-27) never report on a pull request, so no branch-protection rule
  *      can name them and the rename cost nothing but their references.
  *   2. NEXT - `UI5_2X.yaml`, which CONVENTIONS §2 names as its own bad example
  *      (`UI5.yaml -> UI5_2X`) and which this file's header therefore has to

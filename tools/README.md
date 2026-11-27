@@ -17,14 +17,15 @@ whether a pull request may merge.
 | `sbom.mjs` | the software bill of materials of a release, CycloneDX 1.5 (`npm run sbom`); `release.yaml` attaches it to every release, `check:sbom` holds the tree to "nothing third-party is shipped" |
 
 Without a caller since 2026-11-17, when the delivery into abap2UI5/frontend
-ended - kept until somebody decides whether the legacy-free (UI5 2.x) variant
-comes back:
+ended:
 
 | | |
 | --- | --- |
 | `app2bsp/` | the classic webapp as a BSP with a minified component preload bundle. `bsp/`'s tests still read its `static_files` as the reference for the path mapping and the ICF node names |
-| `app2app_v2/` | the legacy-free bootstrap patch |
-| `check-v2-sdk.mjs` | the monthly guard on the SDK that patch pins (`check-v2-sdk.yaml`) |
+
+The legacy-free (UI5 2.x) bootstrap patch `app2app_v2/` and its monthly guard
+`check-v2-sdk.mjs` were deleted on 2026-11-27 - the build no longer ran
+(`docs/agents/decisions.md`).
 
 What these consume besides the two app folders - the ABAP artefacts of the
 branch `cloud` and its README - lives in [`cloud/`](../cloud). Tools here,
