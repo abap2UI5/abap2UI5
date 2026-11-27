@@ -3,7 +3,8 @@ target: abaplint
 title: 'obsolete_statement: report the deprecated GET REFERENCE under the Cloud language version'
 summary: 'GET REFERENCE OF ... INTO is deprecated in ABAP for Cloud Development (a syntax warning, it activates) and has the released equivalent REF #( ) - abaplint under syntax.version Cloud says nothing; a parser error would be wrong, a warning-level option of obsolete_statement fits'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4827
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
@@ -11,6 +12,7 @@ evidence:
   - 25 statements in six files under abap2UI5 `src/` still carry it (2026-09-19), all in vendored mirrors (`src/00`) or the frozen package (`src/99`) — the probe beside this item counts them
   - measured 2026-09-19 on abaplint 2.120.52, `syntax.version` Cloud, `check_syntax` on: `GET REFERENCE OF lv INTO lr` in an isolated class produces no finding. The grammar has the statement as `verNotLang(LanguageVersion.KeyUser)` — excluded for KeyUser only, not for Cloud
   - 'filed 2026-11-27 as abaplint/abaplint#4825 (the statement excluded for Cloud in the grammar, a parser error) and closed the same day: the SAP cheat sheet for ABAP for Cloud Development (SAP-samples/abap-cheat-sheets, 19_ABAP_for_Cloud_Development.md) marks MOVE and DESCRIBE TABLE as "Invalid statement" and GET REFERENCE OF as "Deprecated statement" - it activates with a warning. What is left: a finding of warning level under Cloud only, e.g. an option of obsolete_statement'
+  - 'filed 2026-11-27 as abaplint/abaplint#4827 (syntax 3/4, in place of #4825): option getReference of obsolete_statement, reported only with language version Cloud, no quick fix'
 checked_upstream: 2026-11-27
 ---
 
