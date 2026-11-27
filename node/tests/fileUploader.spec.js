@@ -297,25 +297,24 @@ test("with multiple, every selected file is read - one after the other", () => {
   expect(inst.uploads).toBe(3);
 });
 
-test("direct-upload mode renders no button and reads on uploadComplete", () => {
+// Direct upload used to set the inner control's uploadOnChange, which with
+// no uploadUrl POSTed every selected file to the PAGE's URL and read it only
+// on that request's uploadComplete. The inner control uploads nothing now:
+// the selection is read on change, as the button would read it.
+test("direct-upload mode renders no button and reads on change, posting nothing", () => {
   const { makeInstance, render, changeEvent, readers } = load();
   const inst = makeInstance({ checkDirectUpload: true });
   render(inst);
 
   expect(inst.oUploadButton).toBe(null);
-  expect(inst.oFileUploader.settings.uploadOnChange).toBe(true);
+  expect(inst.oFileUploader.settings.uploadOnChange).toBe(false);
+  expect(inst.oFileUploader.settings.uploadComplete).toBeUndefined();
 
-  // change only remembers the file ...
+  inst.oFileUploader.settings.value = "auto.bin";
   inst.oFileUploader.settings.change(
     changeEvent(inst.oFileUploader, { name: "auto.bin" }),
   );
-  expect(readers).toHaveLength(0);
-
-  // ... uploadComplete performs the read and fires upload
-  inst.oFileUploader.settings.value = "auto.bin";
-  inst.oFileUploader.settings.uploadComplete(
-    changeEvent(inst.oFileUploader, null),
-  );
+  expect(readers).toHaveLength(1);
   readers[0].finish();
 
   expect(inst._props.path).toBe("auto.bin");
@@ -379,9 +378,8 @@ test("tooltip and visible are not redeclared as properties - they are inherited"
   expect(inst.oFileUploader.settings.tooltip).toBe("from the aggregation");
 });
 
-// checkDirectUpload changes the STRUCTURE (upload button yes/no, and
-// uploadOnChange is init-only on the inner control) - toggling it is the
-// one case that rebuilds, destroying the previous set.
+// checkDirectUpload changes the STRUCTURE (upload button yes/no) - toggling
+// it is the one case that rebuilds, destroying the previous set.
 test("toggling checkDirectUpload rebuilds the control set", () => {
   const { makeInstance, render } = load();
   const inst = makeInstance();
@@ -395,7 +393,7 @@ test("toggling checkDirectUpload rebuilds the control set", () => {
   expect(firstBox.destroyed).toBe(true);
   expect(inst._oHBox).not.toBe(firstBox);
   expect(inst.oUploadButton).toBe(null);
-  expect(inst.oFileUploader.settings.uploadOnChange).toBe(true);
+  expect(inst.oFileUploader.settings.uploadOnChange).toBe(false);
 });
 
 test("exit() destroys the owned HBox; before any render it is a no-op", () => {
@@ -465,24 +463,19 @@ test("pressing Upload twice does not queue the same selection twice", () => {
   expect(inst.uploads).toBe(1);
 });
 
-// same for the direct-upload path, whose uploadComplete is what consumes the
-// selection there
-test("a second uploadComplete does not re-read the same file", () => {
+// same for the direct-upload path: a change that carries no new selection
+// (the inner control fires one when its value is cleared) reads nothing
+test("a second change without a new selection does not re-read the file", () => {
   const { makeInstance, render, changeEvent, readers } = load();
   const inst = makeInstance({ checkDirectUpload: true });
   render(inst);
 
+  inst.oFileUploader.settings.value = "auto.bin";
   inst.oFileUploader.settings.change(
     changeEvent(inst.oFileUploader, { name: "auto.bin" }),
   );
-  inst.oFileUploader.settings.value = "auto.bin";
-  inst.oFileUploader.settings.uploadComplete(
-    changeEvent(inst.oFileUploader, null),
-  );
   readers[0].finish();
-  inst.oFileUploader.settings.uploadComplete(
-    changeEvent(inst.oFileUploader, null),
-  );
+  inst.oFileUploader.settings.change(changeEvent(inst.oFileUploader, null));
 
   expect(readers).toHaveLength(1);
   expect(inst.uploads).toBe(1);
