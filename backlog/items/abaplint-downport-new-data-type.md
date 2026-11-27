@@ -1,10 +1,9 @@
 ---
 target: abaplint
-title: 'The 702 downport writes CREATE OBJECT for NEW of a data type (structure, table, inline target, operand position)'
-summary: 'DATA(lr) = NEW ty_t( ). becomes CREATE OBJECT temp1 TYPE ty_t., and NEW ty_t( ( `a` ) ( `b` ) ) becomes a statement that does not parse - only target = NEW #( one value ) is lowered to CREATE DATA'
-priority: high
-state: filed
-filed: https://github.com/abaplint/abaplint/pull/4819
+title: 'The 702 downport writes CREATE OBJECT for NEW of a data type in an operand position or into a component target'
+summary: 'm( NEW ty_t( ( `a` ) ) ) and ls-ref = NEW ty_s( a = 1 ) still become CREATE OBJECT - the target positions were fixed by abaplint#4819 (merged 2026-11-27), these need the rule to resolve the type name itself'
+priority: medium
+state: open
 first_seen: 2026-11-27
 checked_upstream: 2026-11-27
 upstream: abaplint/abaplint
@@ -13,9 +12,10 @@ evidence:
   - 'probed 2026-11-27 against abaplint main after 2.120.122, rule downport, syntax v702: DATA(lr) = NEW tt( ). becomes DATA temp1 TYPE REF TO tt. CREATE OBJECT temp1 TYPE tt.; lrs = NEW ty_s( a = 1 ). becomes CREATE OBJECT lrs TYPE ty_s EXPORTING a = 1.; lr = NEW ty_t( ( `a` ) ( `b` ) ). becomes CREATE OBJECT lr TYPE ty_t ClassDefinitionNotFound ERROR., which does not parse; DATA(lr3) = NEW zcl_p=>ty_t( ). becomes CREATE OBJECT temp1 TYPE zcl_p.'
   - 'rules/downport.ts newDataReference handles target = NEW type|#( [one value] ) with a declared target only (abaplint/abaplint#4404, 2.120.72); every other position falls through to the CREATE OBJECT path'
   - 'upstream search 2026-11-27 (open issues and pull requests of abaplint/abaplint): nothing on it; filed the same day as abaplint/abaplint#4819 - components, rows and an inline target become CREATE DATA plus VALUE. Left open by it: NEW of a data type in an operand position (m( NEW ty_t( ... ) ) still writes the CREATE OBJECT that does not parse), a named type into a component target (ls-ref = NEW ty_s( ... )), and one row into a generic reference - there the rule would have to resolve the type name itself'
+  - 'abaplint/abaplint#4819 merged 2026-11-27: a declared or inline target, components, rows and types of a class or interface become CREATE DATA plus VALUE. Left open, as the pull request says: NEW of a data type in an operand position (an argument of a method call), a named type into a component target (ls-ref = NEW ty_s( a = 1 ), with # it works), and one row into a generic reference (md = NEW ty_t( ( `a` ) ) with md TYPE REF TO data)'
 ---
 
-# The 702 downport: `NEW` of a data type becomes `CREATE OBJECT`
+# The 702 downport: `NEW` of a data type becomes `CREATE OBJECT` (what is left after #4819)
 
 ```abap
 DATA(lr_tab) = NEW ty_t( ).
