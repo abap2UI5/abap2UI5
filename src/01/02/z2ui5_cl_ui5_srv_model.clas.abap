@@ -247,14 +247,20 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       CHANGING
         ct_buffer TYPE string_table.
 
-    " one member of an object of json_ns_text - see ty_s_ns_member
+    " one member of an object whose names may carry a namespace - a node
+    " of json_ns_text (node) or a column of a row of the fast path (name,
+    " json_kind): key is the member of the object (the namespace for a
+    " namespaced name, the name for every other one), sub the member of
+    " the namespace object (empty for a plain name)
     TYPES:
-      BEGIN OF ty_s_ns_node_member,
-        key  TYPE string,
-        sub  TYPE string,
-        node TYPE z2ui5_if_ajson_types=>ty_node,
-      END OF ty_s_ns_node_member.
-    TYPES ty_t_ns_node_member TYPE STANDARD TABLE OF ty_s_ns_node_member WITH EMPTY KEY.
+      BEGIN OF ty_s_ns_member,
+        key       TYPE string,
+        sub       TYPE string,
+        name      TYPE string,
+        json_kind TYPE z2ui5_cl_ui5_util_context=>ty_s_flat_comp-json_kind,
+        node      TYPE z2ui5_if_ajson_types=>ty_node,
+      END OF ty_s_ns_member.
+    TYPES ty_t_ns_member TYPE STANDARD TABLE OF ty_s_ns_member WITH EMPTY KEY.
 
     "! the members of the object whose children sit at iv_path, in the
     "! order json_ns_object writes them
@@ -263,7 +269,23 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         it_tree       TYPE z2ui5_if_ajson_types=>ty_nodes_ts
         iv_path       TYPE string
       RETURNING
-        VALUE(result) TYPE ty_t_ns_node_member.
+        VALUE(result) TYPE ty_t_ns_member.
+
+    "! a member named iv_name: key and sub split by ns_split
+    CLASS-METHODS ns_member
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_ns_member.
+
+    "! members in the order ajson writes the grouped object: unchanged when
+    "! no name carries a namespace; otherwise a member named like a
+    "! namespace of its neighbours gives way to the namespace object (two
+    "! keys of one name are no document) and the rest is sorted by key and
+    "! sub, so a namespace's members follow each other
+    CLASS-METHODS ns_members_order
+      CHANGING
+        ct_member TYPE ty_t_ns_member.
 
     "! a component name `/ABC/FIELD` split into its namespace `ABC` and
     "! its name `FIELD` - both empty for a name without a namespace
@@ -291,14 +313,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       CHANGING
         cv_json TYPE string.
 
-    "! one row as a JSON object, it_comp sorted by name
-    CLASS-METHODS json_row
-      IMPORTING
-        is_row        TYPE any
-        it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
-      RETURNING
-        VALUE(result) TYPE string.
-
     "! one elementary cell as JSON text - the rendering ajson writes for
     "! the json_kind of its column (see json_row)
     CLASS-METHODS json_cell
@@ -308,22 +322,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    " one member of a row of the fast path whose columns carry a
-    " namespace: key is the member of the row object (the namespace for a
-    " namespaced column, the name for every other one), sub the member of
-    " the namespace object (empty for a plain column), name the component
-    TYPES:
-      BEGIN OF ty_s_ns_member,
-        key       TYPE string,
-        sub       TYPE string,
-        name      TYPE string,
-        json_kind TYPE z2ui5_cl_ui5_util_context=>ty_s_flat_comp-json_kind,
-      END OF ty_s_ns_member.
-    TYPES ty_t_ns_member TYPE STANDARD TABLE OF ty_s_ns_member WITH EMPTY KEY.
-
-    "! the members of a row with namespaced columns in the order ajson
-    "! writes the grouped object (json_ns_text) - empty when no column
-    "! carries a namespace, and json_row writes the row as before
+    "! the members of a row in the order ajson writes its object - it_comp
+    "! sorted by name, with namespaced columns grouped (json_ns_text)
     CLASS-METHODS json_ns_members
       IMPORTING
         it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
@@ -332,7 +332,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     "! one row as a JSON object, the namespaced columns grouped
     "! (json_ns_members)
-    CLASS-METHODS json_row_ns
+    CLASS-METHODS json_row
       IMPORTING
         is_row        TYPE any
         it_member     TYPE ty_t_ns_member
@@ -1328,33 +1328,46 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD json_ns_object_members.
 
-    DATA lt_ns TYPE string_table.
-
     " the members as ajson orders them - by name, the primary key - with a
     " namespaced one filed under its namespace
     LOOP AT it_tree INTO DATA(ls_node) WHERE path = iv_path. "#EC CI_SORTSEQ
-      ns_split( EXPORTING iv_name  = ls_node-name
-                IMPORTING ev_ns    = DATA(lv_ns)
-                          ev_field = DATA(lv_field) ).
-      IF lv_ns IS INITIAL.
-        INSERT VALUE #( key  = ls_node-name
-                        node = ls_node ) INTO TABLE result.
-      ELSE.
-        INSERT VALUE #( key  = lv_ns
-                        sub  = lv_field
-                        node = ls_node ) INTO TABLE result.
-        INSERT lv_ns INTO TABLE lt_ns.
-      ENDIF.
+      DATA(ls_member) = ns_member( ls_node-name ).
+      ls_member-node = ls_node.
+      INSERT ls_member INTO TABLE result.
+    ENDLOOP.
+    ns_members_order( CHANGING ct_member = result ).
+
+  ENDMETHOD.
+
+  METHOD ns_member.
+
+    ns_split( EXPORTING iv_name  = iv_name
+              IMPORTING ev_ns    = DATA(lv_ns)
+                        ev_field = DATA(lv_field) ).
+    result-name = iv_name.
+    IF lv_ns IS INITIAL.
+      result-key = iv_name.
+    ELSE.
+      result-key = lv_ns.
+      result-sub = lv_field.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD ns_members_order.
+
+    DATA lt_ns TYPE string_table.
+
+    LOOP AT ct_member REFERENCE INTO DATA(lr_member) WHERE sub IS NOT INITIAL. "#EC CI_SORTSEQ
+      INSERT lr_member->key INTO TABLE lt_ns.
     ENDLOOP.
     IF lt_ns IS INITIAL.
       RETURN.
     ENDIF.
-    " a member named like a namespace of its neighbours gives way to the
-    " namespace object - see json_ns_text
-    LOOP AT lt_ns INTO lv_ns.
-      DELETE result WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
+    LOOP AT lt_ns INTO DATA(lv_ns).
+      DELETE ct_member WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
     ENDLOOP.
-    SORT result BY key sub.
+    SORT ct_member BY key sub.
 
   ENDMETHOD.
 
@@ -1534,20 +1547,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     SORT lt_comp BY name.
     " a column with a namespace (`/ABC/FIELD`) is written below an object
     " of its namespace, as json_ns_text writes it on the general road - so
-    " a row template can bind it relatively. Empty for every other row,
-    " which keeps the text it always had
+    " a row template can bind it relatively. Every other row keeps the
+    " text it always had
     DATA(lt_member) = json_ns_members( lt_comp ).
 
     IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
       " the flat structure itself
       ASSIGN ir_ref->* TO <row>.
-      IF lt_member IS NOT INITIAL.
-        result = json_row_ns( is_row    = <row>
-                              it_member = lt_member ).
-        RETURN.
-      ENDIF.
-      result = json_row( is_row  = <row>
-                         it_comp = lt_comp ).
+      result = json_row( is_row    = <row>
+                         it_member = lt_member ).
       RETURN.
     ENDIF.
 
@@ -1555,42 +1563,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " system when the kinds differ (abap-check, section 5)
     ASSIGN ir_ref->* TO <tab>.
     DATA lt_row TYPE string_table.
-    IF lt_member IS NOT INITIAL.
-      LOOP AT <tab> ASSIGNING <row>.
-        INSERT json_row_ns( is_row    = <row>
-                            it_member = lt_member ) INTO TABLE lt_row.
-      ENDLOOP.
-    ELSE.
-      LOOP AT <tab> ASSIGNING <row>.
-        INSERT json_row( is_row  = <row>
-                         it_comp = lt_comp ) INTO TABLE lt_row.
-      ENDLOOP.
-    ENDIF.
+    LOOP AT <tab> ASSIGNING <row>.
+      INSERT json_row( is_row    = <row>
+                       it_member = lt_member ) INTO TABLE lt_row.
+    ENDLOOP.
     result = `[` && concat_lines_of( table = lt_row
                                      sep   = `,` ) && `]`.
-
-  ENDMETHOD.
-
-  METHOD json_row.
-
-    FIELD-SYMBOLS <cell> TYPE any.
-    DATA lt_member TYPE string_table.
-
-    LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
-      ASSIGN COMPONENT lr_comp->name OF STRUCTURE is_row TO <cell>.
-      IF sy-subrc <> 0.
-        " the names come from the RTTI of this very row - loud rather than
-        " a document missing a column
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = |MODEL_FAST_PATH_COMPONENT_LOST - internal error while serializing a bound table: column | &&
-                  |'{ lr_comp->name }' is missing from its own row. This is a framework defect, not an app error - please report it|.
-      ENDIF.
-      INSERT |"{ lr_comp->name }":{ json_cell( iv_cell  = <cell>
-                                                iv_kind = lr_comp->json_kind ) }| INTO TABLE lt_member.
-    ENDLOOP.
-    result = `{` && concat_lines_of( table = lt_member
-                                     sep   = `,` ) && `}`.
 
   ENDMETHOD.
 
@@ -1627,38 +1605,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD json_ns_members.
 
-    DATA lt_ns TYPE string_table.
-
     LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
-      ns_split( EXPORTING iv_name  = lr_comp->name
-                IMPORTING ev_ns    = DATA(lv_ns)
-                          ev_field = DATA(lv_field) ).
-      IF lv_ns IS INITIAL.
-        INSERT VALUE #( key       = lr_comp->name
-                        name      = lr_comp->name
-                        json_kind = lr_comp->json_kind ) INTO TABLE result.
-      ELSE.
-        INSERT VALUE #( key       = lv_ns
-                        sub       = lv_field
-                        name      = lr_comp->name
-                        json_kind = lr_comp->json_kind ) INTO TABLE result.
-        INSERT lv_ns INTO TABLE lt_ns.
-      ENDIF.
+      DATA(ls_member) = ns_member( lr_comp->name ).
+      ls_member-json_kind = lr_comp->json_kind.
+      INSERT ls_member INTO TABLE result.
     ENDLOOP.
-    IF lt_ns IS INITIAL.
-      CLEAR result.
-      RETURN.
-    ENDIF.
     " the rule of json_ns_object: a column named like a namespace of its
     " neighbours gives way to the namespace object
-    LOOP AT lt_ns INTO lv_ns.
-      DELETE result WHERE key = lv_ns AND sub IS INITIAL. "#EC CI_SORTSEQ
-    ENDLOOP.
-    SORT result BY key sub.
+    ns_members_order( CHANGING ct_member = result ).
 
   ENDMETHOD.
 
-  METHOD json_row_ns.
+  METHOD json_row.
 
     FIELD-SYMBOLS <cell> TYPE any.
     DATA lt_member TYPE string_table.
