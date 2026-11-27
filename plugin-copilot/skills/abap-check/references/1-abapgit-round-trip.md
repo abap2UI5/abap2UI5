@@ -74,6 +74,13 @@ imported; the app is gone.
   No script decides this one; it is a character count over a whole statement
   and the threshold is not documented as a fixed number.
 
+  **One shape of it is gated: the `&&` chain.** A statement that joins more
+  than 90 operands with `&&` is a `check:abapgit` finding (`operands`) — 82
+  are measured to import on 7.02, 311 and up are refused by the class
+  scanner (#2947, #3074, both generated text classes). Close the chain and
+  continue with `result = result && …`. The rule counts operands, not
+  characters, so a view builder chain is not touched by it.
+
   The same PR carries the second lesson: the file was **generated**, the split
   was first made by hand, and the next `npm run overview` would have restored
   the over-length statement. **Fix the generator, then regenerate** — see

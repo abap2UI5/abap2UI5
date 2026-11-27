@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* 702: z2ui5_cl_ui5f_bundle, z2ui5_cl_ui5f_cc and z2ui5_cl_ui5f_devtools compile on 7.02 again - the generator joined up to 441 literals with && in one statement, more than the 7.02 class scanner takes; it closes the statement every 80 operands now, and check:abapgit fails a statement in src/ over 90 (#3074)
 * Drafts: a table that a public REF TO data attribute got after the first roundtrip, and that is never bound, is kept in the draft - it was gone on the next roundtrip
 * Binding: a bound attribute that can no longer be reached (its reference was cleared) no longer makes every roundtrip send the whole model and mark the client model stale after nav_app_call( )
 * Windowed tables and z2ui5_cl_ui5_test: sorters and response actions are read in array order - from ten entries on, the eleventh came before the third

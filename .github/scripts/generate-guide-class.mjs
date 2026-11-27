@@ -35,7 +35,7 @@
  * Every 80 operands the chain is closed and a new statement starts
  * (`result = result && ...`) - ABAP caps the length of one chained
  * expression. It was 400 guide LINES, as tools/app2abap/trans2abap.js
- * does, but a long line here is several operands: on 7.02 the class
+ * did until #3074, but a long line here is several operands: on 7.02 the class
  * scanner (CL_OO_SOURCE_SCANNER_CLASS) refused those statements, abapGit
  * reported "error initializing CLAS scanner" and created an empty class
  * shell (#2947). 80 operands per statement is the size measured to import.

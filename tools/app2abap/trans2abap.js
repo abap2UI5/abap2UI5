@@ -275,13 +275,25 @@ function minifyJs(source, relPath) {
 // ABAP line, so no line of the source can outgrow ABAP's 255: a line break of
 // the text is |\n| behind the last literal of its line, a longer line simply
 // continues in the next literal. A backtick literal keeps its trailing
-// blanks, so a cut may fall anywhere. Every STATEMENT_LINES lines the
-// expression is closed and continued (ABAP caps the length of a chained
-// expression), and every PART_LINES lines a new private method begins, so no
-// method grows with the bundle: get( ) joins the parts.
+// blanks, so a cut may fall anywhere. Every STATEMENT_OPERANDS operands the
+// expression is closed and continued with `result = result && ...`, and every
+// PART_LINES lines a new private method begins, so no method grows with the
+// bundle: get( ) joins the parts.
+//
+// The statement was closed every 400 LINES until 1.151.0 - up to 441
+// operands - and the 7.02 class scanner refuses a statement that size:
+// abapGit reported the class as erroneous and z2ui5_cl_ui5f_bundle, _cc and
+// _devtools did not compile (#3074). It is the same limit
+// .github/scripts/generate-guide-class.mjs met in #2947 and closes at 80
+// operands since; the guide's statements of 82 import on 7.02.
+// check:abapgit (`operands`) fails any statement in src/ over
+// MAX_CONCAT_OPERANDS, so the next generator that forgets it is caught.
 const CHUNK = 200;
-const STATEMENT_LINES = 400;
+const STATEMENT_OPERANDS = 80;
 const PART_LINES = 2000;
+
+// a line of abapLiteralLines( ) is one literal, or one literal and |\n|
+const lineOperands = (line) => (line.endsWith(" && |\\n|") ? 2 : 1);
 
 function abapLiteralLines(text) {
   const lines = [];
@@ -310,14 +322,28 @@ function abapTextClass(className, text, header) {
   if (!parts.length) parts.push(["``"]);
   const partName = (i) => `part_${String(i + 1).padStart(2, "0")}`;
   const body = (partLines) => {
-    const out = [];
-    for (let i = 0; i < partLines.length; i += STATEMENT_LINES) {
-      const statement = partLines.slice(i, i + STATEMENT_LINES);
-      const first =
-        i === 0 ? "    result = " : "    result = result &&\n             ";
-      out.push(`${first}${statement.join(" &&\n             ")}.`);
+    const statements = [];
+    let statement = [];
+    let operands = 0;
+    for (const line of partLines) {
+      // result = result && ... is one operand of the continued statement
+      const limit = statements.length ? STATEMENT_OPERANDS - 1 : STATEMENT_OPERANDS;
+      if (statement.length && operands + lineOperands(line) > limit) {
+        statements.push(statement);
+        statement = [];
+        operands = 0;
+      }
+      statement.push(line);
+      operands += lineOperands(line);
     }
-    return out.join("\n");
+    statements.push(statement);
+    return statements
+      .map((lines, i) => {
+        const first =
+          i === 0 ? "    result = " : "    result = result &&\n             ";
+        return `${first}${lines.join(" &&\n             ")}.`;
+      })
+      .join("\n");
   };
   return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
