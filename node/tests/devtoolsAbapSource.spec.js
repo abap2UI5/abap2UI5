@@ -18,8 +18,9 @@ function loadAbapSource({
   windowStub,
   fetchImpl,
   endpoint = null,
+  endpointPrefix = null,
 } = {}) {
-  const ctx = specContext({ responseData, oBody, endpoint });
+  const ctx = specContext({ responseData, oBody, endpoint, endpointPrefix });
   const { module } = loadModule("devtools/AbapSource.js", {
     deps: {
       "z2ui5/devtools/Inspect": { findEventLine: () => eventLine },
@@ -81,6 +82,41 @@ test.describe("Source url", () => {
       },
     });
     expect(AbapSource.sourceUrl(ctx)).toBe(EXPECTED_URL);
+  });
+
+  // Behind a proxy with a path prefix (the Work Zone destination proxy, an
+  // approuter route) the system is reached through that prefix: the origin
+  // alone left the proxy, and the tab, the ADT link and the source in Report
+  // a Bug came back blank. state.endpointPrefix is what Component.init
+  // derived - the Websocket control and the resource roots use the same.
+  test("puts the proxy's path prefix in front, as the Websocket control does", () => {
+    const page = {
+      location: {
+        origin: "https://portal.example.com",
+        href: "https://portal.example.com/site/index.html",
+      },
+      open() {},
+    };
+    const prefixed = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      endpoint: "/dynamic_dest/ABAP/sap/bc/z2ui5",
+      endpointPrefix: "/dynamic_dest/ABAP",
+      windowStub: page,
+    });
+    expect(prefixed.AbapSource.sourceUrl(prefixed.ctx)).toBe(
+      "https://portal.example.com/dynamic_dest/ABAP/sap/bc/adt/oo/classes/Z2UI5_CL_MY_APP/source/main",
+    );
+
+    // a prefix on another origin carries that origin
+    const remote = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      endpoint: "https://abap.example.com/route/sap/bc/z2ui5",
+      endpointPrefix: "https://abap.example.com/route",
+      windowStub: page,
+    });
+    expect(remote.AbapSource.sourceUrl(remote.ctx)).toBe(
+      "https://abap.example.com/route/sap/bc/adt/oo/classes/Z2UI5_CL_MY_APP/source/main",
+    );
   });
 
   test("is empty when the app class name is unknown", () => {

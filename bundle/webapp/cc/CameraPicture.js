@@ -110,7 +110,13 @@ sap.ui.define(
         // (AGENTS.md rule 10), the binding still carries them to the model
         this.setProperty("value", resultb64, true);
         this.setProperty("thumbnail", thumbB64, true);
-        this.fireOnPhoto({ photo: resultb64 });
+        // the user may take a while in the dialog: a roundtrip that started
+        // meanwhile (a push, a timer tick) dropped the photo's event on its
+        // busy guard - it waits for that one instead
+        this._cancelFire?.();
+        this._cancelFire = Lib.fireWhenIdle(this, () =>
+          this.fireOnPhoto({ photo: resultb64 }),
+        );
         this._stopCamera();
         return true;
       },
@@ -259,6 +265,7 @@ sap.ui.define(
 
       exit() {
         this._stopCamera();
+        this._cancelFire?.();
         if (this._oButton) this._oButton.destroy();
         if (this._oScanDialog) this._oScanDialog.destroy();
       },

@@ -531,6 +531,35 @@ sap.ui.define(
       fire();
     }
 
+    // The same wait for a CONTROL's event: `fire` (the control's own
+    // fireXxx call) runs right away when no roundtrip is in flight, else
+    // one macrotask after that roundtrip landed - asked again then, so a
+    // roundtrip that started meanwhile is waited for too. For an event a
+    // control fires at an arbitrary time after an async API answered (a
+    // native scan, an Excel selection, a captured photo): fired straight
+    // into a roundtrip in flight, eB dropped it on its busy guard. The
+    // macrotask is the one Websocket._scheduleDrain explains - the
+    // roundtrip-end hooks run before View1 clears the busy flag. `owner`
+    // destroyed meanwhile gets nothing. Returns a function that cancels
+    // the wait (for a newer value that replaces this one, or the exit).
+    function fireWhenIdle(owner, fire) {
+      let cancel = () => {};
+      const attempt = () => {
+        cancel = () => {};
+        if (isDestroyed(owner)) return;
+        if (Context.of(owner)?.state.isBusy) {
+          cancel = afterRoundtrip(owner, () => {
+            const id = setTimeout(attempt, 0);
+            cancel = () => clearTimeout(id);
+          });
+          return;
+        }
+        fire();
+      };
+      attempt();
+      return () => cancel();
+    }
+
     // Run every callback in `callbacks` (the shared callback arrays above),
     // swallowing individual failures so one bad callback cannot break the
     // whole event sequence.
@@ -1501,6 +1530,7 @@ sap.ui.define(
       requireODataModel,
       afterRoundtrip,
       dispatchWhenIdle,
+      fireWhenIdle,
       withinFileSize,
       isAlive,
       claimOnce,

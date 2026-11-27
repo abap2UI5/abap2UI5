@@ -14,7 +14,8 @@ const { loadLib, classEnv } = require("./loadLibModule");
 //   - destroyed-guard: a scan settling after teardown is a silent no-op.
 function load({ native } = {}) {
   const errors = [];
-  const Lib = { ...loadLib().Lib, logError: (m) => errors.push(m) };
+  const { Lib: realLib, state } = loadLib();
+  const Lib = { ...realLib, logError: (m) => errors.push(m) };
 
   const listeners = new Map();
   const win = {
@@ -105,7 +106,7 @@ function load({ native } = {}) {
     return out;
   }
 
-  return { makeInstance, render, errors, win, listeners, buttons };
+  return { makeInstance, render, errors, win, listeners, buttons, state };
 }
 
 // A bridge whose scanBarcode( ) the spec settles by hand.
@@ -133,6 +134,30 @@ test("a scanned value lands in value and fires OnScan", async () => {
   expect(inst._props.value).toBe("4006381333931");
   expect(inst.scans).toEqual([{ value: "4006381333931" }]);
   expect(inst.errorEvents).toEqual([]);
+});
+
+// The scan answers whenever the user is done. A roundtrip that started
+// meanwhile (a push, a timer tick) met OnScan with its busy guard and eB
+// dropped it - the scanned code never reached the backend.
+test("a scan answering while a roundtrip is in flight fires once it landed", async () => {
+  const { calls, native } = manualBridge();
+  const { makeInstance, state } = load({ native });
+  const inst = makeInstance();
+
+  const done = inst.scan();
+  state.isBusy = true;
+  calls[0].resolve("4006381333931");
+  await done;
+
+  expect(inst._props.value).toBe("4006381333931");
+  expect(inst.scans).toEqual([]);
+
+  // the roundtrip lands: hooks first, then the busy flag clears
+  for (const fn of [...state.onRoundtripEnd]) fn();
+  state.isBusy = false;
+  await new Promise((r) => setTimeout(r, 0));
+
+  expect(inst.scans).toEqual([{ value: "4006381333931" }]);
 });
 
 test("a cancelled scan fires OnError without a log line", async () => {

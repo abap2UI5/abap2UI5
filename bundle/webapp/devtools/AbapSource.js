@@ -10,7 +10,7 @@
 // Which app is running is a question about ONE component context
 // (core/Context.js): every function takes it first and reads the last
 // response off ctx.state. The source cache stays page-wide on purpose -
-// it is keyed by the source URL (sourceUrl: the system's origin and the
+// it is keyed by the source URL (sourceUrl: the system's base URL and the
 // class), and that URL answers the same whichever instance asks for it.
 sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
   "use strict";
@@ -18,7 +18,7 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
   // { url, source } of the last SUCCESSFUL fetch. Keyed by the source URL,
   // not the class name alone: a navigation swaps the app under the tools,
   // and two components on one page may talk to two SYSTEMS (an embedded
-  // one's endpoint on another origin, systemOrigin) that both have a class
+  // one's endpoint on another origin, systemBase) that both have a class
   // of that name - keyed by the name, the second showed the first one's
   // source. Not kept for the life of the page either: the developer
   // edits the class in ADT while the app runs, so the Source tab refetches
@@ -26,18 +26,32 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
   // and the export read what it fetched last.
   let cache = null;
 
+  // an endpointPrefix that carries an origin of its own
+  const HTTP_SCHEME = /^https?:\/\//i;
+
   // The class name of the running app, as the backend reported it in
   // the last response. Empty before the first response arrived.
   function appName(ctx) {
     return ctx?.state?.responseData?.S_FRONT?.APP || "";
   }
 
-  // The origin of the SYSTEM the app talks to: the page's own, unless the
-  // component was given an endpoint on another origin (an embedded
-  // component on a host's page, Component.init) - ADT lives next to the
-  // service node, not next to the host page, so a URL built from the
-  // page's origin 404ed there and the tab stayed blank.
-  function systemOrigin(ctx) {
+  // Where the SYSTEM the app talks to is reached: the page's own origin,
+  // unless the component was given an endpoint on another origin (an
+  // embedded component on a host's page, Component.init) - ADT lives next
+  // to the service node, not next to the host page, so a URL built from
+  // the page's origin 404ed there and the tab stayed blank. Behind a proxy
+  // with a path prefix of its own (the Work Zone destination proxy
+  // /dynamic_dest/<name>/sap/bc/z2ui5, an approuter route) the origin
+  // alone left the proxy: the prefix goes in front too, as for the
+  // resource roots and the Websocket control (state.endpointPrefix, null
+  // when nothing can be said about it - then the endpoint's origin).
+  function systemBase(ctx) {
+    const prefix = ctx?.state?.endpointPrefix;
+    if (typeof prefix === "string") {
+      return HTTP_SCHEME.test(prefix)
+        ? prefix
+        : window.location.origin + prefix;
+    }
     const endpoint = ctx?.state?.endpoint;
     if (endpoint) {
       try {
@@ -54,7 +68,7 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
   function sourceUrl(ctx) {
     const name = appName(ctx);
     if (!name) return "";
-    return `${systemOrigin(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main`;
+    return `${systemBase(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main`;
   }
 
   // The ADT url, deep-linked at the handler of the event the last
