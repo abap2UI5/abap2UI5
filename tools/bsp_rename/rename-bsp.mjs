@@ -312,26 +312,39 @@ function replaceTokens(content, pairs) {
 // the namespace replaces the "sap" path segment (SAP convention for
 // namespaced BSPs) and the remaining bare tokens are the ICF node name
 // fields, which carry only the leaf name (no slashes allowed).
-function transformSicf(content, N) {
+//
+// The paths and the bare tokens go through ONE replaceTokens pass. They used
+// to be two: the paths first, then the tokens over what the first had
+// written - the two-pass bug again, for a namespace that holds the old name.
+// /Z2UI5/ made /sap/bc/z2ui5/ into /sap/bc/z2ui5/ui5/, whose namespace
+// segment the second pass then took for the old node name: the node shipped
+// as /sap/bc/ui5/ui5/, and as no url ended in /z2ui5/ any more, none of the
+// three namespace nodes was generated. A path starts with "/" and a token
+// with a letter, so the two never compete for one position.
+export function transformSicf(content, N) {
   if (N.ns) {
-    const c = content
-      .split(`/bsp/sap/${OLD_LO}/`).join(`/bsp/${N.nsLo}/${N.leafLo}/`)
-      .split(`/ui5_ui5/sap/${OLD_LO}/`).join(`/ui5_ui5/${N.nsLo}/${N.leafLo}/`)
-      .split(`/sap/bc/${OLD_LO}/`).join(`/sap/bc/${N.nsLo}/${N.leafLo}/`);
-    return replaceTokens(c, tokenPairs(N, N.leafUp, N.leafLo));
+    return replaceTokens(content, [
+      [`/bsp/sap/${OLD_LO}/`, `/bsp/${N.nsLo}/${N.leafLo}/`],
+      [`/ui5_ui5/sap/${OLD_LO}/`, `/ui5_ui5/${N.nsLo}/${N.leafLo}/`],
+      [`/sap/bc/${OLD_LO}/`, `/sap/bc/${N.nsLo}/${N.leafLo}/`],
+      ...tokenPairs(N, N.leafUp, N.leafLo),
+    ]);
   }
   return replaceTokens(content, tokenPairs(N, N.up, N.lo));
 }
 
 // SMIM folder: the MIME URL of a namespaced BSP is /SAP/BC/BSP/<NS>/<NAME>.
-function transformSmim(content, N) {
-  let c = content;
+// One pass, for the reason transformSicf has: /BSP/Z2UI5/UI5, written for the
+// namespace /Z2UI5/, must not be renamed again.
+export function transformSmim(content, N) {
   if (N.ns) {
-    c = c
-      .split(`/BSP/SAP/${OLD_UP}`).join(`/BSP/${N.ns}/${N.leafUp}`)
-      .split(`/bsp/sap/${OLD_LO}`).join(`/bsp/${N.nsLo}/${N.leafLo}`);
+    return replaceTokens(content, [
+      [`/BSP/SAP/${OLD_UP}`, `/BSP/${N.ns}/${N.leafUp}`],
+      [`/bsp/sap/${OLD_LO}`, `/bsp/${N.nsLo}/${N.leafLo}`],
+      ...tokenPairs(N, N.up, N.lo),
+    ]);
   }
-  return replaceTokens(c, tokenPairs(N, N.up, N.lo));
+  return replaceTokens(content, tokenPairs(N, N.up, N.lo));
 }
 
 // BSP application descriptor (z2ui5.wapa.xml): APPLNAME/APPLEXT carry the
