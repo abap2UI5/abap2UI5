@@ -54,7 +54,13 @@ sap.ui.define(
   (Lib, Format, Persist, Diff) => {
     "use strict";
 
-    const { formatBytes, renderValue } = Format;
+    const {
+      formatBytes,
+      renderValue,
+      isSecretName,
+      maskSecrets,
+      secretValues,
+    } = Format;
     const { collectDiff, diffLines, MAX_DIFF_ENTRIES } = Diff;
 
     // Tier 1 ring size. 50 records of metadata are far below the error log's
@@ -887,20 +893,23 @@ sap.ui.define(
       header.push("");
       for (const entry of out) {
         const path = entry.path || "/";
+        // Diffed on the raw models - a changed password IS a change - and
+        // masked where it is shown: a path through a secret-named key
+        // (/S_LOGIN/PASSWORD) masks the value, an added structure masks
+        // its secret fields (Format.maskSecrets)
+        const secret = isSecretName(path);
+        const show = (value) =>
+          renderValue(maskSecrets(value, { secret }), MAX_DIFF_VALUE_CHARS);
         if (entry.type === "added") {
           header.push(`+ ${path}`);
-          header.push(`    ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}`);
+          header.push(`    ${show(entry.after)}`);
         } else if (entry.type === "removed") {
           header.push(`- ${path}`);
-          header.push(`    ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}`);
+          header.push(`    ${show(entry.before)}`);
         } else {
           header.push(`~ ${path}`);
-          header.push(
-            `    before: ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}`,
-          );
-          header.push(
-            `    after:  ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}`,
-          );
+          header.push(`    before: ${show(entry.before)}`);
+          header.push(`    after:  ${show(entry.after)}`);
         }
       }
       if (out.length >= MAX_DIFF_ENTRIES) {
@@ -917,8 +926,19 @@ sap.ui.define(
     // is deliberately not offered: the recorded requests reference draft ids
     // that only exist in the session that produced them, and re-sending them
     // would drive real backend state.
+    //
+    // The file is made to be attached to an issue, so it carries no secret:
+    // every value below a secret-named key is masked, and so is every
+    // string equal to one of those values anywhere in the same record - an
+    // event argument (T_EVENT_ARG) is positional and has no name, but a
+    // password handed to the event is the value the model holds under one.
+    function maskRecord(record) {
+      const values = secretValues([record.request, record.response]);
+      return maskSecrets(record, { values });
+    }
+
     function exportJson(ctx) {
-      const records = getRecords(ctx);
+      const records = getRecords(ctx).map(maskRecord);
       const payload = {
         exportedAt: new Date().toISOString(),
         payloadsRecorded: isRecordingPayloads(),

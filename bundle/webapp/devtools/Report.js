@@ -18,8 +18,13 @@
 // whose tools are open - so the builders take it first and hand it to the
 // tab registry, which renders that context's state.
 sap.ui.define(
-  ["z2ui5/core/Lib", "z2ui5/devtools/Recorder", "z2ui5/devtools/Tabs"],
-  (Lib, Recorder, Tabs) => {
+  [
+    "z2ui5/core/Lib",
+    "z2ui5/devtools/Format",
+    "z2ui5/devtools/Recorder",
+    "z2ui5/devtools/Tabs",
+  ],
+  (Lib, Format, Recorder, Tabs) => {
     "use strict";
 
     // Max characters per section; long ones are truncated so the export
@@ -37,13 +42,13 @@ sap.ui.define(
     // pasted into a public GitHub issue, and it held the session's
     // sap-contextid (the Environment section) and the last request body
     // and response model - every value typed in the last roundtrip, a
-    // password bound with _bind( ) included. The live tabs keep them; the
-    // export masks the context id and the value of every JSON key that
+    // password bound with _bind( ) included. The live JSON tabs keep them;
+    // the export masks the context id and the value of every JSON key that
     // names a secret. A key, not a control: the report sees the model and
-    // the body as text, and a name is what it can judge.
-    const SECRET_KEY =
-      /^[A-Za-z0-9_/-]*(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)[A-Za-z0-9_/-]*$/i;
-    const MASK = "***";
+    // the body as text, and a name is what it can judge. The tabs that are
+    // not JSON (Bindings, Journey, Model Diff) already mask at render time
+    // with the same test, Format.isSecretName - one test, not a copy here.
+    const { isSecretName, MASK } = Format;
 
     function redactForExport(text) {
       return String(text)
@@ -53,7 +58,7 @@ sap.ui.define(
         .replace(
           /"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,
           (match, key, colon) =>
-            SECRET_KEY.test(key) ? `"${key}"${colon}"${MASK}"` : match,
+            isSecretName(key) ? `"${key}"${colon}"${MASK}"` : match,
         );
     }
 

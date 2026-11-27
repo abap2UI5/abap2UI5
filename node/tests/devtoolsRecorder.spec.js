@@ -833,3 +833,44 @@ test("records the messages of both wire forms", () => {
     { target: "MESSAGE_BOX", method: "error", text: "Failed" },
   ]);
 });
+
+test.describe("secrets", () => {
+  test("the model diff masks a changed secret and the secret fields of an added structure", () => {
+    const h = loadRecorder();
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
+    h.state.oBody = fakeRequest({ event: "FIRST" });
+    h.state.responseData = fakeResponse({ model: { PASSWORD: "old-pw", NAME: "a" } });
+    h.fireAfterRendering();
+    h.state.oBody = fakeRequest({ event: "SECOND" });
+    h.state.responseData = fakeResponse({
+      model: { PASSWORD: "new-pw", NAME: "b", S_LOGIN: { USER: "u", PWD: "pw2" } },
+    });
+    h.fireAfterRendering();
+    const diff = h.Recorder.formatModelDiff(h.ctx);
+    // still reported as a change - only its values are hidden
+    expect(diff).toContain("~ /PASSWORD");
+    expect(diff).toContain("+ /S_LOGIN");
+    for (const secret of ["old-pw", "new-pw", "pw2"]) {
+      expect(diff).not.toContain(secret);
+    }
+    expect(diff).toContain("after:  b");
+  });
+
+  test("the history download carries no secret, an event argument included", () => {
+    const h = loadRecorder();
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
+    const body = fakeRequest({ event: "LOGIN", model: { MV_PASSWORD: "hunter2" } });
+    body.S_FRONT.T_EVENT_ARG = ["hunter2", "keep-me"];
+    h.state.oBody = body;
+    h.state.responseData = fakeResponse({ model: { MV_PASSWORD: "hunter2" } });
+    h.fireAfterRendering();
+    const json = h.Recorder.exportJson(h.ctx);
+    expect(json).not.toContain("hunter2");
+    expect(json).toContain("keep-me");
+    // the live record is untouched - the export masks a copy
+    const list = h.Recorder.getRecords(h.ctx);
+    expect(list[list.length - 1].request.MODEL.MV_PASSWORD).toBe("hunter2");
+  });
+});
