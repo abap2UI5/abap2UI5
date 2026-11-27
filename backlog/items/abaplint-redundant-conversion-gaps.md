@@ -12,7 +12,7 @@ evidence:
   - 'abap2UI5-addons/layout-management 5b1c8b7: the same pull warned on z2ui5_cl_layo_xml_builder->xml_build_table, `->a( n = `growing` v = CONV #( xsdbool( i_growingthreshold <> space ) ) )` with v TYPE string'
   - 'abap2UI5-addons/table-maintenance 3751aca: the same day''s pull warned "Redundant conversion for type ROLLNAME" on z2ui5_cl_tm_pop->get_fixval, `rtti_get_t_ddic_fixed_values( CONV #( dfies->rollname ) )` with the formal `rollname TYPE clike` - CONV # takes the operand''s own type for a generic formal'
   - 'probed 2026-11-24 against abaplint 2.120.113, redundant_conversion on, an isolated syntax-clean class: `take_clike( CONV #( df->roll ) )` - no finding; reported are `DATA(x) = CONV string( lv_string )`, `lv_s = CONV string( lv_s )` and `lv_tgt = CONV string( lr->n )` (typed target); NOT reported are `DATA(x) = CONV string( lr->n )`, `DATA(x) = CONV string( <fs>-n )` and `take_str( CONV #( xsdbool( a > 0 ) ) )`'
-  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "Redundant conversion" at 57 sites - S5S had redundant_conversion off, and most sites are shapes the rule reports when on; two are not: take_clike( CONV #( ''SIMPLE_VIEW'' ) ) (a literal into a generic formal) and take_str( CONV string( lr->n ) ) (a component through a reference as an actual parameter)'
+  - 'one activation of a consumer system on S/4HANA (2026-11-24) warned "Redundant conversion" at 57 sites - the repository had redundant_conversion off, and most sites are shapes the rule reports when on; two are not: take_clike( CONV #( ''SIMPLE_VIEW'' ) ) (a literal into a generic formal) and take_str( CONV string( lr->n ) ) (a component through a reference as an actual parameter)'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: CONV #( ''SIMPLE_VIEW'' ) into val TYPE clike and take_str( v = CONV string( lr_nv->name ) ) inside LOOP ... REFERENCE INTO - no finding; lv_str = CONV string( lr_nv->name ) on the next line IS reported, and so are take_str( v = CONV string( ls_nv-name ) ) and take_str( v = CONV string( lv_msg ) )'
 ---
 
@@ -51,7 +51,7 @@ operand's own type, so the CONV converts nothing.
 3. report `CONV #( operand )` as the actual of a generic formal - `#` takes
    the operand's type, the result is the operand.
 
-Two more shapes, measured on 2.120.116 (S5S, a consumer system,
+Two more shapes, measured on 2.120.116 (a consumer system,
 2026-11-24):
 
 ```abap

@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 80891c9: /KRO/UI501_SLG1 loads application logs in packages - WHILE lv_from <= lv_total. DATA(lv_to) = lv_from + p_pack - 1. ... lv_from = lv_to + 1. ENDWHILE. - the loop terminates; suspicious_loop says it runs once or forever'
+  - 'a downstream app repository: a report loads application logs in packages - WHILE lv_from <= lv_total. DATA(lv_to) = lv_from + p_pack - 1. ... lv_from = lv_to + 1. ENDWHILE. - the loop terminates; suspicious_loop says it runs once or forever'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: the shape above reports "WHILE condition does not change after the first iteration, the loop body sets lv_from to the same value in every iteration, the loop runs once or forever (suspicious_loop)"; the same method with DATA lv_to TYPE i. before the loop and lv_to = lv_from + 10 - 1. inside it is not reported'
 ---
 
@@ -45,6 +45,6 @@ the loop.
 
 **Where.** `suspicious_loop`. **Effort:** S.
 
-**Source.** S5S (a consumer system).
+**Source.** A consumer system.
 
 A PR is being prepared from oblomov-dev/fork-abaplint.

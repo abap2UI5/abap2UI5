@@ -109,7 +109,7 @@ numbered section above.
   the `.abap` files so the `.clas.xml` keeps its `object_naming` and
   `xml_consistency` coverage.
 - **A red abaplint finding on valid ABAP, measured on 2.120.116 (2026-11-24,
-  S5S against its own system).** `check_syntax` refuses a dynamic attribute
+  a downstream repository against its own system).** `check_syntax` refuses a dynamic attribute
   on `REF TO object` (`mo_app->('MV_FLAG') = abap_true.`, "Not an object
   reference") and a dereferenced generic `REF TO data` as a table operand
   (`INSERT LINES OF lt INTO TABLE mr_tab->*.`) - both fixed upstream by

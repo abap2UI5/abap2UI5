@@ -52,6 +52,13 @@ the hard half, and an item without it is a wish.
 `evidence:` is required because an item without a case that happened is
 speculation, and a backlog of speculation is one nobody reads twice.
 
+Evidence is **neutral**: this repository is public, and an item says what
+happened, not where. No name of a consumer, a project or a system, no
+namespace of theirs, no class, table or method of their code, no private
+repository - "a consumer system on S/4HANA", "a downstream app repository",
+"a method" carry the case just as well. The same holds for the cases in the
+skills.
+
 `checked_upstream:` is required once an **open** item is more than 30 days
 old, and `npm run backlog` fails without it. It used to be optional, and not
 one item in the stock carried it — an instruction nothing asks for is an
