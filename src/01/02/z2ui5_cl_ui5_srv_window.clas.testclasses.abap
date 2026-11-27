@@ -162,6 +162,22 @@ CLASS ltcl_test IMPLEMENTATION.
                   ( group = 2 path = `PRICE` operator = `BT`       value1 = `1` value2 = `9.5` ) )
         act = lt_filter ).
 
+    " path and operator are the browser's and end up in the app's WHERE:
+    " a path that cannot name a component and an operator off the list are
+    " dropped, the rest of the filter stays
+    lt_filter = z2ui5_cl_ui5_srv_window=>parse_filter(
+        `[[["NAME) OR (1 = 1","EQ","x"],["NAME","EQ' OR 'x","y"],["NAME","EQ","z"]],` &&
+        `[["","GT",1],["/NS/F","GE",2]]]` ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = VALUE z2ui5_if_client=>ty_t_bind_tab_filter(
+                  ( group = 1 path = `NAME`  operator = `EQ` value1 = `z` )
+                  ( group = 2 path = `/NS/F` operator = `GE` value1 = `2` ) )
+        act = lt_filter ).
+
+    DATA(lt_sort) = z2ui5_cl_ui5_srv_window=>parse_sort( `[{"PATH":"NAME DESCENDING, (SELECT"},{"PATH":"id"}]` ).
+    cl_abap_unit_assert=>assert_equals( exp = VALUE z2ui5_if_client=>ty_t_bind_tab_sort( ( path = `ID` ) )
+                                        act = lt_sort ).
+
   ENDMETHOD.
 
   METHOD parse_broken.

@@ -1135,7 +1135,9 @@ INTERFACE z2ui5_if_client
   TYPES:
     "! One sorter of a window request (ty_s_window_request): the column (the
     "! upper-case component name of the row) and the direction, in the order
-    "! the browser listed them.
+    "! the browser listed them. The browser chose the path: only A-Z, 0-9, _
+    "! and / reach the app, still check it against the row's components
+    "! before it goes into a dynamic ORDER BY.
     BEGIN OF ty_s_bind_tab_sort,
       path       TYPE string,
       descending TYPE abap_bool,
@@ -1150,6 +1152,11 @@ INTERFACE z2ui5_if_client
     "! BT NB Contains NotContains StartsWith NotStartsWith EndsWith
     "! NotEndsWith; value2 is the upper bound of BT / NB. The values are the
     "! browser's text - a date as yyyy-MM-dd. Applying them is the app's.
+    "! A condition with another operator, or a path of other characters than
+    "! A-Z, 0-9, _ and /, is dropped before the app sees it; the path is still
+    "! the browser's choice and the values its text - check the path against
+    "! the row's components and pass the values as host variables, never as
+    "! tokens of a dynamic WHERE.
     BEGIN OF ty_s_bind_tab_filter,
       group    TYPE i,
       path     TYPE string,
@@ -1443,6 +1450,8 @@ INTERFACE z2ui5_if_client
   "! REPLACE instead of falling out of the app - and the change fires the
   "! registered event, which shows the fallback route:
   "! ``client->follow_up_action( val = client->cs_event-hash_back t_arg = VALUE #( ( `/` ) ) )``.
+  "! An app embedded on a host's page that did not hand it the page leaves the
+  "! host's history and hash alone: there the action is refused and logged.
   "!
   "! **cs_event-store_data** - write a structure into the browser's local or
   "! session storage, the write half of the invisible z2ui5:Storage control

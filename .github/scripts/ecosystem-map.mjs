@@ -29,7 +29,7 @@
  * - correct the entry. An unreachable host is a note, never a finding (the
  * convention lib-ecosystem.mjs states for every cross-repository read).
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import {
   ROOT, MAP_FILE, loadMap, parseJsonc, abaplintDeps, lsRemote, headsOf, defaultBranchOf,
@@ -40,6 +40,9 @@ const RELEASE_MODES = ["core", "with-core", "own", "none"];
 const STATUSES = ["active", "retired"];
 const SHA = /^[0-9a-f]{40}$/;
 const REPO = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+/* The shared table numbering: z2ui5_t_<two digits>, one owner each. */
+const TABLE = /^z2ui5_t_\d{2}$/;
+const TABLE_FILE = /(?:^|\/)(z2ui5_t_\d{2})\.tabl\.xml$/i;
 
 const problems = [];
 const notes = [];
@@ -73,6 +76,7 @@ if (!Array.isArray(map.repos) || map.repos.length === 0) {
 }
 
 const KINDS = Object.keys(map.kinds ?? {});
+const tableOwner = new Map();
 const VIAS = Object.keys(map.pinKinds ?? {});
 const known = new Map();
 for (const e of map.repos) {
@@ -85,7 +89,16 @@ for (const e of map.repos) {
 
 for (const e of map.repos) {
   const at = e.repo ?? "(entry without repo)";
-  onlyKeys(at, e, ["repo", "formerly", "checkout", "kind", "status", "defaultBranch", "branches", "release", "dependsOn", "check", "canary", "note"]);
+  onlyKeys(at, e, ["repo", "formerly", "checkout", "kind", "status", "defaultBranch", "branches", "release", "tables", "dependsOn", "check", "canary", "note"]);
+  if (e.tables !== undefined) {
+    if (!Array.isArray(e.tables) || e.tables.length === 0) bad(at, "tables must be a non-empty list (leave it out for none)");
+    for (const t of e.tables ?? []) {
+      if (!TABLE.test(t)) { bad(at, `table "${t}" is not z2ui5_t_<two digits>, lower case`); continue; }
+      const owner = tableOwner.get(t);
+      if (owner) bad(at, `table ${t} is ${owner}'s too - one number, one owner (a second pull overwrites the first table)`);
+      else tableOwner.set(t, e.repo);
+    }
+  }
   if (!REPO.test(e.repo ?? "")) bad(at, `repo must be owner/name`);
   if (e.formerly !== undefined && !(Array.isArray(e.formerly) && e.formerly.every((n) => REPO.test(n)))) bad(at, "formerly must be a list of owner/name");
   if (e.checkout !== undefined && !isStr(e.checkout)) bad(at, "checkout must be a directory name");
@@ -169,6 +182,46 @@ if (core) {
     const finding = checkPinText(p, text);
     if (finding) bad(`${core.repo} -> ${p.repo} (${p.file})`, finding);
   }
+}
+
+/* ...and its tables against the tables of this tree: a table added or
+ * dropped here without the map fails in the same pull request. */
+if (core) {
+  const here = [];
+  const walk = (dir) => {
+    for (const d of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, d.name);
+      if (d.isDirectory()) walk(full);
+      else if (TABLE_FILE.test(d.name)) here.push(d.name.match(TABLE_FILE)[1].toLowerCase());
+    }
+  };
+  if (existsSync(path.join(ROOT, "src"))) walk(path.join(ROOT, "src"));
+  const listed = core.tables ?? [];
+  const drift = tableDrift(listed, here);
+  if (drift) bad(`${core.repo} tables`, `${drift} (src/ of this tree)`);
+}
+
+/* Two lists of table names, as a finding or null. */
+function tableDrift(listed, found) {
+  const missing = found.filter((t) => !listed.includes(t));
+  const extra = listed.filter((t) => !found.includes(t));
+  if (!missing.length && !extra.length) return null;
+  return [
+    missing.length ? `ships ${missing.join(", ")}, not in the map` : "",
+    extra.length ? `the map lists ${extra.join(", ")}, not shipped` : "",
+  ].filter(Boolean).join("; ");
+}
+
+/* The number after the highest one owned - what the next addon table
+ * takes. Not the lowest gap: _02 was released once and removed, and the
+ * gaps below are left free on purpose (AGENTS.md, "Naming and object
+ * types"), so a number is never handed out a second time. The 9x numbers
+ * are not the addons' range: z2ui5_t_91 is the core's legacy table, which
+ * abap2UI5-ext ships. */
+function nextFreeTable() {
+  const numbers = [...tableOwner.keys()].map((t) => Number(t.slice(-2))).filter((n) => n < 90);
+  const high = Math.max(0, ...numbers);
+  return high < 89 ? `z2ui5_t_${String(high + 1).padStart(2, "0")}` : null;
 }
 
 /* What a file says about one pin, compared with the map. null = agrees. */
@@ -264,6 +317,23 @@ async function live() {
     }
     for (const b of Object.keys(e.branches)) if (!heads.has(b)) bad(at, `branch ${b} does not exist`);
 
+    // the tables the map gives the repository, against its tree
+    if (e.tables || e.kind === "addon") {
+      try {
+        const { status, text } = await fetchText(`https://api.github.com/repos/${e.repo}/git/trees/${e.defaultBranch}?recursive=1`);
+        const tree = status === 200 ? JSON.parse(text) : null;
+        if (!tree || tree.truncated) {
+          notes.push(`${at} tables: tree not read (${tree ? "truncated" : `API answered ${status}`})`);
+        } else {
+          const found = [...new Set(tree.tree.map((n) => n.path.match(TABLE_FILE)?.[1]?.toLowerCase()).filter(Boolean))];
+          const drift = tableDrift(e.tables ?? [], found);
+          if (drift) bad(`${at} tables`, drift);
+        }
+      } catch (err) {
+        notes.push(`${at} tables: not checked (${err.message.split("\n")[0]})`);
+      }
+    }
+
     for (const p of e.dependsOn) {
       const pat = `${at} -> ${p.repo} (${p.via}, ${p.file})`;
       try {
@@ -309,7 +379,9 @@ function report() {
     process.exit(1);
   }
   const repos = map.repos?.length ?? 0;
+  const free = nextFreeTable();
   console.log(`ecosystem-map: ${repos} repositories - shape OK, the core's pins match this tree`
+    + `; ${tableOwner.size} z2ui5_t_NN tables recorded, one owner each${free ? `, next free ${free}` : ""}`
     + (LIVE ? `; live: ${pinsChecked} pins checked against GitHub/npm, ${notes.length} not reachable` : ""));
   process.exit(0);
 }

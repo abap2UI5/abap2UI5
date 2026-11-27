@@ -29,9 +29,10 @@ two are the dispatcher; the third is a branch an app only carries when it has
 something to seed once. All three are arms of ONE `IF`/`ELSEIF` chain (§2).
 The app builds a UI5 XML view as a string, binds ABAP attributes into it,
 and registers named events. Between roundtrips the framework
-serializes the app object into a draft table and restores it — **every PUBLIC
-attribute is persisted state and travels to the browser with the model**, so
-bound data goes in `PUBLIC SECTION`, everything else in `PROTECTED SECTION`.
+serializes the app object into a draft table and restores it — **every
+attribute, whatever its section, is persisted state; only the bound ones
+travel to the browser**. `_bind( )` needs a PUBLIC attribute, so bound data
+goes in `PUBLIC SECTION`, everything else in `PROTECTED SECTION`.
 There is no JavaScript, no OData service and no deployment step: activate the
 class, call the ICF endpoint with `?app_start=zcl_my_app`.
 <!-- /essentials:model -->
@@ -44,7 +45,7 @@ CLASS zcl_my_app DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-    " ONLY bound data here - PUBLIC attributes are serialized every roundtrip
+    " ONLY bound data here - _bind( ) needs PUBLIC, every attribute is persisted
     TYPES: BEGIN OF ty_s_item,
              product  TYPE string,
              quantity TYPE i,
@@ -452,8 +453,13 @@ reasoning:
     ENDCASE.
   ```
 
-  The framework neither sorts nor filters nor counts, and no view is rendered
-  again: change `t_rows` and `mv_total` and the push does the rest
+  `t_sort` and `t_filter` are the browser's: the framework drops a path that
+  could not name a component and an operator off the documented list, but
+  which column is asked for and every value are the user's choice. Check a
+  path against the components of your row type before it goes into a
+  dynamic `ORDER BY` / `WHERE`, and pass the values as host variables (`@`),
+  never as text of the clause. The framework neither sorts nor filters nor
+  counts, and no view is rendered again: change `t_rows` and `mv_total` and the push does the rest
   (`mv_total` is read anew on every response when it is an attribute of the
   app). Because `t_rows` is exactly what the browser shows, a row index, a
   cell edit or a selection is the row of `t_rows` with that index. `val` may
@@ -832,10 +838,12 @@ reasoning:
   UI5 API — post-1.71 members need a UI5 release that has them; a wrong
   aggregation name 404s the whole view on old releases.
   <!-- essentials:state -->
-- **State discipline**: every PUBLIC attribute is serialized into the draft
-  and sent to the browser on every render. Large helper data, catalogs and
-  anything not bound belongs in PROTECTED (or is re-read per request) — a
-  bloated public section makes every click slower.
+- **State discipline**: every attribute - PUBLIC, PROTECTED and PRIVATE
+  alike - is serialized into the draft on every roundtrip; only the bound
+  ones are sent to the browser. Moving a large catalog to PROTECTED does not
+  shrink the draft: data the next roundtrip does not need is CLEARed or
+  re-read per request. Keep the PUBLIC section to what is bound - the
+  framework walks every public structure and reference each roundtrip.
   <!-- /essentials:state -->
 - Authorization is **the app's job**: any user who can reach the ICF node can
   start any `z2ui5_if_app` class. The framework performs no `AUTHORITY-CHECK`
@@ -975,7 +983,11 @@ reasoning:
   attribute the draft cannot carry fails in the test as it fails in the
   browser. The drafts are kept in memory - no row reaches `Z2UI5_T_01` - and
   an app that calls `set_session_stateful( )` keeps its instance, as on a
-  system. The harness runs on a system, on ABAP Cloud, on 7.02 and in the
+  system. The LUW is the system's too: the framework runs `ROLLBACK WORK`
+  before and after `main( )` of an app that is not stateful, so data a test
+  inserts in `setup` without `COMMIT WORK` is gone when `main( )` reads it -
+  seed the data the app SELECTs through a test double that survives a
+  rollback, or commit it and delete it in `teardown`. The harness runs on a system, on ABAP Cloud, on 7.02 and in the
   transpiled backend (`run_unit_tests` of the MCP server, `npm run test:unit`
   in an app-template project). It ships with the release after 1.150.0; on an older
   installation a hand-written `ltd_client` with `INTERFACES z2ui5_if_client
@@ -1099,3 +1111,9 @@ DATA(ls_answer) = li_llm->chat( system    = `Answer briefly.`
   attribute, the app instance is serialized every roundtrip. Keep the
   conversation (`mt_chat`) as the attribute instead, and call in an event
   branch: the user waits for the whole answer.
+- **Do not `_bind( )` the conversation you pass to `chat( )`.** A bound
+  attribute is written back by the browser, so a user could rewrite the
+  history - forge assistant turns, or inflate it to drive the token cost.
+  Bind a display copy (`mt_chat_view`) and keep the authoritative history
+  unbound. A row with a role other than `user` / `assistant` is refused
+  (`z2ui5_cx_ui5_llm`): the system prompt is the `system` parameter.
