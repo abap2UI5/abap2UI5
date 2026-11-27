@@ -46,6 +46,15 @@ sap.ui.define(
     const ACTIVE_DATA_MIME =
       /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i;
 
+    // ... and the same for the FILENAME: the saved file's extension, not the
+    // data: MIME type, decides how the operating system opens it, so
+    // `data:application/octet-stream;base64,<html>` saved as x.html or x.hta
+    // passed the MIME guard above and was the very vector it names. The
+    // extensions a browser (or mshta, for .hta) opens as active
+    // content; checked after the sanitizer, on the name the file gets.
+    const ACTIVE_FILE_EXTENSION =
+      /\.(html?|shtml|xht(ml)?|svgz?|hta|mht(ml)?)\s*$/i;
+
     // Path separators and control characters a download filename must not
     // carry, so it cannot escape the download directory or mislead.
     // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here
@@ -68,11 +77,33 @@ sap.ui.define(
         Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");
         return;
       }
-      const a = document.createElement("a");
-      a.href = args[1];
       // Fall back to an empty download attribute when the backend omits the
       // filename, so the anchor never carries the literal "undefined".
-      a.download = String(args[2] || "").replace(UNSAFE_FILENAME_CHARS, "_");
+      const filename = String(args[2] || "").replace(
+        UNSAFE_FILENAME_CHARS,
+        "_",
+      );
+      if (ACTIVE_FILE_EXTENSION.test(filename)) {
+        Lib.logError("DOWNLOAD_B64_FILE: blocked active file extension");
+        return;
+      }
+      const a = document.createElement("a");
+      a.href = args[1];
+      a.download = filename;
+      // A browser ignores `download` on a cross-origin http(s) URL and
+      // NAVIGATES to it - in this tab, which made the action the top-level
+      // redirect to any host that LOCATION_RELOAD and OPEN_NEW_TAB refuse
+      // (same origin only), and ended the app. A cross-origin target gets a
+      // tab of its own instead, severed like OPEN_NEW_TAB's: a response the
+      // server sends as an attachment is still just downloaded.
+      const parsed = new URL(href);
+      if (
+        (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+        parsed.origin !== window.location.origin
+      ) {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      }
       // Firefox only triggers a programmatic download click when the anchor
       // is part of the document, so attach it briefly and remove it again.
       document.body.appendChild(a);

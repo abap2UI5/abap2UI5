@@ -8,7 +8,9 @@ const { loadLib, withSpecController } = require("./loadLibModule");
 // Lib validators (loadLibModule), so what is pinned here is the shipped
 // guard chain, not a stub's opinion of it:
 //   DOWNLOAD_B64_FILE  protocol guard, active data: MIME block, filename
-//                      sanitizer, the attach-click-remove anchor dance
+//                      sanitizer, active file extension block, a
+//                      cross-origin URL in a tab of its own, the
+//                      attach-click-remove anchor dance
 //   OPEN_NEW_TAB       same-origin guard, opened with noopener,noreferrer
 //   URLHELPER          CR/LF header-injection block, REDIRECT protocol
 //                      guard (external http/https allowed, schemes not)
@@ -607,6 +609,82 @@ test.describe("DOWNLOAD_B64_FILE", () => {
     ]);
 
     expect(anchors[0].download).toBe("a_b_c_d_e_f_g_h_i_j_k.txt");
+  });
+
+  // the extension, not the data: MIME type, decides how the OS opens the
+  // saved file - an octet-stream holding HTML saved as .html / .hta passed
+  // the MIME guard
+  for (const name of [
+    "invoice.html",
+    "invoice.HTM",
+    "x.hta",
+    "page.xhtml",
+    "logo.svg",
+    "archive.mhtml",
+  ]) {
+    test(`an active file extension is blocked: ${name}`, () => {
+      const { handlers, anchors, errors } = load();
+
+      handlers.DOWNLOAD_B64_FILE(null, [
+        "DOWNLOAD_B64_FILE",
+        "data:application/octet-stream;base64,PHNjcmlwdD4=",
+        name,
+      ]);
+
+      expect(anchors).toHaveLength(0);
+      expect(errors()).toContain(
+        "DOWNLOAD_B64_FILE: blocked active file extension",
+      );
+    });
+  }
+
+  test("an extension that merely starts like an active one passes", () => {
+    const { handlers, anchors } = load();
+
+    handlers.DOWNLOAD_B64_FILE(null, [
+      "DOWNLOAD_B64_FILE",
+      "data:application/octet-stream;base64,QQ==",
+      "notes.html.txt",
+    ]);
+
+    expect(anchors).toHaveLength(1);
+    expect(anchors[0].download).toBe("notes.html.txt");
+  });
+
+  test("a cross-origin http(s) URL goes to a tab of its own, never this one", () => {
+    // a browser ignores `download` across origins and navigates - in this
+    // tab, the top-level redirect LOCATION_RELOAD refuses
+    const { handlers, anchors } = load();
+
+    handlers.DOWNLOAD_B64_FILE(null, [
+      "DOWNLOAD_B64_FILE",
+      "https://files.example.com/report.pdf",
+      "report.pdf",
+    ]);
+
+    expect(anchors).toHaveLength(1);
+    expect(anchors[0].clicks).toBe(1);
+    expect(anchors[0].target).toBe("_blank");
+    expect(anchors[0].rel).toBe("noopener noreferrer");
+  });
+
+  test("a same-origin URL and a data: URL download in place", () => {
+    const { handlers, anchors } = load();
+
+    handlers.DOWNLOAD_B64_FILE(null, [
+      "DOWNLOAD_B64_FILE",
+      "/sap/z2ui5/file?id=1",
+      "report.pdf",
+    ]);
+    handlers.DOWNLOAD_B64_FILE(null, [
+      "DOWNLOAD_B64_FILE",
+      "data:application/pdf;base64,QQ==",
+      "report.pdf",
+    ]);
+
+    expect(anchors).toHaveLength(2);
+    expect(anchors[0].target).toBeUndefined();
+    expect(anchors[1].target).toBeUndefined();
   });
 
   test("a missing filename becomes '', never the string 'undefined'", () => {

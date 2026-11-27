@@ -11,12 +11,20 @@ Legend
 
 unreleased
 ----------
++ z2ui5_if_app: an ABAP-Doc header naming z2ui5_cl_ui5_llm=>guide( ), the guide of the installed release, for a developer or an AI assistant working in the system through ADT - the interface every app names said nothing about where the guide is
 * Tooling: the downport refuses a config whose src/ glob it cannot retarget (abaplint --fix would have rewritten src/ in place), express:live answers a malformed request with 400 instead of exiting, abap2ui5-own-apps empties only a folder it wrote, and pack-npm / verify quote their arguments on Windows
 * Embedded on a host page: the BUSY_INDICATOR action covers the component's own area - it blocked the host's whole page, and its hide took down the host's own indicator; hash_back is refused there - it navigated the host's history or overwrote its route
 * hash_back: a push of the hash the browser already stands on counts as no history entry, and the route a nav_app_call pushes under hash_routing does - the next hash_back took the wrong branch, leaving the app or staying put
 * A restart in place from the error dialog: a view of the app that ended, still being built, no longer lands over the restarted app
 * Custom controls: a bundle load that never answers fails the view after 60 seconds instead of stalling every later view; SET_ODATA_MODEL builds no client for a component that went while the class loaded
 * app2abap: the generated text classes keep every line within 255 characters on a line of backticks, the bundle embeds only the files git knows of a frontend kind (a .DS_Store broke it, a stray note would have shipped), and a relative sap.ui.define dependency on a deferred bundle is refused like an absolute one
+* HTTP handler: every response carries X-Content-Type-Options: nosniff of its own - an exit that assigned its own security headers instead of appending, or one that raised, dropped it, also from the text/plain 500 bodies
+* App start: a name that is no global class name (an absolute type name such as \PROGRAM=...\CLASS=...) is refused - it started a local app class of any program
+* window_bind_tab: a sorter or filter condition whose path could not name a component, or whose operator is off the documented list, is dropped before the app sees it; the docs say to check the path and pass the values as host variables
+* 500 body: the event name and the draft id of the context line go through the same character allow-list as the url and app_start - a crafted event name was quoted as sent; security.md said the url was never reflected, it is, filtered
+* Language models: a message with a role other than user or assistant is refused - a bound conversation let the browser add a system turn that overrode the app's system prompt; the guide says to keep the conversation passed to chat( ) unbound
+* DOWNLOAD_B64_FILE: a file name with an active extension (.html, .hta, .svg, ...) is refused whatever the data: type, and a URL of another origin opens in a tab of its own - the browser navigated the app's tab to it
+! Error overlay: no Retry after a 504 or the client timeout - the backend had the request and may have run it, and Retry ran the event a second time (a document posted twice); the overlay says to check the result instead
 * Developer tools: Report a Bug, the history download and the ABAP Unit export mask secrets in every view - a value bound to a name like PASSWORD went out in the Bindings, Journey and Model Diff text, in the raw history JSON, and in structure fields and table cells of the unit test
 * Developer tools: "Copied" only when the clipboard took it - a refused or empty copy said Copied anyway
 * After a fatal error nothing is sent until Retry or Restart - a shortcut, a hash change or a websocket message still sent a roundtrip behind the error dialog, and Retry then replayed an older draft

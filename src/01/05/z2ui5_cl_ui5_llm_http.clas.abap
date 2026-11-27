@@ -17,8 +17,9 @@ CLASS z2ui5_cl_ui5_llm_http DEFINITION
     INTERFACES z2ui5_if_ui5_llm_http.
 
     "! The checks of a chat call before its body is written: a model, at
-    "! least one message and none without content, and a temperature that
-    "! is a JSON number. iv_api names the endpoint in the texts.
+    "! least one message and none without content or with a role other than
+    "! cs_role-user / cs_role-assistant, and a temperature that is a JSON
+    "! number. iv_api names the endpoint in the texts.
     CLASS-METHODS check_call
       IMPORTING
         iv_model       TYPE string
@@ -66,6 +67,19 @@ CLASS z2ui5_cl_ui5_llm_http IMPLEMENTATION.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
         EXPORTING
           text = |message { sy-tabix } has no content - { iv_api } refuses an empty message|.
+    ENDLOOP.
+    " The role goes out as it stands, and an app that binds its conversation
+    " (to show it in a list) lets the browser write it: a row with the role
+    " system is an instruction over the app's own system prompt on every
+    " OpenAI-compatible endpoint. The interface allows user and assistant;
+    " the system prompt is the parameter system. The value is not echoed -
+    " it may come from the request.
+    LOOP AT it_message TRANSPORTING NO FIELDS
+         WHERE role <> z2ui5_if_ui5_llm=>cs_role-user
+           AND role <> z2ui5_if_ui5_llm=>cs_role-assistant. "#EC CI_SORTSEQ
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text = |message { sy-tabix } has a role other than user or assistant - the system prompt is the parameter system|.
     ENDLOOP.
 
     IF iv_temperature IS INITIAL.

@@ -22,6 +22,9 @@
  *        names with the value the map records, and the ref it names exists
  *        (a branch or tag by `git ls-remote`, a commit by the GitHub API -
  *        GITHUB_TOKEN / GH_TOKEN raise the rate limit, nothing needs one).
+ *        It also lists, as "behind" and never as a finding, every npm pin
+ *        on a package of the family (@abap2ui5/*, @cap2ui5/*) that the
+ *        package's newest release does not satisfy.
  *
  * --live is NOT part of `npm run gates`: it reads forty repositories over the
  * network, and a pin that moved over there is news about that repository, not
@@ -29,7 +32,7 @@
  * - correct the entry. An unreachable host is a note, never a finding (the
  * convention lib-ecosystem.mjs states for every cross-repository read).
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import {
   ROOT, MAP_FILE, loadMap, parseJsonc, abaplintDeps, lsRemote, headsOf, defaultBranchOf,
@@ -40,9 +43,13 @@ const RELEASE_MODES = ["core", "with-core", "own", "none"];
 const STATUSES = ["active", "retired"];
 const SHA = /^[0-9a-f]{40}$/;
 const REPO = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+/* The shared table numbering: z2ui5_t_<two digits>, one owner each. */
+const TABLE = /^z2ui5_t_\d{2}$/;
+const TABLE_FILE = /(?:^|\/)(z2ui5_t_\d{2})\.tabl\.xml$/i;
 
 const problems = [];
 const notes = [];
+const behind = [];
 let pinsChecked = 0;
 const bad = (where, msg) => problems.push(`${where}: ${msg}`);
 
@@ -73,6 +80,7 @@ if (!Array.isArray(map.repos) || map.repos.length === 0) {
 }
 
 const KINDS = Object.keys(map.kinds ?? {});
+const tableOwner = new Map();
 const VIAS = Object.keys(map.pinKinds ?? {});
 const known = new Map();
 for (const e of map.repos) {
@@ -85,7 +93,16 @@ for (const e of map.repos) {
 
 for (const e of map.repos) {
   const at = e.repo ?? "(entry without repo)";
-  onlyKeys(at, e, ["repo", "formerly", "checkout", "kind", "status", "defaultBranch", "branches", "release", "dependsOn", "check", "canary", "note"]);
+  onlyKeys(at, e, ["repo", "formerly", "checkout", "kind", "status", "defaultBranch", "branches", "release", "tables", "dependsOn", "check", "canary", "note"]);
+  if (e.tables !== undefined) {
+    if (!Array.isArray(e.tables) || e.tables.length === 0) bad(at, "tables must be a non-empty list (leave it out for none)");
+    for (const t of e.tables ?? []) {
+      if (!TABLE.test(t)) { bad(at, `table "${t}" is not z2ui5_t_<two digits>, lower case`); continue; }
+      const owner = tableOwner.get(t);
+      if (owner) bad(at, `table ${t} is ${owner}'s too - one number, one owner (a second pull overwrites the first table)`);
+      else tableOwner.set(t, e.repo);
+    }
+  }
   if (!REPO.test(e.repo ?? "")) bad(at, `repo must be owner/name`);
   if (e.formerly !== undefined && !(Array.isArray(e.formerly) && e.formerly.every((n) => REPO.test(n)))) bad(at, "formerly must be a list of owner/name");
   if (e.checkout !== undefined && !isStr(e.checkout)) bad(at, "checkout must be a directory name");
@@ -171,6 +188,46 @@ if (core) {
   }
 }
 
+/* ...and its tables against the tables of this tree: a table added or
+ * dropped here without the map fails in the same pull request. */
+if (core) {
+  const here = [];
+  const walk = (dir) => {
+    for (const d of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, d.name);
+      if (d.isDirectory()) walk(full);
+      else if (TABLE_FILE.test(d.name)) here.push(d.name.match(TABLE_FILE)[1].toLowerCase());
+    }
+  };
+  if (existsSync(path.join(ROOT, "src"))) walk(path.join(ROOT, "src"));
+  const listed = core.tables ?? [];
+  const drift = tableDrift(listed, here);
+  if (drift) bad(`${core.repo} tables`, `${drift} (src/ of this tree)`);
+}
+
+/* Two lists of table names, as a finding or null. */
+function tableDrift(listed, found) {
+  const missing = found.filter((t) => !listed.includes(t));
+  const extra = listed.filter((t) => !found.includes(t));
+  if (!missing.length && !extra.length) return null;
+  return [
+    missing.length ? `ships ${missing.join(", ")}, not in the map` : "",
+    extra.length ? `the map lists ${extra.join(", ")}, not shipped` : "",
+  ].filter(Boolean).join("; ");
+}
+
+/* The number after the highest one owned - what the next addon table
+ * takes. Not the lowest gap: _02 was released once and removed, and the
+ * gaps below are left free on purpose (AGENTS.md, "Naming and object
+ * types"), so a number is never handed out a second time. The 9x numbers
+ * are not the addons' range: z2ui5_t_91 is the core's legacy table, which
+ * abap2UI5-ext ships. */
+function nextFreeTable() {
+  const numbers = [...tableOwner.keys()].map((t) => Number(t.slice(-2))).filter((n) => n < 90);
+  const high = Math.max(0, ...numbers);
+  return high < 89 ? `z2ui5_t_${String(high + 1).padStart(2, "0")}` : null;
+}
+
 /* What a file says about one pin, compared with the map. null = agrees. */
 function checkPinText(p, text) {
   switch (p.via) {
@@ -218,6 +275,38 @@ function checkPinText(p, text) {
 
 /* ----------------------------------------------------------------- --live */
 
+/* A pin on a package of the family that the newest release no longer
+ * satisfies. Not a finding - the map records what the file says, and a pin
+ * may lag on purpose - but after a core release it is the list of what was
+ * not carried along: on 2026-11-27, a day after 1.151.0 shipped wire
+ * protocol 3, the protocol suite still installed 1.150.0 and two embed
+ * repositories older runtimes, and five sample corpora a linter two minors
+ * behind (RELEASING.md, "After a release"). */
+const OWN_SCOPES = /^@(abap2ui5|cap2ui5)\//;
+
+/* Does the npm range `range` admit version `v`? true / false, or null when
+ * the range is not one of the shapes the ecosystem writes (X.Y.Z, ^X.Y.Z,
+ * ~X.Y.Z, >=X.Y.Z, >=X.Y.Z <A.B.C). No dependency on semver: a caret on
+ * 0.x stays within the minor, as npm resolves it. */
+function admits(range, v) {
+  const num = (s) => s.split(".").map(Number);
+  const cmp = (a, b) => { for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; };
+  const V = num(v);
+  const r = range.trim();
+  let m;
+  if ((m = /^(\d+\.\d+\.\d+)$/.exec(r))) return cmp(V, num(m[1])) === 0;
+  if ((m = /^\^(\d+\.\d+\.\d+)$/.exec(r))) {
+    const L = num(m[1]);
+    const upper = L[0] > 0 ? [L[0] + 1, 0, 0] : L[1] > 0 ? [0, L[1] + 1, 0] : [0, 0, L[2] + 1];
+    return cmp(V, L) >= 0 && cmp(V, upper) < 0;
+  }
+  if ((m = /^~(\d+\.\d+\.\d+)$/.exec(r))) { const L = num(m[1]); return cmp(V, L) >= 0 && cmp(V, [L[0], L[1] + 1, 0]) < 0; }
+  if ((m = /^>=\s*(\d+\.\d+\.\d+)(?:\s+<\s*(\d+\.\d+\.\d+))?$/.exec(r))) {
+    return cmp(V, num(m[1])) >= 0 && (!m[2] || cmp(V, num(m[2])) < 0);
+  }
+  return null;
+}
+
 async function fetchText(url) {
   const headers = {};
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -264,6 +353,23 @@ async function live() {
     }
     for (const b of Object.keys(e.branches)) if (!heads.has(b)) bad(at, `branch ${b} does not exist`);
 
+    // the tables the map gives the repository, against its tree
+    if (e.tables || e.kind === "addon") {
+      try {
+        const { status, text } = await fetchText(`https://api.github.com/repos/${e.repo}/git/trees/${e.defaultBranch}?recursive=1`);
+        const tree = status === 200 ? JSON.parse(text) : null;
+        if (!tree || tree.truncated) {
+          notes.push(`${at} tables: tree not read (${tree ? "truncated" : `API answered ${status}`})`);
+        } else {
+          const found = [...new Set(tree.tree.map((n) => n.path.match(TABLE_FILE)?.[1]?.toLowerCase()).filter(Boolean))];
+          const drift = tableDrift(e.tables ?? [], found);
+          if (drift) bad(`${at} tables`, drift);
+        }
+      } catch (err) {
+        notes.push(`${at} tables: not checked (${err.message.split("\n")[0]})`);
+      }
+    }
+
     for (const p of e.dependsOn) {
       const pat = `${at} -> ${p.repo} (${p.via}, ${p.file})`;
       try {
@@ -284,6 +390,9 @@ async function live() {
           if (status === 404) bad(pat, `${pkgName} is not on the npm registry`);
           else if (status === 200 && /^\d+\.\d+\.\d+$/.test(p.ref) && !JSON.parse(text).versions?.[p.ref]) {
             bad(pat, `${pkgName}@${p.ref} is not published`);
+          } else if (status === 200 && OWN_SCOPES.test(pkgName)) {
+            const latest = JSON.parse(text)["dist-tags"]?.latest;
+            if (latest && admits(p.ref, latest) === false) behind.push(`${e.repo}: ${pkgName} ${p.ref} - latest is ${latest} (${p.file})`);
           }
         }
         checked += 1;
@@ -300,6 +409,10 @@ report();
 
 function report() {
   for (const n of notes) console.log(`note: ${n}`);
+  if (behind.length) {
+    console.log(`behind: ${behind.length} pin(s) on @abap2ui5/* or @cap2ui5/* the newest release does not satisfy - not a finding; after a release, carry them along (RELEASING.md):`);
+    for (const b of behind) console.log(`  ${b}`);
+  }
   if (problems.length) {
     console.log(`ecosystem-map: ${problems.length} problem(s) in .github/ecosystem.json${LIVE ? " (live)" : ""}\n`);
     for (const p of problems) console.log(`  ${p}`);
@@ -309,7 +422,9 @@ function report() {
     process.exit(1);
   }
   const repos = map.repos?.length ?? 0;
+  const free = nextFreeTable();
   console.log(`ecosystem-map: ${repos} repositories - shape OK, the core's pins match this tree`
+    + `; ${tableOwner.size} z2ui5_t_NN tables recorded, one owner each${free ? `, next free ${free}` : ""}`
     + (LIVE ? `; live: ${pinsChecked} pins checked against GitHub/npm, ${notes.length} not reachable` : ""));
   process.exit(0);
 }

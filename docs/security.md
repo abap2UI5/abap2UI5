@@ -42,8 +42,8 @@ Browser (UI5 SPA)         ICF / HTTP service        App class          Database
 | Message details cannot inject markup | HTML in message details passes a sanitizer that keeps a fixed set of formatting elements and drops everything else with its content | [lib-sanitizer.spec.js](../node/tests/e2e/lib-sanitizer.spec.js) (XSS regression suite) |
 | A link in a message cannot leave the site unnoticed | The MessagePopover link policy `RELATIVE_ONLY` asks the URL parser whether a link is absolute, not a pattern on its spelling — `/\evil.com`, `\\evil.com` and a control character in `javascript:` were the cases ([changelog](../changelog.txt)) | [browserActions.spec.js](../node/tests/browserActions.spec.js) |
 | A new window gets no handle on the app | `URLHELPER REDIRECT` with a new window opens with `noopener,noreferrer` on every UI5 release, including 1.71 to 1.83 where UI5's own helper does not | [browserActions.spec.js](../node/tests/browserActions.spec.js) |
-| A download cannot smuggle an active document | `download_b64_file` refuses a `data:` URL with an active type (`text/html`, SVG, XML), also when disguised with whitespace or a tab in the scheme | [browserActions.spec.js](../node/tests/browserActions.spec.js) |
-| The 500 body reflects no request data | The error page carries the exception chain for diagnosability, never the URL, host name, client or user; the user exit turns the details off for hardened installations | ABAP unit tests of the handler, and the protocol conformance check `error.no-reflection` |
+| A download cannot smuggle an active document | `download_b64_file` refuses a `data:` URL with an active type (`text/html`, SVG, XML), also when disguised with whitespace or a tab in the scheme, and a file name with an active extension (`.html`, `.hta`, `.svg`, `.xhtml`, `.mht`, ...) whatever the type; a URL of another origin opens in a tab of its own instead of navigating the app away | [browserActions.spec.js](../node/tests/browserActions.spec.js) |
+| The 500 body reflects no request data it did not filter | The error page carries the exception chain for diagnosability, and a context line with the app, the event, the draft id, `app_start` and the URL - each request value stripped to an allow-list of class-name and URL characters (no `<`, `>`, quotes or blanks) and capped; never the host name, client or user. The user exit turns the details off for hardened installations | ABAP unit tests of the handler, and the protocol conformance check `error.no-reflection` |
 | Response bodies are well-formed JSON | A control character in a bound value leaves as a `\u00XX` escape instead of breaking `JSON.parse` in the browser | ABAP unit tests of the handler |
 | Standard CSRF handshake | The frontend answers a `403 X-CSRF-Token: Required` by fetching a token and retrying, so an installation behind an SAP approuter or a token layer with `csrfProtection` on works without configuration | `core/Server.js` |
 | No supply-chain surprise in the toolchain | The three git dependencies are pinned by SHA; the two npm lockfiles are audited weekly against an accepted-advisory list with a reason per entry; dependency review runs on every pull request | [fetch-deps.mjs](../node/setup/fetch-deps.mjs), [npm-audit](../.github/workflows/npm-audit.yaml), [dependency-review](../.github/workflows/dependency-review.yaml) |
@@ -62,10 +62,15 @@ design, and no framework setting replaces them:
    a central one would be a false sense of security
    ([decision](agents/decisions.md)).
 2. **Input validation.** Every attribute bound with `_bind( )` is writable
-   from the client model; that is what two-way binding is. A value that
-   drives a database write, a dynamic `WHERE` clause or a file name is
-   validated in the app before it is used, exactly as a screen field would
-   be. Host variables for SQL, no dynamic tokens built from bound strings.
+   from the client model; that is what a binding is. The event data is the
+   browser's too - the arguments of an event (`get( )-t_event_arg`) and
+   `get( )-r_event_data`, among them the sort and filter of a
+   `window_bind_tab( )` request, whose column path the app is told to apply.
+   A value that drives a database write, a dynamic `WHERE` or `ORDER BY`
+   clause or a file name is validated in the app before it is used, exactly
+   as a screen field would be. Host variables for SQL, no dynamic tokens
+   built from bound strings or event data; a column name is checked against
+   the components of the row type.
 3. **What it hands the browser.** HTML in a message, a URL in a link, a
    script in a custom control: the app decides what reaches the DOM. The
    sanitizer and the link policy are a net, not a substitute for not
