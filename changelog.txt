@@ -12,6 +12,7 @@ Legend
 unreleased
 ----------
 * Binding: a number with more digits than a double keeps (a TZNTSTMPL, DEC 21 or longer, int8, decfloat) goes out as text when its digits need it - the browser rounded it, and the next edit of any sibling field wrote the rounded value back (20240115123045.1234567 became ...045.125)
+* Binding: a structure, a structure cell or a table written as one value reads an emptied date or time as initial and plain digits (yyyyMMdd, HHmmss) like a cell does - an emptied date became blanks on a system, and the structure refused every later edit; its data and object references keep what they held instead of refusing the whole value
 * Binding: a row delta into a table of references to rows goes into the rows they point to, and a row no cell can go into is traced in t_model_skipped - the edit was dropped without a word
 + z2ui5_if_app: an ABAP-Doc header naming z2ui5_cl_ui5_llm=>guide( ), the guide of the installed release, for a developer or an AI assistant working in the system through ADT - the interface every app names said nothing about where the guide is
 * Tooling: the downport refuses a config whose src/ glob it cannot retarget (abaplint --fix would have rewritten src/ in place), express:live answers a malformed request with 400 instead of exiting, abap2ui5-own-apps empties only a folder it wrote, and pack-npm / verify quote their arguments on Windows

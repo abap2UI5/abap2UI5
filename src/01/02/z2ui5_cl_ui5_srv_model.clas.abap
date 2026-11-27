@@ -674,6 +674,69 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    " a reference component of a structure a whole value is written into:
+    " where it is, and the reference it held (json_to_abap_member)
+    TYPES:
+      BEGIN OF ty_s_keep,
+        comp  TYPE REF TO data,
+        value TYPE REF TO data,
+      END OF ty_s_keep.
+    TYPES ty_t_keep TYPE STANDARD TABLE OF ty_s_keep WITH EMPTY KEY.
+
+    "! The members of a whole value made into what to_abap( ) reads, before
+    "! it reads them - see json_to_abap_member. iv_path is a node of io_json
+    "! (empty: its root), ir_ref the data object it is written into (for a
+    "! table line, any line: only its type is asked). iv_keep is abap_true
+    "! while the path runs through structures only - the components there
+    "! are the target's own, and their references are put back after
+    "! to_abap( ) (json_to_abap_keep). ct_col_kind remembers the kinds of the
+    "! columns of a table, so its rows do not ask RTTI per cell
+    METHODS json_to_abap_prepare
+      IMPORTING
+        io_json     TYPE REF TO z2ui5_if_ajson
+        iv_path     TYPE string
+        ir_ref      TYPE REF TO data
+        iv_keep     TYPE abap_bool
+      CHANGING
+        ct_col_kind TYPE ty_t_col_kind
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! one member of a structure node, see json_to_abap_prepare
+    METHODS json_to_abap_member
+      IMPORTING
+        io_json      TYPE REF TO z2ui5_if_ajson
+        iv_path      TYPE string
+        ir_comp      TYPE REF TO data
+        iv_type_kind TYPE string
+        iv_keep      TYPE abap_bool
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! The references of the structure behind ir_ref and of the structures
+    "! below it - not of table rows, which to_abap( ) builds anew - each
+    "! with the reference it holds now: to_abap( ) clears the whole target,
+    "! and a reference takes no value from the wire (json_to_abap_member)
+    METHODS json_to_abap_keep
+      IMPORTING
+        ir_ref  TYPE REF TO data
+      CHANGING
+        ct_keep TYPE ty_t_keep.
+
+    "! A date or a time as the wire carries it, as the digits the ABAP type
+    "! holds: the ISO form (`2024-01-15`, `12:30:00`) unpacked, plain digits
+    "! as they are, and EMPTY for a cleared one - the empty text of a cleared
+    "! DatePicker / TimePicker, and the blanks of a date or time that was once
+    "! stored as text and shipped back as `    -  -  ` / `  :  :  `. Anything
+    "! else is refused (delta_check_digits). iv_type_kind is the target's,
+    "! date or time
+    METHODS date_time_digits
+      IMPORTING
+        iv_value      TYPE string
+        iv_type_kind  TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     "! the namespaced components below ir_ref filled from the node iv_path
     "! of io_json (`/ABC/FIELD` from `&lt;iv_path&gt;/ABC/FIELD`) - the rows
     "! of a standard table and the components of a structure, at every depth
@@ -3466,29 +3529,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " app and which ajson then shipped back as `    -  -  `.
     CASE iv_type_kind.
 
-      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
+        lv_value = date_time_digits( iv_value     = lv_value
+                                     iv_type_kind = iv_type_kind ).
         IF lv_value IS INITIAL.
           CLEAR <comp>.
           RETURN.
         ENDIF.
-        IF strlen( lv_value ) >= 10 AND lv_value+4(1) = `-` AND lv_value+7(1) = `-`.
-          lv_value = lv_value(4) && lv_value+5(2) && lv_value+8(2).
-        ENDIF.
-        delta_check_digits( iv_value  = lv_value
-                            iv_length = 8
-                            iv_kind   = `date` ).
-
-      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
-        IF lv_value IS INITIAL.
-          CLEAR <comp>.
-          RETURN.
-        ENDIF.
-        IF strlen( lv_value ) >= 8 AND lv_value+2(1) = `:` AND lv_value+5(1) = `:`.
-          lv_value = lv_value(2) && lv_value+3(2) && lv_value+6(2).
-        ENDIF.
-        delta_check_digits( iv_value  = lv_value
-                            iv_length = 6
-                            iv_kind   = `time` ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
@@ -3530,6 +3578,32 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDCASE.
 
     <comp> = lv_value.
+
+  ENDMETHOD.
+
+  METHOD date_time_digits.
+
+    " blanks and the separators of the ISO form, and nothing else - which
+    " the empty text is too
+    IF iv_value CO ` -:`.
+      RETURN.
+    ENDIF.
+    result = iv_value.
+    IF iv_type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
+      IF strlen( result ) >= 10 AND result+4(1) = `-` AND result+7(1) = `-`.
+        result = result(4) && result+5(2) && result+8(2).
+      ENDIF.
+      delta_check_digits( iv_value  = result
+                          iv_length = 8
+                          iv_kind   = `date` ).
+      RETURN.
+    ENDIF.
+    IF strlen( result ) >= 8 AND result+2(1) = `:` AND result+5(1) = `:`.
+      result = result(2) && result+3(2) && result+6(2).
+    ENDIF.
+    delta_check_digits( iv_value  = result
+                        iv_length = 6
+                        iv_kind   = `time` ).
 
   ENDMETHOD.
 
@@ -3826,10 +3900,27 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD json_to_abap.
 
-    FIELD-SYMBOLS <val> TYPE any.
+    FIELD-SYMBOLS <val>  TYPE any.
+    FIELD-SYMBOLS <comp> TYPE any.
+    FIELD-SYMBOLS <kept> TYPE any.
+    DATA lt_keep     TYPE ty_t_keep.
+    DATA lt_col_kind TYPE ty_t_col_kind.
     ASSIGN ir_ref->* TO <val>.
+    json_to_abap_keep( EXPORTING ir_ref  = ir_ref
+                       CHANGING  ct_keep = lt_keep ).
+    json_to_abap_prepare( EXPORTING io_json     = io_json
+                                    iv_path     = ``
+                                    ir_ref      = ir_ref
+                                    iv_keep     = abap_true
+                          CHANGING  ct_col_kind = lt_col_kind ).
     io_json->to_abap( EXPORTING iv_corresponding = abap_true
                       IMPORTING ev_container     = <val> ).
+    " the references to_abap( ) cleared with the rest of the target
+    LOOP AT lt_keep REFERENCE INTO DATA(lr_keep).
+      ASSIGN lr_keep->comp->* TO <comp>.
+      ASSIGN lr_keep->value->* TO <kept>.
+      <comp> = <kept>.
+    ENDLOOP.
     " to_abap matches a member to a component by name, and the model
     " writes `/ABC/FIELD` as member FIELD of an object ABC (json_ns_text):
     " to_abap skips that object and leaves the component initial. Filled
@@ -3839,6 +3930,174 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                        iv_path = ``
                        ir_ref  = ir_ref ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD json_to_abap_prepare.
+
+    FIELD-SYMBOLS <val>  TYPE any.
+    FIELD-SYMBOLS <comp> TYPE any.
+    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
+    DATA lr_line     TYPE REF TO data.
+    DATA lt_col_kind TYPE ty_t_col_kind.
+    DATA lv_name     TYPE string.
+    ASSIGN ir_ref->* TO <val>.
+
+    CASE io_json->get_node_type( iv_path ).
+
+      WHEN z2ui5_if_ajson_types=>node_type-array.
+        IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> )
+            <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+          RETURN.
+        ENDIF.
+        " to_abap( ) builds the rows anew - nothing of an old row is left
+        " for a reference to be put back into: iv_keep ends here
+        ASSIGN ir_ref->* TO <tab>.
+        CREATE DATA lr_line LIKE LINE OF <tab>.
+        DATA(lt_item) = io_json->members( iv_path ).
+        LOOP AT lt_item INTO DATA(lv_item).
+          json_to_abap_prepare( EXPORTING io_json     = io_json
+                                          iv_path     = |{ iv_path }/{ lv_item }|
+                                          ir_ref      = lr_line
+                                          iv_keep     = abap_false
+                                CHANGING  ct_col_kind = lt_col_kind ).
+        ENDLOOP.
+
+      WHEN z2ui5_if_ajson_types=>node_type-object.
+        DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
+        IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+            AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+          RETURN.
+        ENDIF.
+        DATA(lt_member) = io_json->members( iv_path ).
+        LOOP AT lt_member INTO DATA(lv_member).
+          " matched the way to_abap( ) matches it - by the upper-case name
+          lv_name = to_upper( lv_member ).
+          ASSIGN COMPONENT lv_name OF STRUCTURE <val> TO <comp>.
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+          delta_col_kind( EXPORTING is_cell     = VALUE #( field = lv_name )
+                                    ir_comp     = REF #( <comp> )
+                          IMPORTING er_col_kind = DATA(lr_col_kind)
+                          CHANGING  ct_col_kind = ct_col_kind ).
+          json_to_abap_member( io_json      = io_json
+                               iv_path      = |{ iv_path }/{ lv_member }|
+                               ir_comp      = REF #( <comp> )
+                               iv_type_kind = lr_col_kind->type_kind
+                               iv_keep      = iv_keep ).
+        ENDLOOP.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD json_to_abap_member.
+
+    " What to_abap( ) cannot take as it comes, made into what it can:
+    "  - a REFERENCE component takes no value from the wire, exactly like a
+    "    cell of one (delta_check_refused): its member is dropped, and the
+    "    reference it held is put back after to_abap( ) (json_to_abap_keep).
+    "    to_abap( ) refused the member - a bound data
+    "    reference with 'Missing ref initiator', any object reference with
+    "    'Cannot assign to ref', even a null one - and with it the WHOLE
+    "    value: ajson ships a bound REF TO string as its value, so the edit
+    "    of any sibling field was refused, every time. In the rows of a
+    "    table the member stays and the value is refused as before - the
+    "    rows are built anew, and a reference put back by row index would be
+    "    the wrong one after a row was added or removed on the client
+    "  - a DATE or a TIME is read the way a cell is (date_time_digits):
+    "    empty - ajson writes an initial date as "" - stays initial, plain
+    "    digits (a DatePicker with valueFormat yyyyMMdd) are read like the
+    "    ISO form. to_abap( ) assigned the empty text as it came, which on a
+    "    system is a date of eight blanks - not initial, and shipped back as
+    "    `    -  -  `, which it then refused, and every later edit of the
+    "    structure with it (the transpiled runtime gives an initial date
+    "    there, which is why the suite never showed it). What is neither is
+    "    left as it came: to_abap( ) refuses it, as before
+    "  - a STRUCTURE or a TABLE is walked into
+    CASE iv_type_kind.
+
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
+        IF iv_keep = abap_true.
+          io_json->delete( iv_path ).
+        ENDIF.
+
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
+        IF io_json->get_node_type( iv_path ) <> z2ui5_if_ajson_types=>node_type-string.
+          RETURN.
+        ENDIF.
+        TRY.
+            DATA(lv_digits) = date_time_digits( iv_value     = io_json->get_string( iv_path )
+                                                iv_type_kind = iv_type_kind ).
+          CATCH z2ui5_cx_ui5_util_error.
+            RETURN.
+        ENDTRY.
+        IF lv_digits IS INITIAL.
+          " to_abap( ) cleared the target first - a member that is not
+          " there leaves the component initial
+          io_json->delete( iv_path ).
+        ELSEIF iv_type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
+          io_json->set_string( iv_path = iv_path
+                               iv_val  = |{ lv_digits(4) }-{ lv_digits+4(2) }-{ lv_digits+6(2) }| ).
+        ELSE.
+          io_json->set_string( iv_path = iv_path
+                               iv_val  = |{ lv_digits(2) }:{ lv_digits+2(2) }:{ lv_digits+4(2) }| ).
+        ENDIF.
+
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+        DATA lt_col_kind TYPE ty_t_col_kind.
+        json_to_abap_prepare( EXPORTING io_json     = io_json
+                                        iv_path     = iv_path
+                                        ir_ref      = ir_comp
+                                        iv_keep     = iv_keep
+                              CHANGING  ct_col_kind = lt_col_kind ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD json_to_abap_keep.
+
+    FIELD-SYMBOLS <val>   TYPE any.
+    FIELD-SYMBOLS <comp>  TYPE any.
+    FIELD-SYMBOLS <value> TYPE any.
+    DATA lr_comp  TYPE REF TO data.
+    DATA lr_value TYPE REF TO data.
+    ASSIGN ir_ref->* TO <val>.
+
+    DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
+    IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+        AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+      RETURN.
+    ENDIF.
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( <val> ).
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_attri).
+      ASSIGN COMPONENT lr_attri->name OF STRUCTURE <val> TO <comp>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      " a typed variable, not REF #( ) in the operand: see abap-check,
+      " section 4 - the downport of a generic one
+      lr_comp = REF #( <comp> ).
+      CASE z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ).
+        WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+            OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
+          CREATE DATA lr_value LIKE <comp>.
+          ASSIGN lr_value->* TO <value>.
+          <value> = <comp>.
+          INSERT VALUE #( comp  = lr_comp
+                          value = lr_value ) INTO TABLE ct_keep.
+        WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+            OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+          json_to_abap_keep( EXPORTING ir_ref  = lr_comp
+                             CHANGING  ct_keep = ct_keep ).
+      ENDCASE.
+    ENDLOOP.
 
   ENDMETHOD.
 

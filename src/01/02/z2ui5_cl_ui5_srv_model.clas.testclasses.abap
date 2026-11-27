@@ -125,6 +125,25 @@ CLASS ltcl_app_edge DEFINITION FINAL
     INTERFACES z2ui5_if_app.
 
     TYPES:
+      BEGIN OF ty_s_form,
+        name TYPE string,
+        dt   TYPE d,
+        tm   TYPE t,
+      END OF ty_s_form.
+    TYPES ty_t_form TYPE STANDARD TABLE OF ty_s_form WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_line,
+        id     TYPE i,
+        s_form TYPE ty_s_form,
+      END OF ty_s_line.
+    TYPES ty_t_line TYPE STANDARD TABLE OF ty_s_line WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_withref,
+        name TYPE string,
+        r    TYPE REF TO data,
+        o    TYPE REF TO object,
+      END OF ty_s_withref.
+    TYPES:
       BEGIN OF ty_s_row,
         name TYPE string,
         qty  TYPE i,
@@ -147,6 +166,10 @@ CLASS ltcl_app_edge DEFINITION FINAL
         t_wide TYPE ty_t_wide,
       END OF ty_s_deep.
 
+    DATA ms_form    TYPE ty_s_form.
+    DATA mt_form    TYPE ty_t_form.
+    DATA mt_line    TYPE ty_t_line.
+    DATA ms_withref TYPE ty_s_withref.
     DATA mt_refs    TYPE ty_t_refs.
     " bound component by component - the general road's scalars
     DATA ms_wide    TYPE ty_s_wide.
@@ -2052,6 +2075,13 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a date or time in a spelling that is neither ISO nor plain digits is
     " refused and traced - it used to be cut to its first characters
     METHODS date_time_text_refused   FOR TESTING RAISING cx_static_check.
+    " a structure, a structure cell and a table written as one value read
+    " an emptied date or time as initial and plain digits like the ISO form
+    METHODS whole_value_dates        FOR TESTING RAISING cx_static_check.
+    " the reference components of a structure written as one value take
+    " nothing from the wire and keep what they held - the edit of a sibling
+    " field lands
+    METHODS whole_value_refs_kept    FOR TESTING RAISING cx_static_check.
     " a row delta into a table of references goes into the rows they point
     " to; a reference that points nowhere is traced
     METHODS delta_ref_rows           FOR TESTING RAISING cx_static_check.
@@ -3284,6 +3314,130 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cs_wide-price      = '12.50'.
     " a float with every digit a double has: it IS one, and stays a number
     cs_wide-ratio      = 1 / 3.
+
+  ENDMETHOD.
+
+  METHOD whole_value_dates.
+
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    lo_app->ms_form = VALUE #( name = `a`
+                               dt   = '20240115'
+                               tm   = '123000' ).
+    lo_app->mt_line = VALUE #( ( id     = 1
+                                 s_form = VALUE #( name = `l1`
+                                                   dt   = '20240115'
+                                                   tm   = '123000' ) ) ).
+    lo_app->mt_form = VALUE #( ( name = `r1`
+                                 dt   = '20240115' ) ).
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_form )
+               iv_name  = `/MS_FORM` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_line )
+               iv_name  = `/MT_LINE` ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->mt_form )
+               iv_name  = `/MT_FORM` ).
+
+    " an emptied date and time are initial: ajson ships an initial one as
+    " "", and assigned as it came that was a date of blanks on a system
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"b","DT":"","TM":""}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `b`
+                                        act = lo_app->ms_form-name ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-dt ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " the blanks such a date went out as come back initial - they used to
+    " refuse the structure, and every later edit of it with them
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"c","DT":"    -  -  ","TM":"  :  :  "}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `c`
+                                        act = lo_app->ms_form-name ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-dt ).
+    cl_abap_unit_assert=>assert_initial( lo_app->ms_form-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " plain digits (valueFormat yyyyMMdd / HHmmss) read like the ISO form,
+    " as a cell reads them
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"d","DT":"20240301","TM":"123000"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240301`
+                                        act = CONV string( lo_app->ms_form-dt ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `123000`
+                                        act = CONV string( lo_app->ms_form-tm ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " a date that is none still refuses the value - traced, the old one kept
+    lo_model->main_json_to_attri( delta( `{"MS_FORM":{"NAME":"e","DT":"Jan 15, 2024"}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `d`
+                                        act = lo_app->ms_form-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240301`
+                                        act = CONV string( lo_app->ms_form-dt ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    CLEAR lo_model->mt_skipped.
+
+    " the same for a structure cell of a row ...
+    lo_model->main_json_to_attri(
+        delta( `{"MT_LINE":{"__delta":{"0":{"S_FORM":{"NAME":"l2","DT":"20240302","TM":""}}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `l2`
+                                        act = lo_app->mt_line[ 1 ]-s_form-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240302`
+                                        act = CONV string( lo_app->mt_line[ 1 ]-s_form-dt ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_line[ 1 ]-s_form-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " ... and for a whole table
+    lo_model->main_json_to_attri(
+        delta( `{"MT_FORM":[{"NAME":"r1","DT":""},{"NAME":"r2","DT":"20240102","TM":"  :  :  "}]}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_form ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_form[ 1 ]-dt ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240102`
+                                        act = CONV string( lo_app->mt_form[ 2 ]-dt ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_form[ 2 ]-tm ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD whole_value_refs_kept.
+
+    FIELD-SYMBOLS <inner> TYPE any.
+    DATA lr_inner TYPE REF TO string.
+
+    " CREATE DATA, not NEW: the downport turns a NEW of data into a CREATE
+    " OBJECT (abap-check, section 4)
+    CREATE DATA lr_inner.
+    lr_inner->* = `inner`.
+    DATA(lo_app) = NEW ltcl_app_edge( ).
+    lo_app->ms_withref-name = `x`.
+    lo_app->ms_withref-r = lr_inner.
+    DATA(lo_model) = edge_model( lo_app ).
+    edge_bind( io_model = lo_model
+               ir_val   = REF #( lo_app->ms_withref )
+               iv_name  = `/MS_WITHREF` ).
+
+    " what the client sends back when NAME is edited: the whole structure,
+    " the data reference as ajson wrote it - its target's value, under a
+    " lower-case name - and the object reference as null
+    lo_model->main_json_to_attri( delta( `{"MS_WITHREF":{"NAME":"edited","r":"typed","O":null}}` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lo_app->ms_withref-name ).
+    cl_abap_unit_assert=>assert_bound( lo_app->ms_withref-r ).
+    ASSIGN lo_app->ms_withref-r->* TO <inner>.
+    cl_abap_unit_assert=>assert_equals( exp = `inner`
+                                        act = <inner> ).
+    cl_abap_unit_assert=>assert_not_bound( lo_app->ms_withref-o ).
+
+    " a bound object reference stays what it was as well
+    lo_app->ms_withref-o = lo_app.
+    lo_model->main_json_to_attri( delta( `{"MS_WITHREF":{"NAME":"again","O":null}}` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+    cl_abap_unit_assert=>assert_equals( exp = `again`
+                                        act = lo_app->ms_withref-name ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_app->ms_withref-o = lo_app ) ).
+    cl_abap_unit_assert=>assert_bound( lo_app->ms_withref-r ).
 
   ENDMETHOD.
 
