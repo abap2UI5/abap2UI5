@@ -42,12 +42,20 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
     result = `` && |\n| &&
              `  function onInitComponent(){` && |\n| &&
              `    sap.ui.require.preload({` && |\n| &&
-             `      "abap2ui5/page/view/Main.view.xml": '\x3cmvc:View    xmlns:mvc="sap.ui.core.mvc"    xmlns:z2ui5="z2ui5.embed"    displayBlock="true"    height="100%">    \x3cz2ui5:Container        endpoint="{st` &&
-             `art>/endpoint}"        bundleVersion="{start>/bundleVersion}"        ownsPage="true"        height="100%"/>\x3c/mvc:View>',` && |\n| &&
-             `      "z2ui5/Component.js": function(){sap.ui.define(["sap/ui/core/UIComponent","sap/ui/model/json/JSONModel"],(UIComponent,JSONModel)=>{"use strict";return UIComponent.extend("z2ui5.Component",{metad` &&
-             `ata:{manifest:"json",interfaces:["sap.ui.core.IAsyncContentCreation"]},init(){UIComponent.prototype.init.apply(this,arguments);const data=this.getComponentData()||{};const local=data.checkLocal===true` &&
-             `;const http=this.getManifestEntry("/sap.app/dataSources/http")||{};this.setModel(new JSONModel({endpoint:local?window.location.pathname:http.uri||"",bundleVersion:local&&data.bundle?String(data.bundle` &&
-             `):""}),"start")}})});` && |\n| &&
+             `      "abap2ui5/page/view/Main.view.xml": '\x3cmvc:View    xmlns:mvc="sap.ui.core.mvc"    xmlns:z2ui5="z2ui5.embed"    displayBlock="true"    height="100%">    \x3cz2ui5:Container        id="container` &&
+             `"        endpoint="{start>/endpoint}"        bundleVersion="{start>/bundleVersion}"        ownsPage="true"        height="100%"/>\x3c/mvc:View>',` && |\n| &&
+             `      "z2ui5/Component.js": function(){sap.ui.define(["sap/ui/core/UIComponent","sap/ui/model/json/JSONModel","sap/base/Log"],(UIComponent,JSONModel,Log)=>{"use strict";const TITLE="abap2UI5 could not` &&
+             ` be started";const HINT="Reload the page to try again.";function reasonText(reason){return String(reason&&reason.message||reason||"unknown error")}function showPlain(container,text){const dom=containe` &&
+             `r.getDomRef();if(!dom)return;const box=document.createElement("div");box.setAttribute("role","alert");box.style.padding="2rem";box.style.fontFamily="sans-serif";const head=document.createElement("h1")` &&
+             `;head.style.fontSize="1.25rem";head.textContent=TITLE;const body=document.createElement("p");body.textContent=``${text} ${HINT}``;box.appendChild(head);box.appendChild(body);while(dom.firstChild)dom.r` &&
+             `emoveChild(dom.firstChild);dom.appendChild(box)}function startFailed(container,reason){const text=reasonText(reason);Log.error(``${TITLE}: ${text}``,String(reason&&reason.stack||""),"z2ui5.Component")` &&
+             `;sap.ui.require(["sap/m/MessagePage"],MessagePage=>{const dom=container.getDomRef();if(!dom)return;const area=document.createElement("div");area.id=``${container.getId()}-failed``;area.style.height="1` &&
+             `00%";dom.appendChild(area);new MessagePage({showHeader:false,text:TITLE,description:``${text} ${HINT}``,icon:"sap-icon://message-error"}).placeAt(area)},()=>showPlain(container,text))}return UICompone` &&
+             `nt.extend("z2ui5.Component",{metadata:{manifest:"json",interfaces:["sap.ui.core.IAsyncContentCreation"]},init(){UIComponent.prototype.init.apply(this,arguments);const data=this.getComponentData()||{};` &&
+             `const local=data.checkLocal===true;const http=this.getManifestEntry("/sap.app/dataSources/http")||{};this.setModel(new JSONModel({endpoint:local?window.location.pathname:http.uri||"",bundleVersion:loc` &&
+             `al&&data.bundle?String(data.bundle):""}),"start")},createContent(){const root=UIComponent.prototype.createContent.apply(this,arguments);Promise.resolve(root).then(view=>view&&view.loaded()).then(view=` &&
+             `>{const container=view&&view.byId("container");if(!container)return;container.attachComponentFailed(event=>startFailed(container,event.getParameter("reason")))}).catch(e=>Log.error("the page's view co` &&
+             `uld not be prepared",String(e),"z2ui5.Component"));return root}})});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/embed/Container.js": function(){sap.ui.define(["sap/ui/core/Control","sap/base/Log"],(Control,Log)=>{"use strict";const DEFAULT_ENDPOINT="/sap/bc/z2ui5";function sameOriginUrl(endpoint){l` &&

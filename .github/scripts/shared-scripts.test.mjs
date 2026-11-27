@@ -21,7 +21,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { objectOf, outRefusal, parseJsonc, prefixOf, renamedSource, runConfig } from "../shared/rename.mjs";
-import { formatLike, nextSpec, pinActions, transpilerOf } from "../shared/update-deps.mjs";
+import { formatLike, nextSpec, pinActions, transpilerOf, withoutSecrets } from "../shared/update-deps.mjs";
 
 test("JSONC: comments, trailing commas, // inside a string", () => {
   const text = '{\n  // a comment\n  "url": "https://github.com/x/y", /* block */\n  "a": [1, 2,],\n}\n';
@@ -145,4 +145,12 @@ test("update-deps: action pins, and nothing across a line break", () => {
   assert.deepEqual(changed, ["`actions/checkout` v7.0.1 → v7.0.2"]);
   // a repository whose release cannot be read is left as it is
   assert.equal(pinActions(`uses: x/y@${sha} # v1`, () => undefined).text, `uses: x/y@${sha} # v1`);
+});
+
+test("update-deps: npm never sees a credential", () => {
+  const env = withoutSecrets({
+    PATH: "/bin", HOME: "/h", GH_TOKEN: "x", DEPS_TOKEN: "x", GITHUB_TOKEN: "x",
+    NPM_TOKEN: "x", NODE_AUTH_TOKEN: "x", ANTHROPIC_API_KEY: "x", MY_SECRET: "x", VSCE_PAT: "x",
+  });
+  assert.deepEqual(Object.keys(env).sort(), ["HOME", "PATH"]);
 });

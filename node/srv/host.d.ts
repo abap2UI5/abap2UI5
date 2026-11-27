@@ -55,7 +55,12 @@ export interface AppOptions extends HandlerOptions {
 export interface ServeOptions extends AppOptions {
   /** The port to listen on (default 3000). */
   port?: number | string;
-  /** The host to bind; unset binds every interface, `"127.0.0.1"` loopback only. */
+  /**
+   * The host to bind; unset binds loopback only (`"127.0.0.1"`), `"*"` every
+   * interface (node's default: `::` where there is IPv6, else `0.0.0.0`).
+   * The Host/Origin guard keeps web pages out, not other programs - on an
+   * all-interfaces bind every machine that reaches the port is answered.
+   */
   host?: string;
   /**
    * Host names answered besides 127.0.0.1, localhost, [::1] and `host`

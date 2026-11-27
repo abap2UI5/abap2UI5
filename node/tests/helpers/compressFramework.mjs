@@ -68,10 +68,22 @@ async function observe(base, pathname) {
   };
 }
 
+// the nodePath the bundle's tail carries - the path it was asked under
+const nodePath = (text) => /nodePath:\s*"([^"]*)"/.exec(text)?.[1] ?? null;
+
 const out = {};
 const server = await serve({ port: 0, host: "127.0.0.1" });
 try {
-  out.serve = await observe(`http://127.0.0.1:${server.address().port}`, "/");
+  const base = `http://127.0.0.1:${server.address().port}`;
+  out.serve = await observe(base, "/");
+  // one server, two node paths, one bundle tag: each path gets its own
+  // body back, also from the compressed-page cache
+  const gzip = { headers: { "accept-encoding": "gzip" } };
+  const aaaa = await request(base, "/aaaa?z2ui5-bundle", gzip);
+  const bbbb = await request(base, "/bbbb?z2ui5-bundle", gzip);
+  const bbbbPlain = await request(base, "/bbbb?z2ui5-bundle");
+  const seen = (res) => ({ encoding: res.encoding, etag: res.etag, nodePath: nodePath(res.text) });
+  out.bundles = { aaaa: seen(aaaa), bbbb: seen(bbbb), bbbbPlain: seen(bbbbPlain) };
 } finally {
   server.close();
 }

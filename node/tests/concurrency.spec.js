@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
-const fs = require("fs");
+const { needsTranspiledBackend } = require("./helpers/transpiledBackend");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
@@ -25,10 +25,9 @@ const { execFileSync } = require("child_process");
 // test_node job runs it on one.
 // ---------------------------------------------------------------------
 
-const OUTPUT = path.join(__dirname, "..", "output", "init.mjs");
 const FRAMEWORK = path.join(__dirname, "helpers", "concurrencyFramework.mjs");
 
-test.skip(!fs.existsSync(OUTPUT), "needs the transpiled backend: npm run downport && npm run auto_transpile");
+needsTranspiledBackend(test);
 
 /** @type {any} */
 let seen;

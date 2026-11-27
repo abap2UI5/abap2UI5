@@ -8,8 +8,9 @@
 // Both tools check a local folder BEFORE falling back to the URL clone, so
 // this script materializes each dependency at its pinned SHA under
 // node/deps/<name>/ (gitignored). It is wired into `npm run check` and
-// `npm run downport`; a no-op (~50ms) when everything is already at
-// the pinned SHA. Without network and without node/deps the tools fall back
+// `npm run downport`; next to a no-op (~100ms: a reset and a clean of each
+// checkout, see restorePin) when everything is already at the pinned SHA.
+// Without network and without node/deps the tools fall back
 // to their old floating-clone behavior - LOCALLY. In CI (the CI variable is
 // set) a pin that cannot be materialized fails the step instead: `check`,
 // `downport` and the setup action chain on this exit code, and the fallback
@@ -72,6 +73,22 @@ const PINS = [
 const run = (args, cwd) =>
   execFileSync("git", args, { cwd, stdio: ["ignore", "pipe", "pipe"] }).toString().trim();
 
+// A checkout at its pin is accepted only as the pinned commit's tree: reset
+// to it and cleaned of everything git does not track, ignored files
+// included. node/deps/ comes back from the actions cache in CI (the setup
+// action), and a cache can hold a checkout somebody changed - its HEAD still
+// names the pin while a file of it says something else, or a file was added
+// beside them. The -c options keep the checkout's own .git/config from
+// running anything while git does it (a hook, an fsmonitor command). Locally
+// it throws away an edit made inside node/deps/ - which is the point: the
+// pins are what lints and transpiles.
+const restorePin = (dir) => {
+  const safe = ["-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false"];
+  run([...safe, "reset", "--quiet", "--hard", "HEAD"], dir);
+  run([...safe, "clean", "-q", "-f", "-d", "-x"], dir);
+  return run([...safe, "status", "--porcelain", "--ignored"], dir) === "";
+};
+
 if (process.argv.includes("--print-latest")) {
   for (const p of PINS) {
     const head = run(["ls-remote", p.url, "HEAD"]).split("\t")[0];
@@ -85,8 +102,8 @@ let failures = 0;
 for (const p of PINS) {
   const dir = path.join(p.dir ? path.join(ROOT, p.dir) : DEPS_DIR, p.name);
   try {
-    if (fs.existsSync(path.join(dir, ".git")) && run(["rev-parse", "HEAD"], dir) === p.sha) {
-      continue; // already at the pin
+    if (fs.existsSync(path.join(dir, ".git")) && run(["rev-parse", "HEAD"], dir) === p.sha && restorePin(dir)) {
+      continue; // already at the pin, and nothing but the pin
     }
     fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });

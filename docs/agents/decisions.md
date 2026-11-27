@@ -289,6 +289,31 @@ existing lint configs (the released-API intersection those configs check
 against is the guarantee rule 4 rests on - the handler has configs of its
 own instead, `npm run check:service`).
 
+### The legacy-free bootstrap patch is gone
+
+Deleted on 2026-11-27: `tools/app2app_v2/` (`build-legacy-free.mjs`,
+`patch-v2.mjs`), `tools/check-v2-sdk.mjs` and the workflow
+`check-v2-sdk.yaml`. They built the UI5 2.x ("legacy-free") variant of the
+classic webapp - its `index.html` and manifest patched for the legacy-free
+CDN bootstrap - into the branches `standard_v2` / `cloud_v2` of
+abap2UI5/frontend, and the workflow checked once a month that the pinned CDN
+version still existed.
+
+Nothing had called the build since the delivery into abap2UI5/frontend
+ended (2026-11-17, previous entry), and it could no longer run: it patched
+`bundle/webapp/index.html`, and `bundle/webapp/` has had no page since the
+embed control loads the frontend (`?z2ui5-bundle`) - the build ended in
+ENOENT. Its README still described the deleted branches, and the monthly
+check still filed an issue about a pin nothing used. `tools/README.md` had
+kept the folder "until somebody decides whether the legacy-free variant
+comes back"; a variant that comes back is built from the page app
+(`app_source/`) and the embed control, not from this patch, so keeping it
+decided nothing. What tests the frontend against UI5 2.x is unchanged:
+`UI5_2X.yaml` and the `[FUTURE FATAL]` gate of the browser legs
+(`docs/verified-on.md`). The two names `tools/bsp_rename/rename-bsp.mjs`
+exported for the build (`deriveNames`, `toFileName`) stay - its spec uses
+them.
+
 ### `z2ui5_t_02` and the dictionary objects
 
 `z2ui5_t_02` used to be the third: a released `name`/`value` structure added

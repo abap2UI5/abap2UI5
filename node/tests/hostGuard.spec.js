@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
-const fs = require("fs");
+const { needsTranspiledBackend } = require("./helpers/transpiledBackend");
 const http = require("http");
 const path = require("path");
 const { execFileSync } = require("child_process");
@@ -15,12 +15,12 @@ const { pathToFileURL } = require("url");
 // Two halves, like compress.spec.js. The guard on its own, in front of a
 // stub handler: the names it allows, Host and Origin, the 403, the switch.
 // And serve() in front of the REAL framework (helpers/hostGuardFramework.mjs,
-// a child process) - that half needs the transpiled tree and skips without
-// it; test.yaml's test_node job runs it on one.
+// a child process) - that half needs the transpiled tree, skips without it
+// locally and fails without it in CI (helpers/transpiledBackend.js);
+// test.yaml's test_node job runs it on one.
 // ---------------------------------------------------------------------
 
 const MODULE = path.join(__dirname, "..", "srv", "hostguard.mjs");
-const OUTPUT = path.join(__dirname, "..", "output", "init.mjs");
 const FRAMEWORK = path.join(__dirname, "helpers", "hostGuardFramework.mjs");
 
 /** @type {any} */
@@ -92,6 +92,8 @@ test.describe("the guard", () => {
     // 0.0.0.0 and :: name no host - every interface, loopback names only
     expect([...(allowedHostNames({ host: "0.0.0.0" }) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
     expect([...(allowedHostNames({ host: "::" }) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
+    // "*" is serve()'s every-interface bind - no host either
+    expect([...(allowedHostNames({ host: "*" }) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
     expect([...(allowedHostNames({}) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
   });
 
@@ -124,8 +126,8 @@ test.describe("the guard", () => {
 
 test.describe("serve() in front of the framework", () => {
   // `npm run check:js` runs on a tree that was never transpiled, so this half
-  // skips there; test.yaml's test_node runs it on the transpiled tree
-  test.skip(!fs.existsSync(OUTPUT), "needs the transpiled backend: npm run downport && npm run auto_transpile");
+  // skips there locally; test.yaml's test_node runs it on the transpiled tree
+  needsTranspiledBackend(test);
 
   /** @type {any} */
   let seen;
@@ -149,5 +151,15 @@ test.describe("serve() in front of the framework", () => {
     expect(run.named.added).toBe(200);
     expect(run.named.other).toBe(403);
     expect(run.open.rebound).toBe(200);
+  });
+
+  test("binds loopback when told nothing, every interface for host *", () => {
+    const { bind } = framework();
+    // the package's default: the guard keeps pages out, the bind the network
+    expect(bind.unset).toBe("127.0.0.1");
+    // node's own default socket - :: where there is IPv6, else 0.0.0.0
+    expect(["::", "0.0.0.0"]).toContain(bind.every);
+    expect(bind.everyLoopback).toBe(200);
+    expect(bind.everyStar).toBe(403);
   });
 });

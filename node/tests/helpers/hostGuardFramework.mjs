@@ -63,5 +63,24 @@ try {
   open.close();
 }
 
+// the bind: loopback when serve() is told nothing - the package's default -
+// every interface when it is asked for by "*" (what npm run express does)
+const unset = await serve({ port: 0 });
+try {
+  out.bind = { unset: unset.address().address };
+} finally {
+  unset.close();
+}
+const every = await serve({ port: 0, host: "*" });
+try {
+  const port = every.address().port;
+  out.bind.every = every.address().address;
+  // a wildcard names no host: the loopback names are still the ones answered
+  out.bind.everyLoopback = await status(port, { host: `localhost:${port}` });
+  out.bind.everyStar = await status(port, { host: `*:${port}` });
+} finally {
+  every.close();
+}
+
 process.stdout.write(JSON.stringify(out));
 process.exit(0);

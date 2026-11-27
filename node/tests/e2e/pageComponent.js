@@ -32,4 +32,32 @@ async function pageComponentId(page) {
   return /** @type {Promise<string>} */ (handle.jsonValue());
 }
 
-module.exports = { pageComponentId };
+/**
+ * Resolves once the page's app has settled: its component has processed a
+ * response and no roundtrip is in flight (the busy state is released at the
+ * end of View1._processAfterRendering, after the view was built and the
+ * app's actions ran) - plus one animation frame. A definite signal, where a
+ * spec that asserts that something did NOT happen used to wait a fixed
+ * number of milliseconds: what the frontend loads for a view (the custom
+ * controls bundle, before the build) or at its start (the developer tools
+ * on an auto open) has been asked for by then, or never is.
+ * @param {import('@playwright/test').Page} page
+ */
+async function appSettled(page) {
+  const id = await pageComponentId(page);
+  await page.waitForFunction((componentId) => {
+    const Component = /** @type {any} */ (window).sap.ui.require(
+      "sap/ui/core/Component",
+    );
+    const component = Component.getComponentById
+      ? Component.getComponentById(componentId)
+      : Component.get(componentId);
+    const state = component?.ctx?.state;
+    return Boolean(state?.oResponse) && !state.isBusy;
+  }, id);
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => resolve(true))),
+  );
+}
+
+module.exports = { pageComponentId, appSettled };

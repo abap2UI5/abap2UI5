@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures");
 
 // Reproduces the samples app 443 scenario against the transpiled backend:
 // ONE roundtrip re-enables a disabled input via its `enabled` binding AND

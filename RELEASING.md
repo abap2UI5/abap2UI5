@@ -40,6 +40,30 @@ generated branches carry with the source. `npm run check:version`
 holds it to `package.json`, and `npm run check:release` holds both to the
 changelog.
 
+## One-time setup — the release environment
+
+Every job that publishes runs in the GitHub environment **`release`**: the
+job `release` of `release.yaml` (the GitHub release, the `X.Y.Z-702` tag)
+and the jobs `attach` and `bsp` of `backend-prebuilt.yaml` (the backend
+asset, `@abap2ui5/node-runtime`, `@abap2ui5/bsp`). The workflows only name
+it; what protects it is configured once, under **Settings → Environments →
+New environment**:
+
+| Setting | Value |
+|---|---|
+| Name | `release` (the name the three jobs give) |
+| Required reviewers | the maintainers who may publish (at least one); a job waits until one of them approves it |
+| Prevent self-review | optional - leave it off while one maintainer both tags and approves |
+| Allow administrators to bypass | off |
+| Deployment branches and tags | "Selected branches and tags": the tag rule `[0-9]*.[0-9]*.[0-9]*` (a release tag - `release.yaml` on the tag push, `backend-prebuilt.yaml` on `release: published`) and the branch rule `main` (the rehearsal dispatch of `release.yaml`, and the `backend-prebuilt.yaml` run `release.yaml` dispatches, which runs on the default branch with the tag as its input) |
+| Environment secrets | `NPM_TOKEN`, the fallback of trusted publishing - moved here and deleted where it lives now (a repository secret: delete it; an organisation secret: take `abap2UI5` out of its repository access, or delete it once no other repository uses it). No other secret moves: `release.yaml` uses only the job's own `GITHUB_TOKEN`, and `DEPS_TOKEN` belongs to `bump-deps.yaml`, which publishes nothing |
+
+A release then asks for two approvals: the `release` job of the tag push,
+and the run of `backend-prebuilt.yaml` it dispatches (one approval covers
+both of its jobs). The rehearsal asks for one. Until the environment exists
+GitHub creates it on the first run, unprotected - so create it before the
+next tag.
+
 ## One-time setup — the npm packages
 
 Every release also publishes the transpiled framework as the npm package
@@ -71,10 +95,12 @@ The artefact of that run IS the bootstrap — nothing has to be built locally:
    it; every release the workflow cuts has it.)
 4. On npmjs.com → `@abap2ui5/node-runtime` → **Settings → Trusted Publisher →
    GitHub Actions**: organisation `abap2UI5`, repository `abap2UI5`,
-   workflow file `backend-prebuilt.yaml`, no environment.
+   workflow file `backend-prebuilt.yaml`, environment `release` (npm then
+   refuses a publish from any job outside that environment).
 
 From the next release on, the workflow publishes with no token. An
-`NPM_TOKEN` organisation secret is the fallback, not the plan.
+`NPM_TOKEN` secret of the `release` environment is the fallback, not the
+plan.
 
 **`@abap2ui5/bsp`** (`tools/bsp/`, a UI5 app as an abapGit BSP and back) is
 published by the job `bsp` of the same workflow and needs the same one-time

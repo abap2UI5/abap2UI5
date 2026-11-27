@@ -22,10 +22,12 @@ const { defineConfig, devices } = require('@playwright/test');
    reason the 1.71 leg pins 1.71.80, the last 1.71 patch ever. `npm view
    @openui5/sap.ui.core versions` shows where each line ended.
 
-   The specs that create their own pages (error-view, nav-back-forward,
-   lib-sanitizer, focus-after-enable) bypass the fixture's rewrite and still
-   boot the evergreen build - the ui5-1.71 project comment below describes
-   how to port one onto the shared page fixture. */
+   Every spec boots it: the ones that share one page across their tests
+   (error-view, lib-sanitizer - browser.newPage() in a beforeAll, where the
+   page fixture does not reach) pin that page themselves with the fixture's
+   pinUi5( ) and their project's options. Until 2026-11 they, and
+   nav-back-forward and focus-after-enable, took `test` from
+   @playwright/test and booted the evergreen CDN build. */
 const PINNED_UI5_SRC =
   process.env.UI5_E2E_SRC ||
   'https://sdk.openui5.org/1.144.0/resources/sap-ui-core.js';
@@ -96,16 +98,13 @@ module.exports = defineConfig(
        rewrites the served page's bootstrap src to the pinned build and the
        theme to one that exists in 1.71 (sap_horizon needs >= 1.102).
        Scoped to the shell smoke + roundtrip specs - the wire contract and
-       shell boot that must always work on 1.71. The remaining e2e specs
-       (error-view, nav-back-forward, lib-sanitizer, focus-after-enable)
-       are excluded because they load `test` from @playwright/test and
-       create their own pages via browser.newPage() in beforeAll, which
-       bypasses the fixture's page rewrite - under this project they would
-       silently boot the evergreen CDN build and gate nothing. To promote
-       one, port it to ./tests/e2e/fixtures and to the shared page fixture
-       first, then verify it against 1.71 and widen this testMatch. Runs as
-       its own leg of the `browser` matrix in test.yaml; for sandboxes
-       without CDN egress see UI5_PINNED_RESOURCES in tests/e2e/fixtures.js. */
+       shell boot that must always work on 1.71 - and the ones listed below.
+       Every spec boots the pinned build of its project (the page fixture,
+       or pinUi5( ) for a page a spec makes itself), so promoting one is a
+       matter of verifying it against 1.71 and widening this testMatch.
+       Runs as its own leg of the `browser` matrix in test.yaml; for
+       sandboxes without CDN egress see UI5_PINNED_RESOURCES in
+       tests/e2e/fixtures.js. */
     /* page-transition runs here too: the NavContainer calls it drives
        (to, insertPreviousPage, backToPage, the afterNavigate report) are
        the 1.71 API, and the demo views it opens are held to 1.71 by the
@@ -125,10 +124,20 @@ module.exports = defineConfig(
        so its controls are required before Fragment.load (Env.
        preloadFragmentModules) - a custom control among them is there only
        once its bundle is, and the order of the two is what 1.71 would
-       break. */
+       break.
+       And error-view, nav-back-forward, lib-sanitizer and
+       focus-after-enable since they boot the pinned build (2026-11): the
+       raw-DOM overlay and its focus trap, Back/Forward over the 1.71
+       hash changer, the sanitizer's whitelist over 1.71's DOM, and a
+       SET_FOCUS into a field the same roundtrip enabled - each passed on
+       1.71.80 as it was.
+       And start-failed: the page's component hooks into its root view
+       (createContent, which 1.71 answers with the view and the current
+       release with a promise of it) and loads sap.m.MessagePage at the
+       point of use - both ends of the range have to say a failed start. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details|library-preload|window|cc-bundle)\.spec\.js$/,
+      testMatch: /e2e[/\\](error-view|nav-back-forward|lib-sanitizer|focus-after-enable|example|roundtrip|page-transition|embedded|message-box-details|library-preload|window|cc-bundle|start-failed)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */
