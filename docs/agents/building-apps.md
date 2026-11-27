@@ -1097,3 +1097,9 @@ DATA(ls_answer) = li_llm->chat( system    = `Answer briefly.`
   attribute, the app instance is serialized every roundtrip. Keep the
   conversation (`mt_chat`) as the attribute instead, and call in an event
   branch: the user waits for the whole answer.
+- **Do not `_bind( )` the conversation you pass to `chat( )`.** A bound
+  attribute is written back by the browser, so a user could rewrite the
+  history - forge assistant turns, or inflate it to drive the token cost.
+  Bind a display copy (`mt_chat_view`) and keep the authoritative history
+  unbound. A row with a role other than `user` / `assistant` is refused
+  (`z2ui5_cx_ui5_llm`): the system prompt is the `system` parameter.

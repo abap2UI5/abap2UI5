@@ -1159,6 +1159,12 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
     result = result &&
              `  conversation (``mt_chat``) as the attribute instead, and call in an event` && |\n| &&
              `  branch: the user waits for the whole answer.` && |\n| &&
+             `- **Do not ``_bind( )`` the conversation you pass to ``chat( )``.** A bound` && |\n| &&
+             `  attribute is written back by the browser, so a user could rewrite the` && |\n| &&
+             `  history - forge assistant turns, or inflate it to drive the token cost.` && |\n| &&
+             `  Bind a display copy (``mt_chat_view``) and keep the authoritative history` && |\n| &&
+             `  unbound. A row with a role other than ``user`` / ``assistant`` is refused` && |\n| &&
+             `  (``z2ui5_cx_ui5_llm``): the system prompt is the ``system`` parameter.` && |\n| &&
              ``.
 
   ENDMETHOD.
