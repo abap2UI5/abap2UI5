@@ -1535,6 +1535,20 @@ break one of those four.
   test, pick a value the double holds - a whole hour - and never conclude
   from a runtime run that such a copy is wrong on a system. **Gate: open** -
   the fix belongs in the runtime.
+- **Text into a `d`, a `t` or an `n` converts differently in the runtime.**
+  An empty string assigned to a `d` (`t`) is the initial date (time) under
+  `npm run unit`; on a system it is eight (six) blanks - not `IS INITIAL`,
+  and ajson writes it back as `    -  -  ` (recorded in
+  `z2ui5_cl_ui5_srv_model=>delta_apply_scalar`, from a system). A text with
+  something other than digits assigned to an `n` keeps it in the runtime
+  (`-5` into `n LENGTH 5` is `000-5`) and drops it on a system (`00005`).
+  So a test that feeds such a text and expects it to come out initial or
+  clean proves nothing about a system: `whole_dates_round_trip` was green
+  while a structure written as one value stored blank dates there. Convert
+  on purpose instead - `srv_model` clears an empty date before `to_abap( )`
+  (`json_to_abap_member`) and refuses a numeric text that is no digits
+  (`delta_check_numc`), the same on both. **Gate: open** - the source of an
+  assignment is runtime data.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a

@@ -41,7 +41,11 @@
 //     restore) is not replayed; its screen is asserted when it is the
 //     first step
 //   - what never reaches the backend is not recorded: a popup closed in
-//     the browser alone (_event_client), a frontend action, a timer
+//     the browser alone (_event_client), a frontend action; and a
+//     START_TIMER tick is not recorded although it does reach it - it is
+//     the app polling, not the user (onAfterRendering). What the user
+//     typed before a tick travelled with the tick, so the replay of the
+//     next step does not set it
 //   - the simulator sends an edit to the topmost open layer, the browser
 //     to the layer the control sits in - the same layer in every ordinary
 //     flow, but not for a value typed into the page behind an open popup
@@ -228,6 +232,12 @@ sap.ui.define(
         const rec = journeyOf(ctx);
         const journey = current(rec);
         if (!rec?.recording || !journey) return;
+        // A START_TIMER tick (core/Server.js stamps S_FRONT.TIMER) carries
+        // the timer's event name like a press, and was exported as a
+        // click( ) the user never made - one per tick, so a polling app
+        // filled the journey with them up to MAX_STEPS. The simulator has
+        // no timer, and the test replays what the user did.
+        if (ctx.state.oBody?.S_FRONT?.TIMER) return;
         if (journey.steps.length >= MAX_STEPS) {
           journey.overflow = true;
           return;
