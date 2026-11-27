@@ -7,10 +7,13 @@ const { specContext, loadLib, withBusy } = require("./loadLibModule");
 // turns into. Every branch ends in responseError with a message the user
 // can read, and one of them also with a Retry:
 //   HTTP != 2xx      the body as the error text, the status when the body is
-//                    empty or unreadable; Retry on a 502/503/504 (the gateway
+//                    empty or unreadable; Retry on a 502/503 (the gateway
 //                    or dispatcher answering for a backend that did not - the
-//                    request may never have reached it), never on a 500 (the
-//                    backend itself, a dump - re-sending would dump again)
+//                    request may never have reached it), never on a 504 (the
+//                    gateway gave up on a backend that has the request and
+//                    may commit it - a Retry would run the event twice) and
+//                    never on a 500 (the backend itself, a dump - re-sending
+//                    would dump again)
 //   invalid JSON     "Invalid JSON response: ...", or the HTML-page message
 //                    when the 2xx is a page (a logon page, a proxy's)
 //   no S_FRONT       "Invalid response: missing S_FRONT - the URL probably
@@ -112,7 +115,20 @@ test.describe("HTTP status outside 2xx", () => {
     expect(env.successes).toEqual([]);
   });
 
-  for (const status of [502, 503, 504]) {
+  test("a 504 offers no Retry and says the action may have run", async () => {
+    // the gateway gave up waiting, the work process did not: re-sending the
+    // draft the event started from would run the event a second time
+    const env = load();
+    await answer(env, response({ ok: false, status: 504, text: "" }));
+
+    expect(env.errors).toHaveLength(1);
+    expect(env.errors[0].msg).toMatch(
+      /^HTTP 504 - The backend may still have processed the action\./,
+    );
+    expect(env.errors[0].options).toBeUndefined();
+  });
+
+  for (const status of [502, 503]) {
     test(`a ${status} offers a Retry that re-sends the same body`, async () => {
       const env = load();
       const body = { S_FRONT: { EVENT: "SAVE" }, MODEL: { A: 1 } };

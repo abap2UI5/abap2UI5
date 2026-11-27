@@ -915,11 +915,15 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " ...and only once THIS request was parsed: before that, a sticky
     " handler's action is the previous roundtrip's, whose event and draft
     " have nothing to do with the body that just failed
+    " The event name and the draft id come off the request as well (a
+    " window event's name is even an argument of it): the same strip as the
+    " url below, then the cap - an event or a draft id of a real app is
+    " letters, digits and _ - and keeps its spelling.
     IF mo_action IS BOUND AND mv_request_parsed = abap_true.
-      lv_event = context_info_cap( mo_action->ms_actual-event ).
+      lv_event = context_info_cap( context_info_url_safe( mo_action->ms_actual-event ) ).
 
       IF mo_action->mo_app IS BOUND.
-        lv_draft = context_info_cap( mo_action->mo_app->ms_draft-id_prev ).
+        lv_draft = context_info_cap( context_info_url_safe( mo_action->mo_app->ms_draft-id_prev ) ).
 
         IF mo_action->mo_app->mo_app IS BOUND.
           lv_app = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
@@ -928,8 +932,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ENDIF.
 
     " the url comes from the client - stripped to safe characters like
-    " app_start below (context_info_url_safe), then capped like the event
-    " and the draft id above (context_info_cap)
+    " app_start below and the event and the draft id above
+    " (context_info_url_safe), then capped like them (context_info_cap)
     DATA(lv_url) = context_info_cap( context_info_url_safe( ms_request-s_front-pathname && ms_request-s_front-search ) ).
 
     " app_start is client-controlled and is reflected into the error body:

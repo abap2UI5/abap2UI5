@@ -17,6 +17,12 @@ sap.ui.define(
     // forever.
     const REQUEST_TIMEOUT_MS = 600000;
 
+    // What the overlay adds when the request most likely reached the backend
+    // and no Retry is offered (a 504, the timeout above - readHttp, oRetry).
+    const MAY_HAVE_RUN =
+      "The backend may still have processed the action. Restart the app and " +
+      "check its result before you do it again.";
+
     // The busy overlay of a roundtrip - the global BusyIndicator or the
     // component's own area (Lib.showBusy, shared with View1.controller.js,
     // the other half of the busy protocol). Resolved per call, not
@@ -388,9 +394,14 @@ sap.ui.define(
       },
 
       async readHttp(ctx, oBody, sessionCarried) {
-        // A network blip or timeout may mean the request never reached the
-        // server, so the error overlay offers a retry that re-sends the
-        // exact same request body instead of forcing a full app restart.
+        // A network blip or a gateway answering for an unreachable backend
+        // (502/503) may mean the request never reached the server, so the
+        // error overlay offers a retry that re-sends the exact same request
+        // body instead of forcing a full app restart. Not after a 504 or
+        // the client timeout (reportTimeout): there the backend very likely
+        // got the request and may still commit it, and a Retry re-sends the
+        // draft the event started from - the backend has no way to tell the
+        // second run from the first, so a posting would be posted twice.
         // Re-arm the busy state first - responseError cleared it, and an
         // unguarded click during the retry would abort it silently.
         const oRetry = {
@@ -419,15 +430,14 @@ sap.ui.define(
         // The timeout covers the body reads as well as the fetch: once it
         // fires, response.text( ) / .json( ) reject with the abort too, and
         // their catches below would report "Invalid JSON response" or "could
-        // not read error body" - no Retry, and no word of a timeout. So each
-        // of them asks the request whether it timed out first and reports it
-        // the same way as the fetch's own catch.
+        // not read error body" - no word of a timeout. So each of them asks
+        // the request whether it timed out first and reports it the same way
+        // as the fetch's own catch. Without a Retry: after this long the
+        // backend has the request and may well have run it (see oRetry).
         const reportTimeout = () =>
           this.responseError(
             ctx,
-            `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted`,
-            undefined,
-            oRetry,
+            `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted. ${MAY_HAVE_RUN}`,
           );
 
         // Stamp this request and treat its response as stale once a newer
@@ -562,16 +572,23 @@ sap.ui.define(
             if (isStale()) return;
             // An empty error body would render an empty overlay - fall back
             // to the status code so the user sees at least what failed.
-            // A 502/503/504 is the gateway or the dispatcher answering for a
+            // A 502/503 is the gateway or the dispatcher answering for a
             // backend that did not - a restart or a queue that is full - and
             // the request may well not have reached it, which is the case
-            // Retry exists for; a 500 is the backend itself (a dump), and
-            // re-sending the same body would only dump again.
+            // Retry exists for. A 504 is the gateway giving up on a backend
+            // that HAS the request: the work process runs on and commits, so
+            // no Retry (see oRetry) and a word on why. A 500 is the backend
+            // itself (a dump), and re-sending the same body would only dump
+            // again.
+            const status = response.status;
+            const fallback = `HTTP ${status}`;
             this.responseError(
               ctx,
-              text || `HTTP ${response.status}`,
+              status === 504
+                ? `${text || fallback} - ${MAY_HAVE_RUN}`
+                : text || fallback,
               undefined,
-              response.status >= 502 ? oRetry : undefined,
+              status === 502 || status === 503 ? oRetry : undefined,
             );
             return;
           }

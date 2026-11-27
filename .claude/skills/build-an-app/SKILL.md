@@ -53,8 +53,10 @@ the guide — read the section before you rely on the line.
 - **Ask the lifecycle with the call itself**: `IF client->check_on_init( ).`,
   never `IS INITIAL` / `IS NOT INITIAL`. A negative branch, and every other
   `abap_bool`, is compared: `= abap_false`.
-- **PUBLIC attributes are serialized, browser-visible state.** Bound data
-  only; everything else PROTECTED.
+- **PUBLIC is for bound data only; everything else PROTECTED.** Every
+  attribute of any section is persisted in the draft, only bound ones reach
+  the browser - a large table not needed next roundtrip is CLEARed or
+  re-read, not hidden in PROTECTED.
 - **Build views with `z2ui5_cl_ui5_view_builder`** (`ele`/`tag`/`a`/`end`/
   `stringify`). The legacy `z2ui5_cl_xml_view` is frozen — never in new code.
 - **`a( )` has three value parameters**: `v` for constants, bindings and

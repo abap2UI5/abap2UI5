@@ -130,13 +130,17 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
     " INSERT first; only a key that already exists asks who owns it. The
     " write used to be a MODIFY guarded by a SELECT on every save - and on
-    " the legitimate paths the id is always a fresh uuid, so that SELECT hit
+    " an event roundtrip the id is always a fresh uuid, so that SELECT hit
     " an empty row on every user click, one database roundtrip for a
     " collision that does not happen there. The guard itself is unchanged
     " (defense in depth: a row another user owns must not be overwritable
-    " by re-using its id) - it runs on the collision path now. A duplicate
-    " key answers sy-subrc 4 on every target, the transpiled runtime
-    " included (a UNIQUE constraint failure is 4 there).
+    " by re-using its id) - it runs on the collision path now. One
+    " legitimate path takes it every time: an app hop writes the target
+    " under the id it already has (z2ui5_cl_ui5_action=>prepare_app_stack,
+    " ms_draft-id = id_draft), so a nav_app_leave( ) back to a persisted
+    " caller costs the failed INSERT, the SELECT and the UPDATE - one hop,
+    " not one click. A duplicate key answers sy-subrc 4 on every target, the
+    " transpiled runtime included (a UNIQUE constraint failure is 4 there).
     INSERT z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
       SELECT SINGLE uname FROM z2ui5_t_01

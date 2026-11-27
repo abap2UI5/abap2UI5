@@ -44,11 +44,13 @@ that the linter did not run and recommend `/abap2ui5-check`.
    check_on_navigated( ). view_display( ). ...`) is correct - never propose
    splitting it into separate `IF` blocks, the linter reports those
    (`separate-lifecycle-ifs`).
-2. **State** - PUBLIC attributes are serialized every roundtrip and visible
-   in the browser: bound data only, everything else PROTECTED/PRIVATE. Flag
-   secrets or large unbound tables in PUBLIC, references and objects that
-   cannot be serialized, and logic that assumes something survives on the
-   server between roundtrips other than the instance itself.
+2. **State** - every attribute, of any section, is serialized into the
+   draft every roundtrip; the bound ones are visible in the browser. PUBLIC
+   is for bound data only, everything else PROTECTED/PRIVATE. Flag secrets
+   in PUBLIC or bound, large tables kept across roundtrips that the next one
+   does not need (PROTECTED does not shrink the draft), references and
+   objects that cannot be serialized, and logic that assumes something
+   survives on the server between roundtrips other than the instance itself.
 3. **Binding** - `client->_bind( attr )` on a PUBLIC attribute (also for
    display-only; `_bind_edit` is removed), row-template fields as
    `` `{UPPERCASE}` ``, never a model path typed as a text literal,

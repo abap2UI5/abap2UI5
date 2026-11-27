@@ -1376,6 +1376,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " text/html from rendering a reflected app name / exception text as markup
     " (reflected-XSS). Success bodies are HTML for the GET shell, JavaScript
     " for the bundles and JSON for the POST roundtrip.
+    " nosniff is set here, not left to the exit's security headers alone: an
+    " exit that ASSIGNS its own t_security_header instead of appending to it
+    " (or one that raises, which costs its headers) dropped it from every
+    " response, the 500 bodies with exception text included. It is never
+    " wrong for any of these bodies; the exit's headers below still follow.
     DATA(lv_content_type) = COND string(
         WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
         WHEN lv_bundle = abap_true     THEN `application/javascript; charset=UTF-8`
@@ -1383,6 +1388,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         ELSE `application/json; charset=UTF-8` ).
     mo_server->set_header_field( n = `content-type`
                                  v = lv_content_type ).
+    mo_server->set_header_field( n = `X-Content-Type-Options`
+                                 v = `nosniff` ).
 
     " Ask the ICF runtime to gzip the response when the client accepts it.
     " Every body this handler sends is text (the frontend bundle, about

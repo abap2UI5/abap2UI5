@@ -269,10 +269,16 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " namespace rename rewrites the reference but left the literal behind,
     " and a renamed installation then refused every app it was asked to
     " start (.github/scripts/rename-literal-gate.mjs)
+    " A start names a GLOBAL class - letters, digits, _ and the slashes of a
+    " namespace. The type lookup also takes an absolute type name, and
+    " `\PROGRAM=ZREPORT\CLASS=LCL_APP` would start a local class of any
+    " program that implements the interface: a quick test in a report, a
+    " helper never meant to be an entry point. Refused like an unknown class.
     DATA li_app_type TYPE REF TO z2ui5_if_app.
     DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_type ).
-    IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = lv_app_start
-                                                              intf  = lv_app_intf ) = abap_false.
+    IF lv_app_start CN `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/`
+        OR z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = lv_app_start
+                                                                  intf  = lv_app_intf ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = |The app '{ app_start_safe( lv_app_start ) }' | &&

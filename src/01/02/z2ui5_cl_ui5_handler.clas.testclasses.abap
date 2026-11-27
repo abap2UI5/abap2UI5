@@ -1160,6 +1160,19 @@ CLASS ltcl_01_request IMPLEMENTATION.
         exp = `/sap/bc/z2ui5?app_start=ZCL_X&q=a%20b%3C+c.d_e-f~g:h`
         act = z2ui5_cl_ui5_handler=>context_info_url_safe( `/sap/bc/z2ui5?app_start=ZCL_X&q=a%20b%3C+c.d_e-f~g:h` ) ).
 
+    " the event name and the draft id come off the request too - S_FRONT.EVENT
+    " is any string - and go through the same strip
+    lo_handler->mo_action = NEW z2ui5_cl_ui5_action( lo_handler ).
+    lo_handler->mo_action->ms_actual-event = `SAVE<img src=x onerror="a()">`.
+    lo_handler->mo_action->mo_app->ms_draft-id_prev = `D1<b>`.
+    lo_handler->mv_request_parsed = abap_true.
+
+    lv_info = lo_handler->request_context_info( ).
+
+    cl_abap_unit_assert=>assert_char_cp( act = lv_info
+                                         exp = `*event SAVEimgsrc=xonerror=a, draft D1b,*` ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CA `<>"'` ) ).
+
   ENDMETHOD.
 
   METHOD test_hash_shell_part.

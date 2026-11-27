@@ -55,6 +55,25 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RETURNING
         VALUE(result) TYPE i.
 
+    "! a sorter's or a condition's path that can name a component of a row:
+    "! not empty, and nothing but A-Z, 0-9, _ and / (a namespace, a
+    "! sub-component). The app puts it into an ORDER BY or a WHERE - often a
+    "! dynamic one - so a path that could not be a component is dropped here
+    "! instead of reaching it as written by the browser
+    CLASS-METHODS path_valid
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    "! an operator of the documented list (ty_s_bind_tab_filter) - the
+    "! sap.ui.model.FilterOperator values; anything else is dropped
+    CLASS-METHODS operator_valid
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
 ENDCLASS.
 
 
@@ -112,7 +131,7 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
           lv_index = lv_index + 1.
           DATA(lv_sorter) = |/{ lv_index }|.
           DATA(lv_name) = to_upper( li_json->get_string( |{ lv_sorter }/PATH| ) ).
-          IF lv_name IS INITIAL.
+          IF path_valid( lv_name ) = abap_false.
             CONTINUE.
           ENDIF.
           INSERT VALUE #( path       = lv_name
@@ -140,9 +159,17 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
           lv_group = lv_group + 1.
           LOOP AT li_json->members( |/{ lv_g }| ) INTO DATA(lv_c).
             DATA(lv_cond) = |/{ lv_g }/{ lv_c }|.
+            DATA(lv_path) = to_upper( li_json->get_string( |{ lv_cond }/1| ) ).
+            DATA(lv_operator) = li_json->get_string( |{ lv_cond }/2| ).
+            " path and operator are the browser's, and the app builds its
+            " WHERE from them: a condition that names no component or no
+            " documented operator is no condition
+            IF path_valid( lv_path ) = abap_false OR operator_valid( lv_operator ) = abap_false.
+              CONTINUE.
+            ENDIF.
             INSERT VALUE #( group    = lv_group
-                            path     = to_upper( li_json->get_string( |{ lv_cond }/1| ) )
-                            operator = li_json->get_string( |{ lv_cond }/2| )
+                            path     = lv_path
+                            operator = lv_operator
                             value1   = li_json->get( |{ lv_cond }/3| )
                             value2   = li_json->get( |{ lv_cond }/4| ) ) INTO TABLE result.
           ENDLOOP.
@@ -151,6 +178,26 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
         " a filter that cannot be read is no filter - every row
         CLEAR result.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD path_valid.
+
+    IF val IS INITIAL.
+      RETURN.
+    ENDIF.
+    result = xsdbool( val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_/` ).
+
+  ENDMETHOD.
+
+  METHOD operator_valid.
+
+    CASE val.
+      WHEN `EQ` OR `NE` OR `LT` OR `LE` OR `GT` OR `GE` OR `BT` OR `NB`
+          OR `Contains` OR `NotContains` OR `StartsWith` OR `NotStartsWith`
+          OR `EndsWith` OR `NotEndsWith`.
+        result = abap_true.
+    ENDCASE.
 
   ENDMETHOD.
 
