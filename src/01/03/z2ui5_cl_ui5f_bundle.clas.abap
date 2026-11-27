@@ -178,11 +178,12 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `}function frontendBundle(){try{const embed=sap.ui.require(EMBED_MODULE);const version=embed?.ccBundle;if(typeof version!=="string"||!version)return null;const url=embed.bundleUrl;return{version,url:ty` &&
              `peof url==="string"&&url?url:null}}catch{return null}}function bundleUrl(ctx,frontend){const base=frontend.url||ctx?.state?.url;if(!base)return null;try{const url=new URL(base,window.location.href);ur` &&
              `l.hash="";url.searchParams.set(BUNDLE_PARAM,BUNDLE_CC);url.searchParams.set(VERSION_PARAM,frontend.version);return url.href}catch{return null}}function bundleArrived(){try{return Boolean(sap.ui.requir` &&
-             `e(BUNDLE_MODULE))}catch{return false}}function loadScript(url){return new Promise((resolve,reject)=>{const script=document.createElement("script");const fail=()=>{script.remove();reject(new Error(``th` &&
-             `e custom controls this view uses could not be loaded: ${url}``))};script.src=url;script.async=true;script.onerror=fail;script.onload=()=>setTimeout(()=>bundleArrived()?resolve():fail(),0);document.hea` &&
-             `d.appendChild(script)})}function ensure(ctx,xml){if(loaded||!namesControls(xml))return Promise.resolve();const frontend=frontendBundle();if(!frontend)return Promise.resolve();if(bundleArrived()){loade` &&
-             `d=true;return Promise.resolve()}if(!loading){const url=bundleUrl(ctx,frontend);const load=url?loadScript(url):Promise.reject(new Error("the custom controls this view uses could not be loaded: no endpo` &&
-             `int to load them from"));loading=load.then(()=>{loaded=true;loading=null},e=>{loading=null;throw e})}return loading}return{ensure,namesControls}});` && |\n| &&
+             `e(BUNDLE_MODULE))}catch{return false}}const LOAD_TIMEOUT=6e4;function loadScript(url){return new Promise((resolve,reject)=>{const script=document.createElement("script");let timer=null;const settle=(o` &&
+             `k,reason)=>{if(timer===null)return;clearTimeout(timer);timer=null;if(ok){resolve();return}script.remove();reject(new Error(``the custom controls this view uses could not be loaded${reason}: ${url}``))` &&
+             `};timer=setTimeout(()=>settle(false,`` (no answer within ${LOAD_TIMEOUT/1e3} seconds)``),LOAD_TIMEOUT);script.src=url;script.async=true;script.onerror=()=>settle(false,"");script.onload=()=>setTimeout` &&
+             `(()=>settle(bundleArrived(),""),0);document.head.appendChild(script)})}function ensure(ctx,xml){if(loaded||!namesControls(xml))return Promise.resolve();const frontend=frontendBundle();if(!frontend)ret` &&
+             `urn Promise.resolve();if(bundleArrived()){loaded=true;return Promise.resolve()}if(!loading){const url=bundleUrl(ctx,frontend);const load=url?loadScript(url):Promise.reject(new Error("the custom contro` &&
+             `ls this view uses could not be loaded: no endpoint to load them from"));loading=load.then(()=>{loaded=true;loading=null},e=>{loading=null;throw e})}return loading}return{ensure,namesControls}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/Embed.js": function(){sap.ui.define(["sap/ui/core/Component","sap/ui/core/ComponentContainer"],(Component,ComponentContainer)=>{"use strict";const AREA="z2ui5EmbedArea";const STYLE=` &&
@@ -196,9 +197,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `;return Object.assign({},settings,{app:String(app),params:Object.assign(params,settings.params)})}function componentData(settings,installation){const data=Object.assign({},installation.componentData,{` &&
              `endpoint:settings.endpoint});const parameters=startupParameters(settings.params,settings.app);if(Object.keys(parameters).length)data.startupParameters=parameters;if(settings.ownsPage===true)data.ownsP` &&
              `age=true;return data}function createComponent(settings,installation){const create=()=>Component.create({name:installation.componentName,manifest:true,handleValidation:true,componentData:componentData(` &&
-             `settings,installation)});const owner=settings.host&&Component.getOwnerComponentFor(settings.host);if(owner){try{return owner.runAsOwner(create)}catch(e){}}return create()}return{startupParameters,comp` &&
-             `onentData,withHostStart,create(settings,installation){const part=settings.ownsPage!==true;if(part)installStyle();return Promise.resolve(createComponent(withHostStart(settings),installation)).then(comp`.
+             `settings,installation)});const owner=settings.host&&Component.getOwnerComponentFor(settings.host);if(owner){try{return owner.runAsOwner(create)}catch(e){}}return create()}return{startupParameters,comp`.
     result = result &&
+             `onentData,withHostStart,create(settings,installation){const part=settings.ownsPage!==true;if(part)installStyle();return Promise.resolve(createComponent(withHostStart(settings),installation)).then(comp` &&
              `onent=>{const container=new ComponentContainer({lifecycle:"Container",propagateModel:false,width:"100%",height:"100%",component});if(part)container.addStyleClass(AREA);return container})}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
@@ -270,9 +271,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `t:"Restart",type:"Emphasized",press:()=>{dialog.close();restart(ctx)}});const copyText=``${title||DEFAULT_TITLE}\n\n${details}``;const copyButton=new Button({text:"Copy",press:()=>{copyToClipboard(cop` &&
              `yText);copyButton.setText("Copied");setTimeout(()=>{if(!copyButton.bIsDestroyed)copyButton.setText("Copy")},1500)}});const buttons=[];if(hasErrorDetails(ctx)){buttons.push(new Button({text:"Details",p` &&
              `ress:()=>{dialog.close();openErrorDetails(ctx)}}))}buttons.push(copyButton);if(typeof options.onRetry==="function"){buttons.push(new Button({text:"Retry",press:()=>{dialog.close();options.onRetry()}})` &&
-             `)}buttons.push(restartButton);const dialog=new Dialog({title:title||"Application Error",type:"Message",state:"Error",icon:"sap-icon://message-error",contentWidth:"36rem",escapeHandler:oPromise=>oPromi` &&
-             `se.reject(),content,buttons,initialFocus:restartButton,afterClose:()=>{if(store.dialog===dialog)store.dialog=null;dialog.destroy()}});withClass(dialog,DIALOG_CLASS);store.dialog=dialog;dialog.open();r`.
+             `)}buttons.push(restartButton);const dialog=new Dialog({title:title||"Application Error",type:"Message",state:"Error",icon:"sap-icon://message-error",contentWidth:"36rem",escapeHandler:oPromise=>oPromi`.
     result = result &&
+             `se.reject(),content,buttons,initialFocus:restartButton,afterClose:()=>{if(store.dialog===dialog)store.dialog=null;dialog.destroy()}});withClass(dialog,DIALOG_CLASS);store.dialog=dialog;dialog.open();r` &&
              `eturn true}catch(e){window.console?.error?.("ErrorView: friendly dialog failed",e);return false}}function reset(ctx){const store=ctx.errorView;store.title="";store.details="";store.options={}}function` &&
              ` reopenErrorDialog(ctx){const store=ctx.errorView;return showFriendlyDialog(ctx,store.title,store.details,store.options)}function handleLogout(ctx){const fallback=()=>{window.location.href="/sap/publi` &&
              `c/bc/icf/logoff"};try{const launchpad=ctx?.state?.oLaunchpad;if(launchpad?.Container?.logout){launchpad.Container.logout()}else{fallback()}}catch{fallback()}}function loadFriendlyDialogAsync(ctx,title` &&
@@ -344,9 +345,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `hinFileSize: the size handler failed",e)}return false})}function dispatchWhenIdle(oController,args){const fire=()=>{if(!isControllerAlive(oController))return;if(oController.ctx?.state?.isBusy){afterRo` &&
              `undtrip(oController,()=>setTimeout(fire,0));return}oController.eB(...args)};fire()}function runCallbacks(callbacks,...args){if(!callbacks)return;for(const fn of callbacks){if(!fn)continue;try{fn(...ar` &&
              `gs)}catch(e){logError("runCallbacks: callback failed",e)}}}const pendingDelegates=new WeakMap;function onNextRendering(control,fn,key){let byKey;if(key){byKey=pendingDelegates.get(control);if(!byKey){` &&
-             `byKey=new Map;pendingDelegates.set(control,byKey)}const prev=byKey.get(key);if(prev)control.removeEventDelegate(prev)}const delegate={onAfterRendering:()=>{control.removeEventDelegate(delegate);if(byK` &&
-             `ey)byKey.delete(key);fn()}};if(byKey)byKey.set(key,delegate);control.addEventDelegate(delegate)}function whenRendered(control,owner,fn,key){if(control.getDomRef()){if(!isDestroyed(owner))fn();return}o`.
+             `byKey=new Map;pendingDelegates.set(control,byKey)}const prev=byKey.get(key);if(prev)control.removeEventDelegate(prev)}const delegate={onAfterRendering:()=>{control.removeEventDelegate(delegate);if(byK`.
     result = result &&
+             `ey)byKey.delete(key);fn()}};if(byKey)byKey.set(key,delegate);control.addEventDelegate(delegate)}function whenRendered(control,owner,fn,key){if(control.getDomRef()){if(!isDestroyed(owner))fn();return}o` &&
              `nNextRendering(control,()=>{if(!isDestroyed(owner))fn()},key)}const XML_TEMPLATING=/sap\.ui\.core\.template\/1|\{\s*template>/;function usesXmlTemplating(xml){return XML_TEMPLATING.test(String(xml??""` &&
              `))}function getTextPath(control,separator){const texts=[];let node=control;for(let i=0;node&&i<100;i++){if(typeof node.getText!=="function")break;const text=node.getText();if(text)texts.push(text);nod` &&
              `e=typeof node.getParent==="function"?node.getParent():null}return texts.reverse().join(separator||" > ")}function copyToClipboard(textToCopy){if(navigator.clipboard?.writeText){return navigator.clipbo` &&
@@ -418,9 +419,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      "z2ui5/core/Router.js": function(){sap.ui.define(["sap/ui/core/routing/HashChanger","z2ui5/core/Lib"],(HashChanger,Lib)=>{"use strict";const APP_ROUTE_PREFIX="/app/";const SHELL_SEPARATOR="&/";f` &&
              `unction hashChanger(){return HashChanger.getInstance()}function splitHash(sHash){const raw=String(sHash||"").replace(/^#/,"");if(!raw||raw.startsWith("/"))return{shell:"",app:raw};const i=raw.indexOf(` &&
              `SHELL_SEPARATOR);if(i<0)return{shell:"",app:raw};let app=raw.slice(i+SHELL_SEPARATOR.length).replace(/^\/+/,"");if(app)app=``/${app}``;return{shell:raw.slice(0,i),app}}function appHashOf(sHash){return` &&
-             ` splitHash(sHash).app}function getHash(){return appHashNormalized(hashChanger().getHash())}function appHashNormalized(sHash){const app=appHashOf(sHash);if(app==="/")return"";return app&&!app.startsWit` &&
-             `h("/")?``/${app}``:app}function getRawHash(){return String(window.location.hash||"").replace(/^#/,"")}function patternFor(sClass,sDraftId){const base=``${APP_ROUTE_PREFIX}${sClass}``;return sDraftId?`.
+             ` splitHash(sHash).app}function getHash(){return appHashNormalized(hashChanger().getHash())}function appHashNormalized(sHash){const app=appHashOf(sHash);if(app==="/")return"";return app&&!app.startsWit`.
     result = result &&
+             `h("/")?``/${app}``:app}function getRawHash(){return String(window.location.hash||"").replace(/^#/,"")}function patternFor(sClass,sDraftId){const base=``${APP_ROUTE_PREFIX}${sClass}``;return sDraftId?` &&
              ```${base}/${sDraftId}``:base}function segmentsOf(sHash){const app=appHashOf(sHash).replace(/^\/+/,"");const marker="app/";if(!app.startsWith(marker))return null;return app.slice(marker.length).split(/` &&
              `[&?]/)[0].split("/")}function parse(sHash){const parts=segmentsOf(sHash);if(!parts)return null;if(parts[0]===""){if(parts.length<3||!parts[1]||!parts[2])return null;return{app:``/${parts[1]}/${parts[2` &&
              `]}``,draft:parts.length>3?parts[3]:""}}if(!parts[0])return null;return{app:parts[0],draft:parts.length>1?parts[1]:""}}const APP_STATE_PARAM="z2ui5-xapp-state=";function appStateOf(sHash){const app=app` &&
@@ -431,28 +432,29 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `push(h);r.trailPos=r.trail.length-1}function write(ctx,sHash,bReplace){trailWrite(ctx,sHash,bReplace);navTo(sHash,bReplace)}function trailMove(ctx,sHash){const r=ctx.router;const h=appHashNormalized(s` &&
              `Hash);const pos=r.trailPos;if(r.trail[pos]===h)return"";const prev=pos>0&&r.trail[pos-1]===h;const next=r.trail[pos+1]===h;if(prev){r.trailPos=pos-1;return next?"":"back"}if(next){r.trailPos=pos+1;ret` &&
              `urn"forward"}const before=pos>0?r.trail.lastIndexOf(h,pos-1):-1;if(before>=0){r.trailPos=before;return"back"}const after=r.trail.indexOf(h,pos+1);if(after>=0){r.trailPos=after;return"forward"}trailWri` &&
-             `te(ctx,h,false);return""}function writeHash(ctx,sHash,bPush){if(bPush)ctx.state.hashPushCount+=1;write(ctx,sHash,!bPush)}function navBack(ctx,sFallback){if(!sFallback||ctx.state.hashPushCount>0){windo` &&
-             `w.history.back();return}write(ctx,sFallback,true)}function onHashChanged(ctx,sNewHash){const state=ctx.state;const direction=trailMove(ctx,sNewHash);if(direction==="back"){state.hashPushCount=Math.max` &&
-             `(0,state.hashPushCount-1)}else if(direction==="forward"){state.hashPushCount+=1}if(!state.navRouting){dispatchAppHashChange(ctx,sNewHash);return}const route=parse(sNewHash);if(!route)return;if(route.d` &&
-             `raft){if(route.draft===state.currentDraftId)return}else if(route.app.toUpperCase()===String(state.currentApp).toUpperCase()){return}state.navFromHash=true;state.navDirection=direction;if(ctx.router.na` &&
-             `vigate)ctx.router.navigate()}function applyHashEvent(ctx,mOptions){if(!mOptions.setHashEvent)return;const state=ctx.state;const sEvent=String(mOptions.setHashEvent).trim();state.hashEvent=sEvent||null` &&
-             `;state.appHash=appHashNormalized(getRawHash())}function dispatchAppHashChange(ctx,sNewHash){const state=ctx.state;if(!state.hashEvent)return;if(state.terminated)return;const appHash=appHashNormalized(` &&
-             `sNewHash);if(appHash===state.appHash)return;const controller=state.oController;if(!Lib.isControllerAlive(controller))return;if(state.isBusy){state.pendingAppHash=sNewHash;return}state.pendingAppHash=n` &&
-             `ull;state.appHash=appHash;controller.eB([state.hashEvent])}function dispatchPendingAppHash(ctx){const state=ctx.state;const pending=state.pendingAppHash;if(pending==null)return;state.pendingAppHash=nu` &&
-             `ll;dispatchAppHashChange(ctx,pending)}function repointCallerEntry(ctx,mOptions,draftForRoute){const state=ctx.state;const prevApp=mOptions.navAppCallPrevApp;const prevDraft=mOptions.navAppCallPrevId;i` &&
-             `f(!draftForRoute||!prevApp||!prevDraft)return;const prevRoute=patternFor(prevApp,prevDraft);if(getHash()===prevRoute)return;state.currentDraftId=prevDraft;write(ctx,prevRoute,true)}function applyMode(` &&
-             `ctx,mOptions){if(!mOptions.setNavRouting)return;const mode=String(mOptions.setNavRouting).toUpperCase();const on=mode==="KEEP"||mode==="FRESH";ctx.state.navRouting=on;ctx.state.navMode=on?mode:null}fu` &&
-             `nction updateAppRoute(ctx,mOptions,ID,app){const state=ctx.state;const draftForRoute=state.navMode==="FRESH"?null:ID;state.currentApp=app;state.currentDraftId=draftForRoute;if(state.navFromHash){state` &&
-             `.navFromHash=false;state.navDirection="";return}const route=patternFor(app,draftForRoute);if(mOptions.checkNavAppCall){repointCallerEntry(ctx,mOptions,draftForRoute);state.currentApp=app;state.current` &&
-             `DraftId=draftForRoute;write(ctx,route,false)}else if(getHash()!==route){write(ctx,route,true)}}function sync(ctx,mOptions){if(!ctx.state.ownsPage)return;const ID=mOptions.id;try{applyMode(ctx,mOptions` &&
-             `);applyHashEvent(ctx,mOptions);const state=ctx.state;const sAsked=mOptions.setPushState||mOptions.setHashReplace;const bPush=Boolean(mOptions.setPushState);const bOwner=!state.navRouting&&Boolean(stat` &&
-             `e.hashEvent);if(sAsked&&!bOwner){Lib.logError(``Router: hash_set / hash_replace need the app to own the hash - '${sAsked}' is not written. Register a listener first (cs_event-hash_attach_changed); ${s` &&
-             `tate.navRouting?"under hash_routing the hash is the router's":"none is registered"}``)}if(state.navRouting){const app=state.oResponse?.APP;if(app)updateAppRoute(ctx,mOptions,ID,app);return}if(sAsked&&` &&
-             `bOwner){state.appHash=appHashNormalized(sAsked);writeHash(ctx,sAsked,bPush);return}if(state.hashEvent)return;const newHash=mOptions.setAppStateActive?``/z2ui5-xapp-state=${ID||""}``:"";write(ctx,newHa` &&
-             `sh,true)}catch(e){Lib.logError("Router.sync: history update failed",e)}}function init(ctx,fnNavigate){ctx.router.navigate=fnNavigate;ctx.router.startRoute=ctx.state.ownsPage?()=>startRoute(window.loca` &&
-             `tion.hash):null;if(!ctx.state.ownsPage)return;const listener=oEvent=>onHashChanged(ctx,oEvent.getParameter("newHash"));ctx.router.hashListener=listener;hashChanger().attachEvent("hashChanged",listener` &&
-             `);hashChanger().init()}function exit(ctx){const listener=ctx.router.hashListener;if(listener){hashChanger().detachEvent("hashChanged",listener);ctx.router.hashListener=null}ctx.router.navigate=null;ct` &&
-             `x.router.startRoute=null}return{init,exit,splitHash,patternFor,parse,startRoute,navTo,navBack,onHashChanged,dispatchPendingAppHash,sync}});` && |\n| &&
+             `te(ctx,h,false);return""}function writeHash(ctx,sHash,bPush){if(bPush&&appHashNormalized(sHash)===getHash())return;if(bPush)ctx.state.hashPushCount+=1;write(ctx,sHash,!bPush)}function navBack(ctx,sFal` &&
+             `lback){if(!ctx?.state?.ownsPage){Lib.logError("Router: hash_back needs the page - the component does not own it (embedded, ownsPage); the history is its host's");return}if(ctx.state.terminated)return;` &&
+             `if(!sFallback||ctx.state.hashPushCount>0){window.history.back();return}write(ctx,sFallback,true)}function onHashChanged(ctx,sNewHash){const state=ctx.state;const direction=trailMove(ctx,sNewHash);if(d` &&
+             `irection==="back"){state.hashPushCount=Math.max(0,state.hashPushCount-1)}else if(direction==="forward"){state.hashPushCount+=1}if(!state.navRouting){dispatchAppHashChange(ctx,sNewHash);return}const ro` &&
+             `ute=parse(sNewHash);if(!route)return;if(route.draft){if(route.draft===state.currentDraftId)return}else if(route.app.toUpperCase()===String(state.currentApp).toUpperCase()){return}state.navFromHash=tru` &&
+             `e;state.navDirection=direction;if(ctx.router.navigate)ctx.router.navigate()}function applyHashEvent(ctx,mOptions){if(!mOptions.setHashEvent)return;const state=ctx.state;const sEvent=String(mOptions.se` &&
+             `tHashEvent).trim();state.hashEvent=sEvent||null;state.appHash=appHashNormalized(getRawHash())}function dispatchAppHashChange(ctx,sNewHash){const state=ctx.state;if(!state.hashEvent)return;if(state.ter` &&
+             `minated)return;const appHash=appHashNormalized(sNewHash);if(appHash===state.appHash)return;const controller=state.oController;if(!Lib.isControllerAlive(controller))return;if(state.isBusy){state.pendin` &&
+             `gAppHash=sNewHash;return}state.pendingAppHash=null;state.appHash=appHash;controller.eB([state.hashEvent])}function dispatchPendingAppHash(ctx){const state=ctx.state;const pending=state.pendingAppHash;` &&
+             `if(pending==null)return;state.pendingAppHash=null;dispatchAppHashChange(ctx,pending)}function repointCallerEntry(ctx,mOptions,draftForRoute){const state=ctx.state;const prevApp=mOptions.navAppCallPrev` &&
+             `App;const prevDraft=mOptions.navAppCallPrevId;if(!draftForRoute||!prevApp||!prevDraft)return;const prevRoute=patternFor(prevApp,prevDraft);if(getHash()===prevRoute)return;state.currentDraftId=prevDraf` &&
+             `t;write(ctx,prevRoute,true)}function applyMode(ctx,mOptions){if(!mOptions.setNavRouting)return;const mode=String(mOptions.setNavRouting).toUpperCase();const on=mode==="KEEP"||mode==="FRESH";ctx.state.` &&
+             `navRouting=on;ctx.state.navMode=on?mode:null}function updateAppRoute(ctx,mOptions,ID,app){const state=ctx.state;const draftForRoute=state.navMode==="FRESH"?null:ID;state.currentApp=app;state.currentDr` &&
+             `aftId=draftForRoute;if(state.navFromHash){state.navFromHash=false;state.navDirection="";return}const route=patternFor(app,draftForRoute);if(mOptions.checkNavAppCall){repointCallerEntry(ctx,mOptions,dr` &&
+             `aftForRoute);state.currentApp=app;state.currentDraftId=draftForRoute;writeHash(ctx,route,true)}else if(getHash()!==route){write(ctx,route,true)}}function sync(ctx,mOptions){if(!ctx.state.ownsPage)retu` &&
+             `rn;const ID=mOptions.id;try{applyMode(ctx,mOptions);applyHashEvent(ctx,mOptions);const state=ctx.state;const sAsked=mOptions.setPushState||mOptions.setHashReplace;const bPush=Boolean(mOptions.setPushS` &&
+             `tate);const bOwner=!state.navRouting&&Boolean(state.hashEvent);if(sAsked&&!bOwner){Lib.logError(``Router: hash_set / hash_replace need the app to own the hash - '${sAsked}' is not written. Register a ` &&
+             `listener first (cs_event-hash_attach_changed); ${state.navRouting?"under hash_routing the hash is the router's":"none is registered"}``)}if(state.navRouting){const app=state.oResponse?.APP;if(app)upda` &&
+             `teAppRoute(ctx,mOptions,ID,app);return}if(sAsked&&bOwner){state.appHash=appHashNormalized(sAsked);writeHash(ctx,sAsked,bPush);return}if(state.hashEvent)return;const newHash=mOptions.setAppStateActive?` &&
+             ```/z2ui5-xapp-state=${ID||""}``:"";write(ctx,newHash,true)}catch(e){Lib.logError("Router.sync: history update failed",e)}}function init(ctx,fnNavigate){ctx.router.navigate=fnNavigate;ctx.router.startR` &&
+             `oute=ctx.state.ownsPage?()=>startRoute(window.location.hash):null;if(!ctx.state.ownsPage)return;const listener=oEvent=>onHashChanged(ctx,oEvent.getParameter("newHash"));ctx.router.hashListener=listene` &&
+             `r;hashChanger().attachEvent("hashChanged",listener);hashChanger().init()}function exit(ctx){const listener=ctx.router.hashListener;if(listener){hashChanger().detachEvent("hashChanged",listener);ctx.ro` &&
+             `uter.hashListener=null}ctx.router.navigate=null;ctx.router.startRoute=null}return{init,exit,splitHash,patternFor,parse,startRoute,navTo,navBack,onHashChanged,dispatchPendingAppHash,sync}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/ScrollFocus.js": function(){sap.ui.define(["sap/ui/core/Element","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Element,Lib,Env,ViewSlots,Context)=>{` &&
@@ -480,49 +482,49 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      "z2ui5/core/Server.js": function(){sap.ui.define(["sap/ui/VersionInfo","z2ui5/core/Lib","z2ui5/core/Session","z2ui5/core/ScrollFocus","z2ui5/core/ViewSlots","z2ui5/core/ErrorView"],(VersionInfo,` &&
              `Lib,Session,ScrollFocus,ViewSlots,ErrorView)=>{"use strict";const REQUEST_TIMEOUT_MS=6e5;const showBusy=(ctx,delay)=>Lib.showBusy(ctx,delay);const hideBusy=ctx=>Lib.hideBusy(ctx);return{PROTOCOL:3,end` &&
              `Session(ctx){if(!Lib.isValidContextId(ctx.state.contextId))return;fetch(ctx.state.url,{method:"HEAD",keepalive:true,headers:{"sap-terminate":"session","sap-contextid":ctx.state.contextId,"sap-contexti` &&
-             `d-accept":"header"}}).catch(()=>{});ctx.state.contextId=null},reset(ctx){ctx.server.requestSeq+=1;this._abortInflight(ctx);ctx.server.viewBuild=null;Lib.dropQueuedEvents(ctx.state);ctx.state.timerRepe` &&
-             `at=null;ErrorView.reset(ctx)},restoreFromRoute(ctx){if(ctx.state.terminated)return;ctx.state.isBusy=true;ctx.state.tickInFlight=false;showBusy(ctx,0);Lib.cancelPendingTimers(ctx);ctx.state.timerRepeat` &&
-             `=null;Lib.dropQueuedEvents(ctx.state);this.roundtrip(ctx,{});ctx.server.restoreSeq=ctx.server.requestSeq},roundtrip(ctx,oBody={}){const state=ctx.state;state.oBody=oBody;const eventName=oBody.ARGUMENT` &&
-             `S?.[0]?.[0];const oConfig=state.oConfig;const config={...Session.config(ctx,oConfig,oBody.ID),S_FOCUS:ScrollFocus.getFocusInfo(ctx),S_SCROLL:ScrollFocus.getScrollInfo(ctx)};oBody.S_FRONT={ID:oBody.ID,` &&
-             `EVENT:eventName,HASH:state.ownsPage?window.location.hash:""};const sFront=oBody.S_FRONT;if(oBody.TIMER)sFront.TIMER=true;delete oBody.TIMER;if(!oBody.ID){const route=ctx.router?.startRoute?.();if(rout` &&
-             `e)sFront.ROUTE=route}if(Object.values(config).some(v=>v!==undefined)){sFront.CONFIG=config}if(state.lastRoundtripMs){sFront.MS_CLIENT_PREV=state.lastRoundtripMs}Object.assign(sFront,Session.location(c` &&
-             `tx,oBody.ID));if(oBody.ARGUMENTS)oBody.ARGUMENTS.shift();sFront.T_EVENT_ARG=oBody.ARGUMENTS;delete oBody.ID;delete oBody.ARGUMENTS;if(!sFront.T_EVENT_ARG?.length)delete sFront.T_EVENT_ARG;if(sFront.SE` &&
-             `ARCH==="")delete sFront.SEARCH;if(!sFront.HASH)delete sFront.HASH;if(!oBody.MODEL)delete oBody.MODEL;this.readHttp(ctx,oBody,Session.takePending(ctx))},_openRequest(ctx,ms){const controller=new AbortC` &&
-             `ontroller;const request={signal:controller.signal,timedOut:false,abort:()=>controller.abort()};const timer=setTimeout(()=>{request.timedOut=true;controller.abort()},ms);request.close=()=>{clearTimeout` &&
-             `(timer);ctx.server.inflight.delete(request)};ctx.server.inflight.add(request);return request},_abortInflight(ctx){for(const request of[...ctx.server.inflight]){request.close();request.abort()}},async ` &&
-             `readHttp(ctx,oBody,sessionCarried){const oRetry={onRetry:()=>{ctx.state.terminated=false;ctx.state.isBusy=true;showBusy(ctx,0);if(oRetry.timerRepeat){ctx.state.timerRepeat=oRetry.timerRepeat;oRetry.ti` &&
-             `merRepeat=null}this.readHttp(ctx,oBody,sessionCarried)},timerRepeat:null};const reportTimeout=()=>this.responseError(ctx,``No backend response within ${REQUEST_TIMEOUT_MS/1e3} seconds - request aborte` &&
-             `d``,undefined,oRetry);const seq=++ctx.server.requestSeq;const isStale=()=>seq!==ctx.server.requestSeq;this._abortInflight(ctx);let sentAt;let body;try{body=JSON.stringify({value:oBody})}catch(e){this.` &&
-             `responseError(ctx,``The request could not be serialized - an event argument is no plain data (${e.message})``);return}const request=this._openRequest(ctx,REQUEST_TIMEOUT_MS);const{signal}=request;try{`.
+             `d-accept":"header"}}).catch(()=>{});ctx.state.contextId=null},reset(ctx){ctx.server.requestSeq+=1;this._abortInflight(ctx);ctx.server.viewBuild=Promise.resolve(ctx.server.viewBuild).catch(()=>{});Lib.` &&
+             `dropQueuedEvents(ctx.state);ctx.state.timerRepeat=null;ErrorView.reset(ctx)},restoreFromRoute(ctx){if(ctx.state.terminated)return;ctx.state.isBusy=true;ctx.state.tickInFlight=false;showBusy(ctx,0);Lib` &&
+             `.cancelPendingTimers(ctx);ctx.state.timerRepeat=null;Lib.dropQueuedEvents(ctx.state);this.roundtrip(ctx,{});ctx.server.restoreSeq=ctx.server.requestSeq},roundtrip(ctx,oBody={}){const state=ctx.state;s` &&
+             `tate.oBody=oBody;const eventName=oBody.ARGUMENTS?.[0]?.[0];const oConfig=state.oConfig;const config={...Session.config(ctx,oConfig,oBody.ID),S_FOCUS:ScrollFocus.getFocusInfo(ctx),S_SCROLL:ScrollFocus.` &&
+             `getScrollInfo(ctx)};oBody.S_FRONT={ID:oBody.ID,EVENT:eventName,HASH:state.ownsPage?window.location.hash:""};const sFront=oBody.S_FRONT;if(oBody.TIMER)sFront.TIMER=true;delete oBody.TIMER;if(!oBody.ID)` &&
+             `{const route=ctx.router?.startRoute?.();if(route)sFront.ROUTE=route}if(Object.values(config).some(v=>v!==undefined)){sFront.CONFIG=config}if(state.lastRoundtripMs){sFront.MS_CLIENT_PREV=state.lastRoun` &&
+             `dtripMs}Object.assign(sFront,Session.location(ctx,oBody.ID));if(oBody.ARGUMENTS)oBody.ARGUMENTS.shift();sFront.T_EVENT_ARG=oBody.ARGUMENTS;delete oBody.ID;delete oBody.ARGUMENTS;if(!sFront.T_EVENT_ARG` &&
+             `?.length)delete sFront.T_EVENT_ARG;if(sFront.SEARCH==="")delete sFront.SEARCH;if(!sFront.HASH)delete sFront.HASH;if(!oBody.MODEL)delete oBody.MODEL;this.readHttp(ctx,oBody,Session.takePending(ctx))},_` &&
+             `openRequest(ctx,ms){const controller=new AbortController;const request={signal:controller.signal,timedOut:false,abort:()=>controller.abort()};const timer=setTimeout(()=>{request.timedOut=true;controll` &&
+             `er.abort()},ms);request.close=()=>{clearTimeout(timer);ctx.server.inflight.delete(request)};ctx.server.inflight.add(request);return request},_abortInflight(ctx){for(const request of[...ctx.server.infl` &&
+             `ight]){request.close();request.abort()}},async readHttp(ctx,oBody,sessionCarried){const oRetry={onRetry:()=>{ctx.state.terminated=false;ctx.state.isBusy=true;showBusy(ctx,0);if(oRetry.timerRepeat){ctx` &&
+             `.state.timerRepeat=oRetry.timerRepeat;oRetry.timerRepeat=null}this.readHttp(ctx,oBody,sessionCarried)},timerRepeat:null};const reportTimeout=()=>this.responseError(ctx,``No backend response within ${R`.
     result = result &&
-             `let response;try{ctx.state.lastRequestBytes=Lib.lazyByteLength(body);sentAt=Date.now();response=await this._post(ctx,body,signal);if(this._csrfTokenRequired(response)&&await this._fetchCsrfToken(ctx,s` &&
-             `ignal)&&!isStale()){response=await this._post(ctx,body,signal)}}catch(e){if(isStale())return;if(request.timedOut){reportTimeout()}else{const hint=e.name==="TypeError"?" - the backend could not be reac` &&
-             `hed. Common causes: an expired "+"logon session redirecting to another origin (SSO), a CORS rule, "+"or the backend being offline.":"";this.responseError(ctx,``Network error: ${e.message}${hint}``,und` &&
-             `efined,oRetry)}return}if(isStale())return;const contextId=response.headers.get("sap-contextid");if(Lib.isValidContextId(contextId)){ctx.state.contextId=contextId}if(!response.ok){let text;try{text=awa` &&
-             `it response.text()}catch{if(isStale())return;if(request.timedOut){reportTimeout();return}text=``HTTP ${response.status}: could not read error body``}if(isStale())return;this.responseError(ctx,text||``` &&
-             `HTTP ${response.status}``,undefined,response.status>=502?oRetry:undefined);return}let responseData;try{responseData=await response.json()}catch(e){if(isStale())return;if(request.timedOut){reportTimeou` &&
-             `t();return}const type=response.headers.get("content-type")||"";if(type.toLowerCase().includes("text/html")){this.responseError(ctx,"The server answered with an HTML page instead of the app's data - "+` &&
-             `"usually a logon page after the session expired, or the page of a "+"proxy in between. Restart the app, logging on again if asked.");return}this.responseError(ctx,``Invalid JSON response: ${e.message}` &&
-             ```);return}if(isStale())return;if(!responseData?.S_FRONT){this.responseError(ctx,"Invalid response: missing S_FRONT - the URL probably does not reach "+"the abap2UI5 handler. Check that the ICF servic` &&
-             `e (or route) of this "+"page calls z2ui5_cl_ui5_http_handler.");return}if(responseData.S_FRONT.PROTOCOL!==undefined&&responseData.S_FRONT.PROTOCOL!==this.PROTOCOL){this.responseError(ctx,"Protocol mis` &&
-             `match: this frontend speaks "+this.PROTOCOL+", the backend answered "+responseData.S_FRONT.PROTOCOL+". Update whichever of the two is older - they ship together.");return}ctx.state.responseData=respon` &&
-             `seData;Session.confirmSent(ctx,sessionCarried);ctx.state.lastRoundtripMs=Date.now()-sentAt;this._clearSentPaths(ctx.state.oSentModel);ctx.state.oSentModel=null;this.responseSuccess(ctx,{ID:responseDat` &&
-             `a.S_FRONT.ID,VIEWS:responseData.S_FRONT.VIEWS,NAV:responseData.S_FRONT.NAV,ACTIONS:responseData.S_FRONT.ACTIONS,OVIEWMODEL:responseData.MODEL??{},MODELPRESENT:responseData.MODEL!==undefined,APP:respon` &&
-             `seData.S_FRONT.APP,TOKEN:Object.freeze({seq})},seq)}catch(e){if(!isStale())this.responseError(ctx,e)}finally{request.close()}},_post(ctx,body,signal){const headers={"Content-Type":"application/json","` &&
-             `sap-contextid-accept":"header"};if(Lib.isValidContextId(ctx.state.contextId)){headers["sap-contextid"]=ctx.state.contextId}if(ctx.server.csrfToken){headers["X-CSRF-Token"]=ctx.server.csrfToken}return ` &&
-             `fetch(ctx.state.url,{method:"POST",headers,body,signal})},_csrfTokenRequired(response){const value=response.headers.get("x-csrf-token")||"";return response.status===403&&value.trim().toLowerCase()==="` &&
-             `required"},async _fetchCsrfToken(ctx,signal){ctx.server.csrfToken="";try{const response=await fetch(ctx.state.url,{method:"HEAD",headers:{"X-CSRF-Token":"Fetch"},signal});const token=(response.headers` &&
-             `.get("x-csrf-token")||"").trim();const lower=token.toLowerCase();if(response.ok&&token&&lower!=="required"&&lower!=="fetch"){ctx.server.csrfToken=token}}catch(e){if(e?.name!=="AbortError"){Lib.logErro` &&
-             `r("_fetchCsrfToken: token fetch failed",e)}}return ctx.server.csrfToken!==""},_clearSentPaths(oModel){const pending=oModel?._z2ui5ChangedPaths;if(!pending)return;const sentValues=oModel._z2ui5SentValu` &&
-             `es;oModel._z2ui5SentValues=null;if(!sentValues)return;for(const path of Array.from(pending)){if(sentValues.has(path)&&sentValues.get(path)===oModel.getProperty(path)){pending.delete(path)}}},async res` &&
-             `ponseSuccess(ctx,response,reqSeq){const oController=ViewSlots.getController(ctx,"MAIN");try{ctx.state.oResponse=response;response._pendingActions=response.ACTIONS||null;await oController._processAfter` &&
-             `Rendering(reqSeq)}catch(e){hideBusy(ctx);ctx.state.isBusy=false;Lib.logError("responseSuccess: unexpected error",e);this.showRenderError(ctx,e)}},showRenderError(ctx,e,title){const msg=e?.message||"";` &&
-             `if(msg.includes("openui5")&&msg.includes("script load error")){this._checkSDKcompatibility(ctx,e)}else{this.responseError(ctx,e,title)}},async _checkSDKcompatibility(ctx,err){let gav;try{const info=aw` &&
-             `ait VersionInfo.load();gav=info.gav}catch(e){Lib.logError("_checkSDKcompatibility: VersionInfo.load failed",e);this.responseError(ctx,err);return}if(!gav?.includes("com.sap.ui5")){const moduleMatch=/[` &&
-             `'"]([\w./-]+)['"]/.exec(err?.message||"");const missingModule=err?._modules||moduleMatch?.[1]||"the requested module";this.responseError(ctx,``openui5 SDK is loaded, module: ${missingModule} is not av` &&
-             `ailable in openui5``);return}this.responseError(ctx,err)},responseError(ctx,response,title,oOptions){hideBusy(ctx);ctx.state.isBusy=false;ctx.state.terminated=true;Lib.dropQueuedEvents(ctx.state);if(c` &&
-             `tx.state.timerRepeat){if(typeof oOptions?.onRetry==="function"){oOptions.timerRepeat=ctx.state.timerRepeat}ctx.state.timerRepeat=null;Lib.cancelPendingTimers(ctx)}ErrorView.show(ctx,response,title,oOp` &&
-             `tions)}}});` && |\n| &&
+             `EQUEST_TIMEOUT_MS/1e3} seconds - request aborted``,undefined,oRetry);const seq=++ctx.server.requestSeq;const isStale=()=>seq!==ctx.server.requestSeq;this._abortInflight(ctx);let sentAt;let body;try{bo` &&
+             `dy=JSON.stringify({value:oBody})}catch(e){this.responseError(ctx,``The request could not be serialized - an event argument is no plain data (${e.message})``);return}const request=this._openRequest(ctx` &&
+             `,REQUEST_TIMEOUT_MS);const{signal}=request;try{let response;try{ctx.state.lastRequestBytes=Lib.lazyByteLength(body);sentAt=Date.now();response=await this._post(ctx,body,signal);if(this._csrfTokenRequi` &&
+             `red(response)&&await this._fetchCsrfToken(ctx,signal)&&!isStale()){response=await this._post(ctx,body,signal)}}catch(e){if(isStale())return;if(request.timedOut){reportTimeout()}else{const hint=e.name=` &&
+             `=="TypeError"?" - the backend could not be reached. Common causes: an expired "+"logon session redirecting to another origin (SSO), a CORS rule, "+"or the backend being offline.":"";this.responseError` &&
+             `(ctx,``Network error: ${e.message}${hint}``,undefined,oRetry)}return}if(isStale())return;const contextId=response.headers.get("sap-contextid");if(Lib.isValidContextId(contextId)){ctx.state.contextId=c` &&
+             `ontextId}if(!response.ok){let text;try{text=await response.text()}catch{if(isStale())return;if(request.timedOut){reportTimeout();return}text=``HTTP ${response.status}: could not read error body``}if(i` &&
+             `sStale())return;this.responseError(ctx,text||``HTTP ${response.status}``,undefined,response.status>=502?oRetry:undefined);return}let responseData;try{responseData=await response.json()}catch(e){if(isS` &&
+             `tale())return;if(request.timedOut){reportTimeout();return}const type=response.headers.get("content-type")||"";if(type.toLowerCase().includes("text/html")){this.responseError(ctx,"The server answered w` &&
+             `ith an HTML page instead of the app's data - "+"usually a logon page after the session expired, or the page of a "+"proxy in between. Restart the app, logging on again if asked.");return}this.response` &&
+             `Error(ctx,``Invalid JSON response: ${e.message}``);return}if(isStale())return;if(!responseData?.S_FRONT){this.responseError(ctx,"Invalid response: missing S_FRONT - the URL probably does not reach "+"` &&
+             `the abap2UI5 handler. Check that the ICF service (or route) of this "+"page calls z2ui5_cl_ui5_http_handler.");return}if(responseData.S_FRONT.PROTOCOL!==undefined&&responseData.S_FRONT.PROTOCOL!==this` &&
+             `.PROTOCOL){this.responseError(ctx,"Protocol mismatch: this frontend speaks "+this.PROTOCOL+", the backend answered "+responseData.S_FRONT.PROTOCOL+". Update whichever of the two is older - they ship t` &&
+             `ogether.");return}ctx.state.responseData=responseData;Session.confirmSent(ctx,sessionCarried);ctx.state.lastRoundtripMs=Date.now()-sentAt;this._clearSentPaths(ctx.state.oSentModel);ctx.state.oSentMode` &&
+             `l=null;this.responseSuccess(ctx,{ID:responseData.S_FRONT.ID,VIEWS:responseData.S_FRONT.VIEWS,NAV:responseData.S_FRONT.NAV,ACTIONS:responseData.S_FRONT.ACTIONS,OVIEWMODEL:responseData.MODEL??{},MODELPR` &&
+             `ESENT:responseData.MODEL!==undefined,APP:responseData.S_FRONT.APP,TOKEN:Object.freeze({seq})},seq)}catch(e){if(!isStale())this.responseError(ctx,e)}finally{request.close()}},_post(ctx,body,signal){con` &&
+             `st headers={"Content-Type":"application/json","sap-contextid-accept":"header"};if(Lib.isValidContextId(ctx.state.contextId)){headers["sap-contextid"]=ctx.state.contextId}if(ctx.server.csrfToken){heade` &&
+             `rs["X-CSRF-Token"]=ctx.server.csrfToken}return fetch(ctx.state.url,{method:"POST",headers,body,signal})},_csrfTokenRequired(response){const value=response.headers.get("x-csrf-token")||"";return respon` &&
+             `se.status===403&&value.trim().toLowerCase()==="required"},async _fetchCsrfToken(ctx,signal){ctx.server.csrfToken="";try{const response=await fetch(ctx.state.url,{method:"HEAD",headers:{"X-CSRF-Token":` &&
+             `"Fetch"},signal});const token=(response.headers.get("x-csrf-token")||"").trim();const lower=token.toLowerCase();if(response.ok&&token&&lower!=="required"&&lower!=="fetch"){ctx.server.csrfToken=token}}` &&
+             `catch(e){if(e?.name!=="AbortError"){Lib.logError("_fetchCsrfToken: token fetch failed",e)}}return ctx.server.csrfToken!==""},_clearSentPaths(oModel){const pending=oModel?._z2ui5ChangedPaths;if(!pendin` &&
+             `g)return;const sentValues=oModel._z2ui5SentValues;oModel._z2ui5SentValues=null;if(!sentValues)return;for(const path of Array.from(pending)){if(sentValues.has(path)&&sentValues.get(path)===oModel.getPr` &&
+             `operty(path)){pending.delete(path)}}},async responseSuccess(ctx,response,reqSeq){const oController=ViewSlots.getController(ctx,"MAIN");try{ctx.state.oResponse=response;response._pendingActions=respons` &&
+             `e.ACTIONS||null;await oController._processAfterRendering(reqSeq)}catch(e){hideBusy(ctx);ctx.state.isBusy=false;Lib.logError("responseSuccess: unexpected error",e);this.showRenderError(ctx,e)}},showRen` &&
+             `derError(ctx,e,title){const msg=e?.message||"";if(msg.includes("openui5")&&msg.includes("script load error")){this._checkSDKcompatibility(ctx,e)}else{this.responseError(ctx,e,title)}},async _checkSDKc` &&
+             `ompatibility(ctx,err){let gav;try{const info=await VersionInfo.load();gav=info.gav}catch(e){Lib.logError("_checkSDKcompatibility: VersionInfo.load failed",e);this.responseError(ctx,err);return}if(!gav` &&
+             `?.includes("com.sap.ui5")){const moduleMatch=/['"]([\w./-]+)['"]/.exec(err?.message||"");const missingModule=err?._modules||moduleMatch?.[1]||"the requested module";this.responseError(ctx,``openui5 SD` &&
+             `K is loaded, module: ${missingModule} is not available in openui5``);return}this.responseError(ctx,err)},responseError(ctx,response,title,oOptions){hideBusy(ctx);ctx.state.isBusy=false;ctx.state.termi` &&
+             `nated=true;Lib.dropQueuedEvents(ctx.state);if(ctx.state.timerRepeat){if(typeof oOptions?.onRetry==="function"){oOptions.timerRepeat=ctx.state.timerRepeat}ctx.state.timerRepeat=null;Lib.cancelPendingTi` &&
+             `mers(ctx)}ErrorView.show(ctx,response,title,oOptions)}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/Session.js": function(){sap.ui.define(["sap/ui/Device","z2ui5/core/Lib"],(Device,Lib)=>{"use strict";let deviceStatic;function getDeviceStatic(){if(!deviceStatic){deviceStatic={SYSTE` &&
@@ -563,9 +565,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ue;node=node.getParent?.()}return false}function detach(ctx,key){const slot=byKey(key);if(!slot||!ctx?.state)return undefined;for(const dep of slot.dependentSlots??[])detach(ctx,dep);delete slotXmlSto` &&
              `re(ctx)[key];delete slotAppStore(ctx)[key];delete ctx.state.slotToken[key];const view=ctx.state[slot.prop];if(!view)return undefined;try{Env.getMessaging?.()?.unregisterObject(view)}catch(e){Lib.logEr` &&
              `ror(``ViewSlots.detach: unregisterObject failed for ${key}``,e)}ctx.state[slot.prop]=null;return view}return{slots,getView,getViewXml,getViewApp,getViewToken,setView,getController,keyOfController,byId` &&
-             `,byIdOfOwner,ownId,fragmentIdOf,resolveById,containingSlotKey,trackedModel,responseModel,destroy,detach}});` && |\n| &&
-             `` && |\n|.
+             `,byIdOfOwner,ownId,fragmentIdOf,resolveById,containingSlotKey,trackedModel,responseModel,destroy,detach}});` && |\n|.
     result = result &&
+             `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/WindowModel.js": function(){sap.ui.define(["sap/ui/model/json/JSONModel","sap/ui/model/json/JSONListBinding","z2ui5/core/Lib","z2ui5/core/Env"],(JSONModel,JSONListBinding,Lib,Env)=>{` &&
              `"use strict";const EVENT="___ZZZ_WIN";const REASON={MORE:"MORE",SORT:"SORT",FILTER:"FILTER"};const META="__WINDOW";function windowName(sPath,oContext){if(oContext||typeof sPath!=="string")return undef` &&
@@ -635,10 +637,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `Url)){window.location.href=logoutUrl}else{MessageBox.error("Invalid logout URL. Only relative URLs to the same domain are allowed.")}}function evOpenNewTab(oController,args){if(!Lib.isValidRedirectURL` &&
              `(args[1])){MessageBox.error("Invalid URL. Only relative URLs to the same domain are allowed.");return}window.open(args[1],"_blank","noopener,noreferrer")}function evUrlHelper(oController,args){const p` &&
              `arams=typeof args[2]==="string"?boundPayload(oController,args[2],"URLHELPER"):args[2]??{};if(params==null)return;const hasCrLf=v=>typeof v==="string"&&/[\r\n]/.test(v);if(Object.values(params).some(ha` &&
-             `sCrLf)){Lib.logError("URLHELPER: blocked CR/LF in parameters");return}const actions={REDIRECT:()=>{if(!Lib.isSafeRedirectProtocol(params.URL)){MessageBox.error("Invalid redirect URL. Only http/https p` &&
-             `rotocols are allowed.");return}if(params.NEW_WINDOW){window.open(params.URL,"_blank","noopener,noreferrer");return}_URLHelper.redirect(params.URL,false)},TRIGGER_EMAIL:()=>_URLHelper.triggerEmail(para` &&
-             `ms.EMAIL,params.SUBJECT,params.BODY,params.CC,params.BCC,params.NEW_WINDOW),TRIGGER_SMS:()=>_URLHelper.triggerSms(params.TEL,params.TEXT,params.NEW_WINDOW),TRIGGER_TEL:()=>_URLHelper.triggerTel(params`.
+             `sCrLf)){Lib.logError("URLHELPER: blocked CR/LF in parameters");return}const actions={REDIRECT:()=>{if(!Lib.isSafeRedirectProtocol(params.URL)){MessageBox.error("Invalid redirect URL. Only http/https p`.
     result = result &&
+             `rotocols are allowed.");return}if(params.NEW_WINDOW){window.open(params.URL,"_blank","noopener,noreferrer");return}_URLHelper.redirect(params.URL,false)},TRIGGER_EMAIL:()=>_URLHelper.triggerEmail(para` &&
+             `ms.EMAIL,params.SUBJECT,params.BODY,params.CC,params.BCC,params.NEW_WINDOW),TRIGGER_SMS:()=>_URLHelper.triggerSms(params.TEL,params.TEXT,params.NEW_WINDOW),TRIGGER_TEL:()=>_URLHelper.triggerTel(params` &&
              `.TEL)};Object.setPrototypeOf(actions,null);try{const fn=actions[args[1]];if(fn)fn()}catch(e){Lib.logError(``URLHELPER: '${args[1]}' failed``,e)}}function ownsPage(oController){return oController?.ctx?` &&
              `.state?.ownsPage!==false}function evSetTitle(oController,args){if(!ownsPage(oController))return;const title=Lib.toText(args[1]);Lib.setShellTitle(oController?.ctx,title,"SET_TITLE");try{document.title` &&
              `=title}catch(e){Lib.logError("SET_TITLE: setting document.title failed",e)}}function evSetFavicon(oController,args){if(!ownsPage(oController))return;const href=Lib.toText(args[1]);if(!Lib.isSafeDownlo` &&
@@ -677,54 +679,55 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `t:()=>MessageToast,methods:{show:["string"]},display:(oController,method,aArgs,mOptions)=>showToast(aArgs[0],mOptions,oController)},MESSAGE_BOX:{get:()=>MessageBox,methods:{show:["string"],alert:["str` &&
              `ing"],confirm:["string"],information:["string"],warning:["string"],error:["string"],success:["string"]},display:(oController,method,aArgs,mOptions)=>showBox(method,aArgs[0],mOptions,oController)},VIEW` &&
              `_SLOTS:{get:()=>ViewSlots,methods:{destroy:["string"]},display:(oController,method,aArgs)=>ViewSlots.destroy(oController?.ctx,aArgs[0])},BUSY_INDICATOR:{get:()=>BusyIndicator,methods:{show:["int"],hid` &&
-             `e:[]}},ICON_POOL:{get:()=>sap.ui.require("sap/ui/core/IconPool"),methods:{registerFont:["string","string"]},display:(oController,method,aArgs,mOptions,oIconPool)=>registerIconFont(oIconPool,aArgs[0],a` &&
-             `Args[1])},THEMING:{get:()=>Env.getThemingModule(),methods:{setTheme:["string"]}},POPUP:{get:()=>CorePopup,methods:{setWithinArea:["within"]}},INVISIBLE_MESSAGE:{get:()=>{const IM=sap.ui.require("sap/u` &&
-             `i/core/InvisibleMessage");return IM?IM.getInstance():undefined},methods:{announce:["string","string"]}},FORMATTING:{get:()=>sap.ui.require("sap/base/i18n/Formatting"),methods:{setCustomCurrencies:["ob` &&
-             `ject"],addCustomCurrencies:["object"]}}};Object.setPrototypeOf(GLOBAL_TARGETS,null);const AGG_ITEM=/^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;function resolveControl(raw,view,ctx){const byId=id=>view&&ViewS` &&
-             `lots.byId(ctx,view.toUpperCase(),id)||ViewSlots.resolveById(ctx,id);const m=AGG_ITEM.exec(String(raw??""));if(!m)return byId(raw);const owner=byId(m[1]);if(!owner||typeof owner.getAggregation!=="funct` &&
-             `ion"){Lib.logError(``aggregation item '${raw}': no control '${m[1]}'``);return null}const items=owner.getAggregation(m[2]);if(!Array.isArray(items)){Lib.logError(``aggregation item '${raw}': '${m[2]}'` &&
-             ` is no multiple aggregation of ${m[1]}``);return null}const item=items[Number(m[3])];if(!item){Lib.logError(``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``);return null}return item}` &&
-             `function resolveControlOrNull(raw,view,ctx){if(raw===""||raw===undefined||raw===null)return null;return resolveControl(raw,view,ctx)||null}function castArg(kind,raw,view,ctx){switch(kind){case"int":re` &&
-             `turn Number(raw);case"bool":return raw==="true"||raw==="X"||raw===true;case"controlId":return resolveControl(raw,view,ctx);case"pageId":{const page=resolveControl(raw,view,ctx);if(page&&typeof page.ge` &&
-             `tId==="function")return page.getId();Lib.logError(``CONTROL_CALL: no control '${raw}' for the page argument``);return raw}case"controlIdOrNull":return resolveControlOrNull(raw,view,ctx);case"anchor":r` &&
-             `eturn resolveControl(raw,view,ctx);case"within":return resolveControlOrNull(raw,view,ctx);case"object":if(raw&&typeof raw==="object")return raw;try{return JSON.parse(raw)}catch{Lib.logError(``CONTROL_` &&
-             `CALL: malformed object argument '${raw}'``);return{}}default:return raw}}function castArgAuto(raw){if(raw==="X"||raw==="true")return true;if(raw===""||raw===" "||raw==="false")return false;return raw}` &&
-             `function setsStringProperty(control,method){if(!control||typeof method!=="string"||!/^set[A-Z]/.test(method))return false;const prop=control.getMetadata?.()?.getAllProperties?.()[method.charAt(3).toLo` &&
-             `werCase()+method.slice(4)];if(!prop)return false;const primitive=prop.getType?.()?.getPrimitiveType?.()?.getName?.();return primitive?primitive==="string":prop.type==="string"}const NULLABLE_KINDS=["c` &&
-             `ontrolIdOrNull"];function castArgs(kinds,rawArgs,view,target,ctx){if(kinds===null){const keepString=setsStringProperty(target?.control,target?.method);return rawArgs.map((raw,i)=>i===0&&keepString?raw` &&
-             `:castArgAuto(raw))}let count=rawArgs.length;while(count<kinds.length&&NULLABLE_KINDS.includes(kinds[count]))count++;return kinds.slice(0,count).map((kind,i)=>castArg(kind,rawArgs[i],view,ctx))}const r` &&
-             `egisteredIconFonts=new Set;function registerIconFont(IconPool,fontFamily,fontURI){if(!fontFamily||!fontURI){Lib.logError("ICON_POOL: registerFont needs a fontFamily AND a fontURI");return}if(registere` &&
-             `dIconFonts.has(fontFamily))return;const uri=/^(?:[a-z]+:)?\/\//i.test(fontURI)?fontURI:sap.ui.require.toUrl(fontURI);IconPool.registerFont({fontFamily,fontURI:uri});registeredIconFonts.add(fontFamily)` &&
-             `}function selectedIndicesOf(control){if(typeof control.getSelectedIndices==="function"){return control.getSelectedIndices()}if(typeof control.getSelectedItems==="function"&&typeof control.indexOfItem=` &&
-             `=="function"){return control.getSelectedItems().map(item=>control.indexOfItem(item)).filter(i=>i>=0)}return null}function whenAnchorRendered(anchor,oController,fn){const guarded=()=>{if(!Lib.isControl` &&
-             `lerAlive(oController))return;fn()};if(anchor&&typeof anchor.getDomRef==="function"){Lib.whenRendered(anchor,oController,guarded,"open")}else{guarded()}}function pseudoToggleBy({control,id,view,kinds,a` &&
-             `rgs,oController}){if(!control||typeof control.openBy!=="function"){Lib.logError(``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``);return}const anchor=castArgs(kinds,args.slice(4),view,und` &&
-             `efined,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(control.isOpen?.())control.close();else control.openBy(anchor)})}function pseudoOpenBy({control,id,view,kinds,args,oController` &&
-             `}){if(!control||typeof control.openBy!=="function"&&typeof control.open!=="function"){Lib.logError(``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``);return}const anchor=castArgs(kinds,args.` &&
-             `slice(4),view,undefined,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(typeof control.openBy==="function")control.openBy(anchor);else control.open(false,anchor,"begin top","begin b` &&
-             `ottom",anchor)})}function pseudoCss({control,id,args}){const prop=String(args[4]??"").toLowerCase();if(!CSS_PROPERTIES.includes(prop)){Lib.logError(``CONTROL_BY_ID: css property '${args[4]}' not allow` &&
-             `ed (allowed: ${CSS_PROPERTIES.join(", ")})``);return}const el=control?.getDomRef?.();if(!el){Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);return}el.style.setProperty(prop,St` &&
-             `ring(args[5]??""))}function pseudoExpandCollapse({control,id,method}){const op=method==="expandSelected"?"expand":"collapse";if(!control||typeof control[op]!=="function"){Lib.logError(``CONTROL_BY_ID:` &&
-             ` '${method}' not callable on control '${id}'``);return}const indices=selectedIndicesOf(control);if(indices===null){Lib.logError(``CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection``);r` &&
-             `eturn}if(indices.length)control[op](indices)}function pseudoSetAsyncURLHandler({control,id,args}){const policy=String(args[4]??"").toUpperCase();const isAllowed=URL_POLICIES[policy];if(!isAllowed){Lib` &&
-             `.logError(``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``);return}if(!control||typeof control.setAsyncURLHandler!=="function"){Lib.logError(``CONT` &&
-             `ROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``);return}control.setAsyncURLHandler(config=>{config?.promise?.resolve({allowed:isAllowed(config.url),id:config.id})})}function isRootPr` &&
-             `ototypeMethod(obj,method){let owner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&Object.getPrototyp` &&
-             `eOf(owner)===null}const PSEUDO_METHODS=Object.assign(Object.create(null),{toggleBy:pseudoToggleBy,openBy:pseudoOpenBy,css:pseudoCss,expandSelected:pseudoExpandCollapse,collapseSelected:pseudoExpandCol` &&
-             `lapse,setAsyncURLHandler:pseudoSetAsyncURLHandler});function evControlCallById(oController,args){const[,id,view,method]=args;let kinds=CONTROL_METHODS[method];if(!kinds){if(!isSafeControlMethod(method` &&
-             `)){Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);return}kinds=null}const ctx=oController?.ctx;if(method==="focus"&&!ScrollFocus.mayMoveFocus(ctx))return;const control=resolveControl(` &&
-             `id,view,ctx);const pseudo=PSEUDO_METHODS[method];if(pseudo){pseudo({control,id,view,method,kinds,args,oController});return}if(!control){Lib.logError(``CONTROL_BY_ID: no control '${id}'${view?`` in vie` &&
-             `w '${view}'``:""} - '${method}' not called``);return}const inherited=method==="constructor"||isRootPrototypeMethod(control,method);if(inherited||typeof control[method]!=="function"){Lib.logError(``CON`.
+             `e:[]},display:(oController,method,aArgs)=>{if(method==="hide"){Lib.hideBusy(oController?.ctx);return}const delay=aArgs.length?Number(aArgs[0]):undefined;Lib.showBusy(oController?.ctx,Number.isFinite(d` &&
+             `elay)?delay:undefined)}},ICON_POOL:{get:()=>sap.ui.require("sap/ui/core/IconPool"),methods:{registerFont:["string","string"]},display:(oController,method,aArgs,mOptions,oIconPool)=>registerIconFont(oI` &&
+             `conPool,aArgs[0],aArgs[1])},THEMING:{get:()=>Env.getThemingModule(),methods:{setTheme:["string"]}},POPUP:{get:()=>CorePopup,methods:{setWithinArea:["within"]}},INVISIBLE_MESSAGE:{get:()=>{const IM=sap` &&
+             `.ui.require("sap/ui/core/InvisibleMessage");return IM?IM.getInstance():undefined},methods:{announce:["string","string"]}},FORMATTING:{get:()=>sap.ui.require("sap/base/i18n/Formatting"),methods:{setCus` &&
+             `tomCurrencies:["object"],addCustomCurrencies:["object"]}}};Object.setPrototypeOf(GLOBAL_TARGETS,null);const AGG_ITEM=/^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;function resolveControl(raw,view,ctx){const by` &&
+             `Id=id=>view&&ViewSlots.byId(ctx,view.toUpperCase(),id)||ViewSlots.resolveById(ctx,id);const m=AGG_ITEM.exec(String(raw??""));if(!m)return byId(raw);const owner=byId(m[1]);if(!owner||typeof owner.getAg` &&
+             `gregation!=="function"){Lib.logError(``aggregation item '${raw}': no control '${m[1]}'``);return null}const items=owner.getAggregation(m[2]);if(!Array.isArray(items)){Lib.logError(``aggregation item '` &&
+             `${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}``);return null}const item=items[Number(m[3])];if(!item){Lib.logError(``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``);return` &&
+             ` null}return item}function resolveControlOrNull(raw,view,ctx){if(raw===""||raw===undefined||raw===null)return null;return resolveControl(raw,view,ctx)||null}function castArg(kind,raw,view,ctx){switch(` &&
+             `kind){case"int":return Number(raw);case"bool":return raw==="true"||raw==="X"||raw===true;case"controlId":return resolveControl(raw,view,ctx);case"pageId":{const page=resolveControl(raw,view,ctx);if(pa` &&
+             `ge&&typeof page.getId==="function")return page.getId();Lib.logError(``CONTROL_CALL: no control '${raw}' for the page argument``);return raw}case"controlIdOrNull":return resolveControlOrNull(raw,view,c` &&
+             `tx);case"anchor":return resolveControl(raw,view,ctx);case"within":return resolveControlOrNull(raw,view,ctx);case"object":if(raw&&typeof raw==="object")return raw;try{return JSON.parse(raw)}catch{Lib.l` &&
+             `ogError(``CONTROL_CALL: malformed object argument '${raw}'``);return{}}default:return raw}}function castArgAuto(raw){if(raw==="X"||raw==="true")return true;if(raw===""||raw===" "||raw==="false")return` &&
+             ` false;return raw}function setsStringProperty(control,method){if(!control||typeof method!=="string"||!/^set[A-Z]/.test(method))return false;const prop=control.getMetadata?.()?.getAllProperties?.()[met` &&
+             `hod.charAt(3).toLowerCase()+method.slice(4)];if(!prop)return false;const primitive=prop.getType?.()?.getPrimitiveType?.()?.getName?.();return primitive?primitive==="string":prop.type==="string"}const ` &&
+             `NULLABLE_KINDS=["controlIdOrNull"];function castArgs(kinds,rawArgs,view,target,ctx){if(kinds===null){const keepString=setsStringProperty(target?.control,target?.method);return rawArgs.map((raw,i)=>i==` &&
+             `=0&&keepString?raw:castArgAuto(raw))}let count=rawArgs.length;while(count<kinds.length&&NULLABLE_KINDS.includes(kinds[count]))count++;return kinds.slice(0,count).map((kind,i)=>castArg(kind,rawArgs[i],` &&
+             `view,ctx))}const registeredIconFonts=new Set;function registerIconFont(IconPool,fontFamily,fontURI){if(!fontFamily||!fontURI){Lib.logError("ICON_POOL: registerFont needs a fontFamily AND a fontURI");r` &&
+             `eturn}if(registeredIconFonts.has(fontFamily))return;const uri=/^(?:[a-z]+:)?\/\//i.test(fontURI)?fontURI:sap.ui.require.toUrl(fontURI);IconPool.registerFont({fontFamily,fontURI:uri});registeredIconFon` &&
+             `ts.add(fontFamily)}function selectedIndicesOf(control){if(typeof control.getSelectedIndices==="function"){return control.getSelectedIndices()}if(typeof control.getSelectedItems==="function"&&typeof co` &&
+             `ntrol.indexOfItem==="function"){return control.getSelectedItems().map(item=>control.indexOfItem(item)).filter(i=>i>=0)}return null}function whenAnchorRendered(anchor,oController,fn){const guarded=()=>` &&
+             `{if(!Lib.isControllerAlive(oController))return;fn()};if(anchor&&typeof anchor.getDomRef==="function"){Lib.whenRendered(anchor,oController,guarded,"open")}else{guarded()}}function pseudoToggleBy({contr` &&
+             `ol,id,view,kinds,args,oController}){if(!control||typeof control.openBy!=="function"){Lib.logError(``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``);return}const anchor=castArgs(kinds,args` &&
+             `.slice(4),view,undefined,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(control.isOpen?.())control.close();else control.openBy(anchor)})}function pseudoOpenBy({control,id,view,kind` &&
+             `s,args,oController}){if(!control||typeof control.openBy!=="function"&&typeof control.open!=="function"){Lib.logError(``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``);return}const anchor=ca` &&
+             `stArgs(kinds,args.slice(4),view,undefined,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(typeof control.openBy==="function")control.openBy(anchor);else control.open(false,anchor,"b` &&
+             `egin top","begin bottom",anchor)})}function pseudoCss({control,id,args}){const prop=String(args[4]??"").toLowerCase();if(!CSS_PROPERTIES.includes(prop)){Lib.logError(``CONTROL_BY_ID: css property '${a` &&
+             `rgs[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``);return}const el=control?.getDomRef?.();if(!el){Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);return}el.style.s` &&
+             `etProperty(prop,String(args[5]??""))}function pseudoExpandCollapse({control,id,method}){const op=method==="expandSelected"?"expand":"collapse";if(!control||typeof control[op]!=="function"){Lib.logErro` &&
+             `r(``CONTROL_BY_ID: '${method}' not callable on control '${id}'``);return}const indices=selectedIndicesOf(control);if(indices===null){Lib.logError(``CONTROL_BY_ID: '${method}' - control '${id}' exposes` &&
+             ` no selection``);return}if(indices.length)control[op](indices)}function pseudoSetAsyncURLHandler({control,id,args}){const policy=String(args[4]??"").toUpperCase();const isAllowed=URL_POLICIES[policy];` &&
+             `if(!isAllowed){Lib.logError(``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``);return}if(!control||typeof control.setAsyncURLHandler!=="function"){L` &&
+             `ib.logError(``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``);return}control.setAsyncURLHandler(config=>{config?.promise?.resolve({allowed:isAllowed(config.url),id:config.id})})` &&
+             `}function isRootPrototypeMethod(obj,method){let owner=obj;while(owner!==null&&owner!==undefined&&!Object.prototype.hasOwnProperty.call(owner,method)){owner=Object.getPrototypeOf(owner)}return!!owner&&` &&
+             `Object.getPrototypeOf(owner)===null}const PSEUDO_METHODS=Object.assign(Object.create(null),{toggleBy:pseudoToggleBy,openBy:pseudoOpenBy,css:pseudoCss,expandSelected:pseudoExpandCollapse,collapseSelect` &&
+             `ed:pseudoExpandCollapse,setAsyncURLHandler:pseudoSetAsyncURLHandler});function evControlCallById(oController,args){const[,id,view,method]=args;let kinds=CONTROL_METHODS[method];if(!kinds){if(!isSafeCo`.
     result = result &&
-             `TROL_BY_ID: '${method}' not callable on control '${id}'``);return}control[method](...castArgs(kinds,args.slice(4),view,{control,method},ctx))}function evControlCall(oController,args){const[,name,metho` &&
-             `d]=args;const target=GLOBAL_TARGETS[name];const kinds=target&&Object.prototype.hasOwnProperty.call(target.methods,method)?target.methods[method]:undefined;if(!kinds){Lib.logError(``CONTROL_GLOBAL: '${` &&
-             `name}.${method}' not allowed``);return}const obj=target.get();if(!obj){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}let raw=args.slice(3);let mOptions;if(target.display){` &&
-             `const last=raw[raw.length-1];if(last&&typeof last==="object"){mOptions=last;raw=raw.slice(0,-1)}}if(kinds.length===1&&kinds[0]==="string"&&raw.length>1){raw=[formatTemplate(String(raw[0]),raw.slice(1)` &&
-             `)]}if(target.display){return target.display(oController,method,raw,mOptions||{},obj)}if(typeof obj[method]!=="function"){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}obj[` &&
-             `method](...castArgs(kinds,raw,undefined,undefined,oController?.ctx))}function formatTemplate(tpl,values){return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,(m,i,tText,fText)=>{const n=Number(i);if` &&
-             `(n>=values.length)return m;const v=String(values[n]);if(tText===undefined)return v;const truthy=v!==""&&!/^(false|0|undefined|null)$/i.test(v);return truthy?tText:fText})}const handlers={CONTROL_BY_ID` &&
-             `:evControlCallById,CONTROL_GLOBAL:evControlCall};for(const name of Object.keys(GLOBAL_TARGETS)){handlers[name]=(oController,args)=>evControlCall(oController,["CONTROL_GLOBAL",...args])}return{handlers` &&
-             `,castArg}});` && |\n| &&
+             `ntrolMethod(method)){Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);return}kinds=null}const ctx=oController?.ctx;if(method==="focus"&&!ScrollFocus.mayMoveFocus(ctx))return;const contr` &&
+             `ol=resolveControl(id,view,ctx);const pseudo=PSEUDO_METHODS[method];if(pseudo){pseudo({control,id,view,method,kinds,args,oController});return}if(!control){Lib.logError(``CONTROL_BY_ID: no control '${id` &&
+             `}'${view?`` in view '${view}'``:""} - '${method}' not called``);return}const inherited=method==="constructor"||isRootPrototypeMethod(control,method);if(inherited||typeof control[method]!=="function"){` &&
+             `Lib.logError(``CONTROL_BY_ID: '${method}' not callable on control '${id}'``);return}control[method](...castArgs(kinds,args.slice(4),view,{control,method},ctx))}function evControlCall(oController,args)` &&
+             `{const[,name,method]=args;const target=GLOBAL_TARGETS[name];const kinds=target&&Object.prototype.hasOwnProperty.call(target.methods,method)?target.methods[method]:undefined;if(!kinds){Lib.logError(``C` &&
+             `ONTROL_GLOBAL: '${name}.${method}' not allowed``);return}const obj=target.get();if(!obj){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}let raw=args.slice(3);let mOptions;i` &&
+             `f(target.display){const last=raw[raw.length-1];if(last&&typeof last==="object"){mOptions=last;raw=raw.slice(0,-1)}}if(kinds.length===1&&kinds[0]==="string"&&raw.length>1){raw=[formatTemplate(String(ra` &&
+             `w[0]),raw.slice(1))]}if(target.display){return target.display(oController,method,raw,mOptions||{},obj)}if(typeof obj[method]!=="function"){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not availa` &&
+             `ble``);return}obj[method](...castArgs(kinds,raw,undefined,undefined,oController?.ctx))}function formatTemplate(tpl,values){return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,(m,i,tText,fText)=>{co` &&
+             `nst n=Number(i);if(n>=values.length)return m;const v=String(values[n]);if(tText===undefined)return v;const truthy=v!==""&&!/^(false|0|undefined|null)$/i.test(v);return truthy?tText:fText})}const handl` &&
+             `ers={CONTROL_BY_ID:evControlCallById,CONTROL_GLOBAL:evControlCall};for(const name of Object.keys(GLOBAL_TARGETS)){handlers[name]=(oController,args)=>evControlCall(oController,["CONTROL_GLOBAL",...args` &&
+             `])}return{handlers,castArg}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/Launchpad.js": function(){sap.ui.define(["sap/m/library","z2ui5/core/Lib","z2ui5/core/ViewSlots"],(mobileLibrary,Lib,ViewSlots)=>{"use strict";const _URLHelper=mobileLibrary.` &&
@@ -782,11 +785,11 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      "z2ui5/core/actions/Slots.js": function(){sap.ui.define(["sap/ui/core/mvc/XMLView","sap/ui/core/Fragment","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/cor` &&
              `e/WindowModel","z2ui5/core/CustomControls"],(XMLView,Fragment,Lib,Env,ViewSlots,Context,WindowModel,CustomControls)=>{"use strict";function applyStoredSizeLimit(ctx,viewKey,oModel){if(!oModel)return;c` &&
              `onst limit=Lib.effectiveSizeLimit(ctx.state.viewSizeLimits,viewKey);if(limit!==undefined)oModel.setSizeLimit(limit)}function trackChanges(oModel){oModel._z2ui5Tracked=true;oModel._z2ui5ChangedPaths=ne` &&
-             `w Set;oModel.attachPropertyChange(e=>{const params=e.getParameters();const raw=params.path;const ctx=params.context;if(!raw)return;const changedPath=ctx&&!raw.startsWith("/")?``${ctx.getPath()}/${raw}` &&
+             `w Set;oModel.attachPropertyChange(e=>{const params=e.getParameters();const raw=params.path;const ctx=params.context;if(!raw)return;const changedPath=ctx&&!raw.startsWith("/")?``${ctx.getPath()}/${raw}`.
+    result = result &&
              ```:raw;if(changedPath.startsWith("/")){oModel._z2ui5ChangedPaths.add(changedPath)}});return oModel}function resolveTrackedModel(oView){return ViewSlots.trackedModel(oView)}function dataForSlot(slotKey` &&
              `,data){if(!data||Lib.isRootModelSlot(slotKey))return data;if(typeof structuredClone==="function")return structuredClone(data);return JSON.parse(JSON.stringify(data))}function keepWindowRequest(ctx,oMo` &&
-             `del,slotKey,args,noBusy){const path=String(args[0]);const windows=ctx.state.oQueuedWindow||{};const kept=windows[path];windows[path]={model:oModel,slotKey,args:kept?.model===oModel?WindowModel.keepRes`.
-    result = result &&
+             `del,slotKey,args,noBusy){const path=String(args[0]);const windows=ctx.state.oQueuedWindow||{};const kept=windows[path];windows[path]={model:oModel,slotKey,args:kept?.model===oModel?WindowModel.keepRes` &&
              `tart(args,kept.args):args,noBusy:!!noBusy};ctx.state.oQueuedWindow=windows}function slotModel(ctx,slotKey){const oView=ViewSlots.getView(ctx,slotKey);if(!oView)return undefined;return Lib.isRootModelS` &&
              `lot(slotKey)?resolveTrackedModel(oView):oView.getModel()}function dispatchQueuedWindows(ctx){const windows=ctx.state.oQueuedWindow;if(!windows)return;for(const path of Object.keys(windows)){if(ctx.sta` &&
              `te.isBusy)break;const queued=windows[path];delete windows[path];const oController=ViewSlots.getController(ctx,queued.slotKey);if(!Lib.isControllerAlive(oController))continue;if(slotModel(ctx,queued.sl` &&
@@ -808,46 +811,46 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ted view discarded``);oView.destroy();return}if(METHOD_DESTROY){try{oParent[METHOD_DESTROY]()}catch(e){Lib.logError(``displayNestedView: parent destroy method '${METHOD_DESTROY}' failed``,e)}}try{oPar` &&
              `ent[METHOD_INSERT](oView)}catch(e){Lib.logError("displayNestedView: parent insert method failed",e);oView.destroy();return}ViewSlots.setView(ctx,slotKey,oView,xml)}const MAIN_VIEW_ID="mainView";const ` &&
              `MAIN_VIEW_ID_ALT="mainView2";function freeMainViewId(ctx,oOld){return oOld&&oOld.getId()===ViewSlots.ownId(ctx,MAIN_VIEW_ID)?MAIN_VIEW_ID_ALT:MAIN_VIEW_ID}async function displayView(ctx,xml,viewModel,` &&
-             `mOptions={},place=swapAlone,localId=MAIN_VIEW_ID){const oViewModel=createViewModel(ctx,"MAIN",viewModel);const switchPath=mOptions.switchDefaultModelPath;let oModel;if(switchPath){const ODataModel=awa` &&
-             `it Lib.requireODataModel();oModel=new ODataModel({serviceUrl:switchPath,annotationURI:mOptions.switchDefaultModelAnnoUri||""});ctx.state.odataClients.add(oModel)}else{oModel=oViewModel}applyStoredSize` &&
-             `Limit(ctx,"MAIN",oViewModel);if(switchPath)applyStoredSizeLimit(ctx,"MAIN",oModel);await loadViewResources(ctx,xml);const oView=await Context.runAsOwner(ctx,()=>XMLView.create({definition:xml,models:o` &&
-             `Model,controller:ViewSlots.getController(ctx,"MAIN"),id:ViewSlots.ownId(ctx,localId),preprocessors:templatePreprocessors(xml,oViewModel)}));const discardBuild=()=>{oView.destroy();ctx.state.odataClien` &&
-             `ts.delete(oModel);oModel.destroy();if(switchPath)oViewModel.destroy()};if(!Lib.isAlive(ctx.state.oApp)){discardBuild();return undefined}ViewSlots.setView(ctx,"MAIN",oView,xml);if(switchPath)oView.setM` &&
-             `odel(oViewModel,"http");return place(ctx,oView)}function swapAlone(ctx,oView,oOld,aOldClients){const oApp=ctx.state.oApp;oApp.removeAllPages();oApp.insertPage(oView);if(oOld)leaveOnceRendered(ctx,oVie` &&
-             `w,oOld,aOldClients);return true}const SWAP_TIMEOUT=3e3;function leaveOnceRendered(ctx,oView,oOld,aOldClients){const state=ctx.state;let timer=null;const finish=()=>{if(state.mainLeaving!==finish)retur` &&
-             `n;state.mainLeaving=null;clearTimeout(timer);leavePage(ctx,oOld,aOldClients)};state.mainLeaving=finish;freezePage(oOld);timer=setTimeout(finish,SWAP_TIMEOUT);Lib.whenRendered(oView,oView,finish)}const` &&
-             ` TRANSITION_OPTIONS=["transition","transitionBack","navBack","appInstance"];const TRANSITION_TIMEOUT=3e3;function isSameOwner(ctx,options){const state=ctx.state;const instance=options.appInstance||"";` &&
-             `if(instance&&state.mainInstance){return instance===state.mainInstance}const pageApp=ViewSlots.getViewApp(ctx,"MAIN");return Boolean(pageApp)&&pageApp===state.oResponse?.APP}function transitionPlan(ctx` &&
-             `,options){const state=ctx.state;const oCurrent=ViewSlots.getView(ctx,"MAIN");if(!oCurrent?.getDomRef?.()||!state.oApp?.getDomRef?.())return null;const explicitBack=options.transitionBack===true;const ` &&
-             `recognizedBack=options.navBack===true||state.navFromHash&&state.navDirection==="back";if(explicitBack||recognizedBack){if(!state.mainArrival)return null;if(!explicitBack&&isSameOwner(ctx,options))retu` &&
-             `rn null;return{back:true,name:state.mainArrival}}if(!options.transition)return null;return{back:false,name:String(options.transition)}}function rememberPlainArrival(ctx,options,bSameOwner){const state` &&
-             `=ctx.state;if(!bSameOwner||options.transition){state.mainArrival=String(options.transition||"")}state.mainInstance=options.appInstance||(bSameOwner?state.mainInstance:"")}function freezePage(oPage){co` &&
-             `nst dom=oPage?.getDomRef?.();if(dom?.style)dom.style.pointerEvents="none"}function leavePage(ctx,oOld,aOldClients){const oApp=ctx.state.oApp;try{if(Lib.isAlive(oApp)&&Lib.isAlive(oOld))oApp.removePage` &&
-             `(oOld)}catch(e){Lib.logError("Slots: removing the page that left failed",e)}try{if(Lib.isAlive(oOld))oOld.destroy()}catch(e){Lib.logError("Slots: destroying the page that left failed",e)}for(const oCl` &&
-             `ient of aOldClients){try{oClient.destroy()}catch(e){Lib.logError("displayMain: destroying an OData client failed",e)}}}function navigatePage(ctx,oOld,oView,plan,mOptions,aOldClients){const state=ctx.s` &&
-             `tate;const oApp=state.oApp;let settle;let timer=null;const change=new Promise(resolve=>{settle=resolve});const onAfterNavigate=oEvent=>{if(oEvent.getParameter("toId")===oView.getId())finish()};const f` &&
-             `inish=()=>{if(!settle)return;const fnSettle=settle;settle=null;clearTimeout(timer);if(Lib.isAlive(oApp))oApp.detachAfterNavigate(onAfterNavigate);leavePage(ctx,oOld,aOldClients);if(state.mainTransitio` &&
-             `n===change)state.mainTransition=null;fnSettle()};state.mainTransition=change;oApp.attachAfterNavigate(onAfterNavigate);timer=setTimeout(finish,TRANSITION_TIMEOUT);state.mainArrival=plan.back?String(mO` &&
-             `ptions.transition||""):plan.name;state.mainInstance=mOptions.appInstance||"";oApp.addPage(oView);try{if(plan.back){oApp.to(oOld.getId(),plan.name);oApp.insertPreviousPage(oView.getId(),mOptions.transi` &&
-             `tion||plan.name);oApp.backToPage(oView.getId())}else{oApp.to(oView.getId(),plan.name)}}catch(e){Lib.logError("Slots: the page transition failed",e);finish()}return true}async function displayPaged(ctx` &&
-             `,xml,mOptions,plan){const state=ctx.state;const oOld=ViewSlots.detach(ctx,"MAIN");const aOldClients=[...state.odataClients];state.odataClients.clear();ViewSlots.destroy(ctx,"POPUP");ViewSlots.destroy(` &&
-             `ctx,"POPOVER");freezePage(oOld);const localId=freeMainViewId(ctx,oOld);let bPlaced;try{bPlaced=await displayView(ctx,xml,state.oResponse?.OVIEWMODEL,mOptions,(c,oView)=>navigatePage(c,oOld,oView,plan,` &&
-             `mOptions,aOldClients),localId)}catch(e){leavePage(ctx,oOld,aOldClients);throw e}if(!bPlaced)leavePage(ctx,oOld,aOldClients)}function chainBuild(ctx,seq,build){ctx.server.viewBuild=Promise.resolve(ctx.` &&
-             `server.viewBuild).catch(()=>{}).then(()=>{if(isSuperseded(ctx,seq)){return undefined}return build()});return ctx.server.viewBuild}function displayMain(ctx,xml,mOptions,seq){return chainBuild(ctx,seq,a` &&
-             `sync()=>{if(ctx.state.mainTransition){await ctx.state.mainTransition;if(isSuperseded(ctx,seq))return undefined}ctx.state.mainLeaving?.();const plan=transitionPlan(ctx,mOptions);if(plan)return displayP` &&
-             `aged(ctx,xml,mOptions,plan);rememberPlainArrival(ctx,mOptions,isSameOwner(ctx,mOptions));const oOld=ViewSlots.detach(ctx,"MAIN");const aOldClients=[...ctx.state.odataClients];ctx.state.odataClients.cl` &&
-             `ear();ViewSlots.destroy(ctx,"POPUP");ViewSlots.destroy(ctx,"POPOVER");const localId=freeMainViewId(ctx,oOld);let bPlaced;try{bPlaced=await displayView(ctx,xml,ctx.state.oResponse?.OVIEWMODEL,mOptions,` &&
-             `(c,oView)=>swapAlone(c,oView,oOld,aOldClients),localId)}catch(e){if(oOld)leavePage(ctx,oOld,aOldClients);throw e}if(!bPlaced&&oOld)leavePage(ctx,oOld,aOldClients);return bPlaced})}function displayStan` &&
-             `dalone(ctx,slotKey,xml,mOptions,seq){return chainBuild(ctx,seq,()=>{ViewSlots.destroy(ctx,slotKey);if(slotKey==="POPUP")return displayFragment(ctx,xml,seq);return displayPopover(ctx,xml,mOptions.openB` &&
-             `yId,seq)})}function updateModelIfRequired(ctx,slotKey){const oView=ViewSlots.getView(ctx,slotKey);if(!oView)return;const sSlotApp=ViewSlots.getViewApp(ctx,slotKey);const sResponseApp=ctx.state.oRespon` &&
-             `se?.APP;if(sSlotApp&&sResponseApp&&sSlotApp!==sResponseApp)return;const tracked=resolveTrackedModel(oView);if(tracked){if(tracked._z2ui5BuiltFrom&&tracked._z2ui5BuiltFrom===ctx.state.oResponse?.TOKEN)` &&
-             `{return}applyStoredSizeLimit(ctx,slotKey,tracked);const pending=tracked._z2ui5ChangedPaths;const keep=[];if(pending?.size){for(const path of pending){const value=tracked.getProperty(path);if(value!==u` &&
-             `ndefined)keep.push([path,value])}}tracked.setData(dataForSlot(slotKey,ctx.state.oResponse?.OVIEWMODEL));keep.forEach(([path,value],i)=>{tracked.setProperty(path,value,undefined,i<keep.length-1)});retu` &&
-             `rn}const oModel=createViewModel(ctx,slotKey);applyStoredSizeLimit(ctx,slotKey,oModel);oView.setModel(oModel)}function action(ctx,method,slotKey,xml,mOptions,seq){const options=mOptions||{};if(method==` &&
-             `="destroy"){ViewSlots.destroy(ctx,slotKey);return undefined}if(method==="updateModel"){for(const slot of ViewSlots.slots){if(slot.ownsModel)updateModelIfRequired(ctx,slot.key)}return undefined}if(isSu` &&
-             `perseded(ctx,seq))return undefined;if(slotKey==="MAIN"){const reusable={...options};for(const key of TRANSITION_OPTIONS)delete reusable[key];ctx.state.lastMainDisplayOptions=reusable;return displayMai` &&
-             `n(ctx,xml,options,seq)}if(slotKey==="POPUP"||slotKey==="POPOVER"){return displayStandalone(ctx,slotKey,xml,options,seq)}ViewSlots.destroy(ctx,slotKey);return displayNestedView(ctx,xml,slotKey,options,` &&
-             `seq)}return{action,resolveTrackedModel,dispatchQueuedWindows}});` && |\n| &&
+             `mOptions={},place=swapAlone,localId=MAIN_VIEW_ID){const oViewModel=createViewModel(ctx,"MAIN",viewModel);const oMainController=ViewSlots.getController(ctx,"MAIN");const switchPath=mOptions.switchDefau` &&
+             `ltModelPath;let oModel;if(switchPath){const ODataModel=await Lib.requireODataModel();oModel=new ODataModel({serviceUrl:switchPath,annotationURI:mOptions.switchDefaultModelAnnoUri||""});ctx.state.odata` &&
+             `Clients.add(oModel)}else{oModel=oViewModel}applyStoredSizeLimit(ctx,"MAIN",oViewModel);if(switchPath)applyStoredSizeLimit(ctx,"MAIN",oModel);await loadViewResources(ctx,xml);const oView=await Context.` &&
+             `runAsOwner(ctx,()=>XMLView.create({definition:xml,models:oModel,controller:oMainController,id:ViewSlots.ownId(ctx,localId),preprocessors:templatePreprocessors(xml,oViewModel)}));const discardBuild=()=` &&
+             `>{oView.destroy();ctx.state.odataClients.delete(oModel);oModel.destroy();if(switchPath)oViewModel.destroy()};if(!Lib.isAlive(ctx.state.oApp)||ViewSlots.getController(ctx,"MAIN")!==oMainController){dis` &&
+             `cardBuild();return undefined}ViewSlots.setView(ctx,"MAIN",oView,xml);if(switchPath)oView.setModel(oViewModel,"http");return place(ctx,oView)}function swapAlone(ctx,oView,oOld,aOldClients){const oApp=c` &&
+             `tx.state.oApp;oApp.removeAllPages();oApp.insertPage(oView);if(oOld)leaveOnceRendered(ctx,oView,oOld,aOldClients);return true}const SWAP_TIMEOUT=3e3;function leaveOnceRendered(ctx,oView,oOld,aOldClient` &&
+             `s){const state=ctx.state;let timer=null;const finish=()=>{if(state.mainLeaving!==finish)return;state.mainLeaving=null;clearTimeout(timer);leavePage(ctx,oOld,aOldClients)};state.mainLeaving=finish;free` &&
+             `zePage(oOld);timer=setTimeout(finish,SWAP_TIMEOUT);Lib.whenRendered(oView,oView,finish)}const TRANSITION_OPTIONS=["transition","transitionBack","navBack","appInstance"];const TRANSITION_TIMEOUT=3e3;fu` &&
+             `nction isSameOwner(ctx,options){const state=ctx.state;const instance=options.appInstance||"";if(instance&&state.mainInstance){return instance===state.mainInstance}const pageApp=ViewSlots.getViewApp(ct` &&
+             `x,"MAIN");return Boolean(pageApp)&&pageApp===state.oResponse?.APP}function transitionPlan(ctx,options){const state=ctx.state;const oCurrent=ViewSlots.getView(ctx,"MAIN");if(!oCurrent?.getDomRef?.()||!` &&
+             `state.oApp?.getDomRef?.())return null;const explicitBack=options.transitionBack===true;const recognizedBack=options.navBack===true||state.navFromHash&&state.navDirection==="back";if(explicitBack||reco` &&
+             `gnizedBack){if(!state.mainArrival)return null;if(!explicitBack&&isSameOwner(ctx,options))return null;return{back:true,name:state.mainArrival}}if(!options.transition)return null;return{back:false,name:` &&
+             `String(options.transition)}}function rememberPlainArrival(ctx,options,bSameOwner){const state=ctx.state;if(!bSameOwner||options.transition){state.mainArrival=String(options.transition||"")}state.mainI` &&
+             `nstance=options.appInstance||(bSameOwner?state.mainInstance:"")}function freezePage(oPage){const dom=oPage?.getDomRef?.();if(dom?.style)dom.style.pointerEvents="none"}function leavePage(ctx,oOld,aOldC` &&
+             `lients){const oApp=ctx.state.oApp;try{if(Lib.isAlive(oApp)&&Lib.isAlive(oOld))oApp.removePage(oOld)}catch(e){Lib.logError("Slots: removing the page that left failed",e)}try{if(Lib.isAlive(oOld))oOld.d` &&
+             `estroy()}catch(e){Lib.logError("Slots: destroying the page that left failed",e)}for(const oClient of aOldClients){try{oClient.destroy()}catch(e){Lib.logError("displayMain: destroying an OData client f` &&
+             `ailed",e)}}}function navigatePage(ctx,oOld,oView,plan,mOptions,aOldClients){const state=ctx.state;const oApp=state.oApp;let settle;let timer=null;const change=new Promise(resolve=>{settle=resolve});co` &&
+             `nst onAfterNavigate=oEvent=>{if(oEvent.getParameter("toId")===oView.getId())finish()};const finish=()=>{if(!settle)return;const fnSettle=settle;settle=null;clearTimeout(timer);if(Lib.isAlive(oApp))oAp` &&
+             `p.detachAfterNavigate(onAfterNavigate);leavePage(ctx,oOld,aOldClients);if(state.mainTransition===change)state.mainTransition=null;fnSettle()};state.mainTransition=change;oApp.attachAfterNavigate(onAft` &&
+             `erNavigate);timer=setTimeout(finish,TRANSITION_TIMEOUT);state.mainArrival=plan.back?String(mOptions.transition||""):plan.name;state.mainInstance=mOptions.appInstance||"";oApp.addPage(oView);try{if(pla` &&
+             `n.back){oApp.to(oOld.getId(),plan.name);oApp.insertPreviousPage(oView.getId(),mOptions.transition||plan.name);oApp.backToPage(oView.getId())}else{oApp.to(oView.getId(),plan.name)}}catch(e){Lib.logErro` &&
+             `r("Slots: the page transition failed",e);finish()}return true}async function displayPaged(ctx,xml,mOptions,plan){const state=ctx.state;const oOld=ViewSlots.detach(ctx,"MAIN");const aOldClients=[...sta` &&
+             `te.odataClients];state.odataClients.clear();ViewSlots.destroy(ctx,"POPUP");ViewSlots.destroy(ctx,"POPOVER");freezePage(oOld);const localId=freeMainViewId(ctx,oOld);let bPlaced;try{bPlaced=await displa` &&
+             `yView(ctx,xml,state.oResponse?.OVIEWMODEL,mOptions,(c,oView)=>navigatePage(c,oOld,oView,plan,mOptions,aOldClients),localId)}catch(e){leavePage(ctx,oOld,aOldClients);throw e}if(!bPlaced)leavePage(ctx,o` &&
+             `Old,aOldClients)}function chainBuild(ctx,seq,build){ctx.server.viewBuild=Promise.resolve(ctx.server.viewBuild).catch(()=>{}).then(()=>{if(isSuperseded(ctx,seq)){return undefined}return build()});retur` &&
+             `n ctx.server.viewBuild}function displayMain(ctx,xml,mOptions,seq){return chainBuild(ctx,seq,async()=>{if(ctx.state.mainTransition){await ctx.state.mainTransition;if(isSuperseded(ctx,seq))return undefi` &&
+             `ned}ctx.state.mainLeaving?.();const plan=transitionPlan(ctx,mOptions);if(plan)return displayPaged(ctx,xml,mOptions,plan);rememberPlainArrival(ctx,mOptions,isSameOwner(ctx,mOptions));const oOld=ViewSlo` &&
+             `ts.detach(ctx,"MAIN");const aOldClients=[...ctx.state.odataClients];ctx.state.odataClients.clear();ViewSlots.destroy(ctx,"POPUP");ViewSlots.destroy(ctx,"POPOVER");const localId=freeMainViewId(ctx,oOld` &&
+             `);let bPlaced;try{bPlaced=await displayView(ctx,xml,ctx.state.oResponse?.OVIEWMODEL,mOptions,(c,oView)=>swapAlone(c,oView,oOld,aOldClients),localId)}catch(e){if(oOld)leavePage(ctx,oOld,aOldClients);th` &&
+             `row e}if(!bPlaced&&oOld)leavePage(ctx,oOld,aOldClients);return bPlaced})}function displayStandalone(ctx,slotKey,xml,mOptions,seq){return chainBuild(ctx,seq,()=>{ViewSlots.destroy(ctx,slotKey);if(slotK` &&
+             `ey==="POPUP")return displayFragment(ctx,xml,seq);return displayPopover(ctx,xml,mOptions.openById,seq)})}function updateModelIfRequired(ctx,slotKey){const oView=ViewSlots.getView(ctx,slotKey);if(!oView` &&
+             `)return;const sSlotApp=ViewSlots.getViewApp(ctx,slotKey);const sResponseApp=ctx.state.oResponse?.APP;if(sSlotApp&&sResponseApp&&sSlotApp!==sResponseApp)return;const tracked=resolveTrackedModel(oView);` &&
+             `if(tracked){if(tracked._z2ui5BuiltFrom&&tracked._z2ui5BuiltFrom===ctx.state.oResponse?.TOKEN){return}applyStoredSizeLimit(ctx,slotKey,tracked);const pending=tracked._z2ui5ChangedPaths;const keep=[];if` &&
+             `(pending?.size){for(const path of pending){const value=tracked.getProperty(path);if(value!==undefined)keep.push([path,value])}}tracked.setData(dataForSlot(slotKey,ctx.state.oResponse?.OVIEWMODEL));kee` &&
+             `p.forEach(([path,value],i)=>{tracked.setProperty(path,value,undefined,i<keep.length-1)});return}const oModel=createViewModel(ctx,slotKey);applyStoredSizeLimit(ctx,slotKey,oModel);oView.setModel(oModel` &&
+             `)}function action(ctx,method,slotKey,xml,mOptions,seq){const options=mOptions||{};if(method==="destroy"){ViewSlots.destroy(ctx,slotKey);return undefined}if(method==="updateModel"){for(const slot of Vi` &&
+             `ewSlots.slots){if(slot.ownsModel)updateModelIfRequired(ctx,slot.key)}return undefined}if(isSuperseded(ctx,seq))return undefined;if(slotKey==="MAIN"){const reusable={...options};for(const key of TRANSI` &&
+             `TION_OPTIONS)delete reusable[key];ctx.state.lastMainDisplayOptions=reusable;return displayMain(ctx,xml,options,seq)}if(slotKey==="POPUP"||slotKey==="POPOVER"){return displayStandalone(ctx,slotKey,xml,` &&
+             `options,seq)}ViewSlots.destroy(ctx,slotKey);return displayNestedView(ctx,xml,slotKey,options,seq)}return{action,resolveTrackedModel,dispatchQueuedWindows}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/Variants.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots"],(Lib,ViewSlots)=>{"use strict";const SMART_VARIANT_INIT_TRIES=50;const SMART_VARIANT_INIT_DEL` &&
@@ -859,11 +862,11 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `its.add(key);const finish=()=>activeInits.delete(key);let tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const ` &&
              `control=controlId?ViewSlots.resolveById(oController?.ctx,controlId):null;if(!oSVM||controlId&&!control){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logErro` &&
              `r(``SMART_VARIANT_INIT: '${controlId?``${svmId}' / '${controlId}``:svmId}' not found``);finish();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.initialise!=="function"){Lib.logError(``SMART_VARIANT_INIT` &&
-             `: no SmartVariantManagement for id '${svmId}'``);finish();return}let target=control;if(!target){const registered=oSVM.getPersonalizableControls?oSVM.getPersonalizableControls():[];if(!registered.lengt` &&
+             `: no SmartVariantManagement for id '${svmId}'``);finish();return}let target=control;if(!target){const registered=oSVM.getPersonalizableControls?oSVM.getPersonalizableControls():[];if(!registered.lengt`.
+    result = result &&
              `h){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``);finish();return}target=` &&
              `ViewSlots.resolveById(oController?.ctx,registered[0].getControl());if(!target){finish();return}}anchorPersoControl(oSVM,target);ensureInitialised(oSVM,target,0);finish()};run()}const FILTER_BAR_WIRED=` &&
-             `"_z2ui5FilterBarVariantWired";function filterItemControl(item){return item&&typeof item.getControl==="function"?item.getControl():null}function filterItemValue(item){const control=filterItemControl(it`.
-    result = result &&
+             `"_z2ui5FilterBarVariantWired";function filterItemControl(item){return item&&typeof item.getControl==="function"?item.getControl():null}function filterItemValue(item){const control=filterItemControl(it` &&
              `em);return control&&typeof control.getValue==="function"?control.getValue():""}function registerFilterBarCallbacks(oFilterBar){oFilterBar.registerFetchData(()=>oFilterBar.getAllFilterItems().map(item=` &&
              `>({groupName:item.getGroupName(),fieldName:item.getName(),fieldData:filterItemValue(item)})));oFilterBar.registerApplyData(data=>{(data||[]).forEach(entry=>{const control=oFilterBar.determineControlBy` &&
              `Name(entry.fieldName,entry.groupName);if(control&&typeof control.setValue==="function"){control.setValue(entry.fieldData)}})});oFilterBar.registerGetFiltersWithValues(()=>oFilterBar.getAllFilterItems(` &&
@@ -888,35 +891,36 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `nst limit=hasLimit?Number(args[1]):NaN;const isValidLimit=Number.isFinite(limit)&&limit>0;const previous=oController.ctx.state.viewSizeLimits[viewKey];if(isValidLimit){oController.ctx.state.viewSizeLi` &&
              `mits[viewKey]=limit}else{delete oController.ctx.state.viewSizeLimits[viewKey]}if(previous===oController.ctx.state.viewSizeLimits[viewKey])return;const modelKey=Lib.isRootModelSlot(viewKey)?"MAIN":view` &&
              `Key;const view=ViewSlots.getView(oController.ctx,modelKey);const model=view?ViewSlots.trackedModel(view)??view.getModel():undefined;if(model){const effective=Lib.effectiveSizeLimit(oController.ctx.sta` &&
-             `te.viewSizeLimits,viewKey);model.setSizeLimit(effective??100);model.refresh(true)}}async function evSetODataModel(oController,args){let oModel;try{const ODataModel=await Lib.requireODataModel();oModel` &&
-             `=new ODataModel({serviceUrl:args[1],annotationURI:args[3]||""});const oView=ViewSlots.getView(oController.ctx,"MAIN");if(oView){const name=args[2]||undefined;const previous=oView.getModel(name);oView.` &&
-             `setModel(oModel,name);oController.ctx.state.odataClients.add(oModel);if(previous!==oModel&&oController.ctx.state.odataClients.has(previous)){oController.ctx.state.odataClients.delete(previous);previou` &&
-             `s.destroy()}}else{oModel.destroy()}}catch(e){Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``,e);oController.ctx.state.odataClients.delete(oModel);oModel?.destroy?.()}}function evBindElement(` &&
-             `oController,args){const slot=args[1]||"MAIN";const view=ViewSlots.getView(oController.ctx,slot);if(!view){Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);return}const path=String(args[3]??"` &&
-             `").replace(/[{}]/g,"").replace(/^\$/,"");if(!path){Lib.logError("BIND_ELEMENT: empty binding path");return}const index=String(args[2]??"");if(!/^\d+$/.test(index.trim())){Lib.logError(``BIND_ELEMENT: ` &&
-             `'${args[2]??""}' is no row index of '${path}' - the view is not rebound``);return}view.bindElement(``${path}/${index.trim()}``)}const TIMER_KEY="START_TIMER";function evStartTimer(oController,args){co` &&
-             `nst timerKey=args[0];const callbackEvent=args[1];const delay=Number(args[2])||0;const noBusy=ControlCall.castArg("bool",args[3]);const repeat=ControlCall.castArg("bool",args[4]);oController.ctx.state.` &&
-             `timerRepeat=repeat?{controller:oController,timerKey,event:callbackEvent,delay,noBusy}:null;armTimer(oController,timerKey,callbackEvent,delay,noBusy)}function armTimer(oController,timerKey,callbackEven` &&
-             `t,delay,noBusy){const timers=oController.ctx.state.timers;Lib.cancelTimer(timers[timerKey]);const fire=()=>{delete timers[timerKey];if(!Lib.isControllerAlive(oController))return;if(oController.ctx.sta` &&
-             `te.isBusy){const cancel=Lib.afterRoundtrip(oController,()=>{timers[timerKey]=setTimeout(fire,0)});if(!(timerKey in timers))timers[timerKey]=cancel;return}if(oController.ctx.state.oTickQueuedEvent){tim` &&
-             `ers[timerKey]=setTimeout(fire,TICK_WAIT_MS);return}oController.eB([callbackEvent,{noBusy,timer:true}])};timers[timerKey]=setTimeout(fire,delay)}function evStopTimer(oController){const state=oControlle` &&
-             `r.ctx.state;state.timerRepeat=null;Lib.cancelTimer(state.timers[TIMER_KEY]);delete state.timers[TIMER_KEY]}function resumeRepeatTimer(ctx){const state=ctx?.state;const repeat=state?.timerRepeat;if(!re` &&
-             `peat)return;if(state.isBusy||repeat.timerKey in state.timers)return;if(!Lib.isControllerAlive(repeat.controller)){const main=ViewSlots.getController(ctx,"MAIN");if(!Lib.isControllerAlive(main)){state.` &&
-             `timerRepeat=null;return}repeat.controller=main}armTimer(repeat.controller,repeat.timerKey,repeat.event,repeat.delay,repeat.noBusy)}function resolveTarget(oController,action,id){const oElement=ViewSlot` &&
-             `s.resolveById(oController?.ctx,id);if(!oElement)Lib.logError(``${action}: no control '${id}'``);return oElement}function evSetFocus(oController,args){const oElement=resolveTarget(oController,"SET_FOCU` &&
-             `S",args[1]);if(!oElement)return;const applyFocus=()=>{try{const info=oElement.getFocusInfo();const start=Lib.toCaretIndex(args[2]);const end=Lib.toCaretIndex(args[3]);if(start!==null)info.selectionSta` &&
-             `rt=start;if(end!==null)info.selectionEnd=end;oElement.applyFocusInfo(info);const from=start??end;const to=end??start;const field=oElement.getFocusDomRef?.();const caret=from===null?null:Lib.readCaret(` &&
-             `field);if(caret&&document.activeElement===field&&(caret.start!==from||caret.end!==to)){field.setSelectionRange(from,to)}}catch(e){Lib.logError(``SET_FOCUS: failed for '${args[1]}'``,e)}};Lib.whenRende` &&
-             `red(oElement,oController,()=>{if(!Lib.isControllerAlive(oController))return;if(!ScrollFocus.mayMoveFocus(oController.ctx))return;applyFocus();if(oElement.getDomRef()?.contains(document.activeElement))` &&
-             `return;const prevActive=document.activeElement;const samePlace=el=>el==null||el===document.body||el===prevActive||Boolean(el.id&&prevActive&&el.id===prevActive.id);Lib.onNextRendering(oElement,()=>{se` &&
-             `tTimeout(()=>{if(!Lib.isControllerAlive(oController))return;if(!samePlace(document.activeElement))return;if(!ScrollFocus.mayMoveFocus(oController.ctx))return;applyFocus()},0)},"focusRetry")},"focus")}` &&
-             `function evScrollTo(oController,args){try{const oElement=resolveTarget(oController,"SCROLL_TO",args[1]);if(!oElement)return;const y=Number(args[2])||0;const x=Number(args[3])||0;const behavior=args[4]` &&
-             `||"auto";const smooth=behavior==="smooth";let handled=false;try{const delegate=oElement.getScrollDelegate?.();if(delegate?.scrollTo){delegate.scrollTo(x,y,smooth?SMOOTH_SCROLL_MS:0);handled=true}}catc` &&
-             `h{}if(!handled){const dom=document.getElementById(``${oElement.getId()}-inner``)||oElement.getDomRef();if(dom?.scrollTo){dom.scrollTo({top:y,left:x,behavior})}else if(dom){dom.scrollTop=y;dom.scrollLe` &&
-             `ft=x}else if(oElement.scrollTo){oElement.scrollTo(y,smooth?SMOOTH_SCROLL_MS:0)}}}catch(e){Lib.logError(``SCROLL_TO: failed for '${args[1]}'``,e)}}function evScrollIntoView(oController,args){try{const ` &&
-             `oElement=resolveTarget(oController,"SCROLL_INTO_VIEW",args[1]);if(!oElement)return;const dom=oElement.getDomRef();if(!dom||!dom.scrollIntoView)return;dom.scrollIntoView({behavior:args[2]||"smooth",blo` &&
-             `ck:args[3]||"start",inline:args[4]||"nearest"})}catch(e){Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``,e)}}const handlers={SET_SIZE_LIMIT:evSetSizeLimit,SET_ODATA_MODEL:evSetODataModel,BI` &&
-             `ND_ELEMENT:evBindElement,START_TIMER:evStartTimer,STOP_TIMER:evStopTimer,SET_FOCUS:evSetFocus,SCROLL_TO:evScrollTo,SCROLL_INTO_VIEW:evScrollIntoView};return{handlers,resumeRepeatTimer}});` && |\n| &&
+             `te.viewSizeLimits,viewKey);model.setSizeLimit(effective??100);model.refresh(true)}}async function evSetODataModel(oController,args){let oModel;try{const ODataModel=await Lib.requireODataModel();if(!oC` &&
+             `ontroller?.ctx?.alive)return;oModel=new ODataModel({serviceUrl:args[1],annotationURI:args[3]||""});const oView=ViewSlots.getView(oController.ctx,"MAIN");if(oView){const name=args[2]||undefined;const p` &&
+             `revious=oView.getModel(name);oView.setModel(oModel,name);oController.ctx.state.odataClients.add(oModel);if(previous!==oModel&&oController.ctx.state.odataClients.has(previous)){oController.ctx.state.od` &&
+             `ataClients.delete(previous);previous.destroy()}}else{oModel.destroy()}}catch(e){Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``,e);oController.ctx.state.odataClients.delete(oModel);oModel?.d` &&
+             `estroy?.()}}function evBindElement(oController,args){const slot=args[1]||"MAIN";const view=ViewSlots.getView(oController.ctx,slot);if(!view){Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` &&
+             `return}const path=String(args[3]??"").replace(/[{}]/g,"").replace(/^\$/,"");if(!path){Lib.logError("BIND_ELEMENT: empty binding path");return}const index=String(args[2]??"");if(!/^\d+$/.test(index.tri` &&
+             `m())){Lib.logError(``BIND_ELEMENT: '${args[2]??""}' is no row index of '${path}' - the view is not rebound``);return}view.bindElement(``${path}/${index.trim()}``)}const TIMER_KEY="START_TIMER";functio` &&
+             `n evStartTimer(oController,args){const timerKey=args[0];const callbackEvent=args[1];const delay=Number(args[2])||0;const noBusy=ControlCall.castArg("bool",args[3]);const repeat=ControlCall.castArg("bo` &&
+             `ol",args[4]);oController.ctx.state.timerRepeat=repeat?{controller:oController,timerKey,event:callbackEvent,delay,noBusy}:null;armTimer(oController,timerKey,callbackEvent,delay,noBusy)}function armTime` &&
+             `r(oController,timerKey,callbackEvent,delay,noBusy){const timers=oController.ctx.state.timers;Lib.cancelTimer(timers[timerKey]);const fire=()=>{delete timers[timerKey];if(!Lib.isControllerAlive(oContro` &&
+             `ller))return;if(oController.ctx.state.isBusy){const cancel=Lib.afterRoundtrip(oController,()=>{timers[timerKey]=setTimeout(fire,0)});if(!(timerKey in timers))timers[timerKey]=cancel;return}if(oControl` &&
+             `ler.ctx.state.oTickQueuedEvent){timers[timerKey]=setTimeout(fire,TICK_WAIT_MS);return}oController.eB([callbackEvent,{noBusy,timer:true}])};timers[timerKey]=setTimeout(fire,delay)}function evStopTimer(` &&
+             `oController){const state=oController.ctx.state;state.timerRepeat=null;Lib.cancelTimer(state.timers[TIMER_KEY]);delete state.timers[TIMER_KEY]}function resumeRepeatTimer(ctx){const state=ctx?.state;con` &&
+             `st repeat=state?.timerRepeat;if(!repeat)return;if(state.isBusy||repeat.timerKey in state.timers)return;if(!Lib.isControllerAlive(repeat.controller)){const main=ViewSlots.getController(ctx,"MAIN");if(!` &&
+             `Lib.isControllerAlive(main)){state.timerRepeat=null;return}repeat.controller=main}armTimer(repeat.controller,repeat.timerKey,repeat.event,repeat.delay,repeat.noBusy)}function resolveTarget(oController` &&
+             `,action,id){const oElement=ViewSlots.resolveById(oController?.ctx,id);if(!oElement)Lib.logError(``${action}: no control '${id}'``);return oElement}function evSetFocus(oController,args){const oElement=` &&
+             `resolveTarget(oController,"SET_FOCUS",args[1]);if(!oElement)return;const applyFocus=()=>{try{const info=oElement.getFocusInfo();const start=Lib.toCaretIndex(args[2]);const end=Lib.toCaretIndex(args[3]` &&
+             `);if(start!==null)info.selectionStart=start;if(end!==null)info.selectionEnd=end;oElement.applyFocusInfo(info);const from=start??end;const to=end??start;const field=oElement.getFocusDomRef?.();const ca` &&
+             `ret=from===null?null:Lib.readCaret(field);if(caret&&document.activeElement===field&&(caret.start!==from||caret.end!==to)){field.setSelectionRange(from,to)}}catch(e){Lib.logError(``SET_FOCUS: failed fo` &&
+             `r '${args[1]}'``,e)}};Lib.whenRendered(oElement,oController,()=>{if(!Lib.isControllerAlive(oController))return;if(!ScrollFocus.mayMoveFocus(oController.ctx))return;applyFocus();if(oElement.getDomRef()` &&
+             `?.contains(document.activeElement))return;const prevActive=document.activeElement;const samePlace=el=>el==null||el===document.body||el===prevActive||Boolean(el.id&&prevActive&&el.id===prevActive.id);L` &&
+             `ib.onNextRendering(oElement,()=>{setTimeout(()=>{if(!Lib.isControllerAlive(oController))return;if(!samePlace(document.activeElement))return;if(!ScrollFocus.mayMoveFocus(oController.ctx))return;applyFo` &&
+             `cus()},0)},"focusRetry")},"focus")}function evScrollTo(oController,args){try{const oElement=resolveTarget(oController,"SCROLL_TO",args[1]);if(!oElement)return;const y=Number(args[2])||0;const x=Number` &&
+             `(args[3])||0;const behavior=args[4]||"auto";const smooth=behavior==="smooth";let handled=false;try{const delegate=oElement.getScrollDelegate?.();if(delegate?.scrollTo){delegate.scrollTo(x,y,smooth?SMO` &&
+             `OTH_SCROLL_MS:0);handled=true}}catch{}if(!handled){const dom=document.getElementById(``${oElement.getId()}-inner``)||oElement.getDomRef();if(dom?.scrollTo){dom.scrollTo({top:y,left:x,behavior})}else i` &&
+             `f(dom){dom.scrollTop=y;dom.scrollLeft=x}else if(oElement.scrollTo){oElement.scrollTo(y,smooth?SMOOTH_SCROLL_MS:0)}}}catch(e){Lib.logError(``SCROLL_TO: failed for '${args[1]}'``,e)}}function evScrollIn` &&
+             `toView(oController,args){try{const oElement=resolveTarget(oController,"SCROLL_INTO_VIEW",args[1]);if(!oElement)return;const dom=oElement.getDomRef();if(!dom||!dom.scrollIntoView)return;dom.scrollIntoV` &&
+             `iew({behavior:args[2]||"smooth",block:args[3]||"start",inline:args[4]||"nearest"})}catch(e){Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``,e)}}const handlers={SET_SIZE_LIMIT:evSetSizeLimit` &&
+             `,SET_ODATA_MODEL:evSetODataModel,BIND_ELEMENT:evBindElement,START_TIMER:evStartTimer,STOP_TIMER:evStopTimer,SET_FOCUS:evSetFocus,SCROLL_TO:evScrollTo,SCROLL_INTO_VIEW:evScrollIntoView};return{handlers` &&
+             `,resumeRepeatTimer}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/css/style.css": '/* Enter your custom styles here */',` && |\n| &&
@@ -931,12 +935,12 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `value!=="object")return false;if(Object.prototype.toString.call(value)==="[object Error]")return true;return typeof value.stack==="string"&&typeof value.message==="string"}function renderArg(value){if` &&
              `(value===undefined)return"undefined";if(value===null)return"null";const type=typeof value;if(type==="string")return value;if(type==="number"||type==="boolean"||type==="bigint"){return String(value)}if` &&
              `(type==="function")return``[function ${value.name||"anonymous"}]``;if(type==="symbol")return String(value);if(isErrorLike(value)){return value.stack||``${value.name||"Error"}: ${value.message}``}try{c` &&
-             `onst ancestors=[];const walked=new WeakMap;let nodes=0;return JSON.stringify(value,function replace(key,val){if(typeof val==="object"&&val!==null){if(++nodes>MAX_NODES)return"[...]";const holder=walke` &&
+             `onst ancestors=[];const walked=new WeakMap;let nodes=0;return JSON.stringify(value,function replace(key,val){if(typeof val==="object"&&val!==null){if(++nodes>MAX_NODES)return"[...]";const holder=walke`.
+    result = result &&
              `d.get(this)||this;while(ancestors.length>0&&ancestors[ancestors.length-1]!==holder){ancestors.pop()}if(ancestors.includes(val))return"[Circular]";if(ancestors.length>=MAX_DEPTH)return"[...]";ancestors` &&
              `.push(val);if(Array.isArray(val)&&val.length>MAX_ITEMS){const head=val.slice(0,MAX_ITEMS);head.push(``[... ${val.length-MAX_ITEMS} more]``);walked.set(head,val);return head}const keys=Object.keys(val)` &&
              `;if(keys.length>MAX_ITEMS){const head={};for(const k of keys.slice(0,MAX_ITEMS))head[k]=val[k];head[``... ${keys.length-MAX_ITEMS} more``]="[...]";walked.set(head,val);return head}}if(isErrorLike(val)` &&
-             `)return val.stack||String(val);return val})}catch{try{return String(value)}catch{return"[unrenderable]"}}}function renderArgs(args){return args.map(renderArg).join(" ")}function captureConsole(level,a`.
-    result = result &&
+             `)return val.stack||String(val);return val})}catch{try{return String(value)}catch{return"[unrenderable]"}}}function renderArgs(args){return args.map(renderArg).join(" ")}function captureConsole(level,a` &&
              `rgs){if(capturing)return;capturing=true;try{const text=renderArgs(args);const echo=pendingUi5Echo;pendingUi5Echo=null;if(echo&&(text===echo||text.startsWith(``${echo} ``)))return;push(level,"console",` &&
              `text)}catch{}finally{capturing=false}}const UI5_LEVELS={0:"error",1:"error",2:"warn",3:"info",4:"debug",5:"debug"};function captureUi5(logEntry){try{const level=UI5_LEVELS[logEntry?.level]||"info";con` &&
              `st component=logEntry?.component?``[${logEntry.component}] ``:"";const details=logEntry?.details?`` - ${logEntry.details}``:"";if(logEntry?.component!=="z2ui5"){push(level,"ui5",``${component}${logEnt` &&
@@ -1002,12 +1006,12 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `attrs[i].name}="${escapeAttribute(attrs[i].value)}"``}const children=Array.prototype.slice.call(el.childNodes||[]);if(children.length===0)return``${open}/>``;const close=``</${el.nodeName}>``;const mi` &&
              `xed=children.some(c=>isTextLike(c)&&!isBlank(c));if(mixed||!indented){return``${open}>${children.map(c=>serializeNode(c,0,false)).join("")}${close}``}const kept=children.filter(c=>!isBlank(c));if(kept` &&
              `.length===0)return``${open}/>``;const pad=" ".repeat(depth*XML_INDENT_UNIT);return``${open}>\n${kept.map(c=>serializeNode(c,depth+1,true)).join("\n")}\n${pad}${close}``}function prettifyXml(sourceXml)` &&
-             `{if(!sourceXml)return"";try{const xmlDoc=getDomParser().parseFromString(sourceXml,"application/xml");if(!xmlDoc||!xmlDoc.documentElement)return sourceXml;if(xmlDoc.documentElement.nodeName==="parserer` &&
+             `{if(!sourceXml)return"";try{const xmlDoc=getDomParser().parseFromString(sourceXml,"application/xml");if(!xmlDoc||!xmlDoc.documentElement)return sourceXml;if(xmlDoc.documentElement.nodeName==="parserer`.
+    result = result &&
              `ror"||xmlDoc.getElementsByTagName("parsererror").length>0){return sourceXml}return Array.prototype.slice.call(xmlDoc.childNodes).filter(node=>!isBlank(node)).map(node=>serializeNode(node,0,true)).join` &&
              `("\n")}catch{return sourceXml}}function truncate(text,max){const str=String(text);if(str.length<=max)return str;return``${str.slice(0,max)}... (${str.length} chars)``}function formatBytes(bytes){if(by` &&
              `tes===null||bytes===undefined)return"-";if(bytes<1024)return``${bytes} B``;if(bytes<1024*1024)return``${Math.round(bytes/1024)} KB``;return``${(bytes/(1024*1024)).toFixed(1)} MB``}function section(tit` &&
-             `le){return``\n${title}\n${"-".repeat(title.length)}``}function renderValue(value,max){if(value===undefined)return"(absent)";if(value===null)return"null";let text;if(typeof value==="object"){try{text=J`.
-    result = result &&
+             `le){return``\n${title}\n${"-".repeat(title.length)}``}function renderValue(value,max){if(value===undefined)return"(absent)";if(value===null)return"null";let text;if(typeof value==="object"){try{text=J` &&
              `SON.stringify(value)}catch{text=String(value)}}else{text=String(value)}return truncate(text,max)}function describeValue(value,{max=60,typed=false,absent="(absent)",empty="(empty)"}={}){if(value===null` &&
              `)return"null";if(value===undefined)return absent;if(Array.isArray(value))return``table, ${value.length} row(s)``;if(typeof value==="object"){return``structure, ${Object.keys(value).length} field(s)``}` &&
              `if(value==="")return typed?``${typeof value} ${empty}``:empty;const preview=truncate(value,max);return typed?``${typeof value}  ${preview}``:preview}const SECRET_NAME=/(PASSW|PWD|SECRET|TOKEN|CREDENTI` &&
@@ -1076,12 +1080,12 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `f max ${MAX_RECORDS} records``);const recording=isRecordingPayloads();lines.push(``Payload recording: ${recording?"ON":"OFF"}``+`` (retained ${formatBytes(recorderOf(ctx)?.payloadBytes||0)} of ``+``${` &&
              `formatBytes(PAYLOAD_BUDGET_BYTES)} budget)``);if(!recording){lines.push(``Switch "Record Payloads" on to keep request/response bodies and``+`` enable the Model Diff and View Diff tabs.``)}lines.push("` &&
              `");if(!list.length){lines.push("(no roundtrip recorded yet)");return lines.join("\n")}lines.push(pad("#",5)+pad("TIME",14)+pad("EVENT",22)+pad("TOTAL",10,true)+pad("BACKEND",10,true)+pad("RENDER",10,t` &&
-             `rue)+pad("REQ",10,true)+pad("RESP",10,true)+"  "+pad("DRAFT",10)+pad("ACT",8)+"PAYLOAD");lines.push("-".repeat(118));for(const record of list){const time=record.ts.slice(11,23);const actions=``${recor` &&
+             `rue)+pad("REQ",10,true)+pad("RESP",10,true)+"  "+pad("DRAFT",10)+pad("ACT",8)+"PAYLOAD");lines.push("-".repeat(118));for(const record of list){const time=record.ts.slice(11,23);const actions=``${recor`.
+    result = result &&
              `d.viewCount}/${record.actionCount}``;let payload="-";if(record.request||record.response)payload="kept";else if(record.payloadEvicted)payload="evicted";lines.push(pad(record.previousLoad?``${record.seq` &&
              `}*``:record.seq,5)+pad(time,14)+pad(record.rendered?record.event||"(start)":"(no render)",22)+pad(formatMs(record.totalMs),10,true)+pad(formatMs(record.backendMs),10,true)+pad(formatMs(record.renderMs` &&
              `),10,true)+pad(formatBytes(record.reqBytes),10,true)+pad(formatBytes(record.respBytes),10,true)+"  "+pad(shortId(record.idReceived),10)+pad(actions,8)+payload)}lines.push("");lines.push(...navigationL` &&
-             `ines(list));lines.push(...summaryLines(list));lines.push("");lines.push("TOTAL = request start to rendered, BACKEND = network + ABAP,"+" RENDER = response end to rendered.");lines.push("ACT = slots ch`.
-    result = result &&
+             `ines(list));lines.push(...summaryLines(list));lines.push("");lines.push("TOTAL = request start to rendered, BACKEND = network + ABAP,"+" RENDER = response end to rendered.");lines.push("ACT = slots ch` &&
              `anged / actions queued. A '(no render)' row is a"+" roundtrip that never reached the render phase");lines.push("(error response, aborted request, or a parallel request whose"+" result was discarded as` &&
              ` stale).");if(list.some(record=>record.previousLoad)){lines.push("A '*' after the number marks a roundtrip of the PREVIOUS page"+" load, carried across the reload.")}return lines.join("\n")}function d` &&
              `isplayedXml(response,slotKey){const xml=response?.S_FRONT?.VIEWS?.[slotKey]?.XML;return typeof xml==="string"?xml:""}function lastTwoViews(ctx,slotKey){const records=getRecords(ctx);const withView=[];` &&
@@ -1141,10 +1145,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      "z2ui5/view/App.view.xml": '\x3cmvc:View controllerName="z2ui5.controller.App"    xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5core="z2ui5.core"    displayBlock="true" height="100%">    \x3c!-- The ro` &&
              `ot control, id "app", is created by the controller: a         sap.m.App on a page of the app\'s own, a sap.m.NavContainer for an         embedded component (App.controller.js, createRoot). -->    \x3c` &&
              `z2ui5core:RootSlot id="rootSlot"/>\x3c/mvc:View>',` && |\n| &&
-             `  };` && |\n| &&
-             `  sap.ui.require.preload(entries);` && |\n| &&
-             `  sap.ui.require.preload({` && |\n|.
+             `  };` && |\n|.
     result = result &&
+             `  sap.ui.require.preload(entries);` && |\n| &&
+             `  sap.ui.require.preload({` && |\n| &&
              `    "z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"],` && |\n| &&
              `    "z2ui5/embed/frontend/manifest.json": entries["z2ui5/manifest.json"]` && |\n| &&
              `  });` && |\n| &&

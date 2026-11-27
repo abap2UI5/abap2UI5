@@ -1447,6 +1447,18 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     expect(destroyed).toEqual([clients[0]]);
     expect(state.odataClients.size).toBe(2);
   });
+
+  test("a component that went while the client class loaded gets no client", async () => {
+    // the await of Lib.requireODataModel: a client built and recorded after
+    // the teardown sat in the rebuilt state's inventory, which no teardown
+    // empties any more - $metadata request, caches and queues included
+    const { ViewOps, ctx, state, clients } = loadODataOwnership();
+    const pending = setOData(ViewOps, ctx, "/svc/late/", "orders");
+    ctx.alive = false;
+    await pending;
+    expect(clients).toHaveLength(0);
+    expect(state.odataClients.size).toBe(0);
+  });
 });
 
 test.describe("eB busy guard with check_queue_last (queued last event)", () => {

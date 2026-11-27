@@ -41,9 +41,23 @@ function load({
   const modules = new Map();
   if (bundled) modules.set("z2ui5/embed", { ccBundle: VERSION, bundleUrl });
   const scripts = [];
+  // the load's timeout (a minute) is held here instead of being scheduled:
+  // `expire` runs it, the short timers run as they are
+  const longTimers = new Map();
+  let timerId = 0;
   const { module } = loadModule("core/CustomControls.js", {
     sandbox: {
       URL,
+      setTimeout: (fn, ms) => {
+        if (ms < 1000) return setTimeout(fn, ms);
+        timerId += 1;
+        longTimers.set(timerId, { fn, ms });
+        return timerId;
+      },
+      clearTimeout: (id) => {
+        if (longTimers.has(id)) longTimers.delete(id);
+        else clearTimeout(id);
+      },
       window: { location: { href } },
       sap: {
         ui: {
@@ -90,6 +104,15 @@ function load({
     },
     fail: async (index = scripts.length - 1) => {
       scripts[index].onerror();
+      await settle();
+    },
+    longTimers,
+    // the load's timeout runs out
+    expire: async () => {
+      for (const [id, { fn }] of [...longTimers]) {
+        longTimers.delete(id);
+        fn();
+      }
       await settle();
     },
   };
@@ -258,6 +281,28 @@ test.describe("the custom controls bundle", () => {
     expect(h.scripts.length).toBe(2);
     await h.arrive();
     await second;
+  });
+
+  test("a load that never answers rejects after a minute, and the next view tries again", async () => {
+    // the view builds are one chain (actions/Slots): a load that never
+    // settled stalled every later build of the component
+    const h = load();
+    const first = rejection(h.CustomControls.ensure(h.ctx, VIEW));
+    expect([...h.longTimers.values()].map((t) => t.ms)).toEqual([60000]);
+    await h.expire();
+    expect((await first)?.message).toBe(
+      `the custom controls this view uses could not be loaded (no answer within 60 seconds): ${BUNDLE_URL}`,
+    );
+    expect(h.scripts[0].removed).toBe(true);
+    // a late load event of the abandoned element changes nothing
+    h.scripts[0].onload();
+    await h.settle();
+    const second = h.CustomControls.ensure(h.ctx, VIEW);
+    expect(h.scripts.length).toBe(2);
+    await h.arrive();
+    await second;
+    // a load that settled cleared its timeout
+    expect(h.longTimers.size).toBe(0);
   });
 
   test("without a URL of the bundle and without an endpoint there is nothing to load from - rejected, not skipped", async () => {

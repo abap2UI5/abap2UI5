@@ -303,7 +303,14 @@ sap.ui.define(
     // entry (Back returns to what was there) and counts towards
     // hashPushCount - navBack's stand-in for UI5's History.getPreviousHash -
     // while a REPLACE writes in place and leaves the history depth alone.
+    //
+    // A push of the hash the browser already stands on is no push at all:
+    // hasher's setHash leaves an unchanged hash alone, so no history entry
+    // is added and none may be counted (or put on the trail) - counted, the
+    // next navBack took history.back( ) for an in-app step and left the
+    // app, or the page, instead of taking its fallback.
     function writeHash(ctx, sHash, bPush) {
+      if (bPush && appHashNormalized(sHash) === getHash()) return;
       if (bPush) ctx.state.hashPushCount += 1;
       write(ctx, sHash, !bPush);
     }
@@ -317,7 +324,21 @@ sap.ui.define(
     // lands on that route via a REPLACE - deliberately NOT adopted, so the
     // change dispatches the listener and the backend renders the fallback -
     // and without one it behaves like the plain browser button.
+    //
+    // Only on a page the component owns (state.ownsPage), as sync( ) and
+    // init( ) ask: embedded, the history is the HOST's - history.back( )
+    // would navigate the host's page and the fallback's replaceHash would
+    // overwrite the host's route. Refused and said so, like a hash_set
+    // there. Not under the fatal overlay either (state.terminated): the app
+    // has ended, and the overlay's Retry / Restart decide what comes next.
     function navBack(ctx, sFallback) {
+      if (!ctx?.state?.ownsPage) {
+        Lib.logError(
+          "Router: hash_back needs the page - the component does not own it (embedded, ownsPage); the history is its host's",
+        );
+        return;
+      }
+      if (ctx.state.terminated) return;
       if (!sFallback || ctx.state.hashPushCount > 0) {
         window.history.back();
         return;
@@ -549,7 +570,9 @@ sap.ui.define(
         repointCallerEntry(ctx, mOptions, draftForRoute);
         state.currentApp = app;
         state.currentDraftId = draftForRoute;
-        write(ctx, route, false);
+        // a push like every other: counted, so a hash_back after a
+        // nav_app_call consumes this entry instead of taking its fallback
+        writeHash(ctx, route, true);
       } else if (getHash() !== route) {
         write(ctx, route, true);
       }
