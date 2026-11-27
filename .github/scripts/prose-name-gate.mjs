@@ -65,7 +65,7 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_TM_CONTEXT", "ships in abap2UI5-addons/table-maintenance"],
   ["Z2UI5_CL_SQL_QUERY", "ships in abap2UI5-addons/sql-console"],
   ["Z2UI5_CL_LP_KPI_DPC", "ships in abap2UI5-addons/launchpad-kpi"],
-  ["Z2UI5_IF_LP_KPI", "the KPI interface of abap2UI5-addons/launchpad-kpi, named at a site in S5S (a consumer system) in an abaplint backlog item"],
+  ["Z2UI5_IF_LP_KPI", "the KPI interface of abap2UI5-addons/launchpad-kpi, named at a site in a consumer system in an abaplint backlog item"],
   ["Z2UI5_CL_FRONTEND_SIMULATOR", "the name of Z2UI5_CL_FRONTEND_SIM in abap2UI5/headless-frontend up to 2026-11"],
   ["Z2UI5_CL_RFC_CONNECTOR_HANDLER", "ships in abap2UI5-addons/rfc-connector"],
   ["Z2UI5_CL_POPUP_VALUE_HELP", "ships in abap2UI5-addons/popups"],

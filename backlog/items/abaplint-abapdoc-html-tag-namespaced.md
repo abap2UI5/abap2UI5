@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "HTML tag <html:style> is not supported in ABAP Doc" and "HTML tag <html:style> is not closed" - an ABAP Doc comment quoting an XML view node ("... keine Textknoten (<html:style>...) kennt")'
+  - 'one activation of a consumer system on S/4HANA (2026-11-24) warned "HTML tag <html:style> is not supported in ABAP Doc" and "HTML tag <html:style> is not closed" - an ABAP Doc comment quoting an XML view node (<html:style>)'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: "! weil der Builder keine Textknoten (<html:style>...) kennt. - no finding; "! Adds <layoutData><layout:GridData span="..."/></layoutData> ... - reported twice for <layoutData>, never for <layout:GridData>'
 ---
 
@@ -36,6 +36,6 @@ colon that is not inside a tag (`a < b: c`).
 
 **Where.** `abapdoc_html_tag`. **Effort:** S.
 
-**Source.** S5S (a consumer system), one activation on S/4HANA.
+**Source.** A consumer system, one activation on S/4HANA.
 
 Related upstream: abaplint/abaplint#4655 (unsupported tag in the class header comment is not seen) - another gap of the same rule; #4385.

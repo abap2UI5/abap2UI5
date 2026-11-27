@@ -468,14 +468,14 @@ and points here, so a new trap is added here and nowhere else.
   differently per release (#1937, comments at the sites), and a rewrite to
   `mo_app->(name)` needs a 7.02 and a cloud system to be tested on first.
 
-- **One activation of a consumer system (S5S on S/4HANA EWM, 2026-11-24)**
+- **One activation of a consumer system (S/4HANA, 2026-11-24)**
   brought a batch of SLIN warnings abaplint 2.120.116 does not report -
   measured in an isolated, syntax-clean probe with every rule on, a control
-  finding firing (fixes in `oblomov-dev/s5s_dev` `3173ec5`). Each is a stock
+  finding firing. Each is a stock
   item:
   - *"Empty documentation is not allowed"* - `"! @parameter client |` with no
     text, a lone `"!` in front of `CLASS` or ending a block (~20 times in
-    `/KRO/UI501_CL_APP_VIEW`). Fix: write the text or drop the line; an empty
+    one class). Fix: write the text or drop the line; an empty
     `"!` between two text lines is fine.
   - *"HTML tag <html:style> is not supported in ABAP Doc"* / *"... is not
     closed"* - `abapdoc_html_tag` reports `<layoutData>` but not a namespaced

@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "Empty documentation is not allowed" about 20 times on /KRO/UI501_CL_APP_VIEW, and on /KRO/UI501_CL_APP_007 and /KRO/UI502_CL_APP_002 - "! @parameter <name> | with no text, a lone "! in front of CLASS, and a "! line ending a block'
+  - 'one activation of a consumer system on S/4HANA (2026-11-24) warned "Empty documentation is not allowed" about 20 times in one class and in two more - "! @parameter <name> | with no text, a lone "! in front of CLASS, and a "! line ending a block'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: a lone "! in front of CLASS and "! @parameter client | - no finding (abapdoc, check_syntax, wrong_abapdoc_position all on)'
 ---
 
@@ -49,6 +49,6 @@ system accepts it).
 
 **Where.** `abapdoc`, or a new `abapdoc_empty`. **Effort:** S.
 
-**Source.** S5S (a consumer system), one activation on S/4HANA.
+**Source.** A consumer system, one activation on S/4HANA.
 
 Related upstream: abaplint/abaplint#4385 (ABAP Doc checks a system warns about - position, `@` lines, tags; empty documentation is not among them), #4690 (rules that report syntax errors).

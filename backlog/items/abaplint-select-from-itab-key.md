@@ -8,7 +8,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "The primary key of LT_... is ignored because it is generic or is the standard key" and "The SELECT command is executed on the database" - SELECT over a host table with the standard key, and an aggregate such as SELECT SUM( quan ) FROM @mt_stock'
+  - 'one activation of a consumer system on S/4HANA (2026-11-24) warned "The primary key of LT_... is ignored because it is generic or is the standard key" and "The SELECT command is executed on the database" - SELECT over a host table with the standard key, and an aggregate such as SELECT SUM( quan ) FROM @mt_stock'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: SELECT SUM( quan ) FROM @mt_stock (TYPE STANDARD TABLE ... WITH DEFAULT KEY) INTO @DATA(lv_menge) and SELECT * FROM @lt_plain (no key clause) - findings only at the declarations (avoid_use DEFAULT KEY, fully_type_itabs), none at the SELECT'
 ---
 
@@ -43,4 +43,4 @@ sources, subqueries, as listed in the keyword documentation for
 
 **Where.** a new rule beside `select_performance`. **Effort:** M.
 
-**Source.** S5S (a consumer system), one activation on S/4HANA.
+**Source.** A consumer system, one activation on S/4HANA.

@@ -10,7 +10,7 @@ checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
-  - 'ATC export of an S/4HANA EWM system (2026-11-24), abapOpenChecks 070 "Find comment markers": 20 findings "Found a suspicious comment" in 13 /KRO/ classes (S5S); probed the same day against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency: a line " TODO: remove this hack - no finding'
+  - 'ATC export of a consumer system on S/4HANA (2026-11-24), abapOpenChecks 070 "Find comment markers": 20 findings "Found a suspicious comment" in 13 classes; probed the same day against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency: a line " TODO: remove this hack - no finding'
 ---
 
 # Comment style: * comments, indentation, TODO markers, a space after the quote

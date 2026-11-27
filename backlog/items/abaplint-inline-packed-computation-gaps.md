@@ -9,7 +9,7 @@ first_seen: 2026-11-24
 checked_upstream: 2026-11-24
 upstream: abaplint/abaplint
 evidence:
-  - 'oblomov-dev/s5s_dev 3173ec5: one activation of the S5S DEV state on an S/4HANA EWM system (2026-11-24) warned "For the result of a computation with type P, the type P(8,0) is used here implicitly" on /KRO/UI502_CL_SHIPMENT_HANDLER->get_shipment_infos and /KRO/UI502_CL_APP_002->will_shipment_be_overloaded - weights and quantities with three decimals, so a difference below 0.5 counted as none'
+  - 'one activation of a consumer system on S/4HANA (2026-11-24) warned "For the result of a computation with type P, the type P(8,0) is used here implicitly" in two methods - weights and quantities with three decimals, so a difference below 0.5 counted as none'
   - 'probed 2026-11-24 against abaplint 2.120.116, every rule on from `abaplint --default`, open-abap-core as dependency, an isolated syntax-clean project with a control finding firing: with ty_quan TYPE p LENGTH 7 DECIMALS 3 - reported: DATA(d) = a - b, a * b, a + b, get_weight( ) + b; NOT reported: DATA(s) = ( a + b )., DATA(t) = get_weight( ) + ( VALUE #( lt[ 1 ]-quan OPTIONAL ) )., DATA(t) = b + VALUE #( lt[ 1 ]-quan OPTIONAL ).'
 ---
 
@@ -45,6 +45,6 @@ decides the calculation type; `COND #( ... THEN packed ... )`.
 
 **Where.** `inline_packed_computation`. **Effort:** S.
 
-**Source.** S5S (a consumer system), one activation on S/4HANA.
+**Source.** A consumer system, one activation on S/4HANA.
 
 Related upstream: abaplint/abaplint#4407 (closed - the collection the rule came from, item 6).
