@@ -177,7 +177,8 @@ function fakeOffice({
 
 function load({ office } = {}) {
   const errors = [];
-  const Lib = { ...loadLib().Lib, logError: (m) => errors.push(m) };
+  const { Lib: realLib, state } = loadLib();
+  const Lib = { ...realLib, logError: (m) => errors.push(m) };
 
   // a hand-driven clock for the selection debounce
   const timers = new Map();
@@ -251,7 +252,7 @@ function load({ office } = {}) {
     return out;
   }
 
-  return { ExcelBridge, makeInstance, render, errors, tick, timers, win };
+  return { ExcelBridge, makeInstance, render, errors, tick, timers, win, state };
 }
 
 // lets the promise chains of the control settle
@@ -745,6 +746,43 @@ test("selectionChange subscribes, reports the settled address once, and unsubscr
   inst.setSelectionChange(false);
   await flush();
   expect(office.removed).toBe(1);
+});
+
+// The user selects A (its event starts a roundtrip), then B while that one
+// is in flight: eB dropped B's event on its busy guard, and with the last
+// address already at B a later re-select of B was no news either - the app
+// believed A was selected. B waits for the roundtrip now, and the address
+// is in selectionAddress at once.
+test("a selection change during a roundtrip is reported once it landed", async () => {
+  const selection = { sheet: "Sheet1", row: 0, col: 0, rows: 1, cols: 1 };
+  const office = fakeOffice({ selection });
+  const { makeInstance, tick, state } = load({ office });
+  const inst = makeInstance({ selectionChange: true });
+  inst.onAfterRendering();
+  await flush();
+
+  office.handlers[0]();
+  tick();
+  await flush();
+  expect(inst.events).toEqual([["OnSelectionChange", { address: "Sheet1!A1" }]]);
+
+  // that event's roundtrip is in flight; the user selects B
+  state.isBusy = true;
+  selection.row = 1;
+  office.handlers[0]();
+  tick();
+  await flush();
+  expect(inst.events).toHaveLength(1);
+  expect(inst._props.selectionAddress).toBe("Sheet1!A2");
+
+  // the roundtrip lands: hooks first, then the busy flag clears
+  for (const fn of [...state.onRoundtripEnd]) fn();
+  state.isBusy = false;
+  await new Promise((r) => setTimeout(r, 0));
+  expect(inst.events).toEqual([
+    ["OnSelectionChange", { address: "Sheet1!A1" }],
+    ["OnSelectionChange", { address: "Sheet1!A2" }],
+  ]);
 });
 
 // A control destroyed while Office.onReady( ) was still settling must not

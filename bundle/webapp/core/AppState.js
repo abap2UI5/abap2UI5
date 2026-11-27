@@ -233,8 +233,8 @@
 //                     what it destroyed itself. Nothing an APP put on a
 //                     view is ever in here, so nothing app-owned is touched
 //   viewSizeLimits    per-slot model size limits (actions/ViewOps)
-//   treeStates        tree binding state per tree_id across rebuilds (Tree control)
-//   tableStates       filters/sorters per tableId across rebuilds (UITableExt)
+//   treeStates        tree binding state per slot/tree_id across rebuilds (Tree control)
+//   tableStates       filters/sorters per slot/tableId across rebuilds (UITableExt)
 //   websocketStates   the reconnect budget per URL across rebuilds -
 //                     { failedAttempts, nextAllowedAt } (Websocket control)
 //   lastError         the last fatal error shown by ErrorView (title/text/

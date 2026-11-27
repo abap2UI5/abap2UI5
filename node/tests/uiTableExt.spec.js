@@ -40,7 +40,7 @@ function controlStub() {
 // `deferRender: true` keeps the whenRendered callbacks pending (as UI5 does
 // for a table without DOM - a collapsed tab, a closed popup) so a spec can
 // count them and run them itself.
-function load({ deferRender = false } = {}) {
+function load({ deferRender = false, slotOf = () => "MAIN" } = {}) {
   const errors = [];
   const pendingRenders = [];
   const callbacks = { onBeforeRoundtrip: [], onAfterRendering: [] };
@@ -73,6 +73,8 @@ function load({ deferRender = false } = {}) {
   };
 
   const ViewSlots = {
+    // the slot the companion sits in - the first half of its snapshot key
+    containingSlotKey: (_ctx, owner) => slotOf(owner),
     byId: (key) => (key === "MAIN" ? currentTable : undefined),
     // UITableExt resolves the table in its own slot; the companion sits in
     // MAIN in this test, so return the current table.
@@ -106,6 +108,7 @@ function load({ deferRender = false } = {}) {
     setTable: (t) => {
       currentTable = t;
     },
+    tableStates: ctx.state.tableStates,
   };
 }
 
@@ -132,10 +135,11 @@ function makeColumn(prop) {
 }
 
 // A fake ListBinding that records filter()/sort() invocations.
-function makeBinding({ filters = [], sorters = [] } = {}) {
+function makeBinding({ filters = [], sorters = [], path = "/TAB" } = {}) {
   const calls = { filter: 0, sort: 0, lastFilters: null, lastSorters: null };
   return {
     aSorters: sorters,
+    getPath: () => path,
     // the real ListBinding answers the CONTROL filters (what the column
     // filter row applies) only for "Control"; "Application" is the app's own
     // binding filters, which the fixture leaves empty - asking for the wrong
@@ -205,6 +209,65 @@ test.describe("filter preservation across a binding rebuild", () => {
     ]);
     expect(b1.calls.sort).toBe(1);
     expect(col.state.filtered).toBe(true);
+  });
+
+  // The table id is local to its view or fragment: MAIN and a popup may
+  // both hold a "TABLE1". Keyed by the id alone, the companion that read
+  // last won - an unfiltered popup table left [] behind, and MAIN's rebuild
+  // applied filter([]), wiping the filters this control exists to restore.
+  test("a same-id table in a popup does not overwrite MAIN's snapshot", () => {
+    const env = load({ slotOf: (owner) => owner._slot });
+    const col = makeColumn("NAME");
+    const mainFilters = [{ sPath: "NAME", sOperator: "EQ", oValue1: "Bob" }];
+    const main = makeExt(env);
+    main._slot = "MAIN";
+    env.setTable(makeTable(makeBinding({ filters: mainFilters }), [col]));
+    main.readBackend();
+    const popup = makeExt(env);
+    popup._slot = "POPUP";
+    env.setTable(makeTable(makeBinding({ filters: [] }), [col]));
+    popup.readBackend();
+
+    expect(Object.keys(env.tableStates).sort()).toEqual([
+      "MAIN/TABLE1",
+      "POPUP/TABLE1",
+    ]);
+
+    // MAIN is rebuilt: its new companion applies MAIN's filters
+    const b1 = makeBinding({ filters: [] });
+    env.setTable(makeTable(b1, [col]));
+    const fresh = makeExt(env);
+    fresh._slot = "MAIN";
+    fresh.applyBackend();
+    expect(b1.calls.lastFilters).toEqual(mainFilters);
+  });
+
+  // One app's screens reuse ids as well, and the store is reset only on an
+  // app switch: a NAME filter of screen 1 applied to screen 2's table, bound
+  // elsewhere, hid every row without a column showing why.
+  test("a snapshot read from another binding path is not applied", () => {
+    const env = load();
+    const col = makeColumn("NAME");
+    env.setTable(
+      makeTable(
+        makeBinding({
+          filters: [{ sPath: "NAME", sOperator: "Contains", oValue1: "x" }],
+          sorters: [{ sPath: "NAME", bDescending: false }],
+        }),
+        [col],
+      ),
+    );
+    const before = makeExt(env);
+    before.readBackend();
+
+    const b1 = makeBinding({ path: "/OTHER" });
+    env.setTable(makeTable(b1, [col]));
+    const after = makeExt(env);
+    after.applyBackend();
+
+    expect(b1.calls.filter).toBe(0);
+    expect(b1.calls.sort).toBe(0);
+    expect(col.state.filtered).toBeUndefined();
   });
 
   test("re-applies stored filters to a fresh binding and flags the column", () => {

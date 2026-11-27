@@ -51,21 +51,36 @@ sap.ui.define(
         return null;
       },
 
-      // Snapshots are keyed by tree_id so several trees on one page (e.g. a
-      // main-view tree plus a tree in a popup) keep independent state - a
-      // single shared slot would let one companion overwrite another's.
+      // Snapshots are keyed by the companion's SLOT plus tree_id, so
+      // several trees on one page (e.g. a main-view tree plus a tree in a
+      // popup) keep independent state. The tree_id alone is local to a view
+      // or fragment: a "tree" in MAIN and one in a popup shared one entry,
+      // and MAIN's rebuild restored the popup tree's expansion. The slot is
+      // the one byIdOfOwner resolves the tree in. Undefined without an id.
+      _stateKey() {
+        const id = this.getProperty("tree_id");
+        if (!id) return undefined;
+        const slot =
+          ViewSlots.containingSlotKey(Context.of(this), this) ?? "MAIN";
+        return `${slot}/${id}`;
+      },
+
       setBackend() {
         try {
-          const id = this.getProperty("tree_id");
-          if (!id) return;
+          const key = this._stateKey();
+          if (!key) return;
           const treeStates = this._treeStates("setBackend");
           if (!treeStates) return;
           const binding = this._getTreeBinding();
           // Only overwrite the snapshot when the binding is actually
           // resolvable - a momentarily missing binding must not wipe a
-          // still-valid snapshot for this id.
+          // still-valid snapshot for this id. The binding path goes with
+          // it (see onAfterRendering).
           if (binding) {
-            treeStates[id] = binding.getCurrentTreeState();
+            treeStates[key] = {
+              treeState: binding.getCurrentTreeState(),
+              path: binding.getPath?.(),
+            };
           }
         } catch (e) {
           Lib.logError(
@@ -85,7 +100,7 @@ sap.ui.define(
 
       exit() {
         this._unhook();
-        // The snapshot under treeStates[tree_id] deliberately outlives this
+        // The snapshot under treeStates[slot/tree_id] deliberately outlives this
         // instance: a view rebuild destroys the old Tree BEFORE the new one
         // renders, and the new one restores its expansion from exactly that
         // snapshot (onAfterRendering below). It goes with the app switch
@@ -95,12 +110,16 @@ sap.ui.define(
 
       onAfterRendering() {
         try {
-          const id = this.getProperty("tree_id");
-          if (!id) return;
-          const snapshot = this._treeStates("onAfterRendering")?.[id];
+          const key = this._stateKey();
+          if (!key) return;
+          const snapshot = this._treeStates("onAfterRendering")?.[key];
           if (!snapshot) return;
           const binding = this._getTreeBinding();
           if (!binding) return;
+          // a snapshot of a tree bound elsewhere is not this tree's: one
+          // app's screens reuse local ids too, and the store is reset only
+          // on an app switch
+          if (snapshot.path !== binding.getPath?.()) return;
           // Restore exactly once per (snapshot, binding) pair. setBackend
           // creates a fresh snapshot object each roundtrip, so a new
           // snapshot or a rebuilt binding is what triggers a restore -
@@ -121,7 +140,7 @@ sap.ui.define(
           // happened during this rendering cycle. Force a rebuild so the
           // snapshot actually gets applied (headless-verified: without the
           // refresh the tree stays collapsed).
-          binding.setTreeState(snapshot);
+          binding.setTreeState(snapshot.treeState);
           binding.refresh(true);
         } catch (e) {
           Lib.logError(

@@ -127,6 +127,39 @@ test("setControl claims the target exactly once", () => {
   expect(target.removed).toHaveLength(1);
 });
 
+// UploadSet's instantUpload (default true) POSTs every added file to
+// uploadUrl right after afterItemAdded (1.71.82 _processNewFileObjects). An
+// upload set read through this companion has no endpoint: the file went to
+// "null" relative to the page for nothing and the item ended as failed.
+test("the claim switches instantUpload off on a target without an endpoint", () => {
+  const settings = (over) => ({
+    ...uploadSetStub(),
+    instant: true,
+    getInstantUpload() {
+      return this.instant;
+    },
+    setInstantUpload(v) {
+      this.instant = v;
+      return this;
+    },
+    getUploadUrl: () => null,
+    getUploader: () => null,
+    ...over,
+  });
+  const claim = (target) => {
+    const { makeInstance } = load({ uploadSet: target });
+    const inst = makeInstance();
+    inst.init();
+    inst.setControl();
+    return target;
+  };
+
+  expect(claim(settings()).instant).toBe(false);
+  // an app that uploads somewhere keeps doing so
+  expect(claim(settings({ getUploadUrl: () => "/upload" })).instant).toBe(true);
+  expect(claim(settings({ getUploader: () => ({}) })).instant).toBe(true);
+});
+
 test("an unresolved target leaves the claim open for a later render", () => {
   const { makeInstance } = load({ uploadSet: null });
   const inst = makeInstance();

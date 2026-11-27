@@ -11,7 +11,9 @@ sap.ui.define(
     // Invisible companion control for a sap.m.upload.UploadSet (referenced
     // via uploadSetId): reads every added file as a base64 data URL into
     // the bindable fileData/fileName/... properties and reports removals,
-    // so the backend receives the file content without an upload endpoint.
+    // so the backend receives the file content without an upload endpoint
+    // (and switches the target's instantUpload off when it has none - see
+    // _noInstantUpload).
     const UploadSetExt = Control.extend("z2ui5.cc.UploadSetExt", {
       metadata: {
         properties: {
@@ -128,6 +130,21 @@ sap.ui.define(
         this.fireRemove();
       },
 
+      // The twin of cc/FileUploader's uploadOnChange: false. UploadSet's
+      // instantUpload defaults to true, and right after afterItemAdded it
+      // POSTs the file to uploadUrl (UploadSet._processNewFileObjects, 1.71
+      // on) - which an upload set read through this companion does not
+      // have: the request went to "null" relative to the page, the whole
+      // file crossed the network for nothing and the item ended as failed,
+      // while the file travels in the roundtrip body anyway. Switched off
+      // only when the target has no endpoint of its own - no uploadUrl and
+      // no uploader - so an app that does upload somewhere keeps doing so.
+      _noInstantUpload(uploadSet) {
+        if (!uploadSet.getInstantUpload?.()) return;
+        if (uploadSet.getUploadUrl?.() || uploadSet.getUploader?.()) return;
+        uploadSet.setInstantUpload(false);
+      },
+
       renderer: Lib.EMPTY_RENDERER,
       setControl() {
         // Once claimed there is nothing left to do - skip the target lookup
@@ -143,6 +160,7 @@ sap.ui.define(
           this._target = uploadSet;
           this._onItemAdded = this.onItemAdded.bind(this);
           uploadSet.attachAfterItemAdded(this._onItemAdded);
+          this._noInstantUpload(uploadSet);
           // afterItemRemoved is @since 1.83; below that, adds keep working
           // and the gap is reported instead of failing the whole setup
           // (beforeItemRemoved is no substitute - it fires before the
