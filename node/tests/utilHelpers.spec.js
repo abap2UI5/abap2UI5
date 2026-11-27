@@ -777,6 +777,41 @@ test.describe("loadViewLibraries (library preloads of a view)", () => {
     expect(ui.loads).toContain("sap.uxap");
   });
 
+  // The library of a namespace used to be recorded before its load had
+  // finished: a second view naming it meanwhile skipped the wait and was
+  // built against a library whose preload had not arrived
+  test("a second view during the load waits for the load in flight", async () => {
+    let finish;
+    const loads = [];
+    const Library = {
+      all: () => ({ "sap.m": {}, "sap.ui.core": {} }),
+      load: ({ name }) => {
+        loads.push(name);
+        return new Promise((resolve) => {
+          finish = resolve;
+        });
+      },
+    };
+    const sap = {
+      ui: { require: (id) => (id === "sap/ui/core/Lib" ? Library : undefined) },
+    };
+    const { Env } = loadEnv({ versionInfo: versionInfo(), sap });
+    const TABLE = `<mvc:View xmlns:t="sap.ui.table"><t:Table/></mvc:View>`;
+    const done = [];
+    const first = Env.loadViewLibraries(TABLE).then(() => done.push("first"));
+    // let the first call reach the load itself
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(typeof finish).toBe("function");
+    const second = Env.loadViewLibraries(TABLE).then(() => done.push("second"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(loads).toEqual(["sap.ui.table"]);
+    expect(done).toEqual([]);
+    finish({});
+    await Promise.all([first, second]);
+    expect(done.sort()).toEqual(["first", "second"]);
+    expect(loads).toEqual(["sap.ui.table"]);
+  });
+
   test("a namespace in no library of the distribution is left to the view", async () => {
     const ui = modern();
     const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });

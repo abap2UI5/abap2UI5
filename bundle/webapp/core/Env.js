@@ -270,9 +270,15 @@ sap.ui.define(
     // a path - what may become <name>/library-preload.js
     const LIBRARY_NAME = /^[A-Za-z_]\w*(?:\.\w+)+$/;
 
-    // the library of every namespace asked so far (null: none of the
-    // distribution's), and the load of every library tried so far
-    const namespaceLibrary = new Map();
+    // the load of every namespace asked so far (resolved once its library -
+    // or none of the distribution's - is in), and of every library tried
+    // so far. A PROMISE per namespace, not its library name: the name used
+    // to be recorded before its load had finished, so a second view naming
+    // the same namespace while the first one's load was in flight found it
+    // "known", skipped the wait and was built against a library whose
+    // preload had not arrived - module by module, and eval'd on 1.71-1.82
+    // (AGENTS.md rule 13). Now every caller awaits the one load in flight.
+    const namespaceLoads = new Map();
     const libraryLoads = new Map();
     // the names of the distribution's libraries, once asked - null when the
     // version info is not to be had (a bootstrap without sap-ui-version.json)
@@ -393,21 +399,27 @@ sap.ui.define(
     // the one load, and this is its one caller.)
     /** @returns {Promise<void>} */
     async function loadViewLibraries(xml) {
-      const namespaces = viewNamespaces(xml).filter(
-        (namespace) => !namespaceLibrary.has(namespace),
-      );
-      if (!namespaces.length) return;
-      const libraries = await loadDistributionLibraries();
-      const loaded = [...loadedLibraryNames()];
-      const names = new Set();
-      for (const namespace of namespaces) {
-        const library = libraryOf(namespace, libraries);
-        namespaceLibrary.set(namespace, library);
-        if (!library) continue;
-        if (loaded.some((lib) => isUnder(library, lib))) continue;
-        names.add(library);
+      const loads = viewNamespaces(xml).map((namespace) => {
+        let load = namespaceLoads.get(namespace);
+        if (!load) {
+          load = loadNamespaceLibrary(namespace);
+          namespaceLoads.set(namespace, load);
+        }
+        return load;
+      });
+      await Promise.all(loads);
+    }
+
+    // The library of one namespace, loaded unless it already is. Never
+    // rejects: the distribution's list answers null on a failure, and
+    // loadLibrary resolves false.
+    async function loadNamespaceLibrary(namespace) {
+      const library = libraryOf(namespace, await loadDistributionLibraries());
+      if (!library) return;
+      if ([...loadedLibraryNames()].some((lib) => isUnder(library, lib))) {
+        return;
       }
-      await Promise.all([...names].map(loadLibrary));
+      await loadLibrary(library);
     }
 
     // ------------------------------------------------------------------
