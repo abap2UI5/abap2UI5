@@ -25,27 +25,10 @@ export function loadMap(file = MAP_FILE) {
 
 /* abaplint configs are JSON with comments and trailing commas. A character
  * walk rather than a regex, so a `//` inside a string ("https://...") stays a
- * string - the same reader the addons' rename.mjs uses. */
-export function parseJsonc(text) {
-  let out = "";
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (c === '"') {
-      let j = i + 1;
-      while (j < text.length && text[j] !== '"') j += text[j] === "\\" ? 2 : 1;
-      out += text.slice(i, j + 1);
-      i = j;
-    } else if (c === "/" && text[i + 1] === "/") {
-      while (i < text.length && text[i] !== "\n") i++;
-      out += "\n";
-    } else if (c === "/" && text[i + 1] === "*") {
-      i = text.indexOf("*/", i + 2) + 1;
-    } else {
-      out += c;
-    }
-  }
-  return JSON.parse(out.replace(/,(\s*[}\]])/g, "$1"));
-}
+ * string - the addons' rename.mjs reader itself, from its source here, rather
+ * than a copy of it: the copy looped forever on an unclosed block comment
+ * (indexOf -1, plus 1, back to the start) after the original was fixed. */
+export { parseJsonc } from "../../shared/rename.mjs";
 
 /* "https://github.com/abap2UI5/abap2UI5.git/" -> "abap2ui5/abap2ui5".
  * Lower case: GitHub names are case-insensitive, and the configs spell them

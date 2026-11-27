@@ -48,7 +48,22 @@ import {
 } from '../shared/app-guide-deviations.mjs';
 import { read as ecoRead, REPOS } from './lib-ecosystem.mjs';
 
-const repoEntry = (name) => REPOS.find((e) => e.org === 'abap2UI5' && e.repo === name);
+/* A consumer is named `repo` (an abap2UI5 repository, how every entry was
+ * written before the addons became consumers) or `owner/repo` - the
+ * abap2UI5-addons repositories carry the shared build scripts too. */
+const consumerRef = (id) => {
+  const [org, repo] = id.includes('/') ? id.split('/') : ['abap2UI5', id];
+  return { org, repo, id: `${org}/${repo}` };
+};
+const sameRepo = (a, b) => a.org.toLowerCase() === b.org.toLowerCase()
+  && a.repo.toLowerCase() === b.repo.toLowerCase();
+const repoEntry = (id) => REPOS.find((e) => sameRepo(e, consumerRef(id)));
+
+/* The branch a consumer OFF the ecosystem list publishes from, where it is not
+ * `main` (an entry ON the list names its own). */
+const OFF_LIST_BRANCH = {
+  'abap2UI5-addons/launchpad-kpi': 'standard',
+};
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -285,11 +300,78 @@ const SHARED = [
      * true and is what `check:shared` is for; it reports the copy either way.
      */
     file: '.github/shared/sync-shared.yaml',
-    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    /* protocol, abap2UI5-local, abap2UI5-ext and app-template since
+     * 2026-11-27, when they became consumers of the rename script below and
+     * had no pull of their own (no bump-deps.yaml; app-template's
+     * sync-mirrors.yml regenerates, it does not copy). The addons pull in
+     * their monthly pull request instead (rap-ext's addon-bump-deps.yaml),
+     * and so do samples-controls and headless-frontend (their own
+     * bump-deps.yaml) - sync-shared stands down where bump-deps.yaml is. */
+    consumers: ['samples', 'samples-controls', 'samples-stack',
+      'protocol', 'abap2UI5-local', 'abap2UI5-ext', 'app-template'],
     consumerFile: '.github/workflows/sync-shared.yaml',
     sync: false,
     why: 'the workflow each consumer runs to pull its copies from here — and the'
       + ' one file the pull it opens could never carry, being a workflow itself',
+  },
+  /* The two build scripts every repository with a namespace rename or a
+   * monthly dependency update carries - 22 copies of rename.mjs and 22 of
+   * update-deps.mjs on 2026-11-27, in both organisations, "the same file in
+   * every repository" by their own headers and owned by none of them. The
+   * copies had already split three ways (a comment word here, an older
+   * subset in abap2UI5-ext) when a bug showed in all of them at once: from
+   * @abaplint/cli 2.120.122 on the rename found no renamed src/ - fixed once
+   * here, it would have needed twenty-two hand copies.
+   *
+   * Whole files, no deviations: both resolve the repository from their own
+   * location, and the paths they sit at (.github/scripts/ or scripts/) stay
+   * what each repository has, so nothing that calls them changes. This
+   * repository runs update-deps.mjs from here (bump-deps.yaml) and does not
+   * run rename.mjs (its own rename is rename-run.mjs, over rename.jsonc);
+   * shared-scripts.test.mjs tests both.
+   *
+   * The addons pull them in their monthly pull request
+   * (abap2UI5-addons/rap-ext, addon-bump-deps.yaml: `--manifest
+   * $GITHUB_REPOSITORY`), so they are named owner/repo here. */
+  {
+    file: '.github/shared/rename.mjs',
+    consumers: [
+      'samples-controls', 'abap2UI5-local', 'app-template', 'headless-frontend', 'abap2UI5-ext',
+      'abap2UI5-addons/abap-agent-runtime', 'abap2UI5-addons/abap-cloud-gui',
+      'abap2UI5-addons/admin-cockpit', 'abap2UI5-addons/custom-controls',
+      'abap2UI5-addons/custom-controls-customer', 'abap2UI5-addons/embed-excel',
+      'abap2UI5-addons/http-connector', 'abap2UI5-addons/layout-management',
+      'abap2UI5-addons/lock-manager', 'abap2UI5-addons/popups', 'abap2UI5-addons/range-filter',
+      'abap2UI5-addons/se16n', 'abap2UI5-addons/table-content-loader',
+      'abap2UI5-addons/table-maintenance',
+    ],
+    consumerFile: '.github/scripts/rename.mjs',
+    why: 'the namespace rename of every addon and corpus - abaplint --rename with the'
+      + ' dependencies renamed along, the name lengths and literals checked',
+  },
+  {
+    /* The repositories that keep every script in scripts/. */
+    file: '.github/shared/rename.mjs',
+    consumers: ['samples', 'samples-stack', 'protocol'],
+    consumerFile: 'scripts/rename.mjs',
+    why: 'the same rename script, where the repository keeps its scripts in scripts/',
+  },
+  {
+    file: '.github/shared/update-deps.mjs',
+    consumers: [
+      'samples-controls', 'headless-frontend',
+      'abap2UI5-addons/abap-agent-runtime', 'abap2UI5-addons/abap-cloud-gui',
+      'abap2UI5-addons/abap2UI5-addons.github.io', 'abap2UI5-addons/admin-cockpit',
+      'abap2UI5-addons/config-management', 'abap2UI5-addons/custom-controls',
+      'abap2UI5-addons/custom-controls-customer', 'abap2UI5-addons/embed-excel',
+      'abap2UI5-addons/http-connector', 'abap2UI5-addons/launchpad-kpi',
+      'abap2UI5-addons/layout-management', 'abap2UI5-addons/lock-manager',
+      'abap2UI5-addons/popups', 'abap2UI5-addons/range-filter', 'abap2UI5-addons/rap-ext',
+      'abap2UI5-addons/rfc-connector', 'abap2UI5-addons/se16n', 'abap2UI5-addons/sql-console',
+      'abap2UI5-addons/table-content-loader', 'abap2UI5-addons/table-maintenance',
+    ],
+    consumerFile: '.github/scripts/update-deps.mjs',
+    why: 'the monthly dependency update (npm, pinned actions) every bump-deps workflow runs',
   },
   /* The workflows that RUN the shared scripts.
    *
@@ -403,15 +485,19 @@ const SHARED = [
  * edit to a shared workflow into a red weekly job in three repositories at
  * once. They are still gated: drift is reported, and a human carries it.
  */
+/* The consumer is asked for as `owner/repo` ($GITHUB_REPOSITORY, what
+ * rap-ext's addon-bump-deps.yaml passes) or as the bare name of an abap2UI5
+ * repository (the name without its owner, what sync-shared.yaml passes). */
 const manifestArg = process.argv.indexOf('--manifest');
 if (manifestArg !== -1) {
   const who = process.argv[manifestArg + 1];
   if (!who) {
-    console.error('--manifest wants a consumer name, e.g. --manifest samples');
+    console.error('--manifest wants a consumer name, e.g. --manifest samples or --manifest abap2UI5-addons/popups');
     process.exit(2);
   }
   const rows = SHARED
-    .filter((e) => !e.section && e.sync !== false && e.consumers.includes(who))
+    .filter((e) => !e.section && e.sync !== false
+      && e.consumers.some((c) => sameRepo(consumerRef(c), consumerRef(who))))
     .map((e) => `${e.file}\t${e.consumerFile ?? e.file}`);
   console.log(rows.join('\n'));
   process.exit(0);
@@ -513,7 +599,8 @@ function parseJsonc(text) {
   return JSON.parse(out.replace(/,(\s*[}\]])/g, '$1'));
 }
 
-const raw = (repo, file) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/${file}`;
+const raw = ({ org, repo }, file) =>
+  `https://raw.githubusercontent.com/${org}/${repo}/${OFF_LIST_BRANCH[`${org}/${repo}`] ?? 'main'}/${file}`;
 
 /* Trailing-whitespace and final-newline differences are not what this is for;
  * a real edit never looks like one, and reporting them would train everyone to
@@ -544,15 +631,19 @@ let expected = 0;
 async function readConsumer(repo, consumerFile) {
   const entry2 = repoEntry(repo);
   if (entry2) return ecoRead(entry2, consumerFile);
-  /* a consumer OFF the ecosystem list (the generated `frontend` channel
-   * repository) keeps the plain reader: checkout first, then raw main.
+  /* a consumer OFF the ecosystem list (protocol, abap2UI5-local,
+   * headless-frontend, abap2UI5-ext and four addons, which carry the shared
+   * build scripts and have no package.json the list's rules could judge -
+   * or no contributor to hold to them) keeps the plain reader: checkout
+   * first, then raw main (or OFF_LIST_BRANCH).
    * It loses the deleted-vs-unreachable distinction, which is the price
    * of not putting a generated repository on a list about source
    * repositories. */
-  const local = path.join(ROOT, '..', repo, consumerFile);
+  const ref = consumerRef(repo);
+  const local = path.join(ROOT, '..', ref.repo, consumerFile);
   if (fs.existsSync(local)) return { text: fs.readFileSync(local, 'utf8'), from: 'checkout' };
   try {
-    const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
+    const res = await fetch(raw(ref, consumerFile), { signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return { text: await res.text(), from: 'github' };
   } catch (err) {
