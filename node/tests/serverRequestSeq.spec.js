@@ -271,6 +271,27 @@ test("a roundtrip that shipped no delta clears nothing - it carried nothing", as
   expect(appState.state.oSentModel).toBeNull();
 });
 
+// The view-build chain survives the teardown: a MAIN build already running
+// (actions/Slots, displayView) finishes before the next app's first build
+// starts - nulled, an in-place restart started its build beside the stale
+// one, which then landed over the restarted app. A rejected build does not
+// block the chain.
+test("reset() keeps the view-build chain, so the next build waits for one still running", async () => {
+  const { Server, ctx } = load();
+  const running = defer();
+  ctx.server.viewBuild = running.promise;
+  Server.reset(ctx);
+  let next = false;
+  Promise.resolve(ctx.server.viewBuild).then(() => {
+    next = true;
+  });
+  await flush();
+  expect(next).toBe(false);
+  running.reject(new Error("the stale build failed"));
+  await flush();
+  expect(next).toBe(true);
+});
+
 test("reset() drops a queued event, so it never lands in the next app", () => {
   const { Server, ctx, appState } = load();
   appState.state.oQueuedEvent = { controller: {}, args: [["LIVE_CHANGE"]] };

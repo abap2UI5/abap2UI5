@@ -118,6 +118,13 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WIN = process.platform === "win32";
 const NPM = WIN ? "npm.cmd" : "npm";
+// npm.cmd and npx.cmd are batch files, and Node refuses to spawn one without
+// a shell (EINVAL since CVE-2024-27980). Through the shell the arguments are
+// joined unquoted, so a path with a blank (a temp folder under a user name
+// with one, C:\Program Files) fell apart - each is quoted, as transpile.mjs
+// does. Everything else (node itself) is spawned without a shell at all.
+const viaShell = (cmd) => WIN && /\.cmd$/i.test(cmd);
+const spawnArgs = (cmd, argv) => (viaShell(cmd) ? argv.map((a) => `"${a}"`) : argv);
 
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
 const lock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json"), "utf8"));
@@ -308,8 +315,8 @@ try {
   /* --json: the file list, so the check below reads what npm packed rather
    * than what this script believes it staged. */
   const packed = JSON.parse(
-    execFileSync(NPM, ["pack", "--json", "--pack-destination", outDir], {
-      cwd: stage, shell: WIN, stdio: ["ignore", "pipe", "inherit"], maxBuffer: 64 * 1024 * 1024,
+    execFileSync(NPM, spawnArgs(NPM, ["pack", "--json", "--pack-destination", outDir]), {
+      cwd: stage, shell: viaShell(NPM), stdio: ["ignore", "pipe", "inherit"], maxBuffer: 64 * 1024 * 1024,
     }).toString(),
   )[0];
   tarball = path.join(outDir, packed.filename);
@@ -409,7 +416,7 @@ if (!check) process.exit(0);
 console.log("\npack-npm --check: installing the tarball into a scratch project");
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "abap2ui5-node-check-"));
 const run = (cmd, argv, opts = {}) => {
-  const r = spawnSync(cmd, argv, { cwd: scratch, shell: WIN, stdio: "inherit", ...opts });
+  const r = spawnSync(cmd, spawnArgs(cmd, argv), { cwd: scratch, shell: viaShell(cmd), stdio: "inherit", ...opts });
   if (r.status !== 0) {
     console.error(`pack-npm --check: ${[cmd, ...argv].join(" ")} failed (exit ${r.status})`);
     process.exit(1);

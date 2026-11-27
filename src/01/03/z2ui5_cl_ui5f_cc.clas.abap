@@ -47,33 +47,33 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
 
     result = `sap.ui.require.preload({` && |\n| &&
              `      "z2ui5/cc/CameraPicture.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Dialog","sap/m/Button","sap/m/Text","sap/ui/core/HTML","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Dialog,Butt` &&
-             `on,Text,HTML,Lib,Env)=>{"use strict";const _CTX_2D_OPTS={willReadFrequently:true};const _THUMB_W=300;const PX_NUMBER=/^\d+$/;const toCssSize=val=>PX_NUMBER.test(val)?``${val}px``:val;const CameraPicture` &&
-             `=Control.extend("z2ui5.cc.CameraPicture",{metadata:{properties:{value:{type:"string"},thumbnail:{type:"string"},width:{type:"string",defaultValue:""},height:{type:"string",defaultValue:""},autoplay:{t` &&
-             `ype:"boolean",defaultValue:true},facingMode:{type:"string"},deviceId:{type:"string"}},events:{OnPhoto:{allowPreventDefault:true,parameters:{photo:{type:"string"}}},press:{allowPreventDefault:true,para` &&
-             `meters:{}}}},capture(){const video=document.getElementById(``${this.getId()}-video``);const canvas=document.getElementById(``${this.getId()}-canvas``);if(!video||!canvas)return false;const videoWidth=vide` &&
-             `o.videoWidth;const videoHeight=video.videoHeight;if(!videoWidth||!videoHeight){this._setStatus("Camera not ready yet - no frame captured.");Lib.logError("CameraPicture: camera not ready, no frame to c` &&
-             `apture");return false}canvas.width=videoWidth;canvas.height=videoHeight;const ctx=canvas.getContext("2d",_CTX_2D_OPTS);if(!ctx)return false;ctx.drawImage(video,0,0,videoWidth,videoHeight);let resultb6` &&
-             `4;try{resultb64=canvas.toDataURL("image/jpeg",.85)}catch(e){this._setStatus("Could not read the captured image.");Lib.logError("CameraPicture: canvas toDataURL failed",e);return false}const thumbH=Mat` &&
-             `h.round(videoHeight*_THUMB_W/videoWidth);const thumbCanvas=document.createElement("canvas");thumbCanvas.width=_THUMB_W;thumbCanvas.height=thumbH;const thumbCtx=thumbCanvas.getContext("2d",_CTX_2D_OPTS` &&
-             `);if(thumbCtx)thumbCtx.drawImage(canvas,0,0,_THUMB_W,thumbH);let thumbB64="";try{thumbB64=thumbCanvas.toDataURL("image/jpeg",.7)}catch(e){Lib.logError("CameraPicture: thumb toDataURL failed",e)}if(Lib` &&
-             `.isDestroyed(this))return false;this.setProperty("value",resultb64,true);this.setProperty("thumbnail",thumbB64,true);this.fireOnPhoto({photo:resultb64});this._stopCamera();return true},_stopCamera(){i` &&
-             `f(this._stream){for(const track of this._stream.getTracks())track.stop()}this._stream=null;const video=document.getElementById(``${this.getId()}-video``);if(video)video.srcObject=null},onPicture(){if(th` &&
-             `is._oScanDialog?.isOpen())return;if(!this._oScanDialog){this._oStatus=(new Text).addStyleClass("sapUiSmallMarginBegin sapUiSmallMarginTop");const id=this.getId();this._oScanDialog=new Dialog({title:"D` &&
-             `evice Photo Function",contentWidth:"640px",contentHeight:"480px",horizontalScrolling:false,verticalScrolling:false,stretch:true,afterClose:()=>this._stopCamera(),content:[this._oStatus,new HTML({id:``$` &&
-             `{id}PictureContainer``,content:``<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay()?" autoplay":""} id="${id}-video"></video>` &&
-             ```}),new Button({text:"Capture",press:()=>{if(this.capture())this._oScanDialog.close()}}),new HTML({content:``<canvas hidden id="${id}-canvas" style="overflow:auto"></canvas>``})],endButton:new Button({t` &&
-             `ext:"Cancel",press:()=>{this._stopCamera();this._oScanDialog.close()}})})}this._setStatus("Starting camera...");const openSeq=this._openSeq=(this._openSeq||0)+1;this._oScanDialog.attachEventOnce("afte` &&
-             `rOpen",async()=>{if(Lib.isDestroyed(this))return;const video=document.getElementById(``${this.getId()}-video``);if(!video){this._setStatus("Camera preview element not found.");Lib.logError("CameraPictur` &&
-             `e: video element not found after dialog open");return}const facingMode=this.getProperty("facingMode");const deviceId=this.getProperty("deviceId");const options={video:{width:{ideal:1920},height:{ideal` &&
-             `:1080}}};if(deviceId)options.video.deviceId=deviceId;if(facingMode)options.video.facingMode={exact:facingMode};try{const md=navigator.mediaDevices;if(!md?.getUserMedia){this._setStatus("Camera not ava` &&
-             `ilable - a secure (HTTPS) connection is required.");Lib.logError("CameraPicture: mediaDevices API not available");return}const stream=await md.getUserMedia(options);if(!stream)return;if(Lib.isDestroye` &&
-             `d(this)||!this._oScanDialog?.isOpen()||openSeq!==this._openSeq){for(const t of stream.getTracks())t.stop();return}this._stream=stream;video.srcObject=stream;this._setStatus("Camera ready - press Captu` &&
-             `re to take a photo.");try{await video.play()}catch(e){Lib.logError("CameraPicture: video.play() failed",e)}}catch(error){this._setStatus(``Camera unavailable: ${error.name||"Error"} - ${error.message}``` &&
-             `);Lib.logError("CameraPicture: getUserMedia failed",error)}});this._oScanDialog.open()},_setStatus(message){if(Lib.isAlive(this._oStatus)){this._oStatus.setText(message)}},exit(){this._stopCamera();if` &&
-             `(this._oButton)this._oButton.destroy();if(this._oScanDialog)this._oScanDialog.destroy()},onAfterRendering(){const h=this.getHeight();const dom=this._oButton?.getDomRef();if(h&&dom)dom.style.height=toC` &&
-             `ssSize(h)},renderer:{apiVersion:2,render(oRm,oControl){if(!oControl._oButton){oControl._oButton=new Button({icon:"sap-icon://camera",text:"Camera",press:()=>{if(oControl.firePress())oControl.onPicture` &&
-             `()}})}oControl._oButton.setWidth(toCssSize(oControl.getWidth()));oRm.openStart("span",oControl);oRm.openEnd();oRm.renderControl(oControl._oButton);oRm.close("span")}}});return Env.ownClass(CameraPictu` &&
-             `re)});` && |\n| &&
+             `on,Text,HTML,Lib,Env)=>{"use strict";const _CTX_2D_OPTS={willReadFrequently:true};const _THUMB_W=300;const PX_NUMBER=/^\d+$/;const toCssSize=val=>PX_NUMBER.test(val)?``${val}px``:val;const CameraPictu` &&
+             `re=Control.extend("z2ui5.cc.CameraPicture",{metadata:{properties:{value:{type:"string"},thumbnail:{type:"string"},width:{type:"string",defaultValue:""},height:{type:"string",defaultValue:""},autoplay:` &&
+             `{type:"boolean",defaultValue:true},facingMode:{type:"string"},deviceId:{type:"string"}},events:{OnPhoto:{allowPreventDefault:true,parameters:{photo:{type:"string"}}},press:{allowPreventDefault:true,pa` &&
+             `rameters:{}}}},capture(){const video=document.getElementById(``${this.getId()}-video``);const canvas=document.getElementById(``${this.getId()}-canvas``);if(!video||!canvas)return false;const videoWidt` &&
+             `h=video.videoWidth;const videoHeight=video.videoHeight;if(!videoWidth||!videoHeight){this._setStatus("Camera not ready yet - no frame captured.");Lib.logError("CameraPicture: camera not ready, no fram` &&
+             `e to capture");return false}canvas.width=videoWidth;canvas.height=videoHeight;const ctx=canvas.getContext("2d",_CTX_2D_OPTS);if(!ctx)return false;ctx.drawImage(video,0,0,videoWidth,videoHeight);let re` &&
+             `sultb64;try{resultb64=canvas.toDataURL("image/jpeg",.85)}catch(e){this._setStatus("Could not read the captured image.");Lib.logError("CameraPicture: canvas toDataURL failed",e);return false}const thum` &&
+             `bH=Math.round(videoHeight*_THUMB_W/videoWidth);const thumbCanvas=document.createElement("canvas");thumbCanvas.width=_THUMB_W;thumbCanvas.height=thumbH;const thumbCtx=thumbCanvas.getContext("2d",_CTX_2` &&
+             `D_OPTS);if(thumbCtx)thumbCtx.drawImage(canvas,0,0,_THUMB_W,thumbH);let thumbB64="";try{thumbB64=thumbCanvas.toDataURL("image/jpeg",.7)}catch(e){Lib.logError("CameraPicture: thumb toDataURL failed",e)}` &&
+             `if(Lib.isDestroyed(this))return false;this.setProperty("value",resultb64,true);this.setProperty("thumbnail",thumbB64,true);this.fireOnPhoto({photo:resultb64});this._stopCamera();return true},_stopCame` &&
+             `ra(){if(this._stream){for(const track of this._stream.getTracks())track.stop()}this._stream=null;const video=document.getElementById(``${this.getId()}-video``);if(video)video.srcObject=null},onPicture` &&
+             `(){if(this._oScanDialog?.isOpen())return;if(!this._oScanDialog){this._oStatus=(new Text).addStyleClass("sapUiSmallMarginBegin sapUiSmallMarginTop");const id=this.getId();this._oScanDialog=new Dialog({` &&
+             `title:"Device Photo Function",contentWidth:"640px",contentHeight:"480px",horizontalScrolling:false,verticalScrolling:false,stretch:true,afterClose:()=>this._stopCamera(),content:[this._oStatus,new HTM` &&
+             `L({id:``${id}PictureContainer``,content:``<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay()?" autoplay":""} id="${id}-vide` &&
+             `o"></video>``}),new Button({text:"Capture",press:()=>{if(this.capture())this._oScanDialog.close()}}),new HTML({content:``<canvas hidden id="${id}-canvas" style="overflow:auto"></canvas>``})],endButton` &&
+             `:new Button({text:"Cancel",press:()=>{this._stopCamera();this._oScanDialog.close()}})})}this._setStatus("Starting camera...");const openSeq=this._openSeq=(this._openSeq||0)+1;this._oScanDialog.attachE` &&
+             `ventOnce("afterOpen",async()=>{if(Lib.isDestroyed(this))return;const video=document.getElementById(``${this.getId()}-video``);if(!video){this._setStatus("Camera preview element not found.");Lib.logErr` &&
+             `or("CameraPicture: video element not found after dialog open");return}const facingMode=this.getProperty("facingMode");const deviceId=this.getProperty("deviceId");const options={video:{width:{ideal:192` &&
+             `0},height:{ideal:1080}}};if(deviceId)options.video.deviceId=deviceId;if(facingMode)options.video.facingMode={exact:facingMode};try{const md=navigator.mediaDevices;if(!md?.getUserMedia){this._setStatus` &&
+             `("Camera not available - a secure (HTTPS) connection is required.");Lib.logError("CameraPicture: mediaDevices API not available");return}const stream=await md.getUserMedia(options);if(!stream)return;i` &&
+             `f(Lib.isDestroyed(this)||!this._oScanDialog?.isOpen()||openSeq!==this._openSeq){for(const t of stream.getTracks())t.stop();return}this._stream=stream;video.srcObject=stream;this._setStatus("Camera rea` &&
+             `dy - press Capture to take a photo.");try{await video.play()}catch(e){Lib.logError("CameraPicture: video.play() failed",e)}}catch(error){this._setStatus(``Camera unavailable: ${error.name||"Error"} - ` &&
+             `${error.message}``);Lib.logError("CameraPicture: getUserMedia failed",error)}});this._oScanDialog.open()},_setStatus(message){if(Lib.isAlive(this._oStatus)){this._oStatus.setText(message)}},exit(){thi` &&
+             `s._stopCamera();if(this._oButton)this._oButton.destroy();if(this._oScanDialog)this._oScanDialog.destroy()},onAfterRendering(){const h=this.getHeight();const dom=this._oButton?.getDomRef();if(h&&dom)do` &&
+             `m.style.height=toCssSize(h)},renderer:{apiVersion:2,render(oRm,oControl){if(!oControl._oButton){oControl._oButton=new Button({icon:"sap-icon://camera",text:"Camera",press:()=>{if(oControl.firePress())` &&
+             `oControl.onPicture()}})}oControl._oButton.setWidth(toCssSize(oControl.getWidth()));oRm.openStart("span",oControl);oRm.openEnd();oRm.renderControl(oControl._oButton);oRm.close("span")}}});return Env.ow` &&
+             `nClass(CameraPicture)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/CameraSelector.js": function(){sap.ui.define(["sap/m/ComboBox","sap/ui/core/Item","sap/m/ComboBoxRenderer","z2ui5/core/Lib","z2ui5/core/Env"],(ComboBox,Item,ComboBoxRenderer,Lib,Env)=>` &&
@@ -104,62 +104,63 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `e?.Excel;return isExcel&&typeof w.Excel?.run==="function"?w.Excel:undefined},()=>undefined);return excelReady}function hasOwn(obj,name){return Object.prototype.hasOwnProperty.call(obj,name)}function m` &&
              `ember(obj,names){if(!obj||typeof obj!=="object")return undefined;for(const name of names){if(hasOwn(obj,name)&&obj[name]!==undefined)return obj[name];const hit=Object.keys(obj).find(k=>k.toLowerCase()` &&
              `===name.toLowerCase());if(hit!==undefined)return obj[hit]}return undefined}function normalizeColumns(columns,firstRow){let list=columns;if(typeof list==="string"){list=list.split(",").map(s=>s.trim())` &&
-             `.filter(Boolean)}if(!Array.isArray(list)||!list.length){if(Array.isArray(firstRow)){return firstRow.map((_v,i)=>({key:i,header:``COL${i+1}``,format:""}))}return firstRow&&typeof firstRow==="object"?Obje` &&
-             `ct.keys(firstRow).map(k=>({key:k,header:k,format:""})):[]}return list.map(c=>{if(c&&typeof c==="object"){const key=Lib.toText(member(c,["key","name","field"]));const header=member(c,["header","text","` &&
-             `label"]);return{key,header:Lib.toText(header)||key,format:Lib.toText(member(c,["number_format","numberFormat"]))}}const key=Lib.toText(c);return{key,header:key,format:""}})}function resolveKey(row,key` &&
-             `){if(!row||typeof row!=="object"||Array.isArray(row))return key;if(hasOwn(row,key))return key;const hit=Object.keys(row).find(k=>k.toLowerCase()===String(key).toLowerCase());return hit===undefined?key` &&
-             `:hit}function isoToSerial(text){const m=ISO_DATE.exec(text);if(!m)return undefined;const[,y,mo,d,h="0",mi="0",s="0"]=m;if(Number(y)<1900)return undefined;const ms=Date.UTC(+y,+mo-1,+d,+h,+mi,+s);const` &&
-             ` dt=new Date(ms);if(dt.getUTCFullYear()!==+y||dt.getUTCMonth()!==+mo-1||dt.getUTCDate()!==+d||dt.getUTCHours()!==+h||dt.getUTCMinutes()!==+mi||dt.getUTCSeconds()!==+s)return undefined;return{serial:(m` &&
-             `s-EXCEL_EPOCH_MS)/DAY_MS,hasTime:m[4]!==undefined}}function toCell(value,format){if(typeof value==="number"){return Number.isFinite(value)?{value,format:format||"General"}:{value:"",format:"@"}}if(typ` &&
-             `eof value==="boolean")return{value,format:"General"};if(value==null||typeof value==="object"){return{value:"",format:"@"}}const text=String(value);const date=isoToSerial(text);if(date&&text.length<=25` &&
-             `){const own=date.hasTime?"yyyy-mm-dd hh:mm:ss":"yyyy-mm-dd";return{value:date.serial,format:format||own}}return{value:text,format:"@"}}function buildMatrix({rows,columns,numberFormats,header}){const l` &&
-             `ist=Array.isArray(rows)?rows:[];const cols=normalizeColumns(columns,list[0]);if(!cols.length)return{values:[],formats:[],columns:0};const keys=cols.map(c=>resolveKey(list[0],c.key));const formats=cols` &&
-             `.map((c,i)=>{if(c.format)return c.format;if(Array.isArray(numberFormats)){return Lib.toText(numberFormats[i])}return Lib.toText(member(numberFormats,[String(c.key)]))});const values=[];const cellForma`.
+             `.filter(Boolean)}if(!Array.isArray(list)||!list.length){if(Array.isArray(firstRow)){return firstRow.map((_v,i)=>({key:i,header:``COL${i+1}``,format:""}))}return firstRow&&typeof firstRow==="object"?Ob` &&
+             `ject.keys(firstRow).map(k=>({key:k,header:k,format:""})):[]}return list.map(c=>{if(c&&typeof c==="object"){const key=Lib.toText(member(c,["key","name","field"]));const header=member(c,["header","text"` &&
+             `,"label"]);return{key,header:Lib.toText(header)||key,format:Lib.toText(member(c,["number_format","numberFormat"]))}}const key=Lib.toText(c);return{key,header:key,format:""}})}function resolveKey(row,k` &&
+             `ey){if(!row||typeof row!=="object"||Array.isArray(row))return key;if(hasOwn(row,key))return key;const hit=Object.keys(row).find(k=>k.toLowerCase()===String(key).toLowerCase());return hit===undefined?k` &&
+             `ey:hit}function isoToSerial(text){const m=ISO_DATE.exec(text);if(!m)return undefined;const[,y,mo,d,h="0",mi="0",s="0"]=m;if(Number(y)<1900)return undefined;const ms=Date.UTC(+y,+mo-1,+d,+h,+mi,+s);con` &&
+             `st dt=new Date(ms);if(dt.getUTCFullYear()!==+y||dt.getUTCMonth()!==+mo-1||dt.getUTCDate()!==+d||dt.getUTCHours()!==+h||dt.getUTCMinutes()!==+mi||dt.getUTCSeconds()!==+s)return undefined;return{serial:` &&
+             `(ms-EXCEL_EPOCH_MS)/DAY_MS,hasTime:m[4]!==undefined}}function toCell(value,format){if(typeof value==="number"){return Number.isFinite(value)?{value,format:format||"General"}:{value:"",format:"@"}}if(t` &&
+             `ypeof value==="boolean")return{value,format:"General"};if(value==null||typeof value==="object"){return{value:"",format:"@"}}const text=String(value);const date=isoToSerial(text);if(date&&text.length<=` &&
+             `25){const own=date.hasTime?"yyyy-mm-dd hh:mm:ss":"yyyy-mm-dd";return{value:date.serial,format:format||own}}return{value:text,format:"@"}}function buildMatrix({rows,columns,numberFormats,header}){const` &&
+             ` list=Array.isArray(rows)?rows:[];const cols=normalizeColumns(columns,list[0]);if(!cols.length)return{values:[],formats:[],columns:0};const keys=cols.map(c=>resolveKey(list[0],c.key));const formats=co` &&
+             `ls.map((c,i)=>{if(c.format)return c.format;if(Array.isArray(numberFormats)){return Lib.toText(numberFormats[i])}return Lib.toText(member(numberFormats,[String(c.key)]))});const values=[];const cellFor`.
     result = result &&
-             `ts=[];if(header){values.push(cols.map(c=>c.header));cellFormats.push(cols.map(()=>"@"))}for(const row of list){const valueRow=[];const formatRow=[];keys.forEach((key,i)=>{const own=row!=null&&hasOwn(r` &&
-             `ow,key);const cell=toCell(own?row[key]:undefined,formats[i]);valueRow.push(cell.value);formatRow.push(cell.format)});values.push(valueRow);cellFormats.push(formatRow)}return{values,formats:cellFormats` &&
-             `,columns:cols.length}}function unquotedFormat(format){return String(format??"").replace(/"[^"]*"/g,"").replace(/\\./g,"")}function bareFormat(format){return unquotedFormat(format).replace(/\[[^\]]*\]/` &&
-             `g,"")}function formatParts(format){const bare=bareFormat(format);const elapsed=/\[(h+|m+|s+)\]/i.test(unquotedFormat(format));return{hasDate:/[dy]/i.test(bare),hasTime:elapsed||/[hs]/i.test(bare),elap` &&
-             `sed}}function isDateFormat(format){const{hasDate,hasTime}=formatParts(format);return hasDate||hasTime}function serialToDuration(serial){const total=Math.round(Math.abs(serial)*86400);const pad=n=>Stri` &&
-             `ng(n).padStart(2,"0");const text=``${pad(Math.floor(total/3600))}:${pad(Math.floor(total%3600/60))}:${pad(total%60)}``;return serial<0?``-${text}``:text}function serialToIso(serial,format){const{hasDate,h` &&
-             `asTime,elapsed}=formatParts(format);if(elapsed&&!hasDate)return serialToDuration(serial);const ms=Math.round(serial*DAY_MS)+EXCEL_EPOCH_MS;const iso=new Date(ms).toISOString();if(hasDate&&hasTime)retu` &&
-             `rn iso.slice(0,19);if(hasTime)return iso.slice(11,19);return iso.slice(0,10)}function toRows(values,formats){return(values||[]).map((row,r)=>{const out={};row.forEach((v,c)=>{const format=formats?.[r]` &&
-             `?.[c];let value=v;if(typeof v==="number"&&format&&isDateFormat(format)){value=serialToIso(v,format)}out[``COL${c+1}``]=value});return out})}function failure(e,fallback){return{message:Lib.toText(e?.mess` &&
-             `age??e)||fallback,code:Lib.toText(e?.code)}}const definition={metadata:{properties:{rows:{type:"any",defaultValue:null},columns:{type:"any",defaultValue:null},numberFormats:{type:"any",defaultValue:nu` &&
-             `ll},target:{type:"string",defaultValue:"A1"},sheetName:{type:"string",defaultValue:""},asTable:{type:"boolean",defaultValue:true},header:{type:"boolean",defaultValue:true},maxCells:{type:"int",default` &&
-             `Value:2e4},selection:{type:"any",defaultValue:null},selectionAddress:{type:"string",defaultValue:""},readText:{type:"boolean",defaultValue:false},selectionChange:{type:"boolean",defaultValue:false},av` &&
-             `ailable:{type:"boolean",defaultValue:false}},events:{OnWritten:{parameters:{address:{type:"string"},rowCount:{type:"int"},columnCount:{type:"int"}}},OnRead:{parameters:{address:{type:"string"},rowCoun` &&
-             `t:{type:"int"},columnCount:{type:"int"}}},OnSelectionChange:{parameters:{address:{type:"string"}}},OnError:{parameters:{message:{type:"string"},code:{type:"string"}}}}},init(){this._queue=Promise.reso` &&
-             `lve();this._probed=false;this._subscription=null;this._subscribing=false;this._selectionTimer=null;this._lastAddress=""},exit(){clearTimeout(this._selectionTimer);this._unsubscribe()},setSelectionChan` &&
-             `ge(val){this.setProperty("selectionChange",val,true);this._syncSubscription();return this},onAfterRendering(){if(!this._probed)this._probe();this._syncSubscription()},_probe(){const w=window;if(!w.Off` &&
-             `ice)return;this._probed=true;excel().then(Excel=>{if(!Excel||Lib.isDestroyed(this))return;if(!this.getProperty("available")){this.setProperty("available",true,true)}})},_fail(message,code){if(Lib.isDe` &&
-             `stroyed(this))return;this.fireOnError({message,code:code||""})},_limit(){const max=Number(this.getProperty("maxCells"))||DEFAULT_MAX_CELLS;return Math.min(Math.max(1,max),HARD_MAX_CELLS)},_enqueue(nam` &&
-             `e,op){const run=()=>excel().then(Excel=>{if(Lib.isDestroyed(this))return undefined;if(!Excel){this._fail("Excel not available","NotAvailable");return undefined}return Promise.resolve().then(()=>op(Exc` &&
-             `el)).catch(e=>{const f=failure(e,``${name} failed``);Lib.logError(``ExcelBridge: ${name} - ${f.message}``,e);this._fail(f.message,f.code)})});this._queue=this._queue.then(run,run);return this._queue},writ` &&
-             `e(){const asTable=Boolean(this.getProperty("asTable"));const matrix=buildMatrix({rows:this.getProperty("rows"),columns:this.getProperty("columns"),numberFormats:this.getProperty("numberFormats"),heade` &&
-             `r:asTable||Boolean(this.getProperty("header"))});const target=Lib.toText(this.getProperty("target")).trim()||"A1";const sheetName=Lib.toText(this.getProperty("sheetName")).trim();const limit=this._lim` &&
-             `it();return this._enqueue("write",Excel=>{const rowCount=matrix.values.length;const columnCount=matrix.columns;if(!rowCount||!columnCount){this._fail("nothing to write","NoData");return Promise.resolv` &&
-             `e()}if(rowCount*columnCount>limit){this._fail(``${rowCount*columnCount} cells exceed the limit of ${limit}``,"TooLarge");return Promise.resolve()}const mode=target.toLowerCase();if(mode!=="selection"&&m` &&
-             `ode!=="newsheet"&&!CELL_ADDRESS.test(target)){this._fail(``invalid target '${target}'``,"InvalidTarget");return Promise.resolve()}return Excel.run(async context=>{const book=context.workbook;let anchor;` &&
-             `let sheet;if(mode==="selection"){anchor=book.getSelectedRange().getCell(0,0);sheet=anchor.worksheet}else if(mode==="newsheet"){sheet=book.worksheets.add(sheetName||undefined);sheet.activate();anchor=s` &&
-             `heet.getRange("A1")}else{sheet=sheetName?book.worksheets.getItem(sheetName):book.worksheets.getActiveWorksheet();anchor=sheet.getRange(target)}const range=anchor.getResizedRange(rowCount-1,columnCount` &&
-             `-1);range.numberFormat=matrix.formats;range.values=matrix.values;if(asTable)sheet.tables.add(range,true);range.format.autofitColumns();range.load("address");await context.sync();if(Lib.isDestroyed(thi` &&
-             `s))return;this.fireOnWritten({address:Lib.toText(range.address),rowCount,columnCount})})})},read(){const readText=Boolean(this.getProperty("readText"));const limit=this._limit();return this._enqueue("` &&
-             `read",Excel=>Excel.run(async context=>{let range=context.workbook.getSelectedRange();range.load("address,rowCount,columnCount");await context.sync();if(range.rowCount*range.columnCount>limit){range=ra` &&
-             `nge.getUsedRangeOrNullObject(true);range.load("address,rowCount,columnCount,isNullObject");await context.sync()}if(range.isNullObject){this._deliver([],"",0,0);return}const cells=range.rowCount*range.` &&
-             `columnCount;if(cells>limit){this._fail(``${cells} cells exceed the limit of ${limit}``,"TooLarge");return}range.load(readText?"text":"values,numberFormat");await context.sync();const rows=readText?toRow` &&
-             `s(range.text,null):toRows(range.values,range.numberFormat);this._deliver(rows,Lib.toText(range.address),range.rowCount,range.columnCount)}))},_deliver(rows,address,rowCount,columnCount){if(Lib.isDestr` &&
-             `oyed(this))return;this.setProperty("selection",rows,true);this.setProperty("selectionAddress",address,true);this.fireOnRead({address,rowCount,columnCount})},_syncSubscription(){const wanted=Boolean(th` &&
-             `is.getProperty("selectionChange"))&&!Lib.isDestroyed(this);if(wanted&&!this._subscription&&!this._subscribing){this._subscribe()}else if(!wanted&&this._subscription){this._unsubscribe()}},_subscribe()` &&
-             `{this._subscribing=true;excel().then(Excel=>{if(!Excel||Lib.isDestroyed(this))return undefined;return Excel.run(async context=>{const handler=context.workbook.onSelectionChanged.add(()=>this._selectio` &&
-             `nChanged(Excel));await context.sync();return handler})}).then(handler=>{this._subscribing=false;if(!handler)return;this._subscription=handler;this._syncSubscription()},e=>{this._subscribing=false;Lib.` &&
-             `logError("ExcelBridge: selection subscription failed",e)})},_unsubscribe(){const handler=this._subscription;if(!handler)return;this._subscription=null;const Excel=window.Excel;if(typeof Excel?.run!=="` &&
-             `function"||!handler.context)return;Excel.run(handler.context,async context=>{handler.remove();await context.sync()}).catch(e=>Lib.logError("ExcelBridge: selection unsubscribe failed",e))},_selectionCh` &&
-             `anged(Excel){clearTimeout(this._selectionTimer);this._selectionTimer=setTimeout(()=>{if(Lib.isDestroyed(this)||!this._subscription)return;Excel.run(async context=>{const range=context.workbook.getSele` &&
-             `ctedRange();range.load("address");await context.sync();const address=Lib.toText(range.address);if(Lib.isDestroyed(this)||address===this._lastAddress)return;this._lastAddress=address;this.fireOnSelecti` &&
-             `onChange({address})}).catch(e=>Lib.logError("ExcelBridge: reading the selection failed",e))},SELECTION_DEBOUNCE_MS)},renderer:{apiVersion:2,render(oRm,oControl){Lib.renderInvisibleSpan(oRm,oControl)}}` &&
-             `};for(const name of Object.keys(definition.metadata.properties)){const setter=``set${name[0].toUpperCase()}${name.slice(1)}``;if(definition[setter])continue;definition[setter]=function(val){this.setProp` &&
-             `erty(name,val,true);return this}}const ExcelBridge=Control.extend("z2ui5.cc.ExcelBridge",definition);ExcelBridge._buildMatrix=buildMatrix;ExcelBridge._toRows=toRows;return Env.ownClass(ExcelBridge)});` && |\n| &&
+             `mats=[];if(header){values.push(cols.map(c=>c.header));cellFormats.push(cols.map(()=>"@"))}for(const row of list){const valueRow=[];const formatRow=[];keys.forEach((key,i)=>{const own=row!=null&&hasOwn` &&
+             `(row,key);const cell=toCell(own?row[key]:undefined,formats[i]);valueRow.push(cell.value);formatRow.push(cell.format)});values.push(valueRow);cellFormats.push(formatRow)}return{values,formats:cellForma` &&
+             `ts,columns:cols.length}}function unquotedFormat(format){return String(format??"").replace(/"[^"]*"/g,"").replace(/\\./g,"")}function bareFormat(format){return unquotedFormat(format).replace(/\[[^\]]*\` &&
+             `]/g,"")}function formatParts(format){const bare=bareFormat(format);const elapsed=/\[(h+|m+|s+)\]/i.test(unquotedFormat(format));return{hasDate:/[dy]/i.test(bare),hasTime:elapsed||/[hs]/i.test(bare),el` &&
+             `apsed}}function isDateFormat(format){const{hasDate,hasTime}=formatParts(format);return hasDate||hasTime}function serialToDuration(serial){const total=Math.round(Math.abs(serial)*86400);const pad=n=>St` &&
+             `ring(n).padStart(2,"0");const text=``${pad(Math.floor(total/3600))}:${pad(Math.floor(total%3600/60))}:${pad(total%60)}``;return serial<0?``-${text}``:text}function serialToIso(serial,format){const{has` &&
+             `Date,hasTime,elapsed}=formatParts(format);if(elapsed&&!hasDate)return serialToDuration(serial);const ms=Math.round(serial*DAY_MS)+EXCEL_EPOCH_MS;const iso=new Date(ms).toISOString();if(hasDate&&hasTim` &&
+             `e)return iso.slice(0,19);if(hasTime)return iso.slice(11,19);return iso.slice(0,10)}function toRows(values,formats){return(values||[]).map((row,r)=>{const out={};row.forEach((v,c)=>{const format=format` &&
+             `s?.[r]?.[c];let value=v;if(typeof v==="number"&&format&&isDateFormat(format)){value=serialToIso(v,format)}out[``COL${c+1}``]=value});return out})}function failure(e,fallback){return{message:Lib.toText` &&
+             `(e?.message??e)||fallback,code:Lib.toText(e?.code)}}const definition={metadata:{properties:{rows:{type:"any",defaultValue:null},columns:{type:"any",defaultValue:null},numberFormats:{type:"any",default` &&
+             `Value:null},target:{type:"string",defaultValue:"A1"},sheetName:{type:"string",defaultValue:""},asTable:{type:"boolean",defaultValue:true},header:{type:"boolean",defaultValue:true},maxCells:{type:"int"` &&
+             `,defaultValue:2e4},selection:{type:"any",defaultValue:null},selectionAddress:{type:"string",defaultValue:""},readText:{type:"boolean",defaultValue:false},selectionChange:{type:"boolean",defaultValue:f` &&
+             `alse},available:{type:"boolean",defaultValue:false}},events:{OnWritten:{parameters:{address:{type:"string"},rowCount:{type:"int"},columnCount:{type:"int"}}},OnRead:{parameters:{address:{type:"string"}` &&
+             `,rowCount:{type:"int"},columnCount:{type:"int"}}},OnSelectionChange:{parameters:{address:{type:"string"}}},OnError:{parameters:{message:{type:"string"},code:{type:"string"}}}}},init(){this._queue=Prom` &&
+             `ise.resolve();this._probed=false;this._subscription=null;this._subscribing=false;this._selectionTimer=null;this._lastAddress=""},exit(){clearTimeout(this._selectionTimer);this._unsubscribe()},setSelec` &&
+             `tionChange(val){this.setProperty("selectionChange",val,true);this._syncSubscription();return this},onAfterRendering(){if(!this._probed)this._probe();this._syncSubscription()},_probe(){const w=window;i` &&
+             `f(!w.Office)return;this._probed=true;excel().then(Excel=>{if(!Excel||Lib.isDestroyed(this))return;if(!this.getProperty("available")){this.setProperty("available",true,true)}})},_fail(message,code){if(` &&
+             `Lib.isDestroyed(this))return;this.fireOnError({message,code:code||""})},_limit(){const max=Number(this.getProperty("maxCells"))||DEFAULT_MAX_CELLS;return Math.min(Math.max(1,max),HARD_MAX_CELLS)},_enq` &&
+             `ueue(name,op){const run=()=>excel().then(Excel=>{if(Lib.isDestroyed(this))return undefined;if(!Excel){this._fail("Excel not available","NotAvailable");return undefined}return Promise.resolve().then(()` &&
+             `=>op(Excel)).catch(e=>{const f=failure(e,``${name} failed``);Lib.logError(``ExcelBridge: ${name} - ${f.message}``,e);this._fail(f.message,f.code)})});this._queue=this._queue.then(run,run);return this.` &&
+             `_queue},write(){const asTable=Boolean(this.getProperty("asTable"));const matrix=buildMatrix({rows:this.getProperty("rows"),columns:this.getProperty("columns"),numberFormats:this.getProperty("numberFor` &&
+             `mats"),header:asTable||Boolean(this.getProperty("header"))});const target=Lib.toText(this.getProperty("target")).trim()||"A1";const sheetName=Lib.toText(this.getProperty("sheetName")).trim();const lim` &&
+             `it=this._limit();return this._enqueue("write",Excel=>{const rowCount=matrix.values.length;const columnCount=matrix.columns;if(!rowCount||!columnCount){this._fail("nothing to write","NoData");return Pr` &&
+             `omise.resolve()}if(rowCount*columnCount>limit){this._fail(``${rowCount*columnCount} cells exceed the limit of ${limit}``,"TooLarge");return Promise.resolve()}const mode=target.toLowerCase();if(mode!==` &&
+             `"selection"&&mode!=="newsheet"&&!CELL_ADDRESS.test(target)){this._fail(``invalid target '${target}'``,"InvalidTarget");return Promise.resolve()}return Excel.run(async context=>{const book=context.work` &&
+             `book;let anchor;let sheet;if(mode==="selection"){anchor=book.getSelectedRange().getCell(0,0);sheet=anchor.worksheet}else if(mode==="newsheet"){sheet=book.worksheets.add(sheetName||undefined);sheet.act` &&
+             `ivate();anchor=sheet.getRange("A1")}else{sheet=sheetName?book.worksheets.getItem(sheetName):book.worksheets.getActiveWorksheet();anchor=sheet.getRange(target)}const range=anchor.getResizedRange(rowCou` &&
+             `nt-1,columnCount-1);range.numberFormat=matrix.formats;range.values=matrix.values;if(asTable)sheet.tables.add(range,true);range.format.autofitColumns();range.load("address");await context.sync();if(Lib` &&
+             `.isDestroyed(this))return;this.fireOnWritten({address:Lib.toText(range.address),rowCount,columnCount})})})},read(){const readText=Boolean(this.getProperty("readText"));const limit=this._limit();return` &&
+             ` this._enqueue("read",Excel=>Excel.run(async context=>{let range=context.workbook.getSelectedRange();range.load("address,rowCount,columnCount");await context.sync();if(range.rowCount*range.columnCount` &&
+             `>limit){range=range.getUsedRangeOrNullObject(true);range.load("address,rowCount,columnCount,isNullObject");await context.sync()}if(range.isNullObject){this._deliver([],"",0,0);return}const cells=range` &&
+             `.rowCount*range.columnCount;if(cells>limit){this._fail(``${cells} cells exceed the limit of ${limit}``,"TooLarge");return}range.load(readText?"text":"values,numberFormat");await context.sync();const r` &&
+             `ows=readText?toRows(range.text,null):toRows(range.values,range.numberFormat);this._deliver(rows,Lib.toText(range.address),range.rowCount,range.columnCount)}))},_deliver(rows,address,rowCount,columnCou` &&
+             `nt){if(Lib.isDestroyed(this))return;this.setProperty("selection",rows,true);this.setProperty("selectionAddress",address,true);this.fireOnRead({address,rowCount,columnCount})},_syncSubscription(){const` &&
+             ` wanted=Boolean(this.getProperty("selectionChange"))&&!Lib.isDestroyed(this);if(wanted&&!this._subscription&&!this._subscribing){this._subscribe()}else if(!wanted&&this._subscription){this._unsubscrib` &&
+             `e()}},_subscribe(){this._subscribing=true;excel().then(Excel=>{if(!Excel||Lib.isDestroyed(this))return undefined;return Excel.run(async context=>{const handler=context.workbook.onSelectionChanged.add(` &&
+             `()=>this._selectionChanged(Excel));await context.sync();return handler})}).then(handler=>{this._subscribing=false;if(!handler)return;this._subscription=handler;this._syncSubscription()},e=>{this._subs` &&
+             `cribing=false;Lib.logError("ExcelBridge: selection subscription failed",e)})},_unsubscribe(){const handler=this._subscription;if(!handler)return;this._subscription=null;const Excel=window.Excel;if(typ` &&
+             `eof Excel?.run!=="function"||!handler.context)return;Excel.run(handler.context,async context=>{handler.remove();await context.sync()}).catch(e=>Lib.logError("ExcelBridge: selection unsubscribe failed"` &&
+             `,e))},_selectionChanged(Excel){clearTimeout(this._selectionTimer);this._selectionTimer=setTimeout(()=>{if(Lib.isDestroyed(this)||!this._subscription)return;Excel.run(async context=>{const range=contex` &&
+             `t.workbook.getSelectedRange();range.load("address");await context.sync();const address=Lib.toText(range.address);if(Lib.isDestroyed(this)||address===this._lastAddress)return;this._lastAddress=address;` &&
+             `this.fireOnSelectionChange({address})}).catch(e=>Lib.logError("ExcelBridge: reading the selection failed",e))},SELECTION_DEBOUNCE_MS)},renderer:{apiVersion:2,render(oRm,oControl){Lib.renderInvisibleSp` &&
+             `an(oRm,oControl)}}};for(const name of Object.keys(definition.metadata.properties)){const setter=``set${name[0].toUpperCase()}${name.slice(1)}``;if(definition[setter])continue;definition[setter]=functi` &&
+             `on(val){this.setProperty(name,val,true);return this}}const ExcelBridge=Control.extend("z2ui5.cc.ExcelBridge",definition);ExcelBridge._buildMatrix=buildMatrix;ExcelBridge._toRows=toRows;return Env.ownC` &&
+             `lass(ExcelBridge)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/FileUploader.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Button","sap/ui/unified/FileUploader","sap/m/HBox","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Button,FileUploa` &&
@@ -187,15 +188,15 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `      "z2ui5/cc/Geolocation.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Lib,Env)=>{"use strict";const _GEO_PROPS=["longitude","latitude","altitude"` &&
              `,"accuracy","altitudeAccuracy","speed","heading"];const _DEFAULT_TIMEOUT_MS=5e3;function timeoutOf(value){const ms=Number(value);return Number.isFinite(ms)&&ms>0?ms:_DEFAULT_TIMEOUT_MS}const Geolocati` &&
              `on=Control.extend("z2ui5.cc.Geolocation",{metadata:{properties:{longitude:{type:"string",defaultValue:""},latitude:{type:"string",defaultValue:""},altitude:{type:"string",defaultValue:""},accuracy:{ty` &&
-             `pe:"string",defaultValue:""},altitudeAccuracy:{type:"string",defaultValue:""},speed:{type:"string",defaultValue:""},heading:{type:"string",defaultValue:""},enableHighAccuracy:{type:"boolean",defaultVa` &&
-             `lue:false},timeout:{type:"string",defaultValue:String(_DEFAULT_TIMEOUT_MS)}},events:{finished:{allowPreventDefault:true,parameters:{}},error:{parameters:{code:{type:"string"},message:{type:"string"}}}`.
+             `pe:"string",defaultValue:""},altitudeAccuracy:{type:"string",defaultValue:""},speed:{type:"string",defaultValue:""},heading:{type:"string",defaultValue:""},enableHighAccuracy:{type:"boolean",defaultVa`.
     result = result &&
+             `lue:false},timeout:{type:"string",defaultValue:String(_DEFAULT_TIMEOUT_MS)}},events:{finished:{allowPreventDefault:true,parameters:{}},error:{parameters:{code:{type:"string"},message:{type:"string"}}}` &&
              `}},callbackPosition({coords}){if(Lib.isDestroyed(this))return;for(const prop of _GEO_PROPS){const v=coords[prop];const text=typeof v==="number"&&!Number.isFinite(v)?"":Lib.toText(v);this.setProperty(p` &&
-             `rop,text,true)}this.fireFinished()},callbackError(error){if(Lib.isDestroyed(this))return;Lib.logError(``Geolocation error (${error.code}) on ${this.getId()}: ${error.message}``);this.fireError({code:Str` &&
-             `ing(error.code),message:error.message})},init(){this._pendingGeolocate=true},exit(){this._pendingGeolocate=false},onAfterRendering(){if(!this._pendingGeolocate)return;this._pendingGeolocate=false;try{` &&
-             `if(!navigator.geolocation){this.callbackError({code:0,message:"Geolocation API not available"});return}navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this),this.callbackError.bind` &&
-             `(this),{enableHighAccuracy:this.getProperty("enableHighAccuracy"),timeout:timeoutOf(this.getProperty("timeout"))})}catch(e){Lib.logError("Geolocation.onAfterRendering: getCurrentPosition failed",e)}},` &&
-             `renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Geolocation)});` && |\n| &&
+             `rop,text,true)}this.fireFinished()},callbackError(error){if(Lib.isDestroyed(this))return;Lib.logError(``Geolocation error (${error.code}) on ${this.getId()}: ${error.message}``);this.fireError({code:S` &&
+             `tring(error.code),message:error.message})},init(){this._pendingGeolocate=true},exit(){this._pendingGeolocate=false},onAfterRendering(){if(!this._pendingGeolocate)return;this._pendingGeolocate=false;tr` &&
+             `y{if(!navigator.geolocation){this.callbackError({code:0,message:"Geolocation API not available"});return}navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this),this.callbackError.bi` &&
+             `nd(this),{enableHighAccuracy:this.getProperty("enableHighAccuracy"),timeout:timeoutOf(this.getProperty("timeout"))})}catch(e){Lib.logError("Geolocation.onAfterRendering: getCurrentPosition failed",e)}` &&
+             `},renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Geolocation)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/HTMLFrame.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Lib,Env)=>{"use strict";const SANDBOX="allow-same-origin allow-scripts allow-` &&
@@ -211,19 +212,19 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `doc.addEventListener("submit",e=>this._onSubmit(e),true)},_onClick(e){const link=e.target?.closest?.("a[href]");if(!link)return;const parsed=parseSapevent(link.getAttribute("href"));if(!parsed)return;` &&
              `e.preventDefault();this.fireSapevent({...parsed,postdata:""})},_onSubmit(e){const form=e.target;e.preventDefault();if(!form||form.tagName!=="FORM")return;const submitter=e.submitter;const action=submi` &&
              `tter?.getAttribute?.("formaction")||form.getAttribute("action");const method=submitter?.getAttribute?.("formmethod")||form.getAttribute("method");const parsed=parseSapevent(action);if(!parsed){Lib.log` &&
-             `Error(``HTMLFrame ${this.getId()}: a form to ${action} is not sent - only sapevent: actions are``);return}const data=formData(form,submitter);const get=String(method||"").toLowerCase()==="get";this.fire` &&
-             `Sapevent({action:parsed.action,getdata:get?[parsed.getdata,data].filter(Boolean).join("&"):parsed.getdata,postdata:get?"":data})},renderer:{apiVersion:2,render(oRm,oControl){oRm.openStart("iframe",oCo` &&
-             `ntrol);oRm.attr("sandbox",SANDBOX);oRm.attr("srcdoc",oControl.getContent());oRm.attr("title",oControl.getTitle());oRm.style("width",oControl.getWidth());oRm.style("height",oControl.getHeight());oRm.st` &&
-             `yle("border","0");oRm.style("display","block");oRm.openEnd();oRm.close("iframe")}}});HTMLFrame._parseSapevent=parseSapevent;HTMLFrame._formData=formData;return Env.ownClass(HTMLFrame)});` && |\n| &&
+             `Error(``HTMLFrame ${this.getId()}: a form to ${action} is not sent - only sapevent: actions are``);return}const data=formData(form,submitter);const get=String(method||"").toLowerCase()==="get";this.fi` &&
+             `reSapevent({action:parsed.action,getdata:get?[parsed.getdata,data].filter(Boolean).join("&"):parsed.getdata,postdata:get?"":data})},renderer:{apiVersion:2,render(oRm,oControl){oRm.openStart("iframe",o` &&
+             `Control);oRm.attr("sandbox",SANDBOX);oRm.attr("srcdoc",oControl.getContent());oRm.attr("title",oControl.getTitle());oRm.style("width",oControl.getWidth());oRm.style("height",oControl.getHeight());oRm.` &&
+             `style("border","0");oRm.style("display","block");oRm.openEnd();oRm.close("iframe")}}});HTMLFrame._parseSapevent=parseSapevent;HTMLFrame._formData=formData;return Env.ownClass(HTMLFrame)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/InputExt.js": function(){sap.ui.define(["sap/m/Input","sap/m/InputRenderer","z2ui5/core/Lib","z2ui5/core/Env"],(Input,InputRenderer,Lib,Env)=>{"use strict";const HTML_MODES=new Set(["d` &&
              `ecimal","email","none","numeric","search","tel","text","url"]);const InputExt=Input.extend("z2ui5.cc.InputExt",{metadata:{properties:{inputMode:{type:"string",defaultValue:""}}},setInputMode(val){this` &&
              `.setProperty("inputMode",val,true);this._applyInputMode();return this},onAfterRendering(...args){Input.prototype.onAfterRendering.apply(this,args);const dom=this.getFocusDomRef();this._renderedMode=do` &&
              `m?dom.getAttribute("inputmode"):null;this._applyInputMode()},_htmlMode(){const raw=this.getInputMode();if(!raw)return"";const mode=String(raw).trim().toLowerCase();if(HTML_MODES.has(mode))return mode;` &&
-             `if(this._refusedMode!==mode){this._refusedMode=mode;Lib.logError(``InputExt: inputMode "${raw}" is not an HTML inputmode keyword - ``+``ignored``)}return""},_applyInputMode(){const dom=this.getFocusDomRef` &&
-             `();if(!dom)return;const mode=this._htmlMode();if(mode){dom.setAttribute("inputmode",mode)}else if(this._renderedMode){dom.setAttribute("inputmode",this._renderedMode)}else{dom.removeAttribute("inputmo` &&
-             `de")}},renderer:InputRenderer});return Env.ownClass(InputExt)});` && |\n| &&
+             `if(this._refusedMode!==mode){this._refusedMode=mode;Lib.logError(``InputExt: inputMode "${raw}" is not an HTML inputmode keyword - ``+``ignored``)}return""},_applyInputMode(){const dom=this.getFocusDo` &&
+             `mRef();if(!dom)return;const mode=this._htmlMode();if(mode){dom.setAttribute("inputmode",mode)}else if(this._renderedMode){dom.setAttribute("inputmode",this._renderedMode)}else{dom.removeAttribute("inp` &&
+             `utmode")}},renderer:InputRenderer});return Env.ownClass(InputExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/MessageManager.js": function(){sap.ui.define(["sap/ui/core/Control","sap/ui/core/message/Message","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Contro` &&
@@ -248,15 +249,15 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `dering","setControl")},exit(){this._unhook();this._detach()},_detach(){const input=this._target;this._target=null;if(!input||Lib.isDestroyed(input))return;if(this._onTokenUpdate){input.detachTokenUpda` &&
              `te?.(this._onTokenUpdate)}if(this._validator)input.removeValidator?.(this._validator);this._onTokenUpdate=null;this._validator=null},onTokenUpdate(oEvent){Lib.applyTokenUpdate(this,oEvent);this.fireCh` &&
              `ange()},renderer:Lib.EMPTY_RENDERER,tokenFromRow(row){const keyIdx=this.getProperty("TokenKeyCell");if(!(keyIdx>=0))return null;const cells=typeof row.getCells==="function"?row.getCells():[];const cel` &&
-             `lText=i=>{const c=cells[i];return c&&typeof c.getText==="function"?c.getText():undefined};const key=cellText(keyIdx);if(key===undefined){Lib.logError(``MultiInputExt: TokenKeyCell ${keyIdx} is not a te` &&
-             `xt cell of the picked row``);return null}const rest=String(this.getProperty("TokenTextCells")||"").split(",").map(s=>s.trim()).filter(s=>s!=="").map(Number).map(i=>{const v=cellText(i);if(v===undefined` &&
-             `){Lib.logError(``MultiInputExt: TokenTextCells entry ${i} is not a text cell of the picked row``)}return v}).filter(v=>v!==undefined&&v!=="");return plainToken(key,rest.length?``${key}(${rest.join(" ")})` &&
-             ```:key)},setControl(){if(this.getProperty("checkInit"))return;const input=ViewSlots.byIdOfOwner(this,this.getProperty("MultiInputId"));if(!Lib.claimOnce(this,input))return;try{this._target=input;this._` &&
-             `onTokenUpdate=this.onTokenUpdate.bind(this);input.attachTokenUpdate(this._onTokenUpdate);this._validator=args=>{const picked=args?.suggestionObject;if(picked&&typeof picked.getCells==="function"){retu` &&
-             `rn this.tokenFromRow(picked)}if(picked){if(args.suggestedToken)return args.suggestedToken;return plainToken(typeof picked.getKey==="function"?picked.getKey():args.text,typeof picked.getText==="functio` &&
-             `n"?picked.getText():args.text)}const text=freeText(args.text,input);return plainToken(text,text)};input.addValidator(this._validator)}catch(e){Lib.logError(``MultiInputExt.setControl: setup failed for ` &&
-             `MultiInputId '${this.getProperty("MultiInputId")}'``,e)}}});return Env.ownClass(MultiInputExt)});` && |\n|.
+             `lText=i=>{const c=cells[i];return c&&typeof c.getText==="function"?c.getText():undefined};const key=cellText(keyIdx);if(key===undefined){Lib.logError(``MultiInputExt: TokenKeyCell ${keyIdx} is not a t` &&
+             `ext cell of the picked row``);return null}const rest=String(this.getProperty("TokenTextCells")||"").split(",").map(s=>s.trim()).filter(s=>s!=="").map(Number).map(i=>{const v=cellText(i);if(v===undefin` &&
+             `ed){Lib.logError(``MultiInputExt: TokenTextCells entry ${i} is not a text cell of the picked row``)}return v}).filter(v=>v!==undefined&&v!=="");return plainToken(key,rest.length?``${key}(${rest.join("` &&
+             ` ")})``:key)},setControl(){if(this.getProperty("checkInit"))return;const input=ViewSlots.byIdOfOwner(this,this.getProperty("MultiInputId"));if(!Lib.claimOnce(this,input))return;try{this._target=input;` &&
+             `this._onTokenUpdate=this.onTokenUpdate.bind(this);input.attachTokenUpdate(this._onTokenUpdate);this._validator=args=>{const picked=args?.suggestionObject;if(picked&&typeof picked.getCells==="function"` &&
+             `){return this.tokenFromRow(picked)}if(picked){if(args.suggestedToken)return args.suggestedToken;return plainToken(typeof picked.getKey==="function"?picked.getKey():args.text,typeof picked.getText==="f` &&
+             `unction"?picked.getText():args.text)}const text=freeText(args.text,input);return plainToken(text,text)};input.addValidator(this._validator)}catch(e){Lib.logError(``MultiInputExt.setControl: setup fail`.
     result = result &&
+             `ed for MultiInputId '${this.getProperty("MultiInputId")}'``,e)}}});return Env.ownClass(MultiInputExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/NativeBridgeScan.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Button","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Button,Lib,Env)=>{"use strict";const READY_EVENT="abap2` &&
@@ -268,10 +269,10 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `r(READY_EVENT,this._onReady)},_fail(message){if(Lib.isDestroyed(this))return;this.fireOnError({message})},scan(){const native=bridge();if(!native){this._fail("native shell not available");return undef` &&
              `ined}if(this._scanning)return undefined;this._scanning=true;let pending;try{pending=Promise.resolve(native.scanBarcode())}catch(e){pending=Promise.reject(e)}return pending.then(value=>{this._scanning=` &&
              `false;if(Lib.isDestroyed(this))return;const text=Lib.toText(value);this.setProperty("value",text,true);this.fireOnScan({value:text})},e=>{this._scanning=false;const message=Lib.toText(e?.message??e)||` &&
-             `"scan failed";if(message!=="cancelled"){Lib.logError(``NativeBridgeScan: ${message}``)}this._fail(message)})},renderer:{apiVersion:2,render(oRm,oControl){if(!bridge())oControl._waitForBridge();if(!bridg` &&
-             `e()&&!oControl.getShowInBrowser()){Lib.renderInvisibleSpan(oRm,oControl);return}if(!oControl._oButton){oControl._oButton=new Button({press:()=>{oControl.scan()}})}oControl._oButton.setText(oControl.ge` &&
-             `tText());oControl._oButton.setIcon(oControl.getIcon());oControl._oButton.setEnabled(oControl.getEnabled());oRm.openStart("span",oControl);oRm.openEnd();oRm.renderControl(oControl._oButton);oRm.close("` &&
-             `span")}}});return Env.ownClass(NativeBridgeScan)});` && |\n| &&
+             `"scan failed";if(message!=="cancelled"){Lib.logError(``NativeBridgeScan: ${message}``)}this._fail(message)})},renderer:{apiVersion:2,render(oRm,oControl){if(!bridge())oControl._waitForBridge();if(!bri` &&
+             `dge()&&!oControl.getShowInBrowser()){Lib.renderInvisibleSpan(oRm,oControl);return}if(!oControl._oButton){oControl._oButton=new Button({press:()=>{oControl.scan()}})}oControl._oButton.setText(oControl.` &&
+             `getText());oControl._oButton.setIcon(oControl.getIcon());oControl._oButton.setEnabled(oControl.getEnabled());oRm.openStart("span",oControl);oRm.openEnd();oRm.renderControl(oControl._oButton);oRm.close` &&
+             `("span")}}});return Env.ownClass(NativeBridgeScan)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/SmartMultiInputExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Env"],(Control,Lib,ViewSlots,Env)=>{"use strict";const Smart` &&
@@ -287,12 +288,12 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `a("longKey",TOKENLONGKEY);token.data("range",null);if(TOKENTEXT)token.setText(TOKENTEXT)}}catch(e){Lib.logError("SmartMultiInputExt.setRangeData failed",e)}},renderer:Lib.EMPTY_RENDERER,setControl(){i` &&
              `f(this.getProperty("checkInit"))return;const input=ViewSlots.byIdOfOwner(this,this.getProperty("multiInputId"));if(!Lib.claimOnce(this,input))return;try{this._target=input;this._onTokenUpdate=this.onT` &&
              `okenUpdate.bind(this);this._onInnerControlsCreated=this.onInnerControlsCreated.bind(this);input.attachTokenUpdate(this._onTokenUpdate);input.attachInnerControlsCreated(this._onInnerControlsCreated);if` &&
-             `(typeof input.getInnerControls==="function"&&(input.getInnerControls()||[]).length>0){this._innerControlsReady(input)}}catch(e){Lib.logError(``SmartMultiInputExt.setControl: setup failed for multiInput` &&
-             `Id '${this.getProperty("multiInputId")}'``,e)}},_detach(){const input=this._target;this._target=null;if(!input||Lib.isDestroyed(input))return;if(this._onTokenUpdate){input.detachTokenUpdate?.(this._onT` &&
-             `okenUpdate)}if(this._onInnerControlsCreated){input.detachInnerControlsCreated?.(this._onInnerControlsCreated)}this._onTokenUpdate=null;this._onInnerControlsCreated=null},inputInitialized(){return new ` &&
-             `Promise(resolve=>{if(this._bInnerControlsCreated){resolve(this._oInput)}else{this._aPendingInnerControlsCreated.push(resolve)}})},onInnerControlsCreated(oEvent){this._innerControlsReady(oEvent.getSour` &&
-             `ce())},_innerControlsReady(input){this._oInput=input;this._bInnerControlsCreated=true;for(const resolve of this._aPendingInnerControlsCreated){resolve(this._oInput)}this._aPendingInnerControlsCreated=` &&
-             `[]}});return Env.ownClass(SmartMultiInputExt)});` && |\n| &&
+             `(typeof input.getInnerControls==="function"&&(input.getInnerControls()||[]).length>0){this._innerControlsReady(input)}}catch(e){Lib.logError(``SmartMultiInputExt.setControl: setup failed for multiInpu` &&
+             `tId '${this.getProperty("multiInputId")}'``,e)}},_detach(){const input=this._target;this._target=null;if(!input||Lib.isDestroyed(input))return;if(this._onTokenUpdate){input.detachTokenUpdate?.(this._o` &&
+             `nTokenUpdate)}if(this._onInnerControlsCreated){input.detachInnerControlsCreated?.(this._onInnerControlsCreated)}this._onTokenUpdate=null;this._onInnerControlsCreated=null},inputInitialized(){return ne` &&
+             `w Promise(resolve=>{if(this._bInnerControlsCreated){resolve(this._oInput)}else{this._aPendingInnerControlsCreated.push(resolve)}})},onInnerControlsCreated(oEvent){this._innerControlsReady(oEvent.getSo` &&
+             `urce())},_innerControlsReady(input){this._oInput=input;this._bInnerControlsCreated=true;for(const resolve of this._aPendingInnerControlsCreated){resolve(this._oInput)}this._aPendingInnerControlsCreate` &&
+             `d=[]}});return Env.ownClass(SmartMultiInputExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/Storage.js": function(){sap.ui.define(["sap/ui/core/Control","sap/ui/util/Storage","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Storage,Lib,Env)=>{"use strict";function isSameValue(a,b)` &&
@@ -302,43 +303,43 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `aultValue:""},value:{type:"any",defaultValue:""}},events:{finished:{parameters:{type:{type:"string"},prefix:{type:"string"},key:{type:"string"},value:{type:"any"}}}}},onAfterRendering(){if(!this._pend` &&
              `ingRead)return;this._pendingRead=false;const type=this.getProperty("type");const prefix=this.getProperty("prefix");const key=this.getProperty("key");const value=this.getProperty("value");let stored;tr` &&
              `y{const storageType=Lib.resolveStorageType(Storage,type,"Storage","reading");if(this._storeType!==storageType||this._storePrefix!==prefix){this._store=new Storage(storageType,prefix);this._storeType=s` &&
-             `torageType;this._storePrefix=prefix}stored=this._store.get(key)}catch(e){Lib.logError(``Storage: read failed for key '${key}'``,e);return}if(stored==null)return;if(!isSameValue(stored,value)){this.setPr` &&
-             `operty("value",stored,true);this.fireFinished({type,prefix,key,value:stored})}},renderer:{apiVersion:2,render(oRm,oControl){Lib.renderInvisibleSpan(oRm,oControl);oControl._pendingRead=true}}});return ` &&
-             `Env.ownClass(StorageControl)});` && |\n| &&
+             `torageType;this._storePrefix=prefix}stored=this._store.get(key)}catch(e){Lib.logError(``Storage: read failed for key '${key}'``,e);return}if(stored==null)return;if(!isSameValue(stored,value)){this.set` &&
+             `Property("value",stored,true);this.fireFinished({type,prefix,key,value:stored})}},renderer:{apiVersion:2,render(oRm,oControl){Lib.renderInvisibleSpan(oRm,oControl);oControl._pendingRead=true}}});retur` &&
+             `n Env.ownClass(StorageControl)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/Tree.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/core/Env"],(Control,Lib,ViewSlots,Context,Env)=>{"use stri` &&
              `ct";const Tree=Control.extend("z2ui5.cc.Tree",{metadata:{properties:{tree_id:{type:"string"}}},_getTreeBinding(){const treeControl=ViewSlots.byIdOfOwner(this,this.getProperty("tree_id"));return treeCo` &&
-             `ntrol?.getBinding("items")},_treeStates(where){const states=Context.of(this)?.state.treeStates;if(states)return states;if(!this._noContextLogged){this._noContextLogged=true;Lib.logError(``Tree.${where}` &&
-             `: no component context, tree state not preserved``)}return null},setBackend(){try{const id=this.getProperty("tree_id");if(!id)return;const treeStates=this._treeStates("setBackend");if(!treeStates)retur` &&
-             `n;const binding=this._getTreeBinding();if(binding){treeStates[id]=binding.getCurrentTreeState()}}catch(e){Lib.logError(``Tree.setBackend: failed for tree_id '${this.getProperty("tree_id")}'``,e)}},init(` &&
-             `){this._unhook=Lib.hookCallback(this,"onBeforeRoundtrip","setBackend")},exit(){this._unhook()},onAfterRendering(){try{const id=this.getProperty("tree_id");if(!id)return;const snapshot=this._treeStates` &&
-             `("onAfterRendering")?.[id];if(!snapshot)return;const binding=this._getTreeBinding();if(!binding)return;if(this._appliedSnapshot===snapshot&&this._appliedBinding===binding){return}this._appliedSnapshot` &&
-             `=snapshot;this._appliedBinding=binding;binding.setTreeState(snapshot);binding.refresh(true)}catch(e){Lib.logError(``Tree.onAfterRendering: setTreeState failed for tree_id '${this.getProperty("tree_id")` &&
-             `}'``,e)}},renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Tree)});` && |\n| &&
+             `ntrol?.getBinding("items")},_treeStates(where){const states=Context.of(this)?.state.treeStates;if(states)return states;if(!this._noContextLogged){this._noContextLogged=true;Lib.logError(``Tree.${where` &&
+             `}: no component context, tree state not preserved``)}return null},setBackend(){try{const id=this.getProperty("tree_id");if(!id)return;const treeStates=this._treeStates("setBackend");if(!treeStates)ret` &&
+             `urn;const binding=this._getTreeBinding();if(binding){treeStates[id]=binding.getCurrentTreeState()}}catch(e){Lib.logError(``Tree.setBackend: failed for tree_id '${this.getProperty("tree_id")}'``,e)}},i` &&
+             `nit(){this._unhook=Lib.hookCallback(this,"onBeforeRoundtrip","setBackend")},exit(){this._unhook()},onAfterRendering(){try{const id=this.getProperty("tree_id");if(!id)return;const snapshot=this._treeSt` &&
+             `ates("onAfterRendering")?.[id];if(!snapshot)return;const binding=this._getTreeBinding();if(!binding)return;if(this._appliedSnapshot===snapshot&&this._appliedBinding===binding){return}this._appliedSnap` &&
+             `shot=snapshot;this._appliedBinding=binding;binding.setTreeState(snapshot);binding.refresh(true)}catch(e){Lib.logError(``Tree.onAfterRendering: setTreeState failed for tree_id '${this.getProperty("tree` &&
+             `_id")}'``,e)}},renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Tree)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/UITableExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Control,Lib,Env,ViewSlots,Context)=>{"us` &&
-             `e strict";const opSymbols={EQ:"=",NE:"!=",LT:"<",LE:"<=",GT:">",GE:">="};const filterDisplayFns={Contains:v=>``*${v??""}*``,StartsWith:v=>``${v??""}*``,EndsWith:v=>``*${v??""}``};const UITableExt=Control.ex` &&
-             `tend("z2ui5.cc.UITableExt",{metadata:{properties:{tableId:{type:"string"}}},init(){this._unhooks=[Lib.hookCallback(this,"onBeforeRoundtrip","readBackend"),Lib.hookCallback(this,"onAfterRendering","app` &&
-             `lyBackend")]},exit(){for(const unhook of this._unhooks)unhook()},readBackend(){const table=this._getTable();this.readFilter(table);this.readSort(table);const kept=this._tableStates();const id=this.get`.
+             `e strict";const opSymbols={EQ:"=",NE:"!=",LT:"<",LE:"<=",GT:">",GE:">="};const filterDisplayFns={Contains:v=>``*${v??""}*``,StartsWith:v=>``${v??""}*``,EndsWith:v=>``*${v??""}``};const UITableExt=Cont`.
     result = result &&
-             `Property("tableId");if(kept&&id){kept[id]={filters:this.aFilters,sorters:this.aSorters}}},_tableStates(){return Context.of(this)?.state.tableStates??null},applyBackend(){try{const oTable=this._getTabl` &&
-             `e();if(!oTable)return;if(this._applyPending&&this._pendingTable===oTable)return;this._applyPending=true;this._pendingTable=oTable;Lib.whenRendered(oTable,this,()=>{if(this._pendingTable!==oTable)retur` &&
-             `n;this._applyPending=false;this._pendingTable=null;const kept=this._tableStates()?.[this.getProperty("tableId")]??{};this._applyGuarded(oTable,this.aFilters??kept.filters,"_applyFilters");this._applyG` &&
-             `uarded(oTable,this.aSorters??kept.sorters,"_applySorters")})}catch(e){this._applyPending=false;this._pendingTable=null;Lib.logError(``UITableExt.applyBackend failed${this._forTable()}``,e)}},_applyGuard` &&
-             `ed(oTable,aValues,method){try{this[method](oTable,aValues)}catch(e){Lib.logError(``UITableExt.${method} failed${this._forTable()}``,e)}},_forTable(){return`` for tableId '${this.getProperty("tableId")}'``` &&
-             `},_getTable(){return ViewSlots.byIdOfOwner(this,this.getProperty("tableId"))},readFilter(oTable){try{const binding=oTable?.getBinding();this._filterBinding=binding;this.aFilters=Env.controlFilters(bin` &&
-             `ding)}catch(e){Lib.logError(``UITableExt.readFilter failed${this._forTable()}``,e)}},_applyFilters(oTable,aFilters){if(!aFilters)return;const binding=oTable.getBinding();if(!binding)return;if(binding===` &&
-             `this._filterBinding)return;binding.filter(aFilters);this._filterBinding=binding;const columns=oTable.getColumns();for(const oFilter of aFilters){let sProperty=oFilter.sPath;if(!sProperty&&oFilter.aFil` &&
-             `ters?.[0]){sProperty=oFilter.aFilters[0].sPath}if(!sProperty)continue;const operator=oFilter.sOperator;let vValue=oFilter.oValue1;if(vValue===undefined)vValue=oFilter.oValue2;if(vValue===undefined&&oF` &&
-             `ilter.aFilters?.[0]){vValue=oFilter.aFilters[0].oValue1}let displayFn;if(operator==="BT"){displayFn=v=>{const from=Lib.toText(v);const to=Lib.toText(oFilter.oValue2);return``${from}..${to}``}}else if(fi` &&
-             `lterDisplayFns[operator]){displayFn=filterDisplayFns[operator]}else{const prefix=opSymbols[operator]||"";displayFn=v=>``${prefix}${Lib.toText(v)}``}const display=displayFn(vValue);for(const oCol of colu` &&
-             `mns){if(oCol.getFilterProperty?.()===sProperty){oCol.setFilterValue(display);oCol.setFiltered(Boolean(display))}}}},readSort(oTable){try{const binding=oTable?.getBinding();this._sortBinding=binding;th` &&
-             `is.aSorters=binding?binding.aSorters:undefined}catch(e){Lib.logError(``UITableExt.readSort failed${this._forTable()}``,e)}},_applySorters(oTable,aSorters){if(!aSorters)return;const binding=oTable.getBin` &&
-             `ding();if(!binding)return;if(binding===this._sortBinding)return;binding.sort(aSorters);this._sortBinding=binding;const columns=oTable.getColumns();for(const[index,sorter]of aSorters.entries()){for(con` &&
-             `st oCol of columns){if(oCol.getSortProperty?.()===sorter.sPath){oCol.setSorted(true);oCol.setSortOrder(sorter.bDescending?"Descending":"Ascending");if(oCol.setSortIndex)oCol.setSortIndex(index)}}}},re` &&
-             `nderer:Lib.EMPTY_RENDERER});return Env.ownClass(UITableExt)});` && |\n| &&
+             `rol.extend("z2ui5.cc.UITableExt",{metadata:{properties:{tableId:{type:"string"}}},init(){this._unhooks=[Lib.hookCallback(this,"onBeforeRoundtrip","readBackend"),Lib.hookCallback(this,"onAfterRendering` &&
+             `","applyBackend")]},exit(){for(const unhook of this._unhooks)unhook()},readBackend(){const table=this._getTable();this.readFilter(table);this.readSort(table);const kept=this._tableStates();const id=th` &&
+             `is.getProperty("tableId");if(kept&&id){kept[id]={filters:this.aFilters,sorters:this.aSorters}}},_tableStates(){return Context.of(this)?.state.tableStates??null},applyBackend(){try{const oTable=this._g` &&
+             `etTable();if(!oTable)return;if(this._applyPending&&this._pendingTable===oTable)return;this._applyPending=true;this._pendingTable=oTable;Lib.whenRendered(oTable,this,()=>{if(this._pendingTable!==oTable` &&
+             `)return;this._applyPending=false;this._pendingTable=null;const kept=this._tableStates()?.[this.getProperty("tableId")]??{};this._applyGuarded(oTable,this.aFilters??kept.filters,"_applyFilters");this._` &&
+             `applyGuarded(oTable,this.aSorters??kept.sorters,"_applySorters")})}catch(e){this._applyPending=false;this._pendingTable=null;Lib.logError(``UITableExt.applyBackend failed${this._forTable()}``,e)}},_ap` &&
+             `plyGuarded(oTable,aValues,method){try{this[method](oTable,aValues)}catch(e){Lib.logError(``UITableExt.${method} failed${this._forTable()}``,e)}},_forTable(){return`` for tableId '${this.getProperty("t` &&
+             `ableId")}'``},_getTable(){return ViewSlots.byIdOfOwner(this,this.getProperty("tableId"))},readFilter(oTable){try{const binding=oTable?.getBinding();this._filterBinding=binding;this.aFilters=Env.contro` &&
+             `lFilters(binding)}catch(e){Lib.logError(``UITableExt.readFilter failed${this._forTable()}``,e)}},_applyFilters(oTable,aFilters){if(!aFilters)return;const binding=oTable.getBinding();if(!binding)return` &&
+             `;if(binding===this._filterBinding)return;binding.filter(aFilters);this._filterBinding=binding;const columns=oTable.getColumns();for(const oFilter of aFilters){let sProperty=oFilter.sPath;if(!sProperty` &&
+             `&&oFilter.aFilters?.[0]){sProperty=oFilter.aFilters[0].sPath}if(!sProperty)continue;const operator=oFilter.sOperator;let vValue=oFilter.oValue1;if(vValue===undefined)vValue=oFilter.oValue2;if(vValue==` &&
+             `=undefined&&oFilter.aFilters?.[0]){vValue=oFilter.aFilters[0].oValue1}let displayFn;if(operator==="BT"){displayFn=v=>{const from=Lib.toText(v);const to=Lib.toText(oFilter.oValue2);return``${from}..${t` &&
+             `o}``}}else if(filterDisplayFns[operator]){displayFn=filterDisplayFns[operator]}else{const prefix=opSymbols[operator]||"";displayFn=v=>``${prefix}${Lib.toText(v)}``}const display=displayFn(vValue);for(` &&
+             `const oCol of columns){if(oCol.getFilterProperty?.()===sProperty){oCol.setFilterValue(display);oCol.setFiltered(Boolean(display))}}}},readSort(oTable){try{const binding=oTable?.getBinding();this._sort` &&
+             `Binding=binding;this.aSorters=binding?binding.aSorters:undefined}catch(e){Lib.logError(``UITableExt.readSort failed${this._forTable()}``,e)}},_applySorters(oTable,aSorters){if(!aSorters)return;const b` &&
+             `inding=oTable.getBinding();if(!binding)return;if(binding===this._sortBinding)return;binding.sort(aSorters);this._sortBinding=binding;const columns=oTable.getColumns();for(const[index,sorter]of aSorter` &&
+             `s.entries()){for(const oCol of columns){if(oCol.getSortProperty?.()===sorter.sPath){oCol.setSorted(true);oCol.setSortOrder(sorter.bDescending?"Descending":"Ascending");if(oCol.setSortIndex)oCol.setSor` &&
+             `tIndex(index)}}}},renderer:Lib.EMPTY_RENDERER});return Env.ownClass(UITableExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/UploadSetExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Env"],(Control,Lib,ViewSlots,Env)=>{"use strict";const UploadSetEx` &&
@@ -352,8 +353,8 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `([file],max).length)return;this._readFile(file)},onItemRemoved(oEvent){const name=oEvent.getParameter("item")?.getFileName?.()??"";this.setProperty("removedFileName",name,true);this.fireRemove()},rend` &&
              `erer:Lib.EMPTY_RENDERER,setControl(){if(this.getProperty("checkInit"))return;const uploadSet=ViewSlots.byIdOfOwner(this,this.getProperty("uploadSetId"));if(!Lib.claimOnce(this,uploadSet))return;try{th` &&
              `is._target=uploadSet;this._onItemAdded=this.onItemAdded.bind(this);uploadSet.attachAfterItemAdded(this._onItemAdded);if(uploadSet.attachAfterItemRemoved){this._onItemRemoved=this.onItemRemoved.bind(th` &&
-             `is);uploadSet.attachAfterItemRemoved(this._onItemRemoved)}else{Lib.logError("UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported")}}catch(e){Lib.logError(``UploadSetExt.setC` &&
-             `ontrol: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,e)}}});return Env.ownClass(UploadSetExt)});` && |\n| &&
+             `is);uploadSet.attachAfterItemRemoved(this._onItemRemoved)}else{Lib.logError("UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported")}}catch(e){Lib.logError(``UploadSetExt.set` &&
+             `Control: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,e)}}});return Env.ownClass(UploadSetExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/Websocket.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Context","z2ui5/core/Env"],(Control,Lib,Context,Env)=>{"use strict";const RECONNECT_BASE_MS=` &&
@@ -387,9 +388,9 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `` && |\n| &&
              `},` && |\n| &&
              `});` && |\n| &&
-             `sap.ui.define("z2ui5/cc/bundle", function () {` && |\n| &&
-             `  "use strict";` && |\n|.
+             `sap.ui.define("z2ui5/cc/bundle", function () {` && |\n|.
     result = result &&
+             `  "use strict";` && |\n| &&
              `  return {};` && |\n| &&
              `});` && |\n|.
 

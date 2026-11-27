@@ -444,6 +444,12 @@ sap.ui.define(
       localId = MAIN_VIEW_ID,
     ) {
       const oViewModel = createViewModel(ctx, "MAIN", viewModel);
+      // The MAIN controller this build is for, taken before the first
+      // await: an in-place restart (Component._restartApp, the error
+      // overlay's Restart) keeps the context and the app control alive but
+      // starts over with new controllers - a build of the app that ended
+      // must not land over the restarted one (see the guard below).
+      const oMainController = ViewSlots.getController(ctx, "MAIN");
 
       const switchPath = mOptions.switchDefaultModelPath;
 
@@ -485,7 +491,10 @@ sap.ui.define(
         XMLView.create({
           definition: xml,
           models: oModel,
-          controller: ViewSlots.getController(ctx, "MAIN"),
+          // the one taken before the awaits: after a restart in place the
+          // slot's new controller must not be wired to a build that is
+          // discarded below
+          controller: oMainController,
           // component-prefixed, never page-global - see ViewSlots.ownId
           id: ViewSlots.ownId(ctx, localId),
           preprocessors: templatePreprocessors(xml, oViewModel),
@@ -503,8 +512,13 @@ sap.ui.define(
         if (switchPath) oViewModel.destroy();
       };
 
-      // Guard against the app being destroyed during the await above.
-      if (!Lib.isAlive(ctx.state.oApp)) {
+      // Guard against the app being destroyed during the await above - or
+      // restarted in place: then the app control lives on, but the MAIN
+      // controller this build was created with is no longer the slot's.
+      if (
+        !Lib.isAlive(ctx.state.oApp) ||
+        ViewSlots.getController(ctx, "MAIN") !== oMainController
+      ) {
         discardBuild();
         return undefined;
       }

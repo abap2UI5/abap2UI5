@@ -66,8 +66,14 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
   // keeps its old shape for the specs that read the state through it.
   const specCtx = specContext({ onBeforeEventFrontend: [], shortcuts: {} });
   const AppState = { state: specCtx.state };
+  // the shipped busy pair, on the spec's context and BusyIndicator stub:
+  // BUSY_INDICATOR goes through it (the global on a page the component
+  // owns, the component's own area on a host's page)
+  const busyLib = loadLib({ ctx: specCtx, busyIndicator: BusyIndicator }).Lib;
   const Lib = {
     logError: (m) => errors.push(m),
+    showBusy: busyLib.showBusy,
+    hideBusy: busyLib.hideBusy,
     runCallbacks: () => {},
     toText: (val) => (val == null ? "" : String(val)),
     // the shipped parser, not a copy: SET_FOCUS reads its selection with it
@@ -477,6 +483,38 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "0",
     ]);
     expect(calls).toEqual([["busy.show", 0]]);
+  });
+
+  test("BusyIndicator.show without a delay leaves UI5's default, hide hides", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, ["CONTROL_GLOBAL", "BUSY_INDICATOR", "show"]);
+    FrontendAction.execute(null, ["CONTROL_GLOBAL", "BUSY_INDICATOR", "hide"]);
+    expect(calls).toEqual([["busy.show", undefined], ["busy.hide"]]);
+  });
+
+  test("on a host's page BUSY_INDICATOR covers the component's area, never the host's page", () => {
+    // embedded (ownsPage false): the global indicator blocked the host's
+    // whole page, and its hide( ) took down an indicator the host had raised
+    const { FrontendAction, calls, specCtx } = load();
+    const root = {
+      setBusyIndicatorDelay: (d) => calls.push(["root.delay", d]),
+      setBusy: (b) => calls.push(["root.busy", b]),
+      isDestroyed: () => false,
+    };
+    specCtx.state.ownsPage = false;
+    specCtx.state.oApp = root;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "BUSY_INDICATOR",
+      "show",
+      "250",
+    ]);
+    FrontendAction.execute(null, ["CONTROL_GLOBAL", "BUSY_INDICATOR", "hide"]);
+    expect(calls).toEqual([
+      ["root.delay", 250],
+      ["root.busy", true],
+      ["root.busy", false],
+    ]);
   });
 
   test("POPUP.setWithinArea resolves a control id and hands over the CONTROL", () => {
