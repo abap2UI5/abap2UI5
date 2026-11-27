@@ -1672,13 +1672,15 @@ break one of those four.
 that is accepted and no longer evaluated) and **`non-released-api`** (naming
 anything outside `src/02`).
 
-One more lands in 0.2.0, and it is the sharpest case of this whole file: a
-class that BUILDS its view with the frozen `z2ui5_cl_xml_view` used to be
-skipped by the linter entirely — the run ended with `no checkable app classes`
-and exit 0, which reads like approval while nothing had been looked at.
-**`frozen-view-builder`** reports it instead. Not pinned here yet; this
-repository's `src/99` will need it excluded when it is, since that package IS
-the frozen legacy.
+The sharpest case of this whole file was a class that BUILDS its view with
+the frozen `z2ui5_cl_xml_view`: the linter skipped it entirely — the run ended
+with `no checkable app classes` and exit 0, which reads like approval while
+nothing had been looked at. **`frozen-view-builder`** reports it (0.2.0), and
+from 0.13.0 on that is no longer its only finding: such a class is judged by
+every rule that needs no view — the `obsolete-*` and lifecycle rules included
+— and **`removed-api`** reports a name the framework removed (an error) or
+moved (a warning), with the release and what to write instead. No view rule
+runs on it still: `page( )` and `button( )` are not reconstructed.
 
 The rest needs a running system with real data and is written down here
 precisely because no gate will catch it.

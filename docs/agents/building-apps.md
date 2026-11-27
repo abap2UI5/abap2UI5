@@ -276,7 +276,10 @@ write the right-hand side:
 
 Every replaced name with old and new code:
 <https://abap2ui5.github.io/docs/resources/deprecations.html>, as data
-<https://abap2ui5.github.io/docs/api/deprecations.json>.
+<https://abap2ui5.github.io/docs/api/deprecations.json>. The linter (§9)
+reports them from that same data: `removed-api` names the release a name
+left in and what to write instead, and a class still on the frozen builder
+is judged by every rule that needs no view.
 <!-- /essentials:names -->
 
 ### Formatting the chain (strict, and machine-checked)
@@ -890,7 +893,8 @@ reasoning:
   the agent permission setup preconfigured.
 - **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks
   app classes statically (unknown/deprecated/too-new controls and members,
-  binding mistakes, builder-tree defects) and can render the view headless:
+  binding mistakes, builder-tree defects, names the framework removed or
+  moved - `removed-api`) and can render the view headless:
   `npx --yes @abap2ui5/linter my_app.clas.abap` — also
   available as a GitHub Action and inside the VS Code extension.
 - **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents
