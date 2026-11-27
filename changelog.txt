@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
++ z2ui5_if_app: an ABAP-Doc header naming z2ui5_cl_ui5_llm=>guide( ), the guide of the installed release, for a developer or an AI assistant working in the system through ADT - the interface every app names said nothing about where the guide is
 * Tooling: the downport refuses a config whose src/ glob it cannot retarget (abaplint --fix would have rewritten src/ in place), express:live answers a malformed request with 400 instead of exiting, abap2ui5-own-apps empties only a folder it wrote, and pack-npm / verify quote their arguments on Windows
 * Embedded on a host page: the BUSY_INDICATOR action covers the component's own area - it blocked the host's whole page, and its hide took down the host's own indicator; hash_back is refused there - it navigated the host's history or overwrote its route
 * hash_back: a push of the hash the browser already stands on counts as no history entry, and the route a nav_app_call pushes under hash_routing does - the next hash_back took the wrong branch, leaving the app or staying put
