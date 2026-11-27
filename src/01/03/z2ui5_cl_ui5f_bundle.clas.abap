@@ -129,7 +129,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `atchQueuedWindows(this.ctx)},async _runPendingActions(oResponse){const actions=oResponse?._pendingActions;if(oResponse)oResponse._pendingActions=null;if(!actions)return;if(!Lib.isControllerAlive(this)` &&
              `)return;for(const item of actions){const result=FrontendAction.runCustom(item,this);if(typeof result?.then==="function"){try{await result}catch(e){Lib.logError(``FrontendAction: async action '${item?.[` &&
              `0]}' failed``,e)}if(!Lib.isControllerAlive(this))return}}},destroyPopup(){ViewSlots.destroy(this.ctx,"POPUP")},destroyPopover(){ViewSlots.destroy(this.ctx,"POPOVER")},destroyNestView(){ViewSlots.destro` &&
-             `y(this.ctx,"NEST")},destroyNestView2(){ViewSlots.destroy(this.ctx,"NEST2")},destroyView(){ViewSlots.destroy(this.ctx,"MAIN")},eF(...args){return FrontendAction.execute(this,args)},eBP(oEvent,bVeto,...` &&
+             `y(this.ctx,"NEST")},destroyNestView2(){ViewSlots.destroy(this.ctx,"NEST2")},destroyView(){ViewSlots.destroy(this.ctx,"MAIN")},eF(...args){return FrontendAction.execute(this,args)},eBP(oEvent,bVeto,...`.
+    result = result &&
              `args){if(bVeto&&typeof oEvent?.preventDefault==="function"){oEvent.preventDefault()}this.eB(...args)},textPath(oControl,sSeparator){return Lib.getTextPath(oControl,sSeparator)},slotById(sSlot,sId){con` &&
              `st control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotById: no control '${sId}' in slot '${sSlot||"(any)"}'``);return null}return contro` &&
              `l},slotValue(sSlot,sId,sMethod){try{const control=sSlot?ViewSlots.byId(this.ctx,sSlot,sId):ViewSlots.resolveById(this.ctx,sId);if(!control){Lib.logError(``slotValue: no control '${sId}' in slot '${sSlo` &&
@@ -196,7 +197,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `point:settings.endpoint});const parameters=startupParameters(settings.params,settings.app);if(Object.keys(parameters).length)data.startupParameters=parameters;if(settings.ownsPage===true)data.ownsPage` &&
              `=true;return data}function createComponent(settings,installation){const create=()=>Component.create({name:installation.componentName,manifest:true,handleValidation:true,componentData:componentData(set` &&
              `tings,installation)});const owner=settings.host&&Component.getOwnerComponentFor(settings.host);if(owner){try{return owner.runAsOwner(create)}catch(e){}}return create()}return{startupParameters,compone` &&
-             `ntData,withHostStart,create(settings,installation){const part=settings.ownsPage!==true;if(part)installStyle();return Promise.resolve(createComponent(withHostStart(settings),installation)).then(compone` &&
+             `ntData,withHostStart,create(settings,installation){const part=settings.ownsPage!==true;if(part)installStyle();return Promise.resolve(createComponent(withHostStart(settings),installation)).then(compone`.
+    result = result &&
              `nt=>{const container=new ComponentContainer({lifecycle:"Container",propagateModel:false,width:"100%",height:"100%",component});if(part)container.addStyleClass(AREA);return container})}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
@@ -269,7 +271,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `opyButton.setText("Copied");setTimeout(()=>{if(!copyButton.bIsDestroyed)copyButton.setText("Copy")},1500)}});const buttons=[];if(hasErrorDetails(ctx)){buttons.push(new Button({text:"Details",press:()=` &&
              `>{dialog.close();openErrorDetails(ctx)}}))}buttons.push(copyButton);if(typeof options.onRetry==="function"){buttons.push(new Button({text:"Retry",press:()=>{dialog.close();options.onRetry()}}))}button` &&
              `s.push(restartButton);const dialog=new Dialog({title:title||"Application Error",type:"Message",state:"Error",icon:"sap-icon://message-error",contentWidth:"36rem",escapeHandler:oPromise=>oPromise.rejec` &&
-             `t(),content,buttons,initialFocus:restartButton,afterClose:()=>{if(store.dialog===dialog)store.dialog=null;dialog.destroy()}});withClass(dialog,DIALOG_CLASS);store.dialog=dialog;dialog.open();return tr` &&
+             `t(),content,buttons,initialFocus:restartButton,afterClose:()=>{if(store.dialog===dialog)store.dialog=null;dialog.destroy()}});withClass(dialog,DIALOG_CLASS);store.dialog=dialog;dialog.open();return tr`.
+    result = result &&
              `ue}catch(e){window.console?.error?.("ErrorView: friendly dialog failed",e);return false}}function reset(ctx){const store=ctx.errorView;store.title="";store.details="";store.options={}}function reopenE` &&
              `rrorDialog(ctx){const store=ctx.errorView;return showFriendlyDialog(ctx,store.title,store.details,store.options)}function handleLogout(ctx){const fallback=()=>{window.location.href="/sap/public/bc/icf` &&
              `/logoff"};try{const launchpad=ctx?.state?.oLaunchpad;if(launchpad?.Container?.logout){launchpad.Container.logout()}else{fallback()}}catch{fallback()}}function loadFriendlyDialogAsync(ctx,title,details` &&
@@ -342,7 +345,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ol,byKey)}const prev=byKey.get(key);if(prev)control.removeEventDelegate(prev)}const delegate={onAfterRendering:()=>{control.removeEventDelegate(delegate);if(byKey)byKey.delete(key);fn()}};if(byKey)byK` &&
              `ey.set(key,delegate);control.addEventDelegate(delegate)}function whenRendered(control,owner,fn,key){if(control.getDomRef()){if(!isDestroyed(owner))fn();return}onNextRendering(control,()=>{if(!isDestro` &&
              `yed(owner))fn()},key)}const XML_TEMPLATING=/sap\.ui\.core\.template\/1|\{\s*template>/;function usesXmlTemplating(xml){return XML_TEMPLATING.test(String(xml??""))}function getTextPath(control,separato` &&
-             `r){const texts=[];let node=control;for(let i=0;node&&i<100;i++){if(typeof node.getText!=="function")break;const text=node.getText();if(text)texts.push(text);node=typeof node.getParent==="function"?nod` &&
+             `r){const texts=[];let node=control;for(let i=0;node&&i<100;i++){if(typeof node.getText!=="function")break;const text=node.getText();if(text)texts.push(text);node=typeof node.getParent==="function"?nod`.
+    result = result &&
              `e.getParent():null}return texts.reverse().join(separator||" > ")}function copyToClipboard(textToCopy){if(navigator.clipboard?.writeText){return navigator.clipboard.writeText(textToCopy).then(()=>true,` &&
              `err=>{logError("Clipboard: writeText failed, falling back",err);return copyToClipboardFallback(textToCopy)})}return Promise.resolve(copyToClipboardFallback(textToCopy))}function copyToClipboardFallbac` &&
              `k(textToCopy){const textarea=document.createElement("textarea");textarea.value=textToCopy;textarea.setAttribute("readonly","");textarea.style.position="fixed";textarea.style.top="-1000px";textarea.sty` &&
@@ -415,7 +419,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `"/")?``/${app}``:app}function getRawHash(){return String(window.location.hash||"").replace(/^#/,"")}function patternFor(sClass,sDraftId){const base=``${APP_ROUTE_PREFIX}${sClass}``;return sDraftId?``${base` &&
              `}/${sDraftId}``:base}function segmentsOf(sHash){const app=appHashOf(sHash).replace(/^\/+/,"");const marker="app/";if(!app.startsWith(marker))return null;return app.slice(marker.length).split(/[&?]/)[0]` &&
              `.split("/")}function parse(sHash){const parts=segmentsOf(sHash);if(!parts)return null;if(parts[0]===""){if(parts.length<3||!parts[1]||!parts[2])return null;return{app:``/${parts[1]}/${parts[2]}``,draft:` &&
-             `parts.length>3?parts[3]:""}}if(!parts[0])return null;return{app:parts[0],draft:parts.length>1?parts[1]:""}}const APP_STATE_PARAM="z2ui5-xapp-state=";function appStateOf(sHash){const app=appHashOf(sHas` &&
+             `parts.length>3?parts[3]:""}}if(!parts[0])return null;return{app:parts[0],draft:parts.length>1?parts[1]:""}}const APP_STATE_PARAM="z2ui5-xapp-state=";function appStateOf(sHash){const app=appHashOf(sHas`.
+    result = result &&
              `h).replace(/^\/+/,"");const query=app.includes("?")?app.slice(app.indexOf("?")+1):app;for(const part of query.split("&")){if(part.toLowerCase().startsWith(APP_STATE_PARAM)){return part.slice(APP_STATE` &&
              `_PARAM.length)}}return""}function startRoute(sHash){const route=parse(sHash);if(route){return route.draft?{APP:route.app,DRAFT:route.draft}:{APP:route.app}}const appState=appStateOf(sHash);return appS` &&
              `tate?{APP_STATE:appState}:null}function navTo(sRoute,bReplace){const sHash=String(sRoute||"").replace(/^\/+/,"");if(bReplace){hashChanger().replaceHash(sHash)}else{hashChanger().setHash(sHash)}}functi` &&
@@ -457,8 +462,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `={ID:id};const caret=Lib.readCaret(focusTextInput(active,ui5El));if(caret){info.SELECTION_START=caret.start;info.SELECTION_END=caret.end}return info}catch(e){Lib.logError("getFocusInfo: focus capture ` &&
              `failed",e);return undefined}}function isInComponent(ctx,node){if(!ctx||!node||node.nodeType!==1)return false;try{const root=ctx.component?.getRootControl?.()?.getDomRef?.();if(root?.contains?.(node))r` &&
              `eturn true;const ui5El=closestUi5Element(node);return Boolean(ui5El)&&Context.of(ui5El)===ctx}catch(e){Lib.logError("isInComponent: resolving the node failed",e);return false}}function mayMoveFocus(ct` &&
-             `x){if(ctx?.state?.ownsPage!==false)return true;const active=document.activeElement;if(!active||active===document.body){return ctx.focus.userInside}return isInComponent(ctx,active)}function watchFocus(`.
-    result = result &&
+             `x){if(ctx?.state?.ownsPage!==false)return true;const active=document.activeElement;if(!active||active===document.body){return ctx.focus.userInside}return isInComponent(ctx,active)}function watchFocus(` &&
              `ctx){if(ctx?.state?.ownsPage!==false||ctx.focus.listener)return;const listener=event=>{ctx.focus.userInside=isInComponent(ctx,event.target)};ctx.focus.listener=listener;document.addEventListener("focu` &&
              `sin",listener,true);document.addEventListener("pointerdown",listener,true)}function unwatchFocus(ctx){const listener=ctx?.focus?.listener;if(!listener)return;document.removeEventListener("focusin",lis` &&
              `tener,true);document.removeEventListener("pointerdown",listener,true);ctx.focus.listener=null}function clearScrollCache(ctx){const cache=ctx.scroll;cache.target=undefined;cache.ui5El=undefined;cache.s` &&
@@ -489,7 +493,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `=>this.responseError(ctx,``No backend response within ${REQUEST_TIMEOUT_MS/1e3} seconds - request aborted``,undefined,oRetry);const seq=++ctx.server.requestSeq;const isStale=()=>seq!==ctx.server.request` &&
              `Seq;this._abortInflight(ctx);let sentAt;let body;try{body=JSON.stringify({value:oBody})}catch(e){this.responseError(ctx,``The request could not be serialized - an event argument is no plain data (${e.m` &&
              `essage})``);return}const request=this._openRequest(ctx,REQUEST_TIMEOUT_MS);const{signal}=request;try{let response;try{ctx.state.lastRequestBytes=Lib.lazyByteLength(body);sentAt=Date.now();response=awai` &&
-             `t this._post(ctx,body,signal);if(this._csrfTokenRequired(response)&&await this._fetchCsrfToken(ctx,signal)&&!isStale()){response=await this._post(ctx,body,signal)}}catch(e){if(isStale())return;if(requ` &&
+             `t this._post(ctx,body,signal);if(this._csrfTokenRequired(response)&&await this._fetchCsrfToken(ctx,signal)&&!isStale()){response=await this._post(ctx,body,signal)}}catch(e){if(isStale())return;if(requ`.
+    result = result &&
              `est.timedOut){reportTimeout()}else{const hint=e.name==="TypeError"?" - the backend could not be reached. Common causes: an expired "+"logon session redirecting to another origin (SSO), a CORS rule, "+` &&
              `"or the backend being offline.":"";this.responseError(ctx,``Network error: ${e.message}${hint}``,undefined,oRetry)}return}if(isStale())return;const contextId=response.headers.get("sap-contextid");if(Lib` &&
              `.isValidContextId(contextId)){ctx.state.contextId=contextId}if(!response.ok){let text;try{text=await response.text()}catch{if(isStale())return;if(request.timedOut){reportTimeout();return}text=``HTTP ${` &&
@@ -559,7 +564,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `wner,ownId,fragmentIdOf,resolveById,containingSlotKey,trackedModel,responseModel,destroy,detach}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/core/WindowModel.js": function(){sap.ui.define(["sap/ui/model/json/JSONModel","sap/ui/model/json/JSONListBinding","z2ui5/core/Lib","z2ui5/core/Env"],(JSONModel,JSONListBinding,Lib,Env)=>{` &&
+             `      "z2ui5/core/WindowModel.js": function(){sap.ui.define(["sap/ui/model/json/JSONModel","sap/ui/model/json/JSONListBinding","z2ui5/core/Lib","z2ui5/core/Env"],(JSONModel,JSONListBinding,Lib,Env)=>{`.
+    result = result &&
              `"use strict";const EVENT="___ZZZ_WIN";const REASON={MORE:"MORE",SORT:"SORT",FILTER:"FILTER"};const META="__WINDOW";function windowName(sPath,oContext){if(oContext||typeof sPath!=="string")return undef` &&
              `ined;const match=/^\/([^/].*?)\/?$/.exec(sPath);return match?match[1]:undefined}function toArray(value){if(!value)return[];return Array.isArray(value)?value:[value]}const pad=n=>String(n).padStart(2,"` &&
              `0");function wireValue(value){if(Object.prototype.toString.call(value)==="[object Date]"){return``${value.getFullYear()}-${pad(value.getMonth()+1)}-${pad(value.getDate())}``}return value??null}function ` &&
@@ -632,7 +638,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `,params.SUBJECT,params.BODY,params.CC,params.BCC,params.NEW_WINDOW),TRIGGER_SMS:()=>_URLHelper.triggerSms(params.TEL,params.TEXT,params.NEW_WINDOW),TRIGGER_TEL:()=>_URLHelper.triggerTel(params.TEL)};O` &&
              `bject.setPrototypeOf(actions,null);try{const fn=actions[args[1]];if(fn)fn()}catch(e){Lib.logError(``URLHELPER: '${args[1]}' failed``,e)}}function ownsPage(oController){return oController?.ctx?.state?.ow` &&
              `nsPage!==false}function evSetTitle(oController,args){if(!ownsPage(oController))return;const title=Lib.toText(args[1]);Lib.setShellTitle(oController?.ctx,title,"SET_TITLE");try{document.title=title}cat` &&
-             `ch(e){Lib.logError("SET_TITLE: setting document.title failed",e)}}function evSetFavicon(oController,args){if(!ownsPage(oController))return;const href=Lib.toText(args[1]);if(!Lib.isSafeDownloadURL(href` &&
+             `ch(e){Lib.logError("SET_TITLE: setting document.title failed",e)}}function evSetFavicon(oController,args){if(!ownsPage(oController))return;const href=Lib.toText(args[1]);if(!Lib.isSafeDownloadURL(href`.
+    result = result &&
              `)){Lib.logError(``SET_FAVICON: refused unsafe URL "${href}"``);return}try{const existing=document.head.querySelector('link[rel~="icon"]');if(existing){existing.href=href;return}const link=document.creat` &&
              `eElement("link");link.rel="icon";link.href=href;document.head.appendChild(link)}catch(e){Lib.logError("SET_FAVICON: setting the favicon failed",e)}}function evPlayAudio(oController,args){if(!Lib.isSaf` &&
              `eDownloadURL(args[1])){Lib.logError("PLAY_AUDIO: blocked unsafe audio URL");return}try{const playing=new Audio(args[1]).play();if(playing?.catch){playing.catch(e=>Lib.logError(``PLAY_AUDIO: failed for ` &&
@@ -708,7 +715,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `alled``);return}const inherited=method==="constructor"||isRootPrototypeMethod(control,method);if(inherited||typeof control[method]!=="function"){Lib.logError(``CONTROL_BY_ID: '${method}' not callable on` &&
              ` control '${id}'``);return}control[method](...castArgs(kinds,args.slice(4),view,{control,method},ctx))}function evControlCall(oController,args){const[,name,method]=args;const target=GLOBAL_TARGETS[name` &&
              `];const kinds=target&&Object.prototype.hasOwnProperty.call(target.methods,method)?target.methods[method]:undefined;if(!kinds){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not allowed``);return}con` &&
-             `st obj=target.get();if(!obj){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}let raw=args.slice(3);let mOptions;if(target.display){const last=raw[raw.length-1];if(last&&typeof` &&
+             `st obj=target.get();if(!obj){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}let raw=args.slice(3);let mOptions;if(target.display){const last=raw[raw.length-1];if(last&&typeof`.
+    result = result &&
              ` last==="object"){mOptions=last;raw=raw.slice(0,-1)}}if(kinds.length===1&&kinds[0]==="string"&&raw.length>1){raw=[formatTemplate(String(raw[0]),raw.slice(1))]}if(target.display){return target.display(` &&
              `oController,method,raw,mOptions||{},obj)}if(typeof obj[method]!=="function"){Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);return}obj[method](...castArgs(kinds,raw,undefined,undefi` &&
              `ned,oController?.ctx))}function formatTemplate(tpl,values){return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,(m,i,tText,fText)=>{const n=Number(i);if(n>=values.length)return m;const v=String(valu` &&
@@ -778,7 +786,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `Key)!==queued.model)continue;oController.eB([WindowModel.EVENT,{noBusy:queued.noBusy}],...queued.args)}if(!Object.keys(windows).length)ctx.state.oQueuedWindow=null}function createViewModel(ctx,slotKey` &&
              `="MAIN",data=ctx.state.oResponse?.OVIEWMODEL){const oModel=trackChanges(new WindowModel(dataForSlot(slotKey,data)));oModel._z2ui5WindowSend=(args,noBusy)=>{const oController=ViewSlots.getController(ct` &&
              `x,slotKey);if(typeof oController?.eB!=="function"){Lib.logError(``WINDOW: slot ${slotKey} has no controller``);return}if(ctx.state.isBusy){keepWindowRequest(ctx,oModel,slotKey,args,noBusy);return}oContr` &&
-             `oller.eB([WindowModel.EVENT,{noBusy:!!noBusy}],...args)};if(data&&data===ctx.state.oResponse?.OVIEWMODEL){oModel._z2ui5BuiltFrom=ctx.state.oResponse.TOKEN}return oModel}function isSuperseded(ctx,seq){` &&
+             `oller.eB([WindowModel.EVENT,{noBusy:!!noBusy}],...args)};if(data&&data===ctx.state.oResponse?.OVIEWMODEL){oModel._z2ui5BuiltFrom=ctx.state.oResponse.TOKEN}return oModel}function isSuperseded(ctx,seq){`.
+    result = result &&
              `return seq!==undefined&&seq!==ctx.server.requestSeq}function loadViewResources(ctx,xml){return Promise.all([Env.loadViewLibraries(xml),CustomControls.ensure(ctx,xml)])}async function loadSlotFragment(` &&
              `ctx,slotKey,fragmentId,xml,seq){const oModel=createViewModel(ctx,slotKey);applyStoredSizeLimit(ctx,slotKey,oModel);await loadViewResources(ctx,xml);await Env.preloadFragmentModules(xml);const oFragmen` &&
              `t=await Context.runAsOwner(ctx,()=>Fragment.load({definition:xml,controller:ViewSlots.getController(ctx,slotKey),id:ViewSlots.ownId(ctx,fragmentId)}));if(!Lib.isAlive(ctx.state.oApp)||isSuperseded(ctx` &&
@@ -854,12 +863,12 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `m=>String(filterItemValue(item)).length>0))}function attachFilterBarChange(oSVM,oFilterBar){oFilterBar.getAllFilterItems().forEach(item=>{const control=filterItemControl(item);if(!control||typeof cont` &&
              `rol.attachChange!=="function")return;control.attachChange(oEvent=>{if(typeof oSVM.currentVariantSetModified==="function"){oSVM.currentVariantSetModified(true)}if(typeof oFilterBar.fireFilterChange==="` &&
              `function"){oFilterBar.fireFilterChange(oEvent)}})})}function withPersonalizableInfo(callback){const name="sap/ui/comp/smartvariants/PersonalizableInfo";if(typeof sap==="undefined"||!sap.ui||typeof sap` &&
-             `.ui.require!=="function"){Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");return}const loaded=sap.ui.require(name);if(loaded){callback(loaded);return}sap.ui.require([name],callba` &&
+             `.ui.require!=="function"){Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");return}const loaded=sap.ui.require(name);if(loaded){callback(loaded);return}sap.ui.require([name],callba`.
+    result = result &&
              `ck,()=>Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available"))}function evFilterBarVariantInit(oController,args){const[,svmId,filterBarId]=args;const activeInits=activeInitsO` &&
              `f(oController,"FILTER_BAR_VARIANT_INIT");if(!activeInits)return;const key=``${svmId}|${filterBarId||""}``;if(activeInits.has(key))return;activeInits.add(key);const finish=()=>activeInits.delete(key);let` &&
              ` tries=0;const run=()=>{if(!Lib.isControllerAlive(oController)){finish();return}const oSVM=ViewSlots.resolveById(oController?.ctx,svmId);const oFilterBar=ViewSlots.resolveById(oController?.ctx,filterB` &&
-             `arId);if(!oSVM||!oFilterBar){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``);finis`.
-    result = result &&
+             `arId);if(!oSVM||!oFilterBar){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``);finis` &&
              `h();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.addPersonalizableControl!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``);finish();return}if(typeof o` &&
              `FilterBar.registerFetchData!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'``);finish();return}if(oFilterBar[FILTER_BAR_WIRED]){finish();return}oFilterBar[FILT` &&
              `ER_BAR_WIRED]=true;finish();registerFilterBarCallbacks(oFilterBar);attachFilterBarChange(oSVM,oFilterBar);withPersonalizableInfo(PersonalizableInfo=>{oSVM.addPersonalizableControl(new PersonalizableIn` &&
@@ -927,7 +936,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `t name of METHODS){const original=window.console?.[name];if(typeof original!=="function")continue;originals[name]=original;window.console[name]=function(...args){try{original.apply(window.console,args` &&
              `)}finally{captureConsole(name,args)}}}}function uninstallConsole(){for(const[name,original]of Object.entries(originals)){window.console[name]=original;delete originals[name]}}function installUi5Log(){` &&
              `const Log=sap.ui.require("sap/base/Log");if(!Log?.addLogListener)return;ui5Listener={onLogEntry:captureUi5};try{Log.addLogListener(ui5Listener)}catch{ui5Listener=null}}function uninstallUi5Log(){if(!u` &&
-             `i5Listener)return;const Log=sap.ui.require("sap/base/Log");try{Log?.removeLogListener?.(ui5Listener)}catch{}ui5Listener=null}function install(){users+=1;if(users>1)return;restore();onWindowError=event` &&
+             `i5Listener)return;const Log=sap.ui.require("sap/base/Log");try{Log?.removeLogListener?.(ui5Listener)}catch{}ui5Listener=null}function install(){users+=1;if(users>1)return;restore();onWindowError=event`.
+    result = result &&
              `=>{const stack=event?.error?.stack;if(stack){push("error","uncaught",stack);return}const where=event?.filename?`` (${event.filename}:${event.lineno||0}:${event.colno||0})``:"";push("error","uncaught",``$` &&
              `{event?.message||"unknown error"}${where}``)};onRejection=event=>{const reason=event?.reason;push("error","rejection",reason?.stack||renderArg(reason)||"unhandled rejection")};onPageHide=persist;window` &&
              `.addEventListener("error",onWindowError);window.addEventListener("unhandledrejection",onRejection);window.addEventListener("pagehide",onPageHide);installUi5Log();installConsole()}function uninstall(){` &&
@@ -994,7 +1004,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ined)return absent;if(Array.isArray(value))return``table, ${value.length} row(s)``;if(typeof value==="object"){return``structure, ${Object.keys(value).length} field(s)``}if(value==="")return typed?``${type` &&
              `of value} ${empty}``:empty;const preview=truncate(value,max);return typed?``${typeof value}  ${preview}``:preview}const FRAMEWORK_CALL=/\b(eB|eBP|eF)\s*\((?:[^[)"'&]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z` &&
              `0-9_.-]+)/;return{toJson,prettifyXml,truncate,formatBytes,section,renderValue,describeValue,FRAMEWORK_CALL}});` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `},` && |\n| &&
              `      "z2ui5/devtools/Persist.js": function(){sap.ui.define([],()=>{"use strict";function read(key){try{return window.sessionStorage?.getItem(key)||""}catch{return""}}function write(key,value){try{win` &&
              `dow.sessionStorage?.setItem(key,value)}catch{}}function remove(key){try{window.sessionStorage?.removeItem(key)}catch{}}function readFlag(key){return read(key)==="X"}function writeFlag(key,enabled){if(` &&
@@ -1069,7 +1080,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ng(change.number).padStart(5)}  ``+``${change.line.trim()}``)}if(changes.length>=MAX_DIFF_ENTRIES){out.push("");out.push(``(stopped after ${MAX_DIFF_ENTRIES} changes)``)}return out.join("\n")}function pret` &&
              `tifyForDiff(xml){return xml.replace(/></g,">\n<")}function lastTwoResponses(ctx){const withPayload=getRecords(ctx).filter(record=>record.response?.MODEL!==undefined);if(withPayload.length<2)return nul` &&
              `l;return withPayload.slice(-2)}function formatModelDiff(ctx){if(!isRecordingPayloads()){return"Model diff needs payload recording.\n\n"+'Switch "Record Payloads" on in the Roundtrips action bar, then'` &&
-             `+" trigger at least two roundtrips - the diff compares the MODEL of\n"+"the two most recently recorded responses."}const pair=lastTwoResponses(ctx);if(!pair){return"Not enough recorded responses yet -` &&
+             `+" trigger at least two roundtrips - the diff compares the MODEL of\n"+"the two most recently recorded responses."}const pair=lastTwoResponses(ctx);if(!pair){return"Not enough recorded responses yet -`.
+    result = result &&
              ` the diff needs two.\n\n"+"Trigger another roundtrip and reopen this tab."}const[previous,current]=pair;const out=collectDiff(previous.response?.MODEL,current.response?.MODEL);const header=[``Model dif` &&
              `f: roundtrip #${previous.seq} (${previous.event||"(start)"})``+`` -> #${current.seq} (${current.event||"(start)"})``,""];if(!out.length){header.push("(the two responses carry an identical MODEL)");return` &&
              ` header.join("\n")}header.push(``${out.length}${out.length>=MAX_DIFF_ENTRIES?"+":""}``+`` differing path(s):``);header.push("");for(const entry of out){const path=entry.path||"/";if(entry.type==="added"){` &&
