@@ -68,6 +68,11 @@ jobs:
       with:
         # the 702 tag is placed on the derived branch, which has to be fetched
         fetch-depth: 0
+        # No write token in .git/config: npm ci and npm run verify below run
+        # every install script of the dependency tree, and a token there is
+        # readable by all of them. The one push of this job (the 702 tag)
+        # hands the token to git for that command alone.
+        persist-credentials: false
 
     - uses: ./.github/actions/setup
       with:
@@ -191,6 +196,8 @@ jobs:
           WT="$RUNNER_TEMP/downport-702"
           git worktree add --detach "$WT" "$GITHUB_SHA"
           (
+            # npm and the downport run without the token (see the checkout)
+            unset GH_TOKEN
             cd "$WT"
             npm ci --no-audit --no-fund
             npm run auto_downport
@@ -204,7 +211,11 @@ jobs:
           echo "702 build of the release commit: $(git log -1 --format='%h %s' "$TARGET")"
         fi
         git tag "$VERSION-702" "$TARGET"
-        git push origin "$VERSION-702"
+        # the checkout keeps no credentials: the token goes to this one push,
+        # as an extra header git does not write anywhere (the masked secret
+        # never appears in the command line or the remote URL)
+        git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+          push "https://github.com/$GITHUB_REPOSITORY.git" "refs/tags/$VERSION-702"
         # --latest=false: this release is published after X.Y.Z, and without
         # the flag GitHub would mark the downport "Latest" on the releases
         # page and hand it to anyone who follows "pull a release" from the
