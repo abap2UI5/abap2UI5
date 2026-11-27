@@ -317,8 +317,9 @@ needs it, inline declarations used selectively (`prefer_inline: false`), no abap
   an interface, a constant a `CONSTANTS`, a lookup table an internal table. The one remaining table is
   `z2ui5_t_01` (the drafts); `z2ui5_t_91` ships from abap2UI5-ext. A new one needs a maintainer decision first.
   The numbers `z2ui5_t_05` - `_06` and `_11` - `_33` belong to the abap2UI5-addons (one numbering all addons
-  share, decided 2026-11; the next free one is `_34`) - never reuse one of them here. `_02` was released once and
-  removed again (2026-09-22); `_03`/`_04` and `_07` - `_10` are left free.
+  share, decided 2026-11) - never reuse one of them here. Which repository owns which number is the `tables` of
+  its entry in `.github/ecosystem.json`; `npm run check:ecosystem` refuses a number listed twice and names the
+  next free one. `_02` was released once and removed again (2026-09-22); `_03`/`_04` and `_07` - `_10` are left free.
 
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 

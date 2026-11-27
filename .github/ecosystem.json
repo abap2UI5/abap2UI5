@@ -6,6 +6,7 @@
     "Facts were read from the default branch of every repository on 2026-11-26. A value that could not be established is null with a 'note' saying so - never a guess.",
     "The four cap2UI5 repositories (kind 'host') were added on 2026-11-27, read from their default branches that day. They pin the core through the npm package, not through a branch: the canary's lint does not reach them, and what tells that a core change breaks them is cap2UI5's own CI job that builds the runtime from main.",
     "Eight more abap2UI5-addons repositories (config-management, embed-excel, embed-mobile, embed-webcomponent, launchpad-kpi, rap-ext, rfc-connector, sql-console) and every addon's pin on the shared CI template in rap-ext were added on 2026-11-27, read from their default branches that day.",
+    "'tables' are the z2ui5_t_NN tables a repository ships (its own, not a dependency's copy): all addons share one numbering, and two of them taking the same number collide silently on a system - the second pull overwrites the first table. The checker refuses a number listed twice and names the next free one; with --live it compares each list with the repository's tree. Read 2026-11-27.",
     "A pin's 'ref' is what the file names today: a branch or tag for an abaplint dependency (null = no \"branch\" key, abaplint clones the default branch), a commit for .github/deps.json / A2UI5_PIN / a script pin, a version range for npm."
   ],
   "schema": 1,
@@ -41,6 +42,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/auto_downport.yaml", "cloud": ".github/workflows/auto-cloud.yaml" },
       "release": { "mode": "core", "by": ".github/workflows/release.yaml" },
+      "tables": ["z2ui5_t_01"],
       "dependsOn": [
         { "repo": "abap2UI5-addons/embed-ui5-control", "via": "script", "file": "node/setup/fetch-deps.mjs", "field": "sha", "ref": "2d8dd2bf9ff75fdf7a7881ec03e75ef703fe6531" },
         { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.13.0" },
@@ -58,6 +60,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/publish-702.yaml" },
       "release": { "mode": "with-core" },
+      "tables": ["z2ui5_t_91"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
@@ -322,6 +325,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/ci-702.yaml" },
       "release": { "mode": "with-core" },
+      "tables": ["z2ui5_t_11", "z2ui5_t_12"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
@@ -423,6 +427,7 @@
         "cloud": ".github/workflows/publish-branches.yaml"
       },
       "release": { "mode": "own", "by": ".github/workflows/release.yaml", "note": "no tag exists yet" },
+      "tables": ["z2ui5_t_14", "z2ui5_t_15", "z2ui5_t_16", "z2ui5_t_17"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
@@ -444,6 +449,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/ci-702.yaml" },
       "release": { "mode": "own", "tags": "vX.Y.Z", "by": ".github/workflows/release.yaml" },
+      "tables": ["z2ui5_t_18", "z2ui5_t_19"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
@@ -462,6 +468,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/ci-702.yaml", "standalone": ".github/workflows/publish-standalone.yaml" },
       "release": { "mode": "none" },
+      "tables": ["z2ui5_t_20", "z2ui5_t_21", "z2ui5_t_22", "z2ui5_t_23", "z2ui5_t_24", "z2ui5_t_25", "z2ui5_t_26", "z2ui5_t_27", "z2ui5_t_28"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
@@ -499,6 +506,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/ci-702.yaml" },
       "release": { "mode": "none" },
+      "tables": ["z2ui5_t_05", "z2ui5_t_06"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_702.jsonc", "field": "dependencies[].branch", "ref": "702" },
@@ -516,6 +524,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/ci-702.yaml" },
       "release": { "mode": "none", "note": "tag 1.139.0 exists; not part of the ecosystem release since" },
+      "tables": ["z2ui5_t_13"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": null },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": null },
@@ -577,6 +586,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/ci-702.yaml" },
       "release": { "mode": "none" },
+      "tables": ["z2ui5_t_29", "z2ui5_t_30"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
@@ -662,6 +672,7 @@
       "defaultBranch": "main",
       "branches": { "cloud": ".github/workflows/cloud-branch.yaml" },
       "release": { "mode": "none", "note": "its tags ci-vX.Y.Z version the shared CI template, not the addon" },
+      "tables": ["z2ui5_t_31"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint-cloud.jsonc", "field": "dependencies[].branch", "ref": "1.151.0" },
@@ -696,6 +707,7 @@
       "defaultBranch": "main",
       "branches": { "702": ".github/workflows/ci-702.yaml" },
       "release": { "mode": "none", "note": "tag 1.134.0 exists; not part of the ecosystem release since" },
+      "tables": ["z2ui5_t_32", "z2ui5_t_33"],
       "dependsOn": [
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": "abaplint.jsonc", "field": "dependencies[].branch", "ref": "main" },
         { "repo": "abap2UI5/abap2UI5", "via": "abaplint", "file": ".github/abaplint/abap_cloud.jsonc", "field": "dependencies[].branch", "ref": "main" },
