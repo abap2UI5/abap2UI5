@@ -22,6 +22,9 @@
  *        names with the value the map records, and the ref it names exists
  *        (a branch or tag by `git ls-remote`, a commit by the GitHub API -
  *        GITHUB_TOKEN / GH_TOKEN raise the rate limit, nothing needs one).
+ *        It also lists, as "behind" and never as a finding, every npm pin
+ *        on a package of the family (@abap2ui5/*, @cap2ui5/*) that the
+ *        package's newest release does not satisfy.
  *
  * --live is NOT part of `npm run gates`: it reads forty repositories over the
  * network, and a pin that moved over there is news about that repository, not
@@ -43,6 +46,7 @@ const REPO = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
 const problems = [];
 const notes = [];
+const behind = [];
 let pinsChecked = 0;
 const bad = (where, msg) => problems.push(`${where}: ${msg}`);
 
@@ -218,6 +222,38 @@ function checkPinText(p, text) {
 
 /* ----------------------------------------------------------------- --live */
 
+/* A pin on a package of the family that the newest release no longer
+ * satisfies. Not a finding - the map records what the file says, and a pin
+ * may lag on purpose - but after a core release it is the list of what was
+ * not carried along: on 2026-11-27, a day after 1.151.0 shipped wire
+ * protocol 3, the protocol suite still installed 1.150.0 and two embed
+ * repositories older runtimes, and five sample corpora a linter two minors
+ * behind (RELEASING.md, "After a release"). */
+const OWN_SCOPES = /^@(abap2ui5|cap2ui5)\//;
+
+/* Does the npm range `range` admit version `v`? true / false, or null when
+ * the range is not one of the shapes the ecosystem writes (X.Y.Z, ^X.Y.Z,
+ * ~X.Y.Z, >=X.Y.Z, >=X.Y.Z <A.B.C). No dependency on semver: a caret on
+ * 0.x stays within the minor, as npm resolves it. */
+function admits(range, v) {
+  const num = (s) => s.split(".").map(Number);
+  const cmp = (a, b) => { for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; };
+  const V = num(v);
+  const r = range.trim();
+  let m;
+  if ((m = /^(\d+\.\d+\.\d+)$/.exec(r))) return cmp(V, num(m[1])) === 0;
+  if ((m = /^\^(\d+\.\d+\.\d+)$/.exec(r))) {
+    const L = num(m[1]);
+    const upper = L[0] > 0 ? [L[0] + 1, 0, 0] : L[1] > 0 ? [0, L[1] + 1, 0] : [0, 0, L[2] + 1];
+    return cmp(V, L) >= 0 && cmp(V, upper) < 0;
+  }
+  if ((m = /^~(\d+\.\d+\.\d+)$/.exec(r))) { const L = num(m[1]); return cmp(V, L) >= 0 && cmp(V, [L[0], L[1] + 1, 0]) < 0; }
+  if ((m = /^>=\s*(\d+\.\d+\.\d+)(?:\s+<\s*(\d+\.\d+\.\d+))?$/.exec(r))) {
+    return cmp(V, num(m[1])) >= 0 && (!m[2] || cmp(V, num(m[2])) < 0);
+  }
+  return null;
+}
+
 async function fetchText(url) {
   const headers = {};
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -284,6 +320,9 @@ async function live() {
           if (status === 404) bad(pat, `${pkgName} is not on the npm registry`);
           else if (status === 200 && /^\d+\.\d+\.\d+$/.test(p.ref) && !JSON.parse(text).versions?.[p.ref]) {
             bad(pat, `${pkgName}@${p.ref} is not published`);
+          } else if (status === 200 && OWN_SCOPES.test(pkgName)) {
+            const latest = JSON.parse(text)["dist-tags"]?.latest;
+            if (latest && admits(p.ref, latest) === false) behind.push(`${e.repo}: ${pkgName} ${p.ref} - latest is ${latest} (${p.file})`);
           }
         }
         checked += 1;
@@ -300,6 +339,10 @@ report();
 
 function report() {
   for (const n of notes) console.log(`note: ${n}`);
+  if (behind.length) {
+    console.log(`behind: ${behind.length} pin(s) on @abap2ui5/* or @cap2ui5/* the newest release does not satisfy - not a finding; after a release, carry them along (RELEASING.md):`);
+    for (const b of behind) console.log(`  ${b}`);
+  }
   if (problems.length) {
     console.log(`ecosystem-map: ${problems.length} problem(s) in .github/ecosystem.json${LIVE ? " (live)" : ""}\n`);
     for (const p of problems) console.log(`  ${p}`);
