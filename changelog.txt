@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! the branch cloud carries the whole repository, as 702 does: the built tree (src/ with the cloud service, app/, the abapGit descriptor, abaplint.jsonc, README.md) is laid over main in place and published on every push to main, so the branch is always one commit ahead of main and never behind. An installation pulls src/ as before
 * 702: the test include of z2ui5_cl_ui5_srv_model activates on 7.02 - the downport declared 14 field symbols LIKE LINE OF a generically typed table ("<TAB> is a generic type"), which took the whole class pool down; the rows are assigned first now, and check-generic-like also catches FIELD-SYMBOLS ... LIKE, not only DATA ... LIKE
 + build-rename also builds the renamed 7.02 installation: rename_<name>_702 is the renamed tree run through the same downport as the branch 702 (npm run auto_downport, without the BSP) and linted with the 702 config before it is pushed; the input with_702 (default on) switches it off. There is still no renamed variant of the branch cloud
 

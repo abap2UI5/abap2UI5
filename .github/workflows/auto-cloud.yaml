@@ -5,29 +5,19 @@ name: auto-cloud
 # nobody commits to it. What it carries and why is the header of
 # tools/build-cloud.mjs.
 #
-# Scoped by paths: the branch is a function of src/, cloud/, app_source/ and
-# the build - a docs-only push to main changed none of its inputs. Not a
-# required check, so a paths filter is safe here.
+# Every push to main: the branch carries the whole repository, as 702 does,
+# so every commit on main is an input - there is no paths filter to scope
+# it by. Not a required check.
 #
-# The tree is published as ONE commit whose parent is the main commit it was
-# built from and whose content is the built tree and nothing else - so the
-# branch is always exactly one commit ahead of main, and `git log cloud`
-# reads as main's history. A push whose tree equals the one already
-# published is skipped: a commit that moves the provenance forward without
-# moving the content is noise in an installation source.
+# The tree is main's, with the built tree of tools/out/cloud laid over it -
+# src/ with cloud/src/03 in place of src/03, app/, .abapgit.xml,
+# abaplint.jsonc, README.md - and published as ONE commit on top of the main
+# commit it was built from: the branch is always exactly one commit ahead of
+# main and never behind it, and `git log cloud` reads as main's history.
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'cloud/**'
-      - 'app_source/**'
-      - 'tools/build-cloud.mjs'
-      - '.abapgit.xml'
-      - 'LICENSE'
-      - '.github/workflows/auto-cloud.yaml'
-      - '.github/actions/**'
 
 concurrency:
   group: auto-cloud
@@ -66,28 +56,18 @@ jobs:
       working-directory: tools/out/cloud
       run: npx abaplint
 
-    # Plumbing instead of a checkout: the tree is written from tools/out/cloud
-    # through an index of its own, so the working tree and its index are never
-    # touched and nothing that is not in the built tree can end up in the
-    # commit. The Source-Commit trailer names the main commit, as on 702.
+    # As auto_downport: the checkout of main is rewritten in place and
+    # committed on top of the commit it was built from. src/ and app/ are
+    # replaced as a whole, so nothing of main's src/03 survives in the branch's src/;
+    # tools/out/ is git-ignored and stays behind. The Source-Commit trailer
+    # names the main commit, as on 702.
     - name: Commit and push the branch
       run: |
         set -euo pipefail
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
-
-        export GIT_INDEX_FILE="$RUNNER_TEMP/cloud.index"
-        rm -f "$GIT_INDEX_FILE"
-        git --work-tree=tools/out/cloud add -A -f .
-        tree=$(git write-tree)
-        unset GIT_INDEX_FILE
-
-        if git fetch --quiet --depth 1 origin cloud 2>/dev/null; then
-          if [ "$(git rev-parse 'FETCH_HEAD^{tree}')" = "$tree" ]; then
-            echo "the tree matches the published branch, nothing to push"
-            exit 0
-          fi
-        fi
-
-        commit=$(git commit-tree "$tree" -p "$GITHUB_SHA" -m "Cloud branch" -m "Source-Commit: $GITHUB_SHA")
-        git push --force origin "$commit:refs/heads/cloud"
+        rm -rf src app
+        cp -r tools/out/cloud/. .
+        git add .
+        git commit -m "Cloud branch" -m "Source-Commit: $GITHUB_SHA"
+        git push --force origin HEAD:refs/heads/cloud

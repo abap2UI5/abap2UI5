@@ -242,8 +242,8 @@ What every workflow does is `docs/agents/ci-workflows.md`. Worth carrying:
   written by `npm run app2abap` and drift-gated (rule 2).
 - **The branches `702` and `cloud` are generated from `main`** (`auto_downport.yaml`, `auto-cloud.yaml`; `702` without the
   BSP, `cloud` with `cloud/src/03` in place of `src/03`) — nobody
-  commits to them. The tree of `cloud` is not committed here: `delivery-check` builds it into the git-ignored
-  `tools/out/`.
+  commits to them. Both are the whole tree of `main`, rewritten in place, one commit on top of it. What `cloud`
+  rewrites is not committed here: `delivery-check` builds it into the git-ignored `tools/out/`.
 - **The gates also run on `push: main`** — a merge is a state no pull request tested.
 - **Every job takes its toolchain from `.github/actions/setup`.**
 - **A release carries the prebuilt backend** (`backend-prebuilt.yaml`); its asset name and `backend-manifest.json`
