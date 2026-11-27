@@ -168,10 +168,19 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! may the attribute travel as a token (json_fast_set, json_ns_set): a
+    "! table or a structure, under a client name without an empty segment
+    METHODS check_json_token_path
+      IMPORTING
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     "! a bound table or structure through the fast path: when the value
     "! takes it, its JSON is kept on cs_fast and a token set into the tree
     "! under the attribute's path - ev_taken then, abap_false when the
-    "! caller has to set the value the general way
+    "! caller has to set the value the general way. Only for an attribute
+    "! check_json_token_path admits
     METHODS json_fast_set
       IMPORTING
         ir_ref    TYPE REF TO data
@@ -202,7 +211,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! path did not take - a deep row: written through ajson into a tree of
     "! its own and rendered by json_ns_text, the namespace a level of its
     "! own (`"ABC":{"FIELD":...}`), then registered as a token. ev_taken
-    "! abap_false for every other value: the caller sets it as before
+    "! abap_false for every other value: the caller sets it as before. Only
+    "! for an attribute check_json_token_path admits
     METHODS json_ns_set
       IMPORTING
         ir_ref    TYPE REF TO data
@@ -1060,22 +1070,25 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                          io_result = li_ajson_result ).
           ENDIF.
 
-          json_fast_set( EXPORTING ir_ref    = lr_ref
+          " the two token roads - the fast path, then the namespaced one
+          IF check_json_token_path( lr_attri ) = abap_true.
+            json_fast_set( EXPORTING ir_ref    = lr_ref
+                                     ir_attri  = lr_attri
+                                     io_result = li_ajson_result
+                           IMPORTING ev_taken  = DATA(lv_taken)
+                           CHANGING  cs_fast   = ls_fast ).
+            IF lv_taken = abap_true.
+              CONTINUE.
+            ENDIF.
+
+            json_ns_set( EXPORTING ir_ref    = lr_ref
                                    ir_attri  = lr_attri
                                    io_result = li_ajson_result
-                         IMPORTING ev_taken  = DATA(lv_taken)
+                         IMPORTING ev_taken  = lv_taken
                          CHANGING  cs_fast   = ls_fast ).
-          IF lv_taken = abap_true.
-            CONTINUE.
-          ENDIF.
-
-          json_ns_set( EXPORTING ir_ref    = lr_ref
-                                 ir_attri  = lr_attri
-                                 io_result = li_ajson_result
-                       IMPORTING ev_taken  = lv_taken
-                       CHANGING  cs_fast   = ls_fast ).
-          IF lv_taken = abap_true.
-            CONTINUE.
+            IF lv_taken = abap_true.
+              CONTINUE.
+            ENDIF.
           ENDIF.
 
           li_ajson_result->set( iv_ignore_empty = abap_false
@@ -1150,9 +1163,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD json_fast_set.
+  METHOD check_json_token_path.
 
-    ev_taken = abap_false.
     " a path with an empty segment (`/MS_ROW//ABC/FIELD`, the client name
     " a namespaced component had before z2ui5_cl_ui5_srv_bind=>get_client_name
     " collapsed it - a draft of a session started then still carries it):
@@ -1163,11 +1175,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
              sub = `//` ) >= 0.
       RETURN.
     ENDIF.
-    IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-      RETURN.
-    ENDIF.
+    CASE ir_attri->type_kind.
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+          OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD json_fast_set.
+
+    ev_taken = abap_false.
     DATA(lv_json) = attri_json_fast( ir_ref ).
     IF lv_json IS INITIAL.
       RETURN.
@@ -1204,17 +1223,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD json_ns_set.
 
     ev_taken = abap_false.
-    " a client name with an empty segment cannot hold a token - see
-    " json_fast_set; such a draft keeps the road it always took
-    IF find( val = ir_attri->name_client
-             sub = `//` ) >= 0.
-      RETURN.
-    ENDIF.
-    IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-      RETURN.
-    ENDIF.
     " the common value has no namespaced component anywhere and is set
     " into the result directly, as it always was - the scratch tree below
     " is only paid for the value that needs it
