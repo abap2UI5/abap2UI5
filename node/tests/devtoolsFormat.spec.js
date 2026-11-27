@@ -378,7 +378,7 @@ test.describe("secret masking", () => {
     const input = {
       MV_USER: "alice",
       MV_PASSWORD: "hunter2",
-      MS_LOGIN: { USER: "bob", PASSWORD: "s3cret", PIN_TOKEN: 1234 },
+      MS_LOGIN: { USER: "bob", PASSWORD: "s3cret", PIN_TOKEN: "1234" },
       T_USERS: [{ NAME: "carol", PASSWORD: "pw-row" }],
       T_EDIT: { __delta: { 0: { PASSWORD: "pw-cell", NAME: "dave" } } },
       S_CREDENTIALS: { A: "x", B: { C: "y" } },
@@ -413,6 +413,88 @@ test.describe("secret masking", () => {
       { values },
     );
     expect(out.S_FRONT.T_EVENT_ARG).toEqual(["LOGIN", Format.MASK]);
+  });
+
+  // A bare TOKEN in the name test hid every MultiInput token table
+  // (KEY/TEXT rows of a filter) and every TOKEN_COUNT, numbers included;
+  // and every string equal to a secret's value was masked wherever it
+  // sat, so a PIN "1000" or a password "EQ" turned each plant 1000 and
+  // each range option EQ of the record into ***.
+  test("token tables, counters and ordinary values equal to a short secret stay visible", () => {
+    const Format = loadFormat();
+    for (const name of ["TOKEN", "TOKENS", "MT_TOKENS", "mt_tokens_added", "TOKEN_COUNT"]) {
+      expect(Format.isSecretName(name)).toBe(false);
+    }
+    // a name ending in _TOKEN is a secret only when it holds a string
+    expect(Format.isSecretName("MT_TOKEN", [{ KEY: "1" }])).toBe(false);
+    expect(Format.isSecretName("LV_TOKEN", 3)).toBe(false);
+    expect(Format.isSecretName("S_TOKEN", "x.y.z")).toBe(true);
+    // a credential token whatever it holds
+    for (const name of [
+      "ACCESS_TOKEN",
+      "MV_AUTH_TOKEN",
+      "X-CSRF-Token",
+      "xsrf_token",
+      "SESSION_TOKEN",
+      "BEARER",
+      "PASSWD",
+      "MV_APIKEY",
+    ]) {
+      expect(Format.isSecretName(name, 42)).toBe(true);
+    }
+
+    const rec = {
+      request: {
+        XX: {
+          MT_TOKEN: [{ KEY: "EQ", TEXT: "1000" }],
+          T_TOKEN: [{ KEY: "A", TEXT: "B" }],
+          mt_tokens_added: [{ KEY: "C", TEXT: "D" }],
+          TOKEN_COUNT: 3,
+          PLANT: "1000",
+          OPTION: "EQ",
+          MS_LOGIN: { PIN_PASSWORD: "1000", PASSWORD: "EQ" },
+        },
+        S_FRONT: { T_EVENT_ARG: ["LOGIN", "EQ"] },
+      },
+      response: { MODEL: { PLANT: "1000" } },
+    };
+    const values = Format.secretValues([rec.request, rec.response]);
+    const out = Format.maskSecrets(rec, { values });
+    expect(out.request.XX.MT_TOKEN).toEqual([{ KEY: "EQ", TEXT: "1000" }]);
+    expect(out.request.XX.T_TOKEN).toEqual([{ KEY: "A", TEXT: "B" }]);
+    expect(out.request.XX.mt_tokens_added).toEqual([{ KEY: "C", TEXT: "D" }]);
+    expect(out.request.XX.TOKEN_COUNT).toBe(3);
+    expect(out.request.XX.PLANT).toBe("1000");
+    expect(out.request.XX.OPTION).toBe("EQ");
+    expect(out.response.MODEL.PLANT).toBe("1000");
+    // the secrets themselves are still masked, and an event argument
+    // equal to one is masked whatever its length
+    expect(out.request.XX.MS_LOGIN).toEqual({
+      PIN_PASSWORD: Format.MASK,
+      PASSWORD: Format.MASK,
+    });
+    expect(out.request.S_FRONT.T_EVENT_ARG).toEqual(["LOGIN", Format.MASK]);
+  });
+
+  test("a distinctive secret value is masked anywhere, a table of rows under a secret name cell by cell", () => {
+    const Format = loadFormat();
+    const values = Format.secretValues({ MV_PASSWORD: "correct-horse" });
+    const out = Format.maskSecrets(
+      { MV_NOTE: "correct-horse", T_X: [{ A: "correct-horse" }] },
+      { values },
+    );
+    expect(out).toEqual({ MV_NOTE: Format.MASK, T_X: [{ A: Format.MASK }] });
+    // a table of scalars under a secret name is masked, a table of rows is
+    // judged by its own column names
+    expect(
+      Format.maskSecrets({
+        T_PASSWORDS: ["a", "b"],
+        T_CREDENTIALS: [{ USER: "u", PASSWORD: "p" }],
+      }),
+    ).toEqual({
+      T_PASSWORDS: [Format.MASK, Format.MASK],
+      T_CREDENTIALS: [{ USER: "u", PASSWORD: Format.MASK }],
+    });
   });
 
   test("a value the caller names as secret is masked, and a cycle does not throw", () => {

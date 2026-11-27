@@ -68,6 +68,10 @@ concurrency:
 jobs:
   attach:
     if: github.repository == 'abap2UI5/abap2UI5' && !endsWith(github.event.release.tag_name || inputs.tag, '-702')
+    # Publishes to npm and uploads to the release: the environment's
+    # protection rules and its NPM_TOKEN (RELEASING.md, "One-time setup -
+    # the release environment")
+    environment: release
     permissions:
       # gh release upload writes to the release; nothing else here writes
       contents: write
@@ -190,6 +194,8 @@ jobs:
   # for a release, and trusted publishing names the workflow file.
   bsp:
     if: github.repository == 'abap2UI5/abap2UI5' && !endsWith(github.event.release.tag_name || inputs.tag, '-702')
+    # publishes to npm - the same environment as the job above
+    environment: release
     permissions:
       contents: read
       id-token: write

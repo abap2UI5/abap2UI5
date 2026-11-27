@@ -57,6 +57,12 @@ export const transpilerOf = (meta) => meta?.abap2ui5?.transpiler ?? meta?.transp
 
 // the next spec of a dependency, or undefined to leave it alone: only a
 // single version, bare or behind ^ or ~, is moved
+// the environment minus every variable whose name says it holds a credential
+export function withoutSecrets(env) {
+  const secret = /(TOKEN|SECRET|PASSWORD|PASSWD|_PAT|API_?KEY|CREDENTIALS?)$/i;
+  return Object.fromEntries(Object.entries(env).filter(([k]) => !secret.test(k)));
+}
+
 export function nextSpec(spec, latest) {
   const m = /^([\^~]?)\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(spec ?? "");
   if (!m || typeof latest !== "string") return undefined;
@@ -122,11 +128,20 @@ function main() {
       : ["npm"];
   }
 
+  // npm runs the install scripts of every package it has just moved to its
+  // newest version. None of them may see a credential: the workflow hands
+  // DEPS_TOKEN / GH_TOKEN to this script for the `gh` calls, and a
+  // compromised release that reads it in a postinstall could write workflow
+  // files in every repository the token reaches. So npm gets the
+  // environment without anything that looks like a secret.
+  const npmEnv = withoutSecrets(process.env);
+
   function run(cmd, dir, extra = []) {
     const r = spawnSync(cmd[0], [...cmd.slice(1), ...extra], {
       cwd: dir,
       encoding: "utf8",
       maxBuffer: 1 << 26,
+      env: npmEnv,
     });
     if (r.error) throw new Error(`${cmd.join(" ")} did not run: ${r.error.message}`);
     return r;

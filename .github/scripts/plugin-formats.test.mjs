@@ -8,8 +8,9 @@
  * them. A description with an unquoted `: ` in it is valid Markdown, matches
  * its source byte for byte and is a YAML error that makes Claude Code,
  * Copilot or the `skills` CLI drop the skill without a word. So every
- * frontmatter block goes through a real YAML parser (js-yaml, which
- * @ui5/cli brings into node_modules), every JSON file through JSON.parse, and
+ * frontmatter block goes through a real YAML parser (js-yaml, a
+ * devDependency of its own - until 2026-11 it was only hoisted through
+ * @ui5/cli), every JSON file through JSON.parse, and
  * the fields each format requires are checked against what its reference
  * says:
  *

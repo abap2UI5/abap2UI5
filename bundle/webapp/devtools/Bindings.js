@@ -46,7 +46,8 @@ sap.ui.define(
     // table or structure only shows its row or field count anyway.
     function describeAttribute(name, value) {
       const shown =
-        isSecretName(name) && (value === null || typeof value !== "object")
+        isSecretName(name, value) &&
+        (value === null || typeof value !== "object")
           ? maskSecrets(value, { secret: true })
           : value;
       return describeValue(shown, { typed: true });

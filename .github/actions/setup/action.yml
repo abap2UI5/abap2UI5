@@ -32,6 +32,16 @@ inputs:
       Fetch the abaplint dependencies (npm run deps). Needed by every abaplint
       run; implies npm-ci, which has to have happened first.
     default: "false"
+  save-cache:
+    description: >
+      Save what this job installs into the caches (the npm cache, the
+      abap-deps checkouts). "false" for a job that runs code a pull request
+      controls in the scope of main - autofix.yaml, on issue_comment: a cache
+      saved there is restored by every later run on main, release.yaml and
+      backend-prebuilt.yaml included, which publish from it. Such a job
+      restores the abap-deps cache and saves nothing, and goes without the
+      npm cache (setup-node has no restore-only mode).
+    default: "true"
 
 runs:
   using: composite
@@ -42,7 +52,9 @@ runs:
     - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version-file: .nvmrc
-        cache: ${{ inputs.cache == 'true' && 'npm' || '' }}
+        # never for a job that must not save (save-cache): setup-node
+        # saves the npm cache in its post step whenever the key missed
+        cache: ${{ inputs.cache == 'true' && inputs.save-cache == 'true' && 'npm' || '' }}
         # BOTH lockfiles. `cache: npm` keys on the root package-lock.json
         # alone, and three workflows (UI5_2X, check_app2abap, autofix) also run
         # `npm --prefix bundle ci` over a 449 KB bundle/package-lock.json holding
@@ -68,8 +80,20 @@ runs:
     # fetch-deps.mjs still runs on a hit - it is a ~50ms no-op when the
     # checkout is already at the pinned sha, and it is what repairs a partial
     # restore.
-    - if: inputs.deps == 'true'
+    #
+    # A job with save-cache "false" only restores: the same key under
+    # actions/cache/restore, which has no post step that could save. Whatever
+    # a restore brings, fetch-deps.mjs resets and cleans a checkout that is at
+    # its pin before it accepts it, so a cache saved with files changed or
+    # added inside the checkout is put back to the pinned commit.
+    - if: inputs.deps == 'true' && inputs.save-cache == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: node/deps
+        key: abap-deps-${{ runner.os }}-${{ hashFiles('node/setup/fetch-deps.mjs') }}
+
+    - if: inputs.deps == 'true' && inputs.save-cache != 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node/deps
         key: abap-deps-${{ runner.os }}-${{ hashFiles('node/setup/fetch-deps.mjs') }}

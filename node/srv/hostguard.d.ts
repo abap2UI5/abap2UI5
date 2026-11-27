@@ -4,7 +4,7 @@
  */
 
 export interface HostGuardOptions {
-  /** The address the server binds - allowed as a name unless it is a wildcard (0.0.0.0, ::). */
+  /** The address the server binds - allowed as a name unless it is a wildcard (*, 0.0.0.0, ::). */
   host?: string;
   /** More host names to answer, comma-separated or a list; `"*"` answers any. */
   allowedHosts?: string | string[];

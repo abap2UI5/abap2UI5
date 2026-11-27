@@ -636,11 +636,12 @@ async function main() {
   console.log(`Review with "git status" / "git diff" before committing.\n`);
 }
 
-/* CLI only. `deriveNames` and `toFileName` are exported because
- * app2app_v2/build-legacy-free.mjs has to compute the data source and the
- * manifest FILE NAME this script writes; it read them off the raw --name
- * argument instead and found no file for a namespaced one. Importing the
- * module must not start a rename, hence the guard. */
+/* CLI only. `deriveNames` and `toFileName` are exported for a caller that
+ * has to compute the data source and the manifest FILE NAME this script
+ * writes (app2app_v2/build-legacy-free.mjs did, until it was deleted on
+ * 2026-11-27; it had read them off the raw --name argument and found no file
+ * for a namespaced one). Importing the module must not start a rename, hence
+ * the guard. */
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   main().catch((err) => { console.error(err); exit(1); });
 }

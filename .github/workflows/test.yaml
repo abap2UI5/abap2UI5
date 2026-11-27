@@ -194,6 +194,19 @@ jobs:
     # draft sweep over both (host.mjs, THE SEAMS and DRAFT SWEEP)
     - name: the host's seams and the draft sweep in the transpiled framework
       run: npx playwright test -c node/playwright-unit.config.js hostSeams
+    # hostGuard.spec.js the same: serve()'s Host/Origin guard and its bind in
+    # front of the transpiled framework
+    - name: the host guard in front of the transpiled framework
+      run: npx playwright test -c node/playwright-unit.config.js hostGuard
+    # efWireRoundtrip.spec.js: the eF( ) wire with the REAL escaping of the
+    # transpiled backend, read back as the JavaScript it claims to be
+    - name: the eF( ) wire through the transpiled backend
+      run: npx playwright test -c node/playwright-unit.config.js efWireRoundtrip
+    # Every spec that needs the tree has to be listed above - the specs that
+    # call needsTranspiledBackend( ) skip in test_unit_js, which has no tree,
+    # so this list is the only place they run. transpiledSpecs.spec.js holds
+    # it complete; outside test_unit_js, CI without the tree fails them
+    # (node/tests/helpers/transpiledBackend.js)
 
   browser:
     needs: transpile
@@ -417,4 +430,11 @@ jobs:
       with:
         npm-ci: "true"
     - name: Run JS unit tests
+      # No transpiled tree in this job, on purpose: the specs that need one
+      # skip here and run in test_node (transpiledSpecs.spec.js, which runs
+      # here, fails when one of them is not listed there). Anywhere else in
+      # CI such a spec fails without the tree instead of skipping
+      # (node/tests/helpers/transpiledBackend.js)
+      env:
+        Z2UI5_NO_BACKEND: "1"
       run: npm run check:js

@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
-const fs = require("fs");
+const { needsTranspiledBackend } = require("./helpers/transpiledBackend");
 const path = require("path");
 const vm = require("vm");
 const { execFileSync } = require("child_process");
@@ -24,16 +24,14 @@ const { execFileSync } = require("child_process");
 // a regression.
 // ---------------------------------------------------------------------
 
-const OUTPUT = path.join(__dirname, "..", "output", "init.mjs");
 const HELPER = path.join(__dirname, "helpers", "efWire.mjs");
 
 // `npm run check:js` is meant to run on a tree that was never transpiled
 // (node/output is built by `npm run downport && npm run auto_transpile` and
-// is not in the repository), so this one spec skips instead of failing.
-test.skip(
-  !fs.existsSync(OUTPUT),
-  "needs the transpiled backend: npm run downport && npm run auto_transpile",
-);
+// is not in the repository), so locally this spec skips without it. In CI a
+// missing tree fails it (helpers/transpiledBackend.js): test.yaml's
+// test_node runs it on the transpiled tree.
+needsTranspiledBackend(test);
 
 // Everything ui5_escape_handler_string names, everything next to it, and the shapes
 // that broke the parser before: a trailing backslash, an escaped backslash

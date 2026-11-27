@@ -6,7 +6,7 @@ into a BSP, push it to git and pull it into an ABAP system with
 its own, the app versioned in git like the ABAP around it. And the other way:
 a BSP that abapGit serialized, as an app folder again.
 
-No dependencies, Node 18 or later. The same code builds the BSP of
+No dependencies, Node 22 or later. The same code builds the BSP of
 [abap2UI5](https://github.com/abap2UI5/abap2UI5)'s own frontend.
 
 ```bash

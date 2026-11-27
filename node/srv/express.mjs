@@ -5,19 +5,24 @@ import { serve } from "./host.mjs";
 
 const PORT = process.env.PORT || 3000;
 // HOST unset binds every interface - what the e2e runner and a container
-// need to reach the server; HOST=127.0.0.1 binds loopback only. The log
-// below says which: it used to say localhost whatever the socket was bound to
-const HOST = process.env.HOST;
+// need to reach the server; HOST=127.0.0.1 binds loopback only. The dev
+// server asks for it by name ("*"): serve() itself binds loopback when it is
+// told nothing, which is the package's default for a host that embeds it.
+// The log below says which: it used to say localhost whatever the socket
+// was bound to
+const HOST = process.env.HOST || "*";
 // Whichever the bind, the server answers only requests addressed to
 // 127.0.0.1, localhost, [::1] or the HOST name, from a page there (DNS
 // rebinding - srv/hostguard.mjs). ALLOWED_HOSTS adds names, comma-separated,
 // for a container reached by its service name or a LAN address;
-// ALLOWED_HOSTS=* answers any Host and any Origin
+// ALLOWED_HOSTS=* answers any Host and any Origin. That keeps web pages out,
+// not programs: curl on another machine sends the Host it likes, so on the
+// all-interfaces bind every machine that reaches the port is answered
 const ALLOWED_HOSTS = process.env.ALLOWED_HOSTS;
 
 try {
   await serve({ port: PORT, host: HOST, allowedHosts: ALLOWED_HOSTS });
-  console.log(HOST
+  console.log(HOST !== "*"
     ? `Listening on http://${HOST}:${PORT}`
     : `Listening on port ${PORT} on all interfaces (set HOST=127.0.0.1 to bind loopback only)`);
 } catch (err) {
