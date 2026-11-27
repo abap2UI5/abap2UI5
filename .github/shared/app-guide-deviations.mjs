@@ -188,6 +188,10 @@ const ESSENTIALS_LAYOUT = [
   ['### An addon class the lint gate does not find (\u00a76, \u00a79)', ['addons']],
 ];
 
+// A table cell: the backslash first, then the pipe - escaping the pipe alone
+// would let a backslash in front of one undo it.
+const cell = (text) => text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+
 /* The block for the template's AGENTS.md, from the guide text AFTER its
  * deviations were applied (`applyGuideDeviations(guideBody(guide))`), so a
  * reworded sentence is reworded here too. Without the two marker lines. */
@@ -212,7 +216,7 @@ export function renderEssentials(body) {
   }
   out.push('', '### Where to read on', '', `Sections of \`${TEMPLATE_GUIDE_FILE}\`:`, '', '| \u00a7 | Read it for |', '|---|---|');
   for (const s of sections) {
-    out.push(`| ${s.n} | ${s.title.replace(/\|/g, '\\|')}${s.parts.length ? ` - ${s.parts.join('; ').replace(/\|/g, '\\|')}` : ''} |`);
+    out.push(`| ${s.n} | ${cell(s.title)}${s.parts.length ? ` - ${cell(s.parts.join('; '))}` : ''} |`);
   }
   return out.join('\n');
 }
