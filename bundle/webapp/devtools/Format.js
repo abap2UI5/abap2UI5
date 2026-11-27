@@ -270,11 +270,29 @@ sap.ui.define([], () => {
   // the path /S_LOGIN/PASSWORD and a table column all match. The one
   // test every formatter and every export asks; Report.js and Journey.js
   // each carried their own copy of it, and the two had drifted.
-  const SECRET_NAME = /(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)/i;
+  //
+  // Only names that denote a CREDENTIAL. A bare TOKEN in the list hid
+  // what is no secret at all and is exactly what a developer opens the
+  // tools to look at: the token tables of a MultiInput (MT_TOKEN, T_TOKEN,
+  // mt_tokens_added - KEY/TEXT rows of a filter) and counters such as
+  // TOKEN_COUNT went out as ***, numbers included. A token that IS a
+  // credential says so (ACCESS_TOKEN, AUTH_TOKEN, CSRF_TOKEN, ...) and is
+  // a secret whatever it holds; any other name ending in _TOKEN only when
+  // it holds a non-empty string (a bearer token, an S_TOKEN of a login) -
+  // never a table, a structure or a number (WEAK_SECRET_NAME below).
+  const SECRET_NAME =
+    /(PASSW|PWD|SECRET|CREDENTIAL|API_?KEY|BEARER|(?:ACCESS|AUTH|SESSION|REFRESH|CSRF|XSRF)[_-]?TOKEN)/i;
+  const WEAK_SECRET_NAME = /_TOKEN$/i;
   const MASK = "***";
+  // isSecretName( name ) without a value judges the name alone - a weak
+  // name counts there, the caller cannot say what it holds
+  const UNKNOWN = {};
 
-  function isSecretName(name) {
-    return typeof name === "string" && SECRET_NAME.test(name);
+  function isSecretName(name, value = UNKNOWN) {
+    if (typeof name !== "string") return false;
+    if (SECRET_NAME.test(name)) return true;
+    if (!WEAK_SECRET_NAME.test(name)) return false;
+    return value === UNKNOWN || (typeof value === "string" && value !== "");
   }
 
   // A leaf worth hiding: a value that says something. An empty string, a
@@ -286,34 +304,72 @@ sap.ui.define([], () => {
     );
   }
 
-  // Walk a value and call `leaf(value, secret)` for every leaf, with
-  // `secret` true below a key that names a secret. Ancestors only (a value
-  // referenced twice in sibling branches is no cycle, see toJson).
+  // A secret's value that is masked wherever else it appears, too (see
+  // maskSecrets): only one distinctive enough not to be an ordinary value
+  // as well. A PIN "1000" or a password "EQ" smeared *** over every
+  // plant 1000 and every range option EQ of the whole record - the
+  // export then hid the very data the bug report is about. Eight
+  // characters and not only digits is what an ordinary key field, an
+  // option, a flag or an amount rarely is.
+  const MIN_SMEAR_LENGTH = 8;
+  function isDistinctive(value) {
+    return value.length >= MIN_SMEAR_LENGTH && !/^\d+$/.test(value);
+  }
+
+  // The positional event arguments of a request - where a secret value is
+  // masked whatever its length, see maskSecrets
+  const EVENT_ARGS = "T_EVENT_ARG";
+
+  // Walk a value and call `leaf(value, secret, inArgs)` for every leaf,
+  // with `secret` true below a key that names a secret and `inArgs` true
+  // below T_EVENT_ARG. Ancestors only (a value referenced twice in sibling
+  // branches is no cycle, see toJson).
+  //
+  // Below a secret key a structure is masked field by field, and so is a
+  // table of scalars - but a table of ROWS is not masked wholesale: its
+  // cells are judged by their own column names (a PASSWORD column still
+  // is). Rows under a secret name are a list of records, and masking all
+  // of them hid every token row of a filter.
   function mapSecrets(value, secret, leaf) {
     const ancestors = [];
-    const visit = (val, under) => {
-      if (val === null || typeof val !== "object") return leaf(val, under);
+    const visit = (val, under, inArgs) => {
+      if (val === null || typeof val !== "object") {
+        return leaf(val, under, inArgs);
+      }
       if (ancestors.includes(val)) return "[Circular]";
       ancestors.push(val);
       let out;
       if (Array.isArray(val)) {
-        out = val.map((item) => visit(item, under));
+        out = val.map((item) =>
+          visit(
+            item,
+            under && (item === null || typeof item !== "object"),
+            inArgs,
+          ),
+        );
       } else {
         out = {};
         for (const key of Object.keys(val)) {
-          out[key] = visit(val[key], under || isSecretName(key));
+          out[key] = visit(
+            val[key],
+            under || isSecretName(key, val[key]),
+            inArgs || key === EVENT_ARGS,
+          );
         }
       }
       ancestors.pop();
       return out;
     };
-    return visit(value, secret);
+    return visit(value, secret, false);
   }
 
   // The strings found below a secret-named key - what an event argument
   // is compared with: T_EVENT_ARG is positional and carries no name, so a
   // password handed to the event (`${/PASSWORD}` as an argument) is
-  // recognised by being the value the same request bound under one.
+  // recognised by being the value the same request bound under one. Every
+  // such string, short ones included: an argument equal to one is masked
+  // (Journey.maskedArgs, and T_EVENT_ARG in maskSecrets); anywhere else
+  // only a distinctive one is (isDistinctive).
   function secretValues(value) {
     const found = new Set();
     try {
@@ -327,16 +383,29 @@ sap.ui.define([], () => {
     return found;
   }
 
-  // A COPY of `value` with every leaf below a secret-named key replaced
+  // A COPY of `value` with every scalar below a secret-named key replaced
   // by "***" - and, given `values` (a Set, see secretValues), every string
-  // equal to one of them, wherever it sits. `secret` marks the value
-  // itself as one (the caller knows its name, e.g. a diff path). The input
-  // is never touched: the recorder's payloads are live references.
-  function maskSecrets(value, { secret = false, values = null } = {}) {
+  // equal to one of them: in the event arguments (T_EVENT_ARG) always,
+  // anywhere else when it is distinctive (isDistinctive). `secret` marks
+  // the value itself as one (the caller knows its name, e.g. a diff
+  // path); `inArgs` marks it as event-argument content (Journey's parsed
+  // object argument). The input is never touched: the recorder's payloads
+  // are live references.
+  function maskSecrets(
+    value,
+    { secret = false, values = null, inArgs = false } = {},
+  ) {
     try {
-      return mapSecrets(value, secret, (val, under) => {
+      return mapSecrets(value, secret, (val, under, args) => {
         if (under && isMaskable(val)) return MASK;
-        if (values && typeof val === "string" && values.has(val)) return MASK;
+        if (
+          values &&
+          typeof val === "string" &&
+          values.has(val) &&
+          (inArgs || args || isDistinctive(val))
+        ) {
+          return MASK;
+        }
         return val;
       });
     } catch {

@@ -17,6 +17,34 @@ sap.ui.define(
     // forever.
     const REQUEST_TIMEOUT_MS = 600000;
 
+    // How long a reset( ) lets the next app's first build wait for a view
+    // build of the app being torn down (see reset). Far above a library
+    // preload on a slow line, far below "the Restart did nothing".
+    const RESET_BUILD_WAIT_MS = 10000;
+
+    // The kept view-build chain of reset( ): settles when the running build
+    // does (a rejection included) or after RESET_BUILD_WAIT_MS, whichever
+    // comes first. No chain - nothing ever built - stays none.
+    function keepBuildChain(chain) {
+      if (!chain) return chain;
+      let timer;
+      /** @type {Promise<void>} */
+      const giveUp = new Promise((resolve) => {
+        timer = setTimeout(() => {
+          Lib.logError(
+            "Server: a view build of the previous app did not finish within " +
+              RESET_BUILD_WAIT_MS / 1000 +
+              " seconds - the next build no longer waits for it",
+          );
+          resolve();
+        }, RESET_BUILD_WAIT_MS);
+      });
+      const settled = Promise.resolve(chain)
+        .catch(() => {})
+        .then(() => clearTimeout(timer));
+      return Promise.race([settled, giveUp]);
+    }
+
     // What the overlay adds when the request most likely reached the backend
     // and no Retry is offered (a 504, the timeout above - readHttp, oRetry).
     const MAY_HAVE_RUN =
@@ -213,9 +241,15 @@ sap.ui.define(
         // it, and displayView discards it (the MAIN controller it was built
         // for is gone). The queued builds behind it read the bumped
         // sequence and skip; a rejection never blocks the chain.
-        ctx.server.viewBuild = Promise.resolve(ctx.server.viewBuild).catch(
-          () => {},
-        );
+        //
+        // ... but not for ever: a build that never settles (a library
+        // load or an XMLView.create that hangs) held the chain, and with it
+        // the restarted app's first build - Restart, the overlay's way out
+        // of exactly such a state, showed nothing at all. The wait is raced
+        // against RESET_BUILD_WAIT_MS and logged when it gives up; the
+        // stale build's result is still discarded when it does land
+        // (displayView's controller check), it only no longer blocks.
+        ctx.server.viewBuild = keepBuildChain(ctx.server.viewBuild);
         // a keystroke a check_queue_last wire kept for the app being torn
         // down must never be dispatched into the next one - nor a window
         // request of its tables
@@ -424,11 +458,24 @@ sap.ui.define(
         // second run from the first, so a posting would be posted twice.
         // Re-arm the busy state first - responseError cleared it, and an
         // unguarded click during the retry would abort it silently.
+        // The browser-navigation marks this request goes out under
+        // (Router.onHashChanged sets them before a restore): a Retry
+        // re-sends THIS request, so it gets these back - a Back/Forward
+        // under the overlay must not leave marks a restore never consumed
+        // (the Retry's render would take itself for that restore and leave
+        // the URL on the entry Back went to), and a retried restore keeps
+        // its own.
+        const navMarks = {
+          fromHash: ctx.state.navFromHash,
+          direction: ctx.state.navDirection,
+        };
         const oRetry = {
           onRetry: () => {
             // the overlay's own way back: the app is live again
             // (responseError set the flag)
             ctx.state.terminated = false;
+            ctx.state.navFromHash = navMarks.fromHash;
+            ctx.state.navDirection = navMarks.direction;
             ctx.state.isBusy = true;
             showBusy(ctx, 0);
             // the repeating timer the overlay ended (responseError) goes on

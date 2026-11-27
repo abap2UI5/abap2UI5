@@ -436,6 +436,34 @@ test("a push after a Back cuts the forward part off, as the browser does", () =>
   expect(ctx.router.trail).toEqual(["/app/A/D1", "/app/B/D2", "/app/E/D5"]);
 });
 
+// Server.responseError ended the app: restoreFromRoute turns a Back away,
+// so nothing may be marked for a restore. The marks were set first and
+// stayed - the Retry's response (the failed request again) took itself
+// for the restore, kept the URL on the entry Back went to and wrote
+// nothing, while the screen showed the retried state.
+test("a Back under the fatal overlay marks no restore - the trail still follows the browser", () => {
+  const { Router, state, ctx, writes, restores } = threeApps();
+  state.terminated = true;
+  Router.onHashChanged("app/B/D2");
+  expect(restores()).toBe(0);
+  expect(state.navFromHash).toBe(false);
+  expect(state.navDirection).toBe("");
+  // the browser does stand on B's entry now
+  expect(ctx.router.trailPos).toBe(1);
+  expect(state.hashPushCount).toBe(1);
+
+  // the overlay's Retry: the failed request of C comes back and its
+  // route goes into the entry the browser stands on
+  state.terminated = false;
+  const before = writes.length;
+  state.oResponse = { APP: "C" };
+  Router.sync({ id: "D4" });
+  expect(writes.slice(before)).toEqual([
+    { op: "replace", hash: "app/C/D4", guard: "D4" },
+  ]);
+  expect(ctx.router.trail[ctx.router.trailPos]).toBe("/app/C/D4");
+});
+
 test("FRESH: one app on both sides of the entry leaves the direction open", () => {
   // A -> B -> A, a FRESH route carries the class only
   const { Router, state, ctx } = loadRouter({
@@ -905,6 +933,64 @@ test("the route a nav_app_call pushes is counted, so hash_back consumes it", () 
   // a plain roundtrip of the called app replaces and counts nothing
   Router.sync({ id: "D10" });
   expect(state.hashPushCount).toBe(1);
+});
+
+// nav_app_call pushes, nav_app_leave pops: the leave writes the caller's
+// route over the entry the call pushed, and the count kept the push - a
+// hash_back with a fallback in the caller stepped history.back( ) onto
+// the caller's own older entry (under FRESH both read "app/A", so the step
+// changed no hash, nothing saw it, and the next hash_back left the page).
+for (const mode of ["KEEP", "FRESH"]) {
+  test(`${mode}: nav_app_call then nav_app_leave gives the push back - hash_back takes its fallback`, () => {
+    const env = loadRouter({
+      state: { navMode: mode, currentApp: "A", currentDraftId: "D1" },
+    });
+    const { Router, state, backs, writes } = env;
+    Router.init(() => {});
+    Router.onHashChanged(mode === "KEEP" ? "app/A/D1" : "app/A");
+    // A calls B: B's route is pushed and counted
+    state.oResponse = { APP: "B" };
+    Router.sync({ checkNavAppCall: true, id: "D2" });
+    expect(state.hashPushCount).toBe(1);
+    // B leaves back to A: A's route goes over B's entry - the pop
+    state.oResponse = { APP: "A" };
+    Router.sync({ id: "D3" });
+    expect(state.hashPushCount).toBe(0);
+    const before = writes.length;
+    Router.navBack("/home");
+    expect(backs).toEqual([]);
+    expect(writes.slice(before).map((w) => [w.op, w.hash])).toEqual([
+      ["replace", "home"],
+    ]);
+  });
+}
+
+// Two levels deep the browser keeps every entry: C's leave lands on B over
+// C's entry, with B's own older entry behind it - that step is the pop.
+// B's leave to A then stands on top of B's entry, a different app: a
+// hash_back steps back onto it, as the browser Back button does.
+test("a nested leave pops the push whose step back would land on the app itself", () => {
+  const { Router, state } = threeApps();
+  state.oResponse = { APP: "B" };
+  Router.sync({ id: "D4" });
+  expect(state.hashPushCount).toBe(1);
+  state.oResponse = { APP: "A" };
+  Router.sync({ id: "D5" });
+  expect(state.hashPushCount).toBe(1);
+});
+
+test("a plain roundtrip, or a leave to another app than the caller, keeps the push", () => {
+  const { Router, state, backs } = threeApps();
+  // C's own next roundtrip: same app, a new draft
+  state.oResponse = { APP: "C" };
+  Router.sync({ id: "D4" });
+  expect(state.hashPushCount).toBe(2);
+  // C leaves to an app that is not its caller B: no pop of C's push
+  state.oResponse = { APP: "X" };
+  Router.sync({ id: "D5" });
+  expect(state.hashPushCount).toBe(2);
+  Router.navBack("/home");
+  expect(backs).toEqual([1]);
 });
 
 test("navBack leaves a host's history alone, and does nothing under the fatal overlay", () => {

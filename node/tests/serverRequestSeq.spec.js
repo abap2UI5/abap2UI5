@@ -41,8 +41,9 @@ class FakeAbortController {
   }
 }
 
-function load() {
+function load({ timers = null } = {}) {
   const fetchCalls = [];
+  const logged = [];
   const successes = [];
   const errors = [];
   const controllers = [];
@@ -57,6 +58,7 @@ function load() {
         isValidContextId: () => false,
         byteLength: (s) => s.length,
         lazyByteLength: (s) => () => s.length,
+        logError: (m) => logged.push(m),
       }),
       "z2ui5/core/Session": { confirmSent: () => {} },
       "z2ui5/core/ErrorView": { reset: () => {} },
@@ -74,6 +76,15 @@ function load() {
         fetchCalls.push(d);
         return d.promise;
       },
+      // a spec that owns the clock hands its timers in (reset's wait)
+      ...(timers
+        ? {
+            setTimeout: (fn, ms) => timers.push({ fn, ms }) - 1,
+            clearTimeout: (id) => {
+              if (timers[id]) timers[id].cleared = true;
+            },
+          }
+        : {}),
     },
   });
 
@@ -81,7 +92,16 @@ function load() {
   Server.responseSuccess = (_ctx, r) => successes.push(r);
   Server.responseError = (_ctx, m) => errors.push(m);
 
-  return { Server, ctx, fetchCalls, successes, errors, controllers, appState };
+  return {
+    Server,
+    ctx,
+    fetchCalls,
+    successes,
+    errors,
+    controllers,
+    appState,
+    logged,
+  };
 }
 
 // Let queued microtasks (the awaits inside readHttp) run.
@@ -290,6 +310,43 @@ test("reset() keeps the view-build chain, so the next build waits for one still 
   running.reject(new Error("the stale build failed"));
   await flush();
   expect(next).toBe(true);
+});
+
+// ... but a build that never settles held the chain for good: the Restart
+// (an in-place restart runs reset( )) waited behind it and showed nothing.
+// The wait gives up after RESET_BUILD_WAIT_MS, logged; the stale build's
+// result is still discarded by displayView's controller check.
+test("reset() waits for a hung build only so long - then the next build goes on", async () => {
+  const timers = [];
+  const { Server, ctx, logged } = load({ timers });
+  ctx.server.viewBuild = new Promise(() => {}); // never settles
+  Server.reset(ctx);
+  let next = false;
+  Promise.resolve(ctx.server.viewBuild).then(() => {
+    next = true;
+  });
+  await flush();
+  expect(next).toBe(false);
+  expect(timers).toHaveLength(1);
+  expect(timers[0].ms).toBe(10000);
+  timers[0].fn();
+  await flush();
+  expect(next).toBe(true);
+  expect(logged).toHaveLength(1);
+  expect(logged[0]).toContain("did not finish within 10 seconds");
+});
+
+test("reset() with a build that settles in time clears its wait and logs nothing", async () => {
+  const timers = [];
+  const { Server, ctx, logged } = load({ timers });
+  const running = defer();
+  ctx.server.viewBuild = running.promise;
+  Server.reset(ctx);
+  running.resolve();
+  await flush();
+  await flush();
+  expect(timers[0].cleared).toBe(true);
+  expect(logged).toEqual([]);
 });
 
 test("reset() drops a queued event, so it never lands in the next app", () => {

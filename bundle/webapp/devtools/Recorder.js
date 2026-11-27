@@ -920,10 +920,14 @@ sap.ui.define(
         // Diffed on the raw models - a changed password IS a change - and
         // masked where it is shown: a path through a secret-named key
         // (/S_LOGIN/PASSWORD) masks the value, an added structure masks
-        // its secret fields (Format.maskSecrets)
-        const secret = isSecretName(path);
+        // its secret fields (Format.maskSecrets). The value goes along:
+        // a name that is a secret only for a string (S_TOKEN) is judged
+        // on what the path holds before and after
         const show = (value) =>
-          renderValue(maskSecrets(value, { secret }), MAX_DIFF_VALUE_CHARS);
+          renderValue(
+            maskSecrets(value, { secret: isSecretName(path, value) }),
+            MAX_DIFF_VALUE_CHARS,
+          );
         if (entry.type === "added") {
           header.push(`+ ${path}`);
           header.push(`    ${show(entry.after)}`);
@@ -953,9 +957,11 @@ sap.ui.define(
     //
     // The file is made to be attached to an issue, so it carries no secret:
     // every value below a secret-named key is masked, and so is every
-    // string equal to one of those values anywhere in the same record - an
+    // string equal to one of those values in the event arguments - an
     // event argument (T_EVENT_ARG) is positional and has no name, but a
     // password handed to the event is the value the model holds under one.
+    // Elsewhere in the record only a distinctive one is (Format.maskSecrets:
+    // a short or numeric secret masked every equal plant or option).
     function maskRecord(record) {
       const values = secretValues([record.request, record.response]);
       return maskSecrets(record, { values });

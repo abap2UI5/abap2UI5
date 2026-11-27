@@ -57,8 +57,15 @@ sap.ui.define(
         )
         .replace(
           /"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,
-          (match, key, colon) =>
-            isSecretName(key) ? `"${key}"${colon}"${MASK}"` : match,
+          // the value goes along as a string or a number: a name that is
+          // a secret only for a string (S_TOKEN) leaves a number alone
+          (match, key, colon, raw) =>
+            isSecretName(
+              key,
+              raw.charAt(0) === '"' ? raw.slice(1, -1) : Number(raw),
+            )
+              ? `"${key}"${colon}"${MASK}"`
+              : match,
         );
     }
 
