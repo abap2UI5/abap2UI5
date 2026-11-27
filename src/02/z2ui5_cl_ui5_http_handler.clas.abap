@@ -336,6 +336,16 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
+    " Whether an exception chain carries the draft store's 'not found'
+    " (NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND, z2ui5_cl_ui5_srv_draft=>read)
+    " - the draft a request continued from expired, was cleaned up, or is
+    " another user's. Answered as a 410 (_error_response)
+    CLASS-METHODS _check_draft_gone
+      IMPORTING
+        !val          TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     "! the extra attributes of the bootstrap script tag from the exit's
     "! t_add_config - a row whose name is no attribute name is left out
     CLASS-METHODS _bootstrap_attributes
@@ -1632,6 +1642,21 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _error_response.
 
+    " The draft is gone: the routine end of every session left idle past
+    " the expiry (draft_exp_time_in_hours), or one whose user changed. Not
+    " a defect, so not the dump of one - a 410 the frontend recognizes and
+    " answers with "session expired - restart" instead of the fatal
+    " overlay with its source positions (core/Server.js, SESSION_EXPIRED).
+    " The body is a fixed text, the same with or without hidden error
+    " details: it names nothing of the system
+    IF _check_draft_gone( val ) = abap_true.
+      result = VALUE #( body          = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND - the session expired: ` &&
+                                       `the state of the previous request is no longer on the server. Restart the app`
+                        status_code   = 410
+                        status_reason = `Gone` ).
+      RETURN.
+    ENDIF.
+
     " In hardened installations the exit sets check_hide_error_details, so the
     " raw exception text (RTTI/class/DDIC names, dynamic-call failures, and the
     " system/user context the full dump carries) is replaced by a generic
@@ -1677,6 +1702,29 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     result = VALUE #( body          = lv_body
                       status_code   = 500
                       status_reason = `Internal Server Error` ).
+
+  ENDMETHOD.
+
+  METHOD _check_draft_gone.
+
+    " the whole chain: the store's error arrives wrapped by whoever re-raised
+    " it on the way up (the handler's request context among them). Guarded
+    " like everything this runs for - it runs inside a CATCH block
+    DATA(lx) = val.
+    DO 20 TIMES.
+      IF lx IS NOT BOUND.
+        RETURN.
+      ENDIF.
+      TRY.
+          IF lx->get_text( ) = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+            result = abap_true.
+            RETURN.
+          ENDIF.
+        CATCH cx_root.
+          RETURN.
+      ENDTRY.
+      lx = lx->previous.
+    ENDDO.
 
   ENDMETHOD.
 

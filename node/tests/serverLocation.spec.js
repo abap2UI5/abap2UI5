@@ -208,6 +208,22 @@ test.describe("the route of an app start (S_FRONT.ROUTE)", () => {
     expect(bodies[0].S_FRONT.HASH).toBe("#/route");
   });
 
+  test("a draft an app start of this page failed with is left out", () => {
+    // the overlay's Restart re-reads the same hash: the route's class starts
+    // fresh instead of failing on the same draft again (readHttp marks it)
+    const { Server, bodies, ctx } = loadServer();
+    ctx.router.startRoute = () => ({ APP: "ZCL_X", DRAFT: "ABC123" });
+    ctx.router.failedDraft = "ABC123";
+
+    Server.roundtrip({});
+    expect(bodies[0].S_FRONT.ROUTE).toEqual({ APP: "ZCL_X" });
+
+    // another draft in the hash (a Back/Forward to another state) is asked for
+    ctx.router.startRoute = () => ({ APP: "ZCL_X", DRAFT: "OTHER" });
+    Server.roundtrip({});
+    expect(bodies[1].S_FRONT.ROUTE).toEqual({ APP: "ZCL_X", DRAFT: "OTHER" });
+  });
+
   test("an event roundtrip carries none - the draft id says where it continues", () => {
     const { Server, bodies, ctx } = loadServer();
     ctx.router.startRoute = () => ({ APP: "ZCL_X" });

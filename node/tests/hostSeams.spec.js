@@ -87,7 +87,7 @@ test("a roundtrip with state goes through the live serializer - ids in the table
 
 test("an id the live table no longer holds is a missing draft, not a crash", () => {
   const { missing } = run();
-  expect(missing.status).toBe(500);
+  expect(missing.status).toBe(410);
   expect(missing.noDraft).toBe(true);
 });
 

@@ -23,6 +23,17 @@ sap.ui.define(
       "The backend may still have processed the action. Restart the app and " +
       "check its result before you do it again.";
 
+    // What a 410 says: the backend no longer has the draft the request
+    // continued from - expired (the exit's draft_exp_time_in_hours, 4 by
+    // default), cleaned up, or written by another logon. The routine end of
+    // every session left idle, not a defect, so no dump and no Retry
+    // (re-sending the same draft id gets the same answer): the way on is a
+    // fresh start. z2ui5_cl_ui5_http_handler=>_error_response answers it
+    const SESSION_EXPIRED =
+      "Session expired - restart the app. The state of the previous step is " +
+      "no longer on the server: it expired, was cleaned up, or belongs to " +
+      "another logon. What was entered in the last step is lost.";
+
     // The busy overlay of a roundtrip - the global BusyIndicator or the
     // component's own area (Lib.showBusy, shared with View1.controller.js,
     // the other half of the busy protocol). Resolved per call, not
@@ -302,6 +313,15 @@ sap.ui.define(
         // (client->get( )-s_config-hash). No ROUTE when the hash names none.
         if (!oBody.ID) {
           const route = ctx.router?.startRoute?.();
+          // a draft this page already failed to start from (readHttp) is
+          // not asked for again: the route's class starts fresh. Without
+          // it a draft that exists but no longer restores (the app class
+          // changed its layout) answered the overlay's Restart - which
+          // re-reads the same hash - with the same error, for as long as
+          // the draft lived
+          if (route?.DRAFT && route.DRAFT === ctx.router?.failedDraft) {
+            delete route.DRAFT;
+          }
           if (route) sFront.ROUTE = route;
         }
         // an all-empty CONFIG is left off entirely
@@ -582,6 +602,16 @@ sap.ui.define(
             // again.
             const status = response.status;
             const fallback = `HTTP ${status}`;
+            // an app start that asked for a route's draft and failed: the
+            // next start of this page (the overlay's Restart) leaves that
+            // draft out (roundtrip). On ctx.router, which a restart keeps
+            if (!oBody.ID && oBody.S_FRONT?.ROUTE?.DRAFT && ctx.router) {
+              ctx.router.failedDraft = oBody.S_FRONT.ROUTE.DRAFT;
+            }
+            if (status === 410) {
+              this.responseError(ctx, SESSION_EXPIRED);
+              return;
+            }
             this.responseError(
               ctx,
               status === 504

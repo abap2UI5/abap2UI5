@@ -2,6 +2,12 @@ name: Bug report
 description: Report a problem with the abap2UI5 framework
 labels: ["bug"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Drafted by an AI assistant? The abap2UI5 MCP server's `report_issue` tool fills this form in -
+        read it before you submit. Its field ids (description, reproduction, version, environment,
+        context) are what it fills; keep them when you change this form.
   - type: textarea
     id: description
     attributes:
@@ -13,7 +19,7 @@ body:
     id: reproduction
     attributes:
       label: How to reproduce
-      description: Minimal app code or steps that trigger the problem.
+      description: Minimal app code or steps that trigger the problem - best a complete class that reproduces it without a system (the MCP server's verify_app runs it), so a maintainer reproduces it in one call.
       render: abap
     validations:
       required: true
@@ -35,4 +41,4 @@ body:
     id: context
     attributes:
       label: Additional context
-      description: Error messages, screenshots, launchpad vs. standalone, custom exit classes, etc.
+      description: Error messages, screenshots, launchpad vs. standalone, custom exit classes, etc. - and whether an AI assistant found it (which one).

@@ -35,7 +35,10 @@ and `read_draft( )`, `read_info( )` and `check_exists( )` answer "not found" for
 anybody else **identically**, so a caller cannot tell a foreign draft from a
 missing one. `count_entries( )` is owner-scoped for the same reason;
 `count_entries_total( )` deliberately is not, because it reports the size of the
-store itself.
+store itself. "Not found" is raised as `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`
+(an implementation keeps that text): the HTTP handler answers a request that
+meets it with a 410 and a fixed body (`_error_response`), which the frontend shows
+as "session expired - restart" instead of the error dump.
 
 Note there are no `ALIASES` on the class — `no_aliases` is an error here, and
 none are needed: an interface reference takes the plain method names. A caller

@@ -238,7 +238,8 @@ tab: same gates, same notes, no tag and no release.
 - **Carry the release along.** Once `@abap2ui5/node-runtime` (and, with
   step 2 of the release order, `@abap2ui5/linter`) is on npm, run
   `npm run check:ecosystem -- --live`: its "behind" list names every
-  repository whose npm pin the new version does not satisfy - a protocol
+  repository whose npm pin the new version does not satisfy, or whose
+  lockfile still installs an older one under a range that would take it - a protocol
   suite measuring the previous wire, an embed testing an older runtime, a
   corpus linting with a linter that does not know what was just removed.
   Bump them, or say in the repository why it stays. Text that calls the
