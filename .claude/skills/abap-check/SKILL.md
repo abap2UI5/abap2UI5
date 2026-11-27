@@ -1572,11 +1572,15 @@ break one of those four.
   **Gate: this repo** — the downport rewrites `assert_true/false( x )` into
   `assert_equals( exp = abap_true/abap_false act = x )` (`assert-bool` in
   `node/setup/downport-fix.mjs`, main keeps the idiomatic call), and
-  `check-702` in the same script fails `npm run downport` on the other four
-  read from the OUTPUT. In `src/`: assign the object to a variable before a
-  call with `CHANGING`, `TYPE p LENGTH 16 DECIMALS 0` for a big integer, the
-  function result to a variable before `INSERT`, a long `&&` chain as a
-  plain statement before the `VALUE #( )`. The seventh finding was a
+  `check-702` in the same script fails `npm run downport` on a call that
+  step left behind, read from the OUTPUT. The other four are abaplint's
+  (measured 2026-11-27 with 2.120.120, the comment above `check-702` has
+  the list): the downport outlines the object of the chained call and the
+  function in front of `INSERT`, and `abaplint --fix` fails on `TYPE int8`
+  (`check_syntax`) and on a line over 255 characters (`line_length` in
+  `abap_702.jsonc`, read after the fixes). In `src/`: `TYPE p LENGTH 16
+  DECIMALS 0` for a big integer, a long `&&` chain as a plain statement
+  before the `VALUE #( )`. The seventh finding was a
   runtime dump on that kernel: offset/length access (`iv_name+lv_off(3)`) on
   a parameter bound to a component of a dereferenced data reference raised
   `GETWA_NOT_ASSIGNED` in `check_alias_capable`; `substring( )` does not. No

@@ -225,20 +225,31 @@ const MODES = {
     rewriteDownport("assert-bool", rewriteAssertBool);
   },
 
-  /* The shapes a real 7.02 refuses and abaplint's v702 profile lets through
-   * (#2947), read from the downport's OUTPUT - the tree that is installed.
-   * Each finding names the fix in src/. */
+  /* The shape a real 7.02 refuses and abaplint's v702 profile lets through
+   * (#2947), read from the downport's OUTPUT - the tree that is installed:
+   * an ASSERT_TRUE / ASSERT_FALSE the assert-bool step did not rewrite.
+   * abaplint cannot see it, its check_syntax resolves the class against
+   * open-abap-core, which has both methods.
+   *
+   * This mode used to refuse four more shapes of #2947 by text search.
+   * abaplint decides all four itself now, in the `abaplint --fix` step that
+   * runs before this one - measured 2026-11-27 with @abaplint/cli 2.120.120
+   * and abap_702.jsonc, on a class carrying all four:
+   *   a( )->b( CHANGING ... )         the downport outlines the object
+   *   INSERT substring( ... ) INTO    the downport outlines the function
+   *   TYPE int8                       check_syntax, "Type INT8 requires 7.50"
+   *   a line over 255 characters      line_length (255 in abap_702.jsonc),
+   *                                   read after the fixes, so the line the
+   *                                   downport joined itself is seen
+   * The first two never reach the output, the other two fail the step. A
+   * second, weaker reading of the same thing here was a place for the two
+   * to disagree. */
   "check-702": () => {
     const SELF_TEST = [
       ["    cl_abap_unit_assert=>assert_true( x ).", 1],
-      ["    get_root( )->xml_get_parts( CHANGING ct_parts = lt_parts ).", 1],
-      ["    a=>b( )->c(\n      EXPORTING x = 1 ).", 1],
-      ["    lo_root->xml_get_parts( CHANGING ct_parts = lt_parts ).", 0],
-      ["    DATA lv_big TYPE int8.", 1],
-      ["    INSERT substring( val = v off = 1 ) INTO TABLE result.", 1],
-      ["    INSERT lv_part INTO TABLE result.", 0],
-      [`    x = \`${"a".repeat(260)}\`.`, 1],
-      ["    \" a comment about TYPE int8", 0],
+      ["    cl_abap_unit_assert=>assert_false(\n      act = x ).", 1],
+      ["    cl_abap_unit_assert=>assert_equals( exp = abap_true act = x ).", 0],
+      ["    \" cl_abap_unit_assert=>assert_true( x ) in a comment", 0],
     ];
     for (const [text, expected] of SELF_TEST) {
       const got = check702Findings(text).length;
@@ -379,18 +390,9 @@ function rewriteAssertBool(text) {
 /* The statement-level shapes check-702 refuses, as [regex, why]. Comments
  * are blanked before they run; a literal can still match, which is what a
  * self-test entry and a finding would show. */
-const BUILTIN_FUNCTIONS =
-  "substring|substring_after|substring_before|substring_from|substring_to|condense|to_upper|to_lower|to_mixed|from_mixed|" +
-  "concat_lines_of|replace|shift_left|shift_right|segment|match|repeat|reverse|escape|translate|strlen|xstrlen|lines|boolc|xsdbool|cmax|cmin|nmax|nmin|char_off|count|find";
 const CHECK_702 = [
   [/^[ \t]*cl_abap_unit_assert=>assert_(?:true|false)\(/gim,
     "ASSERT_TRUE/ASSERT_FALSE do not exist on 7.02 - the assert-bool step should have rewritten this"],
-  [/\)->[\w~]+\(\s*(?:EXPORTING|IMPORTING|CHANGING|RECEIVING)\b/gi,
-    "EXPORTING/IMPORTING/CHANGING in a chained method call - in src/, assign the object to a variable first"],
-  [/\bTYPE\s+int8\b/gi,
-    "INT8 does not exist before 7.50 - in src/, use TYPE p LENGTH 16 DECIMALS 0 (or i where it fits)"],
-  [new RegExp(`^[ \\t]*INSERT\\s+(?:${BUILTIN_FUNCTIONS})\\(`, "gim"),
-    "a built-in function as the INSERT operand reads as a method call on 7.02 - in src/, assign it to a variable first"],
 ];
 
 function check702Findings(text) {
@@ -414,12 +416,6 @@ function check702Findings(text) {
       out.push({ line, why, text: lines[line - 1].trim() });
     }
   }
-  // the 7.02 editor stores 255 characters a line and cuts the rest on import
-  lines.forEach((line, i) => {
-    if (line.length > 255) {
-      out.push({ line: i + 1, why: `${line.length} characters - 7.02 cuts a source line at 255 on import`, text: `${line.slice(0, 80)}...` });
-    }
-  });
   return out.sort((a, b) => a.line - b.line);
 }
 
