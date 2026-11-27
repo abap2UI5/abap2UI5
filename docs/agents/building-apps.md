@@ -451,8 +451,13 @@ reasoning:
     ENDCASE.
   ```
 
-  The framework neither sorts nor filters nor counts, and no view is rendered
-  again: change `t_rows` and `mv_total` and the push does the rest
+  `t_sort` and `t_filter` are the browser's: the framework drops a path that
+  could not name a component and an operator off the documented list, but
+  which column is asked for and every value are the user's choice. Check a
+  path against the components of your row type before it goes into a
+  dynamic `ORDER BY` / `WHERE`, and pass the values as host variables (`@`),
+  never as text of the clause. The framework neither sorts nor filters nor
+  counts, and no view is rendered again: change `t_rows` and `mv_total` and the push does the rest
   (`mv_total` is read anew on every response when it is an attribute of the
   app). Because `t_rows` is exactly what the browser shows, a row index, a
   cell edit or a selection is the row of `t_rows` with that index. `val` may

@@ -62,10 +62,15 @@ design, and no framework setting replaces them:
    a central one would be a false sense of security
    ([decision](agents/decisions.md)).
 2. **Input validation.** Every attribute bound with `_bind( )` is writable
-   from the client model; that is what two-way binding is. A value that
-   drives a database write, a dynamic `WHERE` clause or a file name is
-   validated in the app before it is used, exactly as a screen field would
-   be. Host variables for SQL, no dynamic tokens built from bound strings.
+   from the client model; that is what a binding is. The event data is the
+   browser's too - the arguments of an event (`get( )-t_event_arg`) and
+   `get( )-r_event_data`, among them the sort and filter of a
+   `window_bind_tab( )` request, whose column path the app is told to apply.
+   A value that drives a database write, a dynamic `WHERE` or `ORDER BY`
+   clause or a file name is validated in the app before it is used, exactly
+   as a screen field would be. Host variables for SQL, no dynamic tokens
+   built from bound strings or event data; a column name is checked against
+   the components of the row type.
 3. **What it hands the browser.** HTML in a message, a URL in a link, a
    script in a custom control: the app decides what reaches the DOM. The
    sanitizer and the link policy are a net, not a substitute for not
