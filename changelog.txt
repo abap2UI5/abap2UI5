@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* BSP Z2UI5: index.html no longer names the theme sap_horizon, which needs UI5 1.102 - on 1.71 to 1.101 the standalone page rendered unstyled; UI5 picks its release default, ?sap-ui-theme= still overrides
 * Developer tools: Details on the error dialog brings the dialog back when the tools cannot open (their bundle did not load, or the dialog failed) - the app was left dead, with no Retry and no Restart
 * Developer tools: ?z2ui5-devtools= opens the tools again - the auto open ran before the roundtrip URL was known and was refused with "no endpoint"
 * Developer tools: loading the tools' bundle gives up after 60 seconds and removes a failed script element - a load that never answered kept the tools from ever opening
