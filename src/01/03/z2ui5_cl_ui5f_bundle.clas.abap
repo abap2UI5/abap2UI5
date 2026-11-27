@@ -865,9 +865,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `arId);if(!oSVM||!oFilterBar){if(tries++<SMART_VARIANT_INIT_TRIES){setTimeout(run,SMART_VARIANT_INIT_DELAY);return}Lib.logError(``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``);finis` &&
              `h();return}if(Lib.isDestroyed(oSVM)||typeof oSVM.addPersonalizableControl!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``);finish();return}if(typeof o` &&
              `FilterBar.registerFetchData!=="function"){Lib.logError(``FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'``);finish();return}if(oFilterBar[FILTER_BAR_WIRED]){finish();return}oFilterBar[FILT` &&
-             `ER_BAR_WIRED]=true;finish();registerFilterBarCallbacks(oFilterBar);attachFilterBarChange(oSVM,oFilterBar);withPersonalizableInfo(PersonalizableInfo=>{oSVM.addPersonalizableControl(new PersonalizableIn` &&
-             `fo({type:"filterBar",keyName:"persistencyKey",dataSource:"",control:oFilterBar}));anchorPersoControl(oSVM,oFilterBar);ensureInitialised(oSVM,oFilterBar,0,()=>{if(typeof oSVM.currentVariantSetModified=` &&
-             `=="function"){oSVM.currentVariantSetModified(false)}})})};run()}const handlers={SMART_VARIANT_INIT:evSmartVariantInit,FILTER_BAR_VARIANT_INIT:evFilterBarVariantInit};return{handlers}});` && |\n| &&
+             `ER_BAR_WIRED]=true;finish();registerFilterBarCallbacks(oFilterBar);attachFilterBarChange(oSVM,oFilterBar);withPersonalizableInfo(PersonalizableInfo=>{if(!Lib.isControllerAlive(oController)||Lib.isDest` &&
+             `royed(oSVM)||Lib.isDestroyed(oFilterBar)){return}oSVM.addPersonalizableControl(new PersonalizableInfo({type:"filterBar",keyName:"persistencyKey",dataSource:"",control:oFilterBar}));anchorPersoControl(` &&
+             `oSVM,oFilterBar);ensureInitialised(oSVM,oFilterBar,0,()=>{if(typeof oSVM.currentVariantSetModified==="function"){oSVM.currentVariantSetModified(false)}})})};run()}const handlers={SMART_VARIANT_INIT:ev` &&
+             `SmartVariantInit,FILTER_BAR_VARIANT_INIT:evFilterBarVariantInit};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/ViewOps.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/ScrollFocus","z2ui5/core/actions/ControlCall"],(Lib,ViewSlots,ScrollFocus,ControlCa` &&
