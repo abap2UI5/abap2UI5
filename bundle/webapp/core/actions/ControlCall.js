@@ -523,9 +523,28 @@ sap.ui.define(
         display: (oController, method, aArgs) =>
           ViewSlots.destroy(oController?.ctx, aArgs[0]),
       },
+      // Routed through Lib.showBusy / hideBusy, never at the global itself:
+      // on a host's page (state.ownsPage false, embedded) the global
+      // BusyIndicator blocks the HOST's whole page, and its hide( ) took down
+      // an indicator the host had raised for its own work. The pair puts the
+      // overlay on the component's own area there and asks the global only
+      // on a page the component owns - the same split the roundtrip's busy
+      // state takes. The delay as BusyIndicator.show reads it: none given
+      // (or not a number) leaves UI5's default.
       BUSY_INDICATOR: {
         get: () => BusyIndicator,
         methods: { show: ["int"], hide: [] },
+        display: (oController, method, aArgs) => {
+          if (method === "hide") {
+            Lib.hideBusy(oController?.ctx);
+            return;
+          }
+          const delay = aArgs.length ? Number(aArgs[0]) : undefined;
+          Lib.showBusy(
+            oController?.ctx,
+            Number.isFinite(delay) ? delay : undefined,
+          );
+        },
       },
       // A UI5 icon collection outside the default SAP-icons font - sap.tnt's
       // SAP-icons-TNT is the common one - resolves only once something has

@@ -25,53 +25,32 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { periodStatements, stripComment } from "./lib/abap-statements.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SRC02 = path.join(ROOT, "src", "02");
 const SNAPSHOT = path.join(ROOT, ".github", "api-snapshot.json");
 
+// The comments go, the literals stay byte for byte - and both are told
+// apart by the one ABAP lexer of the gates (lib/abap-statements.mjs), which
+// knows `|...|` templates: the hand-written loops here knew backticks and
+// single quotes only, so a `"` inside a template cut the line as a comment
+// and a `'` inside one opened a literal that swallowed the periods after it.
 function stripComments(code) {
   return code
     .split("\n")
     .map((line) => {
+      // a full-line comment, indented or not
       const t = line.trimStart();
       if (t.startsWith("*") || t.startsWith('"')) return "";
-      // inline " comment - safe here because src/02 definition literals use
-      // backticks/single quotes; only strip when not inside a literal
-      let out = "";
-      let inTick = false;
-      let inQuote = false;
-      for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (c === "`" && !inQuote) inTick = !inTick;
-        else if (c === "'" && !inTick) inQuote = !inQuote;
-        else if (c === '"' && !inTick && !inQuote) break;
-        out += c;
-      }
-      return out;
+      return stripComment(line);
     })
     .join("\n");
 }
 
 // split a section body into period-terminated statements (periods inside
-// literals are respected)
-function statements(body) {
-  const out = [];
-  let cur = "";
-  let inTick = false;
-  let inQuote = false;
-  for (const c of body) {
-    if (c === "`" && !inQuote) inTick = !inTick;
-    else if (c === "'" && !inTick) inQuote = !inQuote;
-    if (c === "." && !inTick && !inQuote) {
-      if (cur.trim()) out.push(cur.trim());
-      cur = "";
-    } else {
-      cur += c;
-    }
-  }
-  return out;
-}
+// literals and templates are respected)
+const statements = (body) => periodStatements(body);
 
 // Whitespace folded, keywords and names lower-cased - but the CONTENT of a
 // literal byte for byte: a public constant's value IS the contract (`MIT`,

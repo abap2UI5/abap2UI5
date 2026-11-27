@@ -869,6 +869,61 @@ test("navBack counts the entries behind the browser, not every push", () => {
   expect(state.hashPushCount).toBe(1);
 });
 
+// hashPushCount is navBack's only witness of an in-app entry behind the
+// browser - it has to follow the entries the browser really has, in both
+// directions: a push the browser never made must not count, a push it made
+// must.
+test("a push of the hash the browser already stands on counts nothing", () => {
+  // hasher's setHash leaves an unchanged hash alone - no history entry. It
+  // used to be counted, and the next navBack went history.back( ) off the
+  // app instead of taking its fallback
+  const { Router, state, writes, backs } = loadRouter({
+    state: { navRouting: false },
+    hash: "detail/1",
+  });
+  state.oController = { eB: () => {} };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.sync({ setPushState: "/detail/1", id: "D2" });
+  expect(writes).toEqual([]);
+  expect(state.hashPushCount).toBe(0);
+  Router.navBack("/list");
+  expect(backs).toEqual([]);
+  expect(writes).toEqual([{ op: "replace", hash: "list", guard: "D1" }]);
+});
+
+test("the route a nav_app_call pushes is counted, so hash_back consumes it", () => {
+  // hash_routing: the push of the called app's route is a history entry
+  // like a hash_set push - uncounted, hash_back took the fallback and
+  // stayed on the called app instead of returning to the caller
+  const { Router, state, backs, setHash } = loadRouter();
+  setHash(`/app/${CALLER}/D1`);
+  state.oResponse = { APP: CALLEE };
+  Router.sync({ ...navCallParams(), id: "D9" });
+  expect(state.hashPushCount).toBe(1);
+  Router.navBack(`/app/${CALLER}`);
+  expect(backs).toEqual([1]);
+  // a plain roundtrip of the called app replaces and counts nothing
+  Router.sync({ id: "D10" });
+  expect(state.hashPushCount).toBe(1);
+});
+
+test("navBack leaves a host's history alone, and does nothing under the fatal overlay", () => {
+  const embedded = loadRouter({ state: { ownsPage: false, navRouting: false } });
+  embedded.Router.navBack("/home");
+  embedded.Router.navBack();
+  expect(embedded.backs).toEqual([]);
+  expect(embedded.writes).toEqual([]);
+  expect(embedded.errors).toHaveLength(2);
+  expect(embedded.errors[0].msg).toContain("does not own it");
+
+  const ended = loadRouter({ state: { terminated: true, hashPushCount: 1 } });
+  ended.Router.navBack("/home");
+  ended.Router.navBack();
+  expect(ended.backs).toEqual([]);
+  expect(ended.writes).toEqual([]);
+  expect(ended.errors).toEqual([]);
+});
+
 test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes

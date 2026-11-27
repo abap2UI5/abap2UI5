@@ -33,6 +33,11 @@ function load({
   const destroyed = [];
   const setViews = [];
   const opened = [];
+  // the options every XMLView.create was called with
+  const created = [];
+  // what ViewSlots.getController answers - a spec swaps it (setController)
+  // the way an in-place restart starts over with new controllers
+  let currentController = controller;
 
   class JSONModel {
     constructor(data) {
@@ -99,8 +104,9 @@ function load({
   const { module } = loadModule("core/actions/Slots.js", {
     deps: {
       "sap/ui/core/mvc/XMLView": {
-        create: () => {
+        create: (opts) => {
           order.push("build");
+          created.push(opts);
           return Promise.resolve(view);
         },
       },
@@ -151,7 +157,7 @@ function load({
         // page stays up while the new one is built); nothing is open here
         detach: () => undefined,
         setView: (_ctx, key, oView, xml) => setViews.push({ key, oView, xml }),
-        getController: () => controller,
+        getController: () => currentController,
         getView: (_ctx, key) => openViews[key] ?? null,
         getViewApp: () => undefined,
         getViewXml: () => "",
@@ -174,6 +180,10 @@ function load({
     fragment,
     view,
     order,
+    created,
+    setController: (c) => {
+      currentController = c;
+    },
   };
 }
 
@@ -244,6 +254,39 @@ test("a superseded display is dropped before anything is torn down", () => {
   // seq 1 against Server._requestSeq 7: a newer request owns the slots
   expect(Slots.action("display", "POPUP", "<Dialog/>", {}, 1)).toBe(undefined);
   expect(destroyed).toEqual([]);
+});
+
+// An in-place restart (Component._restartApp, the error overlay's Restart)
+// keeps the context and the app control, and starts over with new
+// controllers. A MAIN build of the app that ended, still awaiting its
+// libraries or controls, must not land over the restarted app: it is
+// discarded, and it never wires the new controller to its view.
+test("a MAIN build of an app restarted meanwhile is discarded", async () => {
+  const oldController = { name: "old" };
+  let arrive;
+  const h = load({
+    controller: oldController,
+    ensureControls: () =>
+      new Promise((resolve) => {
+        arrive = resolve;
+      }),
+  });
+  const done = h.Slots.action("display", "MAIN", "<mvc:View/>");
+  await new Promise((resolve) => setImmediate(resolve));
+  // the restart: new controllers, the same context and app control
+  h.setController({ name: "new" });
+  arrive();
+  await done;
+  expect(h.created.map((opts) => opts.controller)).toEqual([oldController]);
+  expect(h.view.destroyed).toBe(true);
+  expect(h.setViews).toEqual([]);
+});
+
+test("a MAIN build whose controller is still the slot's lands", async () => {
+  const h = load({ controller: { name: "same" } });
+  await h.Slots.action("display", "MAIN", "<mvc:View/>");
+  expect(h.view.destroyed).toBe(false);
+  expect(h.setViews.map((entry) => entry.key)).toEqual(["MAIN"]);
 });
 
 // The frontend's custom controls are a bundle of their own, loaded when a

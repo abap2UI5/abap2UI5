@@ -172,7 +172,8 @@ sap.ui.define(
       //     the app that just started shows the fatal "App Terminated"
       //     overlay.
       //   viewBuild - a queued rebuild continuation calls removeAllPages( )
-      //     on an oApp the teardown has since cleared.
+      //     on an oApp the teardown has since cleared. It is not dropped,
+      //     though - see the reset below.
       // The context is per component now, so the next launch cannot inherit
       // either - the teardown still bumps and aborts, for a continuation of
       // THIS context that is still awaiting.
@@ -186,7 +187,18 @@ sap.ui.define(
         // N seconds" dialog with a Retry that re-sent the dead session's body
         ctx.server.requestSeq += 1;
         this._abortInflight(ctx);
-        ctx.server.viewBuild = null;
+        // The build chain is KEPT, not dropped: a MAIN build already past
+        // its supersession check (actions/Slots, displayView) is still
+        // awaiting its libraries or XMLView.create, and an in-place restart
+        // (Component._restartApp) keeps the context - a null here let the
+        // restarted app's first build start beside it, and the stale build
+        // landed over the restarted app. Chained, the next build waits for
+        // it, and displayView discards it (the MAIN controller it was built
+        // for is gone). The queued builds behind it read the bumped
+        // sequence and skip; a rejection never blocks the chain.
+        ctx.server.viewBuild = Promise.resolve(ctx.server.viewBuild).catch(
+          () => {},
+        );
         // a keystroke a check_queue_last wire kept for the app being torn
         // down must never be dispatched into the next one - nor a window
         // request of its tables

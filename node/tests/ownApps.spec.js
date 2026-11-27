@@ -236,3 +236,32 @@ test("says so when nothing in a flat output is the host's", async () => {
     for (const dir of [runtimeOutput, output]) fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// The apps folder is removed whole before the classes are written, so it has
+// to be one this tool wrote: `abap2ui5-own-apps output .` took the host's
+// project with it, and a folder named by mistake everything in it.
+test("empties only a folder of its own - never the output, the project, or a folder of the host's", async () => {
+  const { ownApps } = await load();
+  const runtimeOutput = tree(PACKAGE_OUTPUT);
+  const output = tree({ "project/zcl_app.clas.mjs": "export {};\n" });
+  const host = tree({ "notes.txt": "the host's" });
+  const apps = path.join(os.tmpdir(), `own-apps-out-${process.pid}-${Date.now()}`);
+  try {
+    // the output itself, and a folder around it
+    expect(() => ownApps({ output, apps: output, runtimeOutput })).toThrow(/is or holds the transpile output/);
+    expect(() => ownApps({ output, apps: path.dirname(output), runtimeOutput })).toThrow(/is or holds the transpile output/);
+    // the folder the host runs in
+    expect(() => ownApps({ output, apps: host, runtimeOutput, cwd: host })).toThrow(/is or holds the folder this runs in/);
+    // a folder of the host's with something else in it
+    expect(() => ownApps({ output, apps: host, runtimeOutput, cwd: os.tmpdir() })).toThrow(/holds no index\.mjs of abap2ui5-own-apps/);
+    expect(fs.readFileSync(path.join(host, "notes.txt"), "utf8")).toBe("the host's");
+    expect(fs.existsSync(path.join(output, "project", "zcl_app.clas.mjs"))).toBe(true);
+    // ...while its own folder is written again and again
+    ownApps({ output, apps, runtimeOutput });
+    fs.writeFileSync(path.join(apps, "stale.clas.mjs"), "");
+    ownApps({ output, apps, runtimeOutput });
+    expect(fs.readdirSync(apps).sort()).toEqual(["index.mjs", "zcl_app.clas.mjs"]);
+  } finally {
+    for (const dir of [runtimeOutput, output, host, apps]) fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
