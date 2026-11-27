@@ -36,7 +36,18 @@ const ALLOWED_HOSTS = process.env.ALLOWED_HOSTS;
 const escapeJs = (text) => JSON.stringify(text).slice(1, -1).replace(/</g, "\\x3c");
 
 async function liveBundle(req, res) {
-  const url = new URL(req.url, "http://localhost");
+  // A request line that is no URL (`GET //[ HTTP/1.1`) makes the parse
+  // throw - inside this async function a rejection, which the server's
+  // listener below did not catch: one such request took the whole dev
+  // server down. Answered with a 400 instead.
+  let url;
+  try {
+    url = new URL(req.url, "http://localhost");
+  } catch {
+    res.writeHead(400, { "content-type": "text/plain; charset=UTF-8" });
+    res.end("bad request: the request target is no URL");
+    return true;
+  }
   if (req.method !== "GET" || !url.searchParams.has("z2ui5-bundle")) return false;
   try {
     const { bundleText, devtoolsText, ccText } = await buildTexts({ strip: false });
@@ -71,9 +82,21 @@ try {
   await initialize();
   const server = http.createServer((req, res) =>
     guard(req, res, () => {
-      liveBundle(req, res).then((answered) => {
-        if (!answered) app(req, res);
-      });
+      liveBundle(req, res)
+        .then((answered) => {
+          if (!answered) app(req, res);
+        })
+        // whatever else throws, the server stays up: said in the terminal,
+        // and the request answered unless an answer is already under way
+        .catch((error) => {
+          console.error(`live: the request failed - ${error.message}`);
+          if (res.headersSent) {
+            res.destroy();
+            return;
+          }
+          res.writeHead(500, { "content-type": "text/plain; charset=UTF-8" });
+          res.end(`the request failed: ${error.message}`);
+        });
     }),
   );
   await new Promise((resolve, reject) => {

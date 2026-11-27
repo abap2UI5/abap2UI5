@@ -224,3 +224,22 @@ test.describe("Bindings diagnostics", () => {
     );
   });
 });
+
+test.describe("Bindings secrets", () => {
+  test("a secret attribute and the delta it is sent in show no value", () => {
+    const { Bindings, ctx } = loadBindings({
+      views: {
+        MAIN: fakeView({
+          xml: `<Input value="{/PASSWORD}"/><Input value="{/USER}"/>`,
+          data: { PASSWORD: "hunter2", USER: "alice" },
+          changedPaths: ["/PASSWORD", "/USER"],
+        }),
+      },
+    });
+    const out = Bindings.formatBindings(ctx, "MAIN");
+    expect(out).not.toContain("hunter2");
+    expect(out).toMatch(/\/PASSWORD\s+string {2}\*\*\*/);
+    expect(out).toContain('"PASSWORD": "***"');
+    expect(out).toContain("alice");
+  });
+});

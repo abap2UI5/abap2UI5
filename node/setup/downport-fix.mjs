@@ -127,6 +127,15 @@ const MODES = {
   "downport-config": () => {
     const src = readFileSync(join(ROOT, ".github", "abaplint", "abap_702.jsonc"), "utf8");
     const out = src.replaceAll("/../../src/", "/../../node/downport/");
+    // Loud, as abaplint-path above: unchanged, the derived config still
+    // points at src/, and the `abaplint --fix` the downport runs over it
+    // would downport src/ IN PLACE - the working tree rewritten to 7.02 by
+    // a command documented as non-destructive (AGENTS.md rule 9).
+    if (out === src) {
+      console.error("downport-config: abap_702.jsonc carries no \"/../../src/\" glob to retarget at node/downport/");
+      console.error("  refusing to write downport_run.jsonc - abaplint --fix over it would rewrite src/ in place. Did the glob in abap_702.jsonc change? Then change the string here too.");
+      process.exit(1);
+    }
     writeFileSync(join(ROOT, ".github", "abaplint", "downport_run.jsonc"), out);
     console.log("downport-config: downport_run.jsonc written");
   },

@@ -145,24 +145,45 @@ sap.ui.define([], () => {
   // Resolves once the bundle ran, rejects when it could not be fetched or
   // what came was not the bundle; the element of a failed load is removed,
   // the next try adds its own.
+  //
+  // A load that never settles - a proxy holding the request open, a script
+  // element whose events never fire - rejects after LOAD_TIMEOUT too: the
+  // view builds are one serialized chain (actions/Slots, chainBuild), and a
+  // promise that never settles stalled every later build of the component,
+  // a popup's and a restart's included, with nothing on screen to say so.
+  // Generous on purpose: the bundle is a few hundred KB, and a slow line
+  // must not turn a load that would have arrived into an error overlay.
+  const LOAD_TIMEOUT = 60000;
   /** @returns {Promise<void>} */
   function loadScript(url) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      const fail = () => {
+      let timer = null;
+      const settle = (ok, reason) => {
+        if (timer === null) return; // settled already
+        clearTimeout(timer);
+        timer = null;
+        if (ok) {
+          resolve();
+          return;
+        }
         script.remove();
         reject(
           new Error(
-            `the custom controls this view uses could not be loaded: ${url}`,
+            `the custom controls this view uses could not be loaded${reason}: ${url}`,
           ),
         );
       };
+      timer = setTimeout(
+        () =>
+          settle(false, ` (no answer within ${LOAD_TIMEOUT / 1000} seconds)`),
+        LOAD_TIMEOUT,
+      );
       script.src = url;
       script.async = true;
-      script.onerror = fail;
+      script.onerror = () => settle(false, "");
       // the bundle's module settles in the task after the script ran
-      script.onload = () =>
-        setTimeout(() => (bundleArrived() ? resolve() : fail()), 0);
+      script.onload = () => setTimeout(() => settle(bundleArrived(), ""), 0);
       document.head.appendChild(script);
     });
   }

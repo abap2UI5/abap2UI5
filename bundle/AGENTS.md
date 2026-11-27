@@ -8,8 +8,9 @@ of its own - the embed control (abap2UI5-addons/embed-ui5-control) loads it and 
 This file adds to the root [`AGENTS.md`](../AGENTS.md); it does not replace it.
 Tools that read nested agent files load it when they work below `bundle/` (Claude
 Code through `bundle/CLAUDE.md`). It sits in `bundle/` and not in `bundle/webapp/` on
-purpose: `tools/app2abap/trans2abap.js` embeds **every** file under
-`bundle/webapp/` into an ABAP class, so a Markdown file there would ship.
+purpose: `tools/app2abap/trans2abap.js` embeds every file under
+`bundle/webapp/` that git knows and that is of a frontend kind into an ABAP class
+(`frontendFiles`) - a Markdown file there would fail the generation, committed, or be left out.
 
 The rules keep the numbers they have in the root file — code, tests and gates
 cite them as "AGENTS.md rule N", and the root file keeps a one-line version of

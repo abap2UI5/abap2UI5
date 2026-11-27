@@ -55,6 +55,21 @@ sap.ui.define(["sap/base/strings/formatMessage"], (formatMessage) => {
     return v === undefined || v === null ? "" : v;
   }
 
+  // A cell value as text inside the text/html variant. The template is the
+  // app's HTML (it may well hold markup of its own), the values are data:
+  // a customer name "Smith & <Sons>" went into the html flavour raw, so a
+  // spreadsheet pasting it read a tag and dropped the text - and a value
+  // holding markup was pasted as markup. Escaped here, at the one place a
+  // value enters HTML; the text flavour keeps the raw value.
+  function escapeHtml(v) {
+    return String(v)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   // The row's data source. For a bound table the CopyProvider hands over the
   // binding context; for a sap.m.Table whose items are NOT bound it hands
   // over the row itself, whose binding context (if any) carries the data.
@@ -97,7 +112,10 @@ sap.ui.define(["sap/base/strings/formatMessage"], (formatMessage) => {
       if (!bIncludeHtmlMimeType) return aCellData;
       return {
         text: aCellData,
-        html: formatMessage(oColumn.data("template") || "{0}", aCellData),
+        html: formatMessage(
+          oColumn.data("template") || "{0}",
+          aCellData.map(escapeHtml),
+        ),
       };
     },
   };

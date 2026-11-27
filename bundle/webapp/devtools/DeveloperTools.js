@@ -472,12 +472,11 @@ sap.ui.define(
           text = cached ?? (await AbapSource.fetchSource(this.ctx));
           if (Lib.isDestroyed(oSource)) return;
         }
-        Lib.copyToClipboard(text);
         // Confirm on the button itself and put the label back - the dialog
         // is modal, so a toast behind it would be invisible. Report owns
         // that feedback for the export popup's copy buttons; the same one
-        // serves here.
-        Report.confirmOnButton(oSource);
+        // serves here, and says "Copied" only for a copy that happened.
+        await Report.copyWithFeedback(oSource, text);
       },
 
       // The Error view's actions mirror the ErrorView overlay: re-run the
@@ -545,10 +544,8 @@ sap.ui.define(
             new Button({
               text: "Copy",
               type: "Emphasized",
-              press: (oEvent) => {
-                Lib.copyToClipboard(area.getValue());
-                Report.confirmOnButton(oEvent.getSource());
-              },
+              press: (oEvent) =>
+                Report.copyWithFeedback(oEvent.getSource(), area.getValue()),
             }),
             new Button({
               text: "Download",

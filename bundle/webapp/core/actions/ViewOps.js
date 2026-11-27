@@ -80,6 +80,11 @@ sap.ui.define(
       let oModel;
       try {
         const ODataModel = await Lib.requireODataModel();
+        // The component may have gone while the class loaded: its state is
+        // rebuilt then (Context.destroy), and a client recorded in that
+        // inventory has no teardown left to destroy it - with its $metadata
+        // request, caches and queues. So none is built at all.
+        if (!oController?.ctx?.alive) return;
         oModel = new ODataModel({
           serviceUrl: args[1],
           annotationURI: args[3] || "",

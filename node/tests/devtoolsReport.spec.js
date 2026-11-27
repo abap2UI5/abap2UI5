@@ -231,6 +231,8 @@ test.describe("copyMarkdown", () => {
 
   test("a clipboard the browser refused is not reported as copied", async () => {
     const { module: Report } = loadModule("devtools/Report.js", {
+      // devtools/Format.js (the shared secret test) is loaded for real
+      autoLoad: true,
       deps: {
         "z2ui5/core/Lib": {
           copyToClipboard: () => Promise.resolve(false),
@@ -247,6 +249,8 @@ test.describe("copyMarkdown", () => {
 
   test("a clipboard failure is reported rather than thrown", async () => {
     const { module: Report } = loadModule("devtools/Report.js", {
+      // devtools/Format.js (the shared secret test) is loaded for real
+      autoLoad: true,
       deps: {
         "z2ui5/core/Lib": {
           copyToClipboard: () => {

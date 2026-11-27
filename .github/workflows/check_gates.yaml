@@ -158,6 +158,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/shared-file-gate.mjs # npm run check:shared
 
+      # ...and that the two shared build scripts (rename.mjs, update-deps.mjs)
+      # are right: the gate above proves the copies equal the source, not
+      # that the source works
+      - name: the shared build scripts' tests
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/shared-scripts.test.mjs # npm run check:shared-scripts
+
       # the OTHER direction of the same problem: @abap2ui5/linter hand-mirrors
       # three closed sets defined here, and it is not a dependency of this
       # repository, so a rename here is silent until its weekly sync files an

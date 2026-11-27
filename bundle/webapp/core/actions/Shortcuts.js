@@ -196,10 +196,35 @@ sap.ui.define(
       }
     }
 
+    // Whether a keystroke is this component's to answer. On a page the
+    // component owns, every keystroke is (state.ownsPage, Component.init).
+    // On a host's page the listener still sits on `document` - UI5 renders
+    // popups and popovers into the static UI area outside the component's
+    // DOM, so a listener on the component's root would miss them - but a
+    // key pressed in the host's own fields (or in a second component) is
+    // not: Ctrl+S in the host's form used to fire this app's save and
+    // swallow the host's. ScrollFocus.isInComponent answers for the static
+    // area too (it asks the control's owner component). A keystroke with
+    // the focus nowhere (on the body) counts as the component's when the
+    // user's last focus or click was inside it - the rule
+    // ScrollFocus.mayMoveFocus applies to the focus itself.
+    function ownsKeystroke(ctx, target) {
+      if (ctx.state.ownsPage !== false) return true;
+      if (
+        !target ||
+        target === document.body ||
+        target === document.documentElement
+      ) {
+        return Boolean(ctx.focus?.userInside);
+      }
+      return ScrollFocus.isInComponent(ctx, target);
+    }
+
     function installShortcutListener(ctx) {
       if (ctx.shortcuts.listener || typeof document === "undefined") return;
       const listener = (oEvent) => {
         try {
+          if (!ownsKeystroke(ctx, oEvent.target)) return;
           let entry;
           for (const combo of shortcutCandidates(oEvent)) {
             entry = shortcutEntry(ctx, combo);

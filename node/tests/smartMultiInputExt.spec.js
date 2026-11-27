@@ -296,3 +296,38 @@ test("exit() detaches both handlers from the input", () => {
   expect(attached.tokenUpdate).toHaveLength(0);
   expect(attached.innerCreated).toHaveLength(0);
 });
+
+// innerControlsCreated fires once: a companion that attaches after the smart
+// field built its inner controls never heard it, and setRangeData waited
+// for good. It asks the field (getInnerControls) when it attaches.
+test("inner controls built before the companion attached resolve its waiters", async () => {
+  const input = {
+    ...smartInputStub([tokenStub("A")]),
+    attachTokenUpdate() {},
+    attachInnerControlsCreated() {},
+    getInnerControls: () => [{ id: "inner" }],
+  };
+  const { makeInstance } = load({ input });
+  const inst = makeInstance();
+  const waiting = inst.inputInitialized();
+  inst.setControl();
+  expect(await waiting).toBe(input);
+  // and a later wait is answered at once
+  expect(await inst.inputInitialized()).toBe(input);
+});
+
+test("inner controls not built yet still wait for the event", async () => {
+  const input = {
+    ...smartInputStub(),
+    attachTokenUpdate() {},
+    attachInnerControlsCreated() {},
+    getInnerControls: () => [],
+  };
+  const { makeInstance } = load({ input });
+  const inst = makeInstance();
+  inst.setControl();
+  expect(inst._bInnerControlsCreated).toBeFalsy();
+  const waiting = inst.inputInitialized();
+  inst.onInnerControlsCreated({ getSource: () => input });
+  expect(await waiting).toBe(input);
+});

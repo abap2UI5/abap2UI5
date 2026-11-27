@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext, loadLib } = require("./loadLibModule");
+const { specContext, loadLib, withBusy } = require("./loadLibModule");
 
 // Server.readHttp's ANSWER side - what a response that is not a good one
 // turns into. Every branch ends in responseError with a message the user
@@ -59,13 +59,12 @@ function load({ libSandbox = {} } = {}) {
   const { Lib } = loadLib({ ctx, ...libSandbox });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "sap/ui/core/BusyIndicator": {
-        show: (delay) => busy.push(["show", delay]),
-        hide: () => busy.push(["hide"]),
-      },
       // the real Lib: the sap-contextid adoption below runs through its
       // isValidContextId
-      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/Lib": withBusy(Lib, {
+        show: (delay) => busy.push(["show", delay]),
+        hide: () => busy.push(["hide"]),
+      }),
       "z2ui5/core/Session": { confirmSent: () => {} },
       "z2ui5/core/ErrorView": { reset: () => {} },
     },
@@ -123,8 +122,11 @@ test.describe("HTTP status outside 2xx", () => {
       expect(env.errors[0].msg).toBe("gateway");
       expect(typeof env.errors[0].options?.onRetry).toBe("function");
 
-      // the overlay's Retry: busy again, the exact same request out again
+      // the overlay's Retry: busy again, the exact same request out again -
+      // and the app live again (responseError ended it)
+      env.ctx.state.terminated = true;
       env.errors[0].options.onRetry();
+      expect(env.ctx.state.terminated).toBe(false);
       expect(env.ctx.state.isBusy).toBe(true);
       expect(env.busy).toEqual([["show", 0]]);
       expect(env.fetches).toHaveLength(2);

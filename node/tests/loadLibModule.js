@@ -83,11 +83,20 @@ const classEnv = {
   loadViewLibraries: async () => {},
 };
 
+// `busyIndicator` stands in for sap/ui/core/BusyIndicator, which Lib's
+// showBusy / hideBusy drive on a page the component owns - inert unless a
+// spec records the calls.
 function loadLib(overrides = {}) {
-  const { state: seed = {}, ctx: given, ...rest } = overrides;
+  const {
+    state: seed = {},
+    ctx: given,
+    busyIndicator = { show() {}, hide() {} },
+    ...rest
+  } = overrides;
   const ctx = given || specContext(seed);
   const { module, sandbox } = loadModule("core/Lib.js", {
     deps: {
+      "sap/ui/core/BusyIndicator": busyIndicator,
       "z2ui5/core/Context": contextStub(ctx),
     },
     sandbox: {
@@ -111,6 +120,19 @@ function loadLib(overrides = {}) {
     ctx,
     Context: contextStub(ctx),
   };
+}
+
+// A spec's own Lib for core/Server.js or View1.controller.js, given the
+// roundtrip helpers both take from core/Lib: showBusy / hideBusy (the real
+// pair, over `busyIndicator` - the stand-in for sap/ui/core/BusyIndicator
+// a spec records the overlay with) and dropQueuedEvents. Set on the object
+// itself, so a real Lib keeps its identity for the spec that patches it.
+function withBusy(lib, busyIndicator = { show() {}, hide() {} }) {
+  const { Lib: real } = loadLib({ busyIndicator });
+  lib.showBusy = real.showBusy;
+  lib.hideBusy = real.hideBusy;
+  if (!lib.dropQueuedEvents) lib.dropQueuedEvents = real.dropQueuedEvents;
+  return lib;
 }
 
 // core/Env.js - the UI5-release compatibility layer - over a real Lib that
@@ -177,6 +199,7 @@ function withSpecController(handlers, ctx) {
 module.exports = {
   loadLib,
   loadEnv,
+  withBusy,
   specContext,
   contextStub,
   bindContext,

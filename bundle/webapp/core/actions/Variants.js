@@ -351,6 +351,18 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
       registerFilterBarCallbacks(oFilterBar);
       attachFilterBarChange(oSVM, oFilterBar);
       withPersonalizableInfo((PersonalizableInfo) => {
+        // The module may arrive asynchronously (sap.ui.comp not loaded yet),
+        // and a roundtrip can replace the view in between: the controls are
+        // destroyed, or the app is gone. Adding a personalizable control to
+        // a destroyed variant management threw out of the loader's callback
+        // - nothing to wire any more, so nothing is done
+        if (
+          !Lib.isControllerAlive(oController) ||
+          Lib.isDestroyed(oSVM) ||
+          Lib.isDestroyed(oFilterBar)
+        ) {
+          return;
+        }
         oSVM.addPersonalizableControl(
           new PersonalizableInfo({
             type: "filterBar",

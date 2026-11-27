@@ -657,6 +657,31 @@ test.describe("CROSS_APP_NAV_GET_LINKS", () => {
     expect(errors()).toEqual([]);
   });
 
+  // decodeURIComponent throws on a lone "%" - it took the whole answer,
+  // every other link included, into the getLinks catch
+  test("a parameter that is no valid percent-encoding is kept as it stands", async () => {
+    const { handlers, events, oController, errors } = setup({
+      getLinks: () =>
+        Promise.resolve([
+          { intent: "#Product-display?Discount=100%&Name=A%20B", text: "P" },
+          { intent: "#Product-manage?Bad%E0=x", text: "M" },
+        ]),
+    });
+
+    handlers.CROSS_APP_NAV_GET_LINKS(oController, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { semanticObject: "Product" },
+      undefined,
+      "LINKS",
+    ]);
+    await tick();
+
+    expect(errors()).toEqual([]);
+    const links = JSON.parse(events[0][1]);
+    expect(links[0].params).toEqual({ Discount: "100%", Name: "A B" });
+    expect(links[1].params).toEqual({ "Bad%E0": "x" });
+  });
+
   test("an action narrows the query, and a jQuery-style thenable is adopted", async () => {
     const { handlers, queries, events, oController } = setup({
       // CrossApplicationNavigation answers with a jQuery promise

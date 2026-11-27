@@ -6,6 +6,7 @@ const {
   specContext,
   contextStub,
   classEnv,
+  withBusy,
 } = require("./loadLibModule");
 
 // Tests the two event-side helpers on View1.controller that the backend binds
@@ -31,7 +32,7 @@ function loadController(extraDeps) {
       "z2ui5/core/Env": classEnv,
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
       "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
-      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/Lib": withBusy(Lib),
       ...(extraDeps || {}),
     },
   });
@@ -54,7 +55,7 @@ function withSlotStub(byId, resolveById) {
       "z2ui5/core/Env": classEnv,
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
       "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
-      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/Lib": withBusy(Lib),
       // the slot registry takes the context first; the stubs ignore it
       "z2ui5/core/ViewSlots": {
         byId: (_ctx, ...a) => (byId || (() => undefined))(...a),
@@ -437,15 +438,14 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       deps: {
         "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
-        "sap/ui/core/BusyIndicator": { hide: () => busy.push("hide") },
         "sap/m/MessageBox": {},
         "z2ui5/core/Server": server,
-        "z2ui5/core/Lib": {
+        "z2ui5/core/Lib": withBusy({
           isDestroyed: () => false,
           isControllerAlive: () => app.alive,
           runCallbacks: (arr) => (arr || []).forEach((f) => f()),
           logError: (m) => logged.push(m),
-        },
+        }, { hide: () => busy.push("hide") }),
         "z2ui5/core/FrontendAction": {
           // hands an action's result back - a promise for the async
           // ones (SET_ODATA_MODEL), which the runner awaits
@@ -1073,10 +1073,9 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
       deps: {
         "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
-        "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
         "sap/m/MessageBox": { alert: () => {} },
         "z2ui5/core/Server": { roundtrip: (_ctx, oBody) => bodies.push(oBody) },
-        "z2ui5/core/Lib": Lib,
+        "z2ui5/core/Lib": withBusy(Lib, { show: () => {}, hide: () => {} }),
         "z2ui5/core/FrontendAction": {},
         "z2ui5/core/actions/Slots": {},
         // no slot owns this controller: _pickModelForRoundtrip bails out and
@@ -1109,6 +1108,20 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
     expect(cleared).toEqual([]);
     expect(state.timers).toEqual({});
     expect(bodies).toHaveLength(1);
+  });
+
+  // After the fatal overlay (Server.responseError sets state.terminated)
+  // the app has ended: isBusy is false under the overlay, so a shortcut, a
+  // timer or a control calling eB on its own used to send a roundtrip for
+  // the broken session anyway
+  test("nothing goes out under the fatal overlay", () => {
+    const { ctrl, state, bodies } = loadForDispatch();
+    state.terminated = true;
+
+    ctrl.eB(["SAVE", false]);
+
+    expect(bodies).toHaveLength(0);
+    expect(state.isBusy).toBe(false);
   });
 
   // A wire hand-written as eB('SAVE') used to be destructured character by
@@ -1434,6 +1447,18 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     expect(destroyed).toEqual([clients[0]]);
     expect(state.odataClients.size).toBe(2);
   });
+
+  test("a component that went while the client class loaded gets no client", async () => {
+    // the await of Lib.requireODataModel: a client built and recorded after
+    // the teardown sat in the rebuilt state's inventory, which no teardown
+    // empties any more - $metadata request, caches and queues included
+    const { ViewOps, ctx, state, clients } = loadODataOwnership();
+    const pending = setOData(ViewOps, ctx, "/svc/late/", "orders");
+    ctx.alive = false;
+    await pending;
+    expect(clients).toHaveLength(0);
+    expect(state.odataClients.size).toBe(0);
+  });
 });
 
 test.describe("eB busy guard with check_queue_last (queued last event)", () => {
@@ -1469,16 +1494,12 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       deps: {
         "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
-        "sap/ui/core/BusyIndicator": {
-          show: (delay) => busy.push(delay === 0 ? "show(0)" : "show"),
-          hide: () => busy.push("hide"),
-        },
         "sap/m/MessageBox": {},
         "z2ui5/core/Server": {
           responseError: () => {},
           roundtrip: (_ctx, body) => roundtrips.push(body),
         },
-        "z2ui5/core/Lib": {
+        "z2ui5/core/Lib": withBusy({
           isDestroyed: () => false,
           isControllerAlive: (c) => app.alive && c === ctrl,
           runCallbacks: (arr) => (arr || []).forEach((f) => f()),
@@ -1504,7 +1525,10 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
             return delta;
           },
           isRootModelSlot: () => true,
-        },
+        }, {
+          show: (delay) => busy.push(delay === 0 ? "show(0)" : "show"),
+          hide: () => busy.push("hide"),
+        }),
         "z2ui5/core/FrontendAction": {
           runCustom: () => {},
         },

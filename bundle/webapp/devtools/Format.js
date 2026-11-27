@@ -259,6 +259,91 @@ sap.ui.define([], () => {
     return typed ? `${typeof value}  ${preview}` : preview;
   }
 
+  // What the developer tools never show verbatim: the value under a name
+  // that says it holds a secret. The tools are made to be shared - the
+  // bug report goes into a public GitHub issue, the history JSON and the
+  // journey's ABAP Unit class into a repository - and a password bound
+  // with _bind( ) travels in the model, the request delta and the event
+  // arguments like any other value. A NAME is what the tools can judge
+  // (they see the model as data, not the control that edits it), so the
+  // test is on the name - anywhere in it: MV_PASSWORD, MS_LOGIN-PASSWORD,
+  // the path /S_LOGIN/PASSWORD and a table column all match. The one
+  // test every formatter and every export asks; Report.js and Journey.js
+  // each carried their own copy of it, and the two had drifted.
+  const SECRET_NAME = /(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)/i;
+  const MASK = "***";
+
+  function isSecretName(name) {
+    return typeof name === "string" && SECRET_NAME.test(name);
+  }
+
+  // A leaf worth hiding: a value that says something. An empty string, a
+  // boolean or null is shown as it is - "the password field is empty" is
+  // the very thing a developer opens the tools to find out.
+  function isMaskable(value) {
+    return (
+      (typeof value === "string" && value !== "") || typeof value === "number"
+    );
+  }
+
+  // Walk a value and call `leaf(value, secret)` for every leaf, with
+  // `secret` true below a key that names a secret. Ancestors only (a value
+  // referenced twice in sibling branches is no cycle, see toJson).
+  function mapSecrets(value, secret, leaf) {
+    const ancestors = [];
+    const visit = (val, under) => {
+      if (val === null || typeof val !== "object") return leaf(val, under);
+      if (ancestors.includes(val)) return "[Circular]";
+      ancestors.push(val);
+      let out;
+      if (Array.isArray(val)) {
+        out = val.map((item) => visit(item, under));
+      } else {
+        out = {};
+        for (const key of Object.keys(val)) {
+          out[key] = visit(val[key], under || isSecretName(key));
+        }
+      }
+      ancestors.pop();
+      return out;
+    };
+    return visit(value, secret);
+  }
+
+  // The strings found below a secret-named key - what an event argument
+  // is compared with: T_EVENT_ARG is positional and carries no name, so a
+  // password handed to the event (`${/PASSWORD}` as an argument) is
+  // recognised by being the value the same request bound under one.
+  function secretValues(value) {
+    const found = new Set();
+    try {
+      mapSecrets(value, false, (val, under) => {
+        if (under && typeof val === "string" && val !== "") found.add(val);
+        return val;
+      });
+    } catch {
+      // total, like everything here: nothing found is an empty set
+    }
+    return found;
+  }
+
+  // A COPY of `value` with every leaf below a secret-named key replaced
+  // by "***" - and, given `values` (a Set, see secretValues), every string
+  // equal to one of them, wherever it sits. `secret` marks the value
+  // itself as one (the caller knows its name, e.g. a diff path). The input
+  // is never touched: the recorder's payloads are live references.
+  function maskSecrets(value, { secret = false, values = null } = {}) {
+    try {
+      return mapSecrets(value, secret, (val, under) => {
+        if (under && isMaskable(val)) return MASK;
+        if (values && typeof val === "string" && values.has(val)) return MASK;
+        return val;
+      });
+    } catch {
+      return MASK;
+    }
+  }
+
   // A framework event wire in a handler's source or a view attribute:
   // eB / eBP / eF, then the quoted event name (single, double or the
   // XML-escaped apostrophe of a view attribute) - either right after the
@@ -286,5 +371,9 @@ sap.ui.define([], () => {
     renderValue,
     describeValue,
     FRAMEWORK_CALL,
+    MASK,
+    isSecretName,
+    maskSecrets,
+    secretValues,
   };
 });

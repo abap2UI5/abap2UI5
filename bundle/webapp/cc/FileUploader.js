@@ -149,8 +149,7 @@ sap.ui.define(
 
       // Hand the remembered selection to the queue and FORGET it: the same
       // set must only be read once. Pressing Upload a second time without
-      // picking a new file queued it again (and so did a second
-      // uploadComplete of the direct-upload path), so every file reached the
+      // picking a new file queued it again, so every file reached the
       // backend twice.
       _uploadPendingFiles() {
         const files = this._pendingFiles;
@@ -169,9 +168,8 @@ sap.ui.define(
       // visible side effects" rule (core/Lib.js) and threw away the inner
       // file input's selection and focus on every roundtrip that re-
       // rendered the view. Create-once is the cc/CameraPicture pattern.
-      // checkDirectUpload changes the STRUCTURE (upload button yes/no,
-      // uploadOnChange is init-only on the inner control), so a toggle of
-      // it is the one case that rebuilds.
+      // checkDirectUpload changes the STRUCTURE (upload button yes/no), so a
+      // toggle of it is the one case that rebuilds.
       _ensureControls(directUpload) {
         if (this._oHBox && this._builtDirectUpload === directUpload) return;
         if (this._oHBox) this._oHBox.destroy();
@@ -193,17 +191,29 @@ sap.ui.define(
           });
         }
 
+        // uploadOnChange stays false in BOTH modes. Direct upload means "read
+        // the file as soon as it is picked", not the inner control's own
+        // HTTP upload: with uploadOnChange true and no uploadUrl it POSTed
+        // every selected file to the PAGE's URL (a multipart request the
+        // ICF node answered with the app's GET page, a file of any size
+        // sent for nothing) and only its uploadComplete started the read.
+        // The file travels as `value` with the upload event's roundtrip,
+        // like in button mode - so change reads it right away.
         this.oFileUploader = new FileUploader({
-          uploadOnChange: directUpload,
+          uploadOnChange: false,
           change: (oEvent) => {
             // Remember the selected files from the event's public "files"
             // parameter (the inner file input is private API). They are
             // consumed by the upload button press or, in direct-upload
-            // mode, by uploadComplete below.
+            // mode, right here.
             const files = oEvent.getParameter("files");
             this._pendingFiles = files ? Array.from(files) : [];
-            if (directUpload) return;
             const value = oEvent.getSource().getProperty("value");
+            if (directUpload) {
+              this.setProperty("path", value);
+              this._uploadPendingFiles();
+              return;
+            }
             this.setProperty("path", value);
             if (this.oUploadButton) {
               this.oUploadButton.setEnabled(Boolean(value));
@@ -219,12 +229,6 @@ sap.ui.define(
               fileName: oEvent.getParameter("fileName"),
               fileSize: Number(oEvent.getParameter("fileSize")),
             });
-          },
-          uploadComplete: (oEvent) => {
-            if (!directUpload) return;
-            const source = oEvent.getSource();
-            this.setProperty("path", source.getProperty("value"));
-            this._uploadPendingFiles();
           },
         });
 

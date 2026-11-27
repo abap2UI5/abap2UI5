@@ -350,3 +350,80 @@ test.describe("describeValue", () => {
     );
   });
 });
+
+// The one secret test of the developer tools: Report.js and Journey.js each
+// carried a regex of their own, and every tab that is not JSON (Bindings,
+// Journey, Model Diff) and the history download printed a bound password
+// as it was typed.
+test.describe("secret masking", () => {
+  test("a name is a secret wherever in it the marker stands", () => {
+    const Format = loadFormat();
+    for (const name of [
+      "MV_PASSWORD",
+      "MS_LOGIN-PASSWORD",
+      "/S_LOGIN/PASSWORD",
+      "/T_USERS/0/PWD",
+      "api_key",
+      "S_TOKEN",
+    ]) {
+      expect(Format.isSecretName(name)).toBe(true);
+    }
+    for (const name of ["MV_USER", "T_ITEMS", "", undefined, 42]) {
+      expect(Format.isSecretName(name)).toBe(false);
+    }
+  });
+
+  test("masks every leaf below a secret key, in structures, tables and row deltas", () => {
+    const Format = loadFormat();
+    const input = {
+      MV_USER: "alice",
+      MV_PASSWORD: "hunter2",
+      MS_LOGIN: { USER: "bob", PASSWORD: "s3cret", PIN_TOKEN: 1234 },
+      T_USERS: [{ NAME: "carol", PASSWORD: "pw-row" }],
+      T_EDIT: { __delta: { 0: { PASSWORD: "pw-cell", NAME: "dave" } } },
+      S_CREDENTIALS: { A: "x", B: { C: "y" } },
+    };
+    const out = Format.maskSecrets(input);
+    const text = JSON.stringify(out);
+    for (const secret of ["hunter2", "s3cret", "1234", "pw-row", "pw-cell", '"x"', '"y"']) {
+      expect(text).not.toContain(secret);
+    }
+    for (const kept of ["alice", "bob", "carol", "dave"]) {
+      expect(text).toContain(kept);
+    }
+    expect(out.MS_LOGIN.PASSWORD).toBe(Format.MASK);
+    expect(out.S_CREDENTIALS.B.C).toBe(Format.MASK);
+    // a copy: the recorder's payloads are live references
+    expect(input.MV_PASSWORD).toBe("hunter2");
+  });
+
+  test("an empty secret, a flag and null are shown as they are", () => {
+    const Format = loadFormat();
+    expect(
+      Format.maskSecrets({ PASSWORD: "", PASSWORD_SHOWN: true, TOKEN: null }),
+    ).toEqual({ PASSWORD: "", PASSWORD_SHOWN: true, TOKEN: null });
+  });
+
+  test("a value known to be secret is masked wherever it sits", () => {
+    const Format = loadFormat();
+    const values = Format.secretValues({ MS_LOGIN: { PASSWORD: "hunter2" } });
+    expect(Array.from(values)).toEqual(["hunter2"]);
+    const out = Format.maskSecrets(
+      { S_FRONT: { T_EVENT_ARG: ["LOGIN", "hunter2"] } },
+      { values },
+    );
+    expect(out.S_FRONT.T_EVENT_ARG).toEqual(["LOGIN", Format.MASK]);
+  });
+
+  test("a value the caller names as secret is masked, and a cycle does not throw", () => {
+    const Format = loadFormat();
+    expect(Format.maskSecrets("hunter2", { secret: true })).toBe(Format.MASK);
+    expect(Format.maskSecrets("visible")).toBe("visible");
+    const cyclic = { PASSWORD: "x" };
+    cyclic.self = cyclic;
+    expect(Format.maskSecrets(cyclic)).toEqual({
+      PASSWORD: Format.MASK,
+      self: "[Circular]",
+    });
+  });
+});

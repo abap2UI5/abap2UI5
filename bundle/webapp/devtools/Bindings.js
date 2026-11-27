@@ -22,7 +22,14 @@ sap.ui.define(
   (Lib, ViewSlots, Format, SlotXml) => {
     "use strict";
 
-    const { truncate, formatBytes, section, describeValue } = Format;
+    const {
+      truncate,
+      formatBytes,
+      section,
+      describeValue,
+      isSecretName,
+      maskSecrets,
+    } = Format;
 
     // An absolute binding path in view XML: a `{/A` binding, `${/A` in
     // an expression, path:'/A', parts:['/A','/B'] (the comma continues a
@@ -33,9 +40,16 @@ sap.ui.define(
       /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;
 
     // The typed description of a model attribute: "string  Miller AG",
-    // "table, 12 row(s)" - see Format.describeValue.
-    function describeAttribute(value) {
-      return describeValue(value, { typed: true });
+    // "table, 12 row(s)" - see Format.describeValue. A scalar under a
+    // secret name shows its type and "***": the tab is copied into the bug
+    // report as it renders, and /PASSWORD  string  hunter2 went along. A
+    // table or structure only shows its row or field count anyway.
+    function describeAttribute(name, value) {
+      const shown =
+        isSecretName(name) && (value === null || typeof value !== "object")
+          ? maskSecrets(value, { secret: true })
+          : value;
+      return describeValue(shown, { typed: true });
     }
 
     function formatSlotBindings(ctx, slotKey) {
@@ -66,7 +80,7 @@ sap.ui.define(
         const path = `/${key}`;
         const isDirty = dirtyAttrs.has(key);
         out.push(
-          `  ${isDirty ? "*" : " "} ${path.padEnd(30)}${describeAttribute(data[key])}`,
+          `  ${isDirty ? "*" : " "} ${path.padEnd(30)}${describeAttribute(key, data[key])}`,
         );
       }
       if (dirty.size) {
@@ -174,7 +188,9 @@ sap.ui.define(
       if (!dirty.size) return [];
       const out = ["", "  Delta the next roundtrip will send:"];
       try {
-        const delta = Lib.buildDeltaFromPaths(dirty, data);
+        // masked like the attribute list above: the delta is what the user
+        // just typed, a password included
+        const delta = maskSecrets(Lib.buildDeltaFromPaths(dirty, data));
         const json = JSON.stringify(delta, null, 2);
         for (const line of truncate(json, 1200).split("\n")) {
           out.push(`    ${line}`);
