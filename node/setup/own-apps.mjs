@@ -103,17 +103,52 @@ function packageIndex(runtimeOutput) {
   return index;
 }
 
+/* The first line of the apps/index.mjs this tool writes - what tells a folder
+ * it wrote from any other folder of the host's. */
+const MARKER = `// Written by ${PACKAGE}'s abap2ui5-own-apps`;
+
+const inside = (dir, parent) => {
+  const rel = path.relative(parent, dir);
+  return rel === "" || (!rel.startsWith("..") && !path.isAbsolute(rel));
+};
+
+/**
+ * Empty the apps folder - only when it is one: missing, empty, or holding the
+ * index.mjs this tool writes, and neither the transpile's output nor the
+ * folder the host runs in (or a folder around either). The folder is removed
+ * whole, so `abap2ui5-own-apps output .` would have taken the host's project
+ * with it, and a typo'd folder of the host's anything in it. Mirrors
+ * transpile.mjs (emptyOutput).
+ */
+function emptyApps(apps, output, cwd) {
+  if (inside(output, apps)) {
+    throw new Error(`own-apps: ${apps} is or holds the transpile output ${output} - name a folder of its own for your classes, it is emptied first`);
+  }
+  if (inside(cwd, apps)) {
+    throw new Error(`own-apps: ${apps} is or holds the folder this runs in (${cwd}) - name a folder of its own for your classes, it is emptied first`);
+  }
+  if (!fs.existsSync(apps)) return;
+  const entries = fs.readdirSync(apps);
+  const index = path.join(apps, "index.mjs");
+  const ours = entries.includes("index.mjs") && fs.readFileSync(index, "utf8").startsWith(MARKER);
+  if (entries.length && !ours) {
+    throw new Error(`own-apps: ${apps} is not empty and holds no index.mjs of abap2ui5-own-apps - name a folder of its own for your classes, it is emptied first`);
+  }
+  fs.rmSync(apps, { recursive: true, force: true });
+}
+
 /**
  * Copy the host's own files out of a transpile's output folder, their
  * imports of anything else pointed at the package.
- * @param {{ output: string, apps: string, runtimeOutput?: string }} options
+ * @param {{ output: string, apps: string, runtimeOutput?: string, cwd?: string }} options
  *   `output` the transpile's output folder, `apps` where the host's files go
- *   (emptied first), `runtimeOutput` the package's output/ (default: the one
- *   next to this file)
+ *   (emptied first - only a folder this tool wrote, see emptyApps),
+ *   `runtimeOutput` the package's output/ (default: the one next to this
+ *   file), `cwd` the folder the host runs in (default: the process's)
  * @returns {{ files: string[], modules: string[] }} the files written, and
  *   the modules apps/index.mjs imports
  */
-export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
+export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT, cwd = process.cwd() }) {
   if (!fs.existsSync(output)) throw new Error(`own-apps: ${output} does not exist - run the transpile first`);
   const index = packageIndex(runtimeOutput);
   // a transpiler before 2.14: no project/, the host's classes flat among the library copies
@@ -177,11 +212,11 @@ export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
   // the host's DDIC before its classes, as init.mjs imports it (only project/ has one of the host's)
   const ddic = flat ? [] : own.filter((f) => GENERATED(f) && f.endsWith(".mjs"));
 
-  fs.rmSync(apps, { recursive: true, force: true });
+  emptyApps(path.resolve(apps), path.resolve(output), path.resolve(cwd));
   fs.mkdirSync(apps, { recursive: true });
   for (const [file, text] of texts) fs.writeFileSync(path.join(apps, file), text);
   fs.writeFileSync(path.join(apps, "index.mjs"), [
-    `// Written by ${PACKAGE}'s abap2ui5-own-apps (setup/own-apps.mjs) - do not edit, it is`,
+    `${MARKER} (setup/own-apps.mjs) - do not edit, it is`,
     "// written again with the classes. Import it after the runtime has booted (initialize()).",
     ...[...ddic, ...order].map((file) => `await import(${JSON.stringify(`./${encodeURI(file).replace(/#/g, "%23")}`)});`),
     "",
