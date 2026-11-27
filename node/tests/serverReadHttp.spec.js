@@ -13,7 +13,8 @@ const { specContext, loadLib, withBusy } = require("./loadLibModule");
 //                    gateway gave up on a backend that has the request and
 //                    may commit it - a Retry would run the event twice) and
 //                    never on a 500 (the backend itself, a dump - re-sending
-//                    would dump again)
+//                    would dump again); a 410 is the expired session - a
+//                    message to restart instead of the body, no Retry
 //   invalid JSON     "Invalid JSON response: ...", or the HTML-page message
 //                    when the 2xx is a page (a logon page, a proxy's)
 //   no S_FRONT       "Invalid response: missing S_FRONT - the URL probably
@@ -156,6 +157,40 @@ test.describe("HTTP status outside 2xx", () => {
       expect(env.successes.map((s) => s.ID)).toEqual(["ok"]);
     });
   }
+
+  test("a 410 is the expired session: a message to restart, no dump, no Retry", async () => {
+    // the draft the request continued from is gone - expired, cleaned up or
+    // another logon's (z2ui5_cl_ui5_http_handler=>_error_response). Re-sending
+    // the same draft id gets the same answer
+    const env = load();
+    await answer(
+      env,
+      response({ ok: false, status: 410, text: "NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND" }),
+    );
+
+    expect(env.errors).toHaveLength(1);
+    expect(env.errors[0].msg).toMatch(/^Session expired - restart the app\./);
+    expect(env.errors[0].options).toBeUndefined();
+    expect(env.successes).toEqual([]);
+  });
+
+  test("an app start that failed on a route's draft marks that draft", async () => {
+    // the overlay's Restart re-reads the same hash; roundtrip leaves the
+    // marked draft out of it (serverLocation.spec.js)
+    const env = load();
+    await answer(env, response({ ok: false, status: 500, text: "restore" }), {
+      S_FRONT: { ROUTE: { APP: "ZCL_X", DRAFT: "D1" } },
+    });
+    expect(env.ctx.router.failedDraft).toBe("D1");
+
+    // an event roundtrip names its draft by ID - nothing to mark
+    const event = load();
+    await answer(event, response({ ok: false, status: 500, text: "dump" }), {
+      ID: "D2",
+      S_FRONT: { EVENT: "SAVE" },
+    });
+    expect(event.ctx.router.failedDraft ?? "").toBe("");
+  });
 
   test("an empty error body falls back to the status code", async () => {
     const env = load();

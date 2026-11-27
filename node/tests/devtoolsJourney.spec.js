@@ -30,9 +30,11 @@ function loadJourney() {
   });
 
   // One roundtrip: the request body and the response, then the render.
-  function roundtrip({ event = "", args, model, response }) {
+  function roundtrip({ event = "", args, model, response, timer = false }) {
     const body = { S_FRONT: { ID: "draft", EVENT: event } };
     if (args) body.S_FRONT.T_EVENT_ARG = args;
+    // a START_TIMER tick, as core/Server.js stamps it
+    if (timer) body.S_FRONT.TIMER = true;
     if (model !== undefined) body.MODEL = model;
     state.oBody = body;
     state.responseData = response;
@@ -104,6 +106,23 @@ function recordGreeting(h) {
 }
 
 test.describe("recording", () => {
+  // A tick carries the timer's event like a press; recorded, it was
+  // exported as a click( ) the user never made - one per tick
+  test("a START_TIMER tick is not a step", () => {
+    const h = loadJourney();
+    h.state.oBody = { S_FRONT: { ID: "", EVENT: "" } };
+    h.state.responseData = response({ main: MAIN_XML });
+    h.Journey.start(h.ctx);
+    h.roundtrip({ event: "POLL", timer: true, response: response() });
+    h.roundtrip({ event: "GREET", response: response() });
+    h.roundtrip({ event: "POLL", timer: true, response: response() });
+    h.Journey.stop(h.ctx);
+    const [journey] = h.Journey.getJourneys(h.ctx);
+    expect(journey.steps.map((s) => s.event)).toEqual(["", "GREET"]);
+    expect(journey.steps.map((s) => s.seq)).toEqual([1, 2]);
+    expect(h.Journey.buildAbapUnit(h.ctx)).not.toContain("POLL");
+  });
+
   test("start takes the current screen as step 1 and every roundtrip after it", () => {
     const h = loadJourney();
     expect(h.Journey.isRecording(h.ctx)).toBe(false);

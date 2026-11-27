@@ -85,6 +85,9 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         hashListener: null,
         trail: [],
         trailPos: -1,
+        // the route's draft an app start of this page failed with - left
+        // out of the next start (core/Server.js roundtrip, readHttp)
+        failedDraft: "",
       },
       // core/actions/Shortcuts.js - the document keydown listener
       shortcuts: { listener: null },

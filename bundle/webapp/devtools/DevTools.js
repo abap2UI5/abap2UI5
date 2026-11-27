@@ -75,22 +75,26 @@
 // 2026-10-10: the bundle is ~102 KB of the ~400 KB inline script
 // (comment-stripped as it was delivered then, uncompressed).
 //
-// Where the modules come from, by deployment (requireDialog):
-//   - the component (always embedded, loaded through
-//     ?z2ui5-bundle - the page the backend serves included): the bundle
-//     first, from the endpoint the roundtrips go to (state.url), then
-//     sap.ui.require( ) finds the modules registered;
-//   - a host that serves the frontend's files itself: the modules are
-//     there to require - sap.ui.require( ) first, and the bundle from the
-//     endpoint only when that fails.
-// A module that is loaded already (sap.ui.require( id ) answers) is
-// never asked for again. Rule 13 holds either way: the bundle is a file
-// of the backend's origin, allowed by script-src 'self' - no inline
-// script, no eval - and the shell's CSP hash is taken over the inline
-// script alone, which the bundle is not part of.
+// Where the modules come from (requireDialog): the bundle, always, from
+// the endpoint the roundtrips go to (bundleUrl - state.url, or before the
+// shell controller set it the endpoint the component was given or the
+// manifest's data source), then sap.ui.require( ) finds the modules it
+// registered. There is no plain-require fallback: the frontend came as a
+// bundle (the embed control loads ?z2ui5-bundle on every deployment, the
+// backend's own page included), and on an ICF node a module request is
+// answered with the page, not with the module. A module that is loaded
+// already (sap.ui.require( id ) answers) is never asked for again. Rule 13
+// holds: the bundle is a file of the backend's origin, allowed by
+// script-src 'self' - no inline script, no eval - and the shell's CSP hash
+// is taken over the inline script alone, which the bundle is not part of.
 sap.ui.define(
-  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],
-  (Lib, Console, Recorder) => {
+  [
+    "z2ui5/core/Lib",
+    "z2ui5/core/ErrorView",
+    "z2ui5/devtools/Console",
+    "z2ui5/devtools/Recorder",
+  ],
+  (Lib, ErrorView, Console, Recorder) => {
     "use strict";
 
     // Query parameter that opens the developer tools on page load, so a
@@ -125,12 +129,41 @@ sap.ui.define(
     // The devtools bundle
     // ------------------------------------------------------------------
 
-    // The URL the bundle is loaded from: the endpoint the roundtrips go to
-    // (state.url - the page itself, a host's endpoint, the manifest's data
-    // source), with the parameter and without the page's hash. Null when
-    // no endpoint is known yet.
+    // The endpoint the bundle is asked of: the one the roundtrips go to
+    // (state.url), else what App.controller.onInit will make of it - the
+    // endpoint the component was given, else the manifest's data source,
+    // with the page's logon client on it. The fallback is not a nicety:
+    // install( ) runs in Component.init, and with the root view async the
+    // shell controller's onInit - which sets state.url - comes a task
+    // later, so the "?z2ui5-devtools=" auto open found no endpoint and was
+    // refused with "no endpoint to load the devtools bundle from" on every
+    // page. Waiting for the root control instead needs
+    // UIComponent#rootControlLoaded, which is 1.90+ (rule 12); the inputs
+    // of state.url are all there at install time already (Component.init
+    // reads the endpoint before it installs the tools). The launchpad's
+    // logon client is left out here - the page URL's is what a page with
+    // the parameter on it has.
+    function endpointOf(ctx) {
+      const state = ctx?.state;
+      if (state?.url) return state.url;
+      let base = state?.endpoint || null;
+      if (!base) {
+        try {
+          base =
+            ctx.component?.getManifest?.()?.["sap.app"]?.dataSources?.http
+              ?.uri || null;
+        } catch {
+          base = null;
+        }
+      }
+      return base ? Lib.withSapClient(base, window.location.href) : null;
+    }
+
+    // The URL the bundle is loaded from: the endpoint (endpointOf), with
+    // the parameter and without the page's hash. Null when no endpoint is
+    // known.
     function bundleUrl(ctx) {
-      const base = ctx?.state?.url;
+      const base = endpointOf(ctx);
       if (!base) return null;
       try {
         const url = new URL(base, window.location.href);
@@ -144,16 +177,46 @@ sap.ui.define(
 
     // A script of the backend's origin, loaded with a <script> element -
     // the way the embed control loads ?z2ui5-bundle. Resolves once it ran,
-    // rejects when it could not be fetched.
+    // rejects when it could not be fetched; the element of a failed load is
+    // removed (the next open adds its own - a dead one left in <head> per
+    // attempt is litter a developer finds when looking for the cause).
+    //
+    // A load that never settles - a proxy holding the request open, a
+    // script element whose events never fire - rejects after LOAD_TIMEOUT,
+    // as core/CustomControls.js loadScript does for its bundle: record.loading
+    // stayed pending forever, every later open - Ctrl+F12, the error
+    // popup's Details - joined it, and the tools never came up again for the
+    // life of the page.
+    const LOAD_TIMEOUT = 60000;
     /** @returns {Promise<void>} */
     function loadScript(url) {
       return new Promise((resolve, reject) => {
         const script = document.createElement("script");
+        let timer = null;
+        const settle = (ok, reason) => {
+          if (timer === null) return; // settled already
+          clearTimeout(timer);
+          timer = null;
+          if (ok) {
+            resolve();
+            return;
+          }
+          script.remove?.();
+          reject(
+            new Error(
+              `the devtools bundle could not be loaded${reason}: ${url}`,
+            ),
+          );
+        };
+        timer = setTimeout(
+          () =>
+            settle(false, ` (no answer within ${LOAD_TIMEOUT / 1000} seconds)`),
+          LOAD_TIMEOUT,
+        );
         script.src = url;
         script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () =>
-          reject(new Error(`the devtools bundle could not be loaded: ${url}`));
+        script.onload = () => settle(true, "");
+        script.onerror = () => settle(false, "");
         document.head.appendChild(script);
       });
     }
@@ -168,8 +231,10 @@ sap.ui.define(
     // The dialog's class: as it is when it is loaded already, else the
     // bundle first and then sap.ui.require( ) - the frontend came as a
     // bundle, and nothing serves its modules one by one.
-    // One load per context at a time (record.loading); a failed one is
-    // logged, answers null, and the next open tries again.
+    // One load per context at a time (record.loading); a failed one - the
+    // fetch refused, the timeout, the require failing after a logon page
+    // came instead of the bundle - is logged, answers null and resets
+    // record.loading, so the next open tries again.
     /** @returns {Promise<any>} */
     function requireDialog(ctx) {
       const record = recordOf(ctx);
@@ -267,12 +332,50 @@ sap.ui.define(
     // it runs whatever is registered and hides the button when nothing
     // is. Reopening the overlay when the dialog closes keeps the user
     // from landing on the dismissed, broken app.
+    //
+    // The error popup closed itself before it ran this, so every way the
+    // tools can fail to come up must hand the popup back: no dialog (the
+    // bundle did not load - the network is what just failed, or a logon
+    // page came instead), a show( ) that throws, or one that returns
+    // without the dialog open (DeveloperTools.show logs and swallows its
+    // own failures). Otherwise the user stood on the broken app with no
+    // Retry and no Restart, and state.terminated refused every event -
+    // a dead app until a manual reload. A show( ) still pending from an
+    // earlier open (its double-click guard) is not a failure: that one
+    // opens the dialog, and the flag set here makes its close reopen the
+    // popup.
     function onErrorDetails(ctx) {
-      return get(ctx).then((dialog) => {
-        if (!dialog) return;
-        dialog.reopenErrorOnClose = true;
-        dialog.show("ERROR");
-      });
+      const reopen = (dialog) => {
+        if (dialog) dialog.reopenErrorOnClose = false;
+        ErrorView.reopenErrorDialog(ctx);
+      };
+      return get(ctx)
+        .catch((e) => {
+          Lib.logError("DevTools: the error details could not be opened", e);
+          return null;
+        })
+        .then((dialog) => {
+          if (!dialog) {
+            reopen(null);
+            return undefined;
+          }
+          dialog.reopenErrorOnClose = true;
+          return Promise.resolve()
+            .then(() => dialog.show("ERROR"))
+            .then(
+              () => {
+                if (dialog._showPending) return;
+                if (!dialog.oDialog?.isOpen?.()) reopen(dialog);
+              },
+              (e) => {
+                Lib.logError(
+                  "DevTools: the error details could not be opened",
+                  e,
+                );
+                reopen(dialog);
+              },
+            );
+        });
     }
 
     function install(ctx) {
@@ -327,6 +430,8 @@ sap.ui.define(
       };
       document.addEventListener("keydown", record.keydown);
 
+      // state.url is not set yet at this point - bundleUrl falls back to
+      // its inputs (see endpointOf)
       if (isAutoOpenRequested()) show(ctx, autoOpenTab() || undefined);
     }
 

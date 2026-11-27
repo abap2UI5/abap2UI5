@@ -85,8 +85,9 @@ test("the frontend's terminate ping ends the session", () => {
   expect(s.cStart.contextId).not.toBe(s.aStart.contextId);
   expect(s.terminate.status).toBe(200);
   // a stateful app skips the draft save, so with its session gone its draft
-  // id names nothing - what an SAP system answers once the session ended
-  expect(s.afterTerminate.status).toBe(500);
+  // id names nothing - what an SAP system answers once the session ended:
+  // the expired session's 410 (z2ui5_cl_ui5_http_handler=>_error_response)
+  expect(s.afterTerminate.status).toBe(410);
   expect(s.afterTerminate.contextId).toBeNull();
 });
 

@@ -69,6 +69,7 @@ test.describe("create", () => {
       hashListener: null,
       trail: [],
       trailPos: -1,
+      failedDraft: "",
     });
     expect(ctx.shortcuts).toEqual({ listener: null });
     expect(ctx.variants).toEqual({ activeInits: new Set() });
