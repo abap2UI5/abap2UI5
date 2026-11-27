@@ -10,7 +10,6 @@
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
-    "sap/ui/core/BusyIndicator",
     "z2ui5/core/Server",
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
@@ -19,32 +18,15 @@ sap.ui.define(
     "z2ui5/core/Router",
     "z2ui5/core/Env",
   ],
-  (
-    Controller,
-    BusyIndicator,
-    Server,
-    Lib,
-    FrontendAction,
-    Slots,
-    ViewSlots,
-    Router,
-    Env,
-  ) => {
+  (Controller, Server, Lib, FrontendAction, Slots, ViewSlots, Router, Env) => {
     "use strict";
 
-    // The busy overlay of a roundtrip: the global BusyIndicator on a page the
-    // component owns, the component's own area on a host's page
-    // (state.ownsPage, Component.init - Lib.setComponentBusy). The same pair
-    // sits in core/Server.js, the other half of the busy protocol.
-    function showBusy(ctx, delay) {
-      if (ctx?.state?.ownsPage === false)
-        Lib.setComponentBusy(ctx, true, delay);
-      else BusyIndicator.show(delay);
-    }
-    function hideBusy(ctx) {
-      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);
-      else BusyIndicator.hide();
-    }
+    // The busy overlay of a roundtrip - the global BusyIndicator or the
+    // component's own area (Lib.showBusy, shared with core/Server.js, the
+    // other half of the busy protocol). Resolved per call, not destructured
+    // at load: the specs hand this module a Lib of their own.
+    const showBusy = (ctx, delay) => Lib.showBusy(ctx, delay);
+    const hideBusy = (ctx) => Lib.hideBusy(ctx);
 
     // How many events fired while a view was being built may go out in a
     // row with no other event in between (eB keeps them, aRenderEvents). A
@@ -115,16 +97,14 @@ sap.ui.define(
           const state = this.ctx.state;
           const previousApp = state.renderedApp;
           if (oResponse.APP && previousApp !== oResponse.APP) {
-            state.oQueuedEvent = null;
-            state.oTickQueuedEvent = null;
+            // ... and with it everything else kept back for later: the
+            // click that met a tick, a window request of its tables, what
+            // a control of the leaving app fired while its view was built
+            Lib.dropQueuedEvents(state);
             // a repeating START_TIMER belongs to the app that armed it - a
             // poll of the leaving app must not tick into the next one, and
             // the next one arms its own (actions/ViewOps resumeRepeatTimer)
             state.timerRepeat = null;
-            state.oQueuedWindow = null;
-            // ... and what a control of the leaving app fired while its
-            // view was built and that has not gone out yet
-            state.aRenderEvents = [];
             state.renderedApp = oResponse.APP;
           }
           // The state an app OWNS goes when its PAGE goes - not when the
@@ -149,6 +129,9 @@ sap.ui.define(
             state.shortcuts = Object.create(null);
             state.treeStates = Object.create(null);
             state.tableStates = Object.create(null);
+            // ... and the reconnect budget of its push channels: the next
+            // app's Websocket to the same URL starts with whole attempts
+            state.websocketStates = Object.create(null);
             // ... and the model size limits it set (cs_event-set_size_limit):
             // every model a slot builds takes the stored limit
             // (Slots.applyStoredSizeLimit), so the next app's tables were
@@ -706,6 +689,13 @@ sap.ui.define(
           );
           return;
         }
+        // The fatal overlay is up (Server.responseError): the app has ended
+        // and its overlay's Retry / Restart are the only way on. isBusy is
+        // false under it, so without this a shortcut, a timer tick, a
+        // websocket message or any control calling eB on its own sent a
+        // roundtrip for the broken session - answered with a second
+        // overlay, or with a screen behind the modal one.
+        if (this.ctx.state.terminated) return;
         const { useMainModel, queueLast, noBusy, timer } = Lib.eventOptions(
           args[0],
         );

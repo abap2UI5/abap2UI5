@@ -149,6 +149,19 @@ sap.ui.define(
           this._onInnerControlsCreated = this.onInnerControlsCreated.bind(this);
           input.attachTokenUpdate(this._onTokenUpdate);
           input.attachInnerControlsCreated(this._onInnerControlsCreated);
+          // innerControlsCreated fires ONCE, when the smart field builds its
+          // inner controls - a companion that attaches later (it claims its
+          // target on a render after the input's first one, or the field
+          // was interacted with first) never heard it, and every
+          // inputInitialized( ) waited for good: setRangeData did nothing.
+          // Asked by feature, not release: getInnerControls is the smart
+          // field's public reader and answers [] until they exist.
+          if (
+            typeof input.getInnerControls === "function" &&
+            (input.getInnerControls() || []).length > 0
+          ) {
+            this._innerControlsReady(input);
+          }
         } catch (e) {
           Lib.logError(
             `SmartMultiInputExt.setControl: setup failed for multiInputId '${this.getProperty("multiInputId")}'`,
@@ -184,7 +197,10 @@ sap.ui.define(
         });
       },
       onInnerControlsCreated(oEvent) {
-        this._oInput = oEvent.getSource();
+        this._innerControlsReady(oEvent.getSource());
+      },
+      _innerControlsReady(input) {
+        this._oInput = input;
         this._bInnerControlsCreated = true;
         for (const resolve of this._aPendingInnerControlsCreated) {
           resolve(this._oInput);

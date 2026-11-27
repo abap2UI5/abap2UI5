@@ -57,6 +57,7 @@ const GATES = [
   { npm: "check:prose", script: "prose-name-gate.mjs" },
   { npm: "check:skills", script: "skill-rule-gate.mjs" },
   { npm: "check:shared", script: "shared-file-gate.mjs" },
+  { npm: "check:shared-scripts", script: "shared-scripts.test.mjs" },
   { npm: "check:mirrors", script: "linter-mirror-gate.mjs" },
   { npm: "check:linter-manifest", script: "generate-linter-manifest.mjs", args: ["--check"] },
   { npm: "check:linter-manifest-readers", script: "generate-linter-manifest.test.mjs" },

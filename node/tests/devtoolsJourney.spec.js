@@ -522,3 +522,55 @@ test.describe("the tab", () => {
     expect(h.Journey.formatJourney(h.ctx)).toContain("RECORDING");
   });
 });
+
+test.describe("secrets in a journey", () => {
+  // The secret test used to be a regex of its own here, asked of the plain
+  // top-level name only: a structure field, a table cell and an event
+  // argument went into the test class - and the Journey tab, which is
+  // copied into the bug report - as they were typed.
+  test("a structure field, a table cell and a flat structure name are masked", () => {
+    const h = loadJourney();
+    const text = h.Journey._internals
+      .editStatements(
+        {
+          value: {
+            MS_LOGIN: { USER: "alice", PASSWORD: "s3cret" },
+            "MS_LOGIN-PASSWORD": "flat-pw",
+            T_USERS: { __delta: { 0: { NAME: "bob", PASSWORD: "cell-pw" } } },
+          },
+        },
+        4,
+      )
+      .join("\n");
+    for (const secret of ["s3cret", "flat-pw", "cell-pw"]) {
+      expect(text).not.toContain(secret);
+    }
+    expect(text).toContain("alice");
+    expect(text).toContain("value  = `bob`");
+    expect(text).toContain("/T_USERS/0/PASSWORD: the value typed is not exported");
+  });
+
+  test("an event argument that carries a typed secret is masked in the class and the tab", () => {
+    const h = loadJourney();
+    h.state.oBody = { S_FRONT: { ID: "", EVENT: "" } };
+    h.state.responseData = response({ main: MAIN_XML });
+    h.Journey.start(h.ctx);
+    h.roundtrip({
+      event: "LOGIN",
+      args: ["hunter2", { PASSWORD: "obj-pw", USER: "alice" }, "plain"],
+      model: { MV_PASSWORD: "hunter2" },
+      response: response(),
+    });
+    h.Journey.stop(h.ctx);
+    const abap = h.Journey.buildAbapUnit(h.ctx);
+    const tab = h.Journey.formatJourney(h.ctx);
+    for (const out of [abap, tab]) {
+      expect(out).not.toContain("hunter2");
+      expect(out).not.toContain("obj-pw");
+      expect(out).toContain("plain");
+      expect(out).toContain("alice");
+    }
+    expect(abap).toContain("an argument typed into a secret is not exported");
+    expect(tab).toContain('MV_PASSWORD = "***"');
+  });
+});

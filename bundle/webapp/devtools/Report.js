@@ -18,8 +18,13 @@
 // whose tools are open - so the builders take it first and hand it to the
 // tab registry, which renders that context's state.
 sap.ui.define(
-  ["z2ui5/core/Lib", "z2ui5/devtools/Recorder", "z2ui5/devtools/Tabs"],
-  (Lib, Recorder, Tabs) => {
+  [
+    "z2ui5/core/Lib",
+    "z2ui5/devtools/Format",
+    "z2ui5/devtools/Recorder",
+    "z2ui5/devtools/Tabs",
+  ],
+  (Lib, Format, Recorder, Tabs) => {
     "use strict";
 
     // Max characters per section; long ones are truncated so the export
@@ -37,13 +42,13 @@ sap.ui.define(
     // pasted into a public GitHub issue, and it held the session's
     // sap-contextid (the Environment section) and the last request body
     // and response model - every value typed in the last roundtrip, a
-    // password bound with _bind( ) included. The live tabs keep them; the
-    // export masks the context id and the value of every JSON key that
+    // password bound with _bind( ) included. The live JSON tabs keep them;
+    // the export masks the context id and the value of every JSON key that
     // names a secret. A key, not a control: the report sees the model and
-    // the body as text, and a name is what it can judge.
-    const SECRET_KEY =
-      /^[A-Za-z0-9_/-]*(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)[A-Za-z0-9_/-]*$/i;
-    const MASK = "***";
+    // the body as text, and a name is what it can judge. The tabs that are
+    // not JSON (Bindings, Journey, Model Diff) already mask at render time
+    // with the same test, Format.isSecretName - one test, not a copy here.
+    const { isSecretName, MASK } = Format;
 
     function redactForExport(text) {
       return String(text)
@@ -53,7 +58,7 @@ sap.ui.define(
         .replace(
           /"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,
           (match, key, colon) =>
-            SECRET_KEY.test(key) ? `"${key}"${colon}"${MASK}"` : match,
+            isSecretName(key) ? `"${key}"${colon}"${MASK}"` : match,
         );
     }
 
@@ -175,7 +180,7 @@ sap.ui.define(
     // it back for good - the real label and the pending timer are kept per
     // button, so the last press restores the label once.
     const confirmState = new WeakMap();
-    function confirmOnButton(oButton) {
+    function confirmOnButton(oButton, label = "Copied") {
       let state = confirmState.get(oButton);
       if (state) {
         clearTimeout(state.timer);
@@ -183,11 +188,35 @@ sap.ui.define(
         state = { original: oButton.getText(), timer: null };
         confirmState.set(oButton, state);
       }
-      oButton.setText("Copied");
+      oButton.setText(label);
       state.timer = setTimeout(() => {
         confirmState.delete(oButton);
         if (!Lib.isDestroyed(oButton)) oButton.setText(state.original);
       }, 1500);
+    }
+
+    // Copy `text` and say on the button what happened. "Copied" only when
+    // the clipboard said so (Lib.copyToClipboard resolves true): the three
+    // Copy buttons said it regardless, over a clipboard the browser had
+    // refused (no user activation left after an await) - the same lie
+    // copyMarkdown below stopped telling. Nothing to copy is a failure
+    // too: an empty clipboard confirmed as "Copied" reads as a copy that
+    // worked. Resolves with whether the text was copied; never rejects.
+    async function copyWithFeedback(oButton, text) {
+      let copied = false;
+      if (text) {
+        try {
+          copied = (await Lib.copyToClipboard(text)) === true;
+        } catch (e) {
+          Lib.logError("DevTools Report: copy failed", e);
+        }
+      }
+      if (Lib.isDestroyed(oButton)) return copied;
+      let label = "Copied";
+      if (!text) label = "Nothing to copy";
+      else if (!copied) label = "Copy failed";
+      confirmOnButton(oButton, label);
+      return copied;
     }
 
     // Show the whole export in a stretched popup: a read-through TextArea
@@ -224,10 +253,7 @@ sap.ui.define(
                 type: "Emphasized",
                 // Confirm on the button itself: this dialog is modal, so
                 // a MessageToast behind it would be invisible.
-                press: (oEvent) => {
-                  Lib.copyToClipboard(text);
-                  confirmOnButton(oEvent.getSource());
-                },
+                press: (oEvent) => copyWithFeedback(oEvent.getSource(), text),
               }),
               // Two files, because they answer different questions: the
               // report is what a human reads, the history JSON is what
@@ -311,6 +337,7 @@ sap.ui.define(
       buildMarkdown,
       confirmOnButton,
       copyMarkdown,
+      copyWithFeedback,
       issueUrl,
       redactForExport,
       downloadText,

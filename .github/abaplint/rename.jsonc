@@ -1,11 +1,12 @@
 {
   // Namespace rename config. Renames every artifact from z2ui5_ to the
-  // placeholder prefix "znamespace_"; the build_rename workflow replaces the
-  // placeholder with the chosen prefix before running
-  // `abaplint <config> --rename` - "<name>_" for a customer name (max. 10
-  // characters, e.g. zmyui5_) or the registered namespace itself (max. 10
-  // characters with both slashes, e.g. /ca2ui5/) - see
-  // .github/workflows/build-rename.yaml.
+  // placeholder prefix "znamespace_"; .github/scripts/rename-run.mjs replaces
+  // the placeholder with the chosen prefix and runs `abaplint --rename` on a
+  // copy at the repository root, its paths rebased (abaplint 2.120.122 writes
+  // the output relative to the config's folder, and from here that left the
+  // output folder) - "<name>_" for a customer name (max. 10 characters, e.g.
+  // zmyui5_) or the registered namespace itself (max. 10 characters with both
+  // slashes, e.g. /ca2ui5/) - see .github/workflows/build-rename.yaml.
   //
   // This is also what the rename step of the abaplint PR gate runs
   // (`npm run rename`), against

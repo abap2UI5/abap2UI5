@@ -149,6 +149,11 @@
 //                     roundtrip, a check_no_busy wire included - that flag
 //                     hides the OVERLAY, it does not exempt the wire from
 //                     being the one request in flight
+//   terminated        the fatal-error overlay ended the app
+//                     (Server.responseError): eB, a route restore and an
+//                     app hash change send nothing until the overlay's
+//                     Retry clears it (readHttp's onRetry) or a restart
+//                     resets the state (resetApp) or reloads the page
 //   oQueuedEvent      { controller, args } of the LAST event a
 //                     check_queue_last wire fired while a roundtrip was in
 //                     flight (View1.eB keeps it instead of dropping it);
@@ -230,6 +235,8 @@
 //   viewSizeLimits    per-slot model size limits (actions/ViewOps)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
 //   tableStates       filters/sorters per tableId across rebuilds (UITableExt)
+//   websocketStates   the reconnect budget per URL across rebuilds -
+//                     { failedAttempts, nextAllowedAt } (Websocket control)
 //   lastError         the last fatal error shown by ErrorView (title/text/
 //                     onRetry), so a details view can re-show it
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering, onRoundtripEnd,
@@ -290,6 +297,7 @@ sap.ui.define([], () => {
       responseData: null,
       contextId: null,
       isBusy: false,
+      terminated: false,
       oQueuedEvent: null,
       tickInFlight: false,
       oTickQueuedEvent: null,
@@ -380,6 +388,7 @@ sap.ui.define([], () => {
       viewSizeLimits: Object.create(null),
       treeStates: Object.create(null),
       tableStates: Object.create(null),
+      websocketStates: Object.create(null),
       lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)

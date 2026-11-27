@@ -172,14 +172,16 @@ test("no path or checkActive=false opens no connection", () => {
 });
 
 test("checkActive switched back on clears the give-up", () => {
-  const { makeInstance, sockets } = load();
+  const { makeInstance, sockets, advanceClock } = load();
   const inst = makeInstance({ path: "/apc" });
 
   // five failed attempts: the control gives up on this endpoint
   for (let i = 0; i < 5; i++) {
+    advanceClock(60000);
     inst.onAfterRendering();
     sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
   }
+  advanceClock(60000);
   inst.onAfterRendering();
   expect(sockets).toHaveLength(5);
 
@@ -187,8 +189,10 @@ test("checkActive switched back on clears the give-up", () => {
   // toggling checkActive - the contract names it next to a path change,
   // and it used to do nothing
   inst._props.checkActive = false;
+  advanceClock(60000);
   inst.onAfterRendering();
   inst._props.checkActive = true;
+  advanceClock(60000);
   inst.onAfterRendering();
   expect(sockets).toHaveLength(6);
 });
@@ -291,14 +295,18 @@ test("a throwing WebSocket constructor logs and fires the error event", () => {
 });
 
 test("a throwing constructor counts against the give-up budget", () => {
-  const { makeInstance, errors, setFailConstruct } = load();
+  const { makeInstance, errors, setFailConstruct, advanceClock } = load();
   setFailConstruct(true);
   const inst = makeInstance({ path: "/apc" });
 
   // the app answers each `error` with a view-rebuilding roundtrip, so every
   // render re-enters _connect - the constructor throw used to leave the
   // counter untouched and looped one roundtrip per render forever
-  for (let i = 0; i < 8; i++) inst.onAfterRendering();
+  for (let i = 0; i < 8; i++) {
+    // past the backoff each time - what is counted is the attempts
+    advanceClock(60000);
+    inst.onAfterRendering();
+  }
 
   expect(inst.errorEvents).toHaveLength(5);
   expect(inst.errorEvents.every((e) => e.code === "CONSTRUCT")).toBe(true);
@@ -332,7 +340,7 @@ test("a close after open reports 'was closed' and appends the reason", () => {
 });
 
 test("a handshake dropped at once counts as a failed attempt", () => {
-  const { makeInstance, sockets, errors, runTimers } = load();
+  const { makeInstance, sockets, errors, runTimers, advanceClock } = load();
   const inst = makeInstance({ path: "/apc" });
 
   // the server completes the handshake and closes the socket right away -
@@ -340,12 +348,14 @@ test("a handshake dropped at once counts as a failed attempt", () => {
   // used to reset the counter, so this reconnected every 500 ms with no
   // backoff and one `error` event per drop for the life of the view
   for (let i = 0; i < 5; i++) {
+    advanceClock(60000);
     inst.onAfterRendering();
     const ws = sockets[sockets.length - 1];
     ws.onopen();
     ws.onclose({ code: 1006, reason: "" });
   }
 
+  advanceClock(60000);
   inst.onAfterRendering();
   runTimers();
   expect(sockets).toHaveLength(5);
@@ -358,38 +368,44 @@ test("a connection that stayed open hands the next attempt a clean budget", () =
 
   // four dropped handshakes - one attempt left in the budget
   for (let i = 0; i < 4; i++) {
+    advanceClock(60000);
     inst.onAfterRendering();
     sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
   }
 
   // the fifth one is a real connection: it lives well past CONNECT_STABLE_MS
   // before the server ends it
+  advanceClock(60000);
   inst.onAfterRendering();
   sockets[4].onopen();
   advanceClock(30000);
   sockets[4].onclose({ code: 1006, reason: "" });
 
+  advanceClock(60000);
   inst.onAfterRendering();
   expect(sockets).toHaveLength(6);
 });
 
 test("the first message clears the failure budget", () => {
-  const { makeInstance, sockets } = load();
+  const { makeInstance, sockets, advanceClock } = load();
   const inst = makeInstance({ path: "/apc" });
 
   for (let i = 0; i < 4; i++) {
+    advanceClock(60000);
     inst.onAfterRendering();
     sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
   }
 
   // the last attempt in the budget delivers a message - the proof the
   // handshake alone cannot give - and is dropped again right after
+  advanceClock(60000);
   inst.onAfterRendering();
   sockets[4].onopen();
   sockets[4].onmessage({ data: "PING" });
   sockets[4].onclose({ code: 1006, reason: "" });
 
   expect(inst.received).toEqual(["PING"]);
+  advanceClock(60000);
   inst.onAfterRendering();
   expect(sockets).toHaveLength(6);
 });
@@ -518,4 +534,63 @@ test("exit() cancels a pending wait for the roundtrip", () => {
   inst.exit();
 
   expect(state.onRoundtripEnd).toHaveLength(0);
+});
+
+// The budget used to live on the control. An app answering `error` with a
+// view-rebuilding roundtrip gets a NEW control on every rebuild, which
+// started with a whole budget and no backoff - five attempts per
+// roundtrip, never a give-up. It is kept per URL in the component's state
+// (state.websocketStates) now.
+test.describe("the budget outlives a rebuilt view", () => {
+  test("a rebuilt control inherits the give-up of its URL", () => {
+    const { makeInstance, sockets, advanceClock, state } = load();
+    const first = makeInstance({ path: "/apc" });
+    for (let i = 0; i < 5; i++) {
+      advanceClock(60000);
+      first.onAfterRendering();
+      sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
+    }
+    first.exit();
+
+    // the roundtrip that answered the last `error` rebuilt the view
+    advanceClock(60000);
+    makeInstance({ path: "/apc" }).onAfterRendering();
+    expect(sockets).toHaveLength(5);
+    expect(state.websocketStates["wss://host.example/apc"].failedAttempts).toBe(5);
+
+    // another URL has a budget of its own
+    makeInstance({ path: "/apc/other" }).onAfterRendering();
+    expect(sockets).toHaveLength(6);
+  });
+
+  test("a rebuilt control waits out the backoff instead of connecting at once", () => {
+    const { makeInstance, sockets, runTimers, timers } = load();
+    const first = makeInstance({ path: "/apc" });
+    first.onAfterRendering();
+    sockets[0].onclose({ code: 1006, reason: "" });
+    first.exit();
+
+    const second = makeInstance({ path: "/apc" });
+    second.onAfterRendering();
+    // inside the backoff: no connection now, one on the control's timer
+    expect(sockets).toHaveLength(1);
+    expect(timers).toHaveLength(1);
+    runTimers();
+    expect(sockets).toHaveLength(2);
+    expect(sockets[1].url).toBe("wss://host.example/apc");
+  });
+
+  test("in no component the control keeps its own budget", () => {
+    const { makeInstance, sockets, advanceClock } = load({ context: false });
+    const inst = makeInstance({ path: "/apc" });
+    for (let i = 0; i < 6; i++) {
+      advanceClock(60000);
+      inst.onAfterRendering();
+      sockets[sockets.length - 1]?.onclose?.({ code: 1006, reason: "" });
+    }
+    expect(sockets).toHaveLength(5);
+    // a second control in no component starts with a whole budget
+    makeInstance({ path: "/apc" }).onAfterRendering();
+    expect(sockets).toHaveLength(6);
+  });
 });

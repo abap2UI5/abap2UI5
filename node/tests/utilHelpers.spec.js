@@ -777,6 +777,41 @@ test.describe("loadViewLibraries (library preloads of a view)", () => {
     expect(ui.loads).toContain("sap.uxap");
   });
 
+  // The library of a namespace used to be recorded before its load had
+  // finished: a second view naming it meanwhile skipped the wait and was
+  // built against a library whose preload had not arrived
+  test("a second view during the load waits for the load in flight", async () => {
+    let finish;
+    const loads = [];
+    const Library = {
+      all: () => ({ "sap.m": {}, "sap.ui.core": {} }),
+      load: ({ name }) => {
+        loads.push(name);
+        return new Promise((resolve) => {
+          finish = resolve;
+        });
+      },
+    };
+    const sap = {
+      ui: { require: (id) => (id === "sap/ui/core/Lib" ? Library : undefined) },
+    };
+    const { Env } = loadEnv({ versionInfo: versionInfo(), sap });
+    const TABLE = `<mvc:View xmlns:t="sap.ui.table"><t:Table/></mvc:View>`;
+    const done = [];
+    const first = Env.loadViewLibraries(TABLE).then(() => done.push("first"));
+    // let the first call reach the load itself
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(typeof finish).toBe("function");
+    const second = Env.loadViewLibraries(TABLE).then(() => done.push("second"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(loads).toEqual(["sap.ui.table"]);
+    expect(done).toEqual([]);
+    finish({});
+    await Promise.all([first, second]);
+    expect(done.sort()).toEqual(["first", "second"]);
+    expect(loads).toEqual(["sap.ui.table"]);
+  });
+
   test("a namespace in no library of the distribution is left to the view", async () => {
     const ui = modern();
     const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
@@ -996,5 +1031,54 @@ test.describe("byteLength (UTF-8 size of a string)", () => {
     expect(measure()).toBe(10);
     expect(measure()).toBe(10);
     expect(encodes).toBe(1);
+  });
+});
+
+// The two roundtrip helpers core/Server.js and View1.controller.js each
+// carried a copy of: the busy overlay and the drop of the events kept back.
+test.describe("showBusy / hideBusy / dropQueuedEvents", () => {
+  test("the global indicator on an owned page, the component's area on a host's", () => {
+    const calls = [];
+    const busyIndicator = {
+      show: (delay) => calls.push(["show", delay]),
+      hide: () => calls.push(["hide"]),
+    };
+    const { Lib, ctx } = loadLib({ busyIndicator });
+    Lib.showBusy(ctx, 0);
+    Lib.hideBusy(ctx);
+    expect(calls).toEqual([["show", 0], ["hide"]]);
+
+    const root = { calls: [], isDestroyed: () => false };
+    root.setBusyIndicatorDelay = (d) => root.calls.push(["delay", d]);
+    root.setBusy = (b) => root.calls.push(["busy", b]);
+    ctx.state.ownsPage = false;
+    ctx.state.oApp = root;
+    Lib.showBusy(ctx, 0);
+    Lib.hideBusy(ctx);
+    expect(root.calls).toEqual([
+      ["delay", 0],
+      ["busy", true],
+      ["busy", false],
+    ]);
+    expect(calls).toHaveLength(2);
+  });
+
+  test("every kind of kept event goes", () => {
+    const { Lib, state } = loadLib({
+      state: {
+        oQueuedEvent: { args: [] },
+        oTickQueuedEvent: { args: [] },
+        oQueuedWindow: { "/T": {} },
+        aRenderEvents: [{ args: [] }],
+        timerRepeat: { event: "POLL" },
+      },
+    });
+    Lib.dropQueuedEvents(state);
+    expect(state.oQueuedEvent).toBeNull();
+    expect(state.oTickQueuedEvent).toBeNull();
+    expect(state.oQueuedWindow).toBeNull();
+    expect(state.aRenderEvents).toEqual([]);
+    // the timer is not an event: its callers decide on it
+    expect(state.timerRepeat).toEqual({ event: "POLL" });
   });
 });
