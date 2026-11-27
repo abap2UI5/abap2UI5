@@ -354,11 +354,12 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `nItemRemoved){uploadSet.detachAfterItemRemoved?.(this._onItemRemoved)}this._onItemAdded=null;this._onItemRemoved=null},_readFile(file){if(!this._reader){this._reader=Lib.readFilesInTurn(this,"UploadSe` &&
              `tExt",(f,result)=>{this.setProperty("fileData",result,true);this.setProperty("fileName",f.name,true);this.setProperty("mediaType",f.type,true);this.setProperty("fileSize",String(f.size),true);this.fir` &&
              `eChange()})}this._reader.add([file])},onItemAdded(oEvent){const file=oEvent.getParameter("item")?.getFileObject?.();if(!file)return;const max=this._target?.getMaxFileSize?.()||0;if(!Lib.withinFileSize` &&
-             `([file],max).length)return;this._readFile(file)},onItemRemoved(oEvent){const name=oEvent.getParameter("item")?.getFileName?.()??"";this.setProperty("removedFileName",name,true);this.fireRemove()},rend` &&
-             `erer:Lib.EMPTY_RENDERER,setControl(){if(this.getProperty("checkInit"))return;const uploadSet=ViewSlots.byIdOfOwner(this,this.getProperty("uploadSetId"));if(!Lib.claimOnce(this,uploadSet))return;try{th` &&
-             `is._target=uploadSet;this._onItemAdded=this.onItemAdded.bind(this);uploadSet.attachAfterItemAdded(this._onItemAdded);if(uploadSet.attachAfterItemRemoved){this._onItemRemoved=this.onItemRemoved.bind(th` &&
-             `is);uploadSet.attachAfterItemRemoved(this._onItemRemoved)}else{Lib.logError("UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported")}}catch(e){Lib.logError(``UploadSetExt.set` &&
-             `Control: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,e)}}});return Env.ownClass(UploadSetExt)});` && |\n| &&
+             `([file],max).length)return;this._readFile(file)},onItemRemoved(oEvent){const name=oEvent.getParameter("item")?.getFileName?.()??"";this.setProperty("removedFileName",name,true);this.fireRemove()},_noI` &&
+             `nstantUpload(uploadSet){if(!uploadSet.getInstantUpload?.())return;if(uploadSet.getUploadUrl?.()||uploadSet.getUploader?.())return;uploadSet.setInstantUpload(false)},renderer:Lib.EMPTY_RENDERER,setCont` &&
+             `rol(){if(this.getProperty("checkInit"))return;const uploadSet=ViewSlots.byIdOfOwner(this,this.getProperty("uploadSetId"));if(!Lib.claimOnce(this,uploadSet))return;try{this._target=uploadSet;this._onIt` &&
+             `emAdded=this.onItemAdded.bind(this);uploadSet.attachAfterItemAdded(this._onItemAdded);this._noInstantUpload(uploadSet);if(uploadSet.attachAfterItemRemoved){this._onItemRemoved=this.onItemRemoved.bind(` &&
+             `this);uploadSet.attachAfterItemRemoved(this._onItemRemoved)}else{Lib.logError("UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported")}}catch(e){Lib.logError(``UploadSetExt.s` &&
+             `etControl: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,e)}}});return Env.ownClass(UploadSetExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/Websocket.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Context","z2ui5/core/Env"],(Control,Lib,Context,Env)=>{"use strict";const RECONNECT_BASE_MS=` &&
@@ -390,9 +391,9 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `cancelWait=null;clearTimeout(this._drainId);this._drainId=setTimeout(()=>{if(Lib.isDestroyed(this))return;this._drain()},0)})},renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownCl` &&
              `ass(Websocket)});` && |\n| &&
              `` && |\n| &&
-             `},` && |\n| &&
-             `});` && |\n|.
+             `},` && |\n|.
     result = result &&
+             `});` && |\n| &&
              `sap.ui.define("z2ui5/cc/bundle", function () {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return {};` && |\n| &&

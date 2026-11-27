@@ -68,6 +68,7 @@ unreleased
 * Custom controls: UITableExt and Tree keep a table's filters and sort and a tree's expansion per view slot and binding path - a same-id table or tree in a popup overwrote the main view's state (a rebuild then wiped its filters), and another screen of the same app with a same-id table got the first screen's filters, which could hide every row
 * An event a control fired while its view was built is no longer lost when another roundtrip starts while the response's page transition or follow-up actions finish - it was dropped under the busy overlay; it waits for that roundtrip's end now
 * Custom controls: a NativeBridgeScan result, an ExcelBridge selection change and a CameraPicture photo that arrive while another roundtrip is in flight are sent once it has landed - the event was dropped, and ExcelBridge then never reported that address again; ExcelBridge also writes the new address to selectionAddress
+* Custom controls: UploadSetExt switches its upload set's instantUpload off when the set has no uploadUrl and no uploader - every added file was also POSTed to a URL that does not exist and the item ended as failed, while the file travels in the roundtrip anyway
 
 2026-11-25 v1.151.0
 -------------------

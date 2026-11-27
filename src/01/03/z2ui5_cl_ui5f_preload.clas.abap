@@ -17,7 +17,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " names the custom controls bundle by its own digest - fixed
     " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '1a8c2d761120fb3c'.
+    CONSTANTS build_hash TYPE string VALUE '2401b91c9f85fc11'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:
@@ -38,7 +38,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " this value as z2ui5-version, which lets a browser keep the answer
     " (z2ui5_cl_ui5_http_handler=>_is_bundle_versioned). The ETag of that
     " bundle carries it as well
-    CONSTANTS cc_hash TYPE string VALUE '76bbb68121d6528b'.
+    CONSTANTS cc_hash TYPE string VALUE 'c95e8538c9840a3e'.
 
     " the one inline script of the GET page: the page's minimal app (a
     " component with one view) and the embed control that view holds
