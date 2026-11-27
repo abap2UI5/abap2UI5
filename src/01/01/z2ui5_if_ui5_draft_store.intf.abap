@@ -32,7 +32,7 @@ INTERFACE z2ui5_if_ui5_draft_store
       id_prev_app_stack TYPE string,
     END OF ty_s_draft.
 
-  "! Drafts of the calling user, plus the legacy rows that carry no owner.
+  "! Drafts of the calling user - owner-scoped like read_draft( ) and check_exists( ).
   METHODS count_entries
     RETURNING
       VALUE(result) TYPE i.

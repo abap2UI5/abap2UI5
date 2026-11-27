@@ -102,7 +102,6 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA ms_timer      TYPE z2ui5_if_ui5_types=>ty_s_timer.
     DATA ms_timer_sent TYPE z2ui5_if_ui5_types=>ty_s_timer.
 
-    " The windowed tables of the app as the last draft carried them - their
     "! the pre-main( ) snapshot of the bound values - see
     "! z2ui5_cl_ui5_srv_model=>main_snapshot
     METHODS model_snapshot
