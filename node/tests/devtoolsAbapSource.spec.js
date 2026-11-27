@@ -119,7 +119,7 @@ test.describe("ADT deep link", () => {
       oBody: { S_FRONT: { EVENT: "SAVE" } },
       eventLine: 17,
     });
-    AbapSource._setCache({ app: APP, source: "..." });
+    AbapSource._setCache({ url: EXPECTED_URL, source: "..." });
     expect(AbapSource.adtUrl(ctx)).toBe(`${EXPECTED_URL}#start=17,1`);
   });
 
@@ -129,7 +129,7 @@ test.describe("ADT deep link", () => {
       oBody: { S_FRONT: { EVENT: "SAVE" } },
       eventLine: 0,
     });
-    AbapSource._setCache({ app: APP, source: "..." });
+    AbapSource._setCache({ url: EXPECTED_URL, source: "..." });
     expect(AbapSource.adtUrl(ctx)).not.toContain("#start=");
   });
 
@@ -141,7 +141,10 @@ test.describe("ADT deep link", () => {
       oBody: { S_FRONT: { EVENT: "SAVE" } },
       eventLine: 17,
     });
-    AbapSource._setCache({ app: "ZCL_OTHER", source: "..." });
+    AbapSource._setCache({
+      url: EXPECTED_URL.replace(APP, "ZCL_OTHER"),
+      source: "...",
+    });
     expect(AbapSource.adtUrl(ctx)).not.toContain("#start=");
   });
 });
@@ -242,6 +245,59 @@ test.describe("Fetching the source", () => {
     // and from there on the success is cached as before
     expect(await AbapSource.fetchSource(ctx)).toBe("CLASS zcl DEFINITION.");
     expect(calls).toBe(2);
+  });
+
+  // The class is edited in ADT while the app runs: the Source tab asks
+  // again every time it is opened, and the deep link and the export read
+  // that fetch - the cache used to hold the first answer for the page's life
+  test("a refresh asks again and replaces the cached source", async () => {
+    let text = "CLASS zcl DEFINITION. \"v1";
+    let calls = 0;
+    const { AbapSource, ctx } = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      fetchImpl: async () => {
+        calls += 1;
+        return { ok: true, text: async () => text };
+      },
+    });
+    AbapSource._setCache(null);
+    await AbapSource.fetchSource(ctx);
+    text = "CLASS zcl DEFINITION. \"v2";
+    expect(await AbapSource.fetchSource(ctx, { refresh: true })).toBe(text);
+    expect(calls).toBe(2);
+    expect(AbapSource.cachedSource(ctx)).toBe(text);
+    // a refresh that fails keeps what the last one fetched
+    const failing = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      fetchImpl: async () => ({ ok: false, text: async () => "" }),
+    });
+    failing.AbapSource._setCache({ url: EXPECTED_URL, source: "kept" });
+    expect(
+      await failing.AbapSource.fetchSource(failing.ctx, { refresh: true }),
+    ).toBe("");
+    expect(failing.AbapSource.cachedSource(failing.ctx)).toBe("kept");
+  });
+
+  // Two components on one page may talk to two systems that both have a
+  // class of that name: keyed by the name, the second showed the first
+  // one's source
+  test("the same class on another system is fetched, not taken from the cache", async () => {
+    const asked = [];
+    const fetchImpl = async (url) => {
+      asked.push(url);
+      return { ok: true, text: async () => `source of ${new URL(url).host}` };
+    };
+    const { AbapSource, ctx } = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      fetchImpl,
+    });
+    AbapSource._setCache(null);
+    expect(await AbapSource.fetchSource(ctx)).toBe("source of sap.example.com");
+    // the other component of the page, with an endpoint on another origin
+    const other = { state: { ...ctx.state, endpoint: "https://abap.example.com/sap/bc/z2ui5" } };
+    expect(AbapSource.cachedSource(other)).toBe(null);
+    expect(await AbapSource.fetchSource(other)).toBe("source of abap.example.com");
+    expect(asked.length).toBe(2);
   });
 
   test("does not call out at all without a class name", async () => {
