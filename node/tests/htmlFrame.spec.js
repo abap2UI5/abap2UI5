@@ -143,6 +143,30 @@ test("a form sent with get puts its fields into getdata", () => {
   expect(inst.events).toEqual([{ action: "search", getdata: "page=2&filter=zcl", postdata: "" }]);
 });
 
+// formaction / formmethod on the button that submitted override the form's,
+// as a browser does: two buttons of one form raise two different actions
+test("the submitting button's formaction and formmethod win over the form's", () => {
+  const { makeInstance } = load();
+  const inst = makeInstance();
+  const attrs = (map) => (n) => map[n] ?? null;
+  const save = { name: "", value: "", type: "submit", getAttribute: attrs({}) };
+  const remove = {
+    name: "",
+    value: "",
+    type: "submit",
+    getAttribute: attrs({ formaction: "sapevent:delete?key=1", formmethod: "get" }),
+  };
+  const elements = [{ name: "key", value: "1", type: "text" }, save, remove];
+  const f = form({ action: "sapevent:save", elements });
+
+  inst._onSubmit(domEvent(f, save));
+  inst._onSubmit(domEvent(f, remove));
+  expect(inst.events).toEqual([
+    { action: "save", getdata: "", postdata: "key=1" },
+    { action: "delete", getdata: "key=1&key=1", postdata: "" },
+  ]);
+});
+
 test("a form to another address is cancelled and logged, not fired", () => {
   const { makeInstance, errors } = load();
   const inst = makeInstance();

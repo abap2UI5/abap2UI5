@@ -208,12 +208,12 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `;if(!frame)return;if(!wired.has(frame)){wired.add(frame);frame.addEventListener("load",()=>this._wire(frame))}this._wire(frame)},_wire(frame){if(Lib.isDestroyed(this))return;let doc;try{doc=frame.cont` &&
              `entDocument}catch(e){Lib.logError("HTMLFrame: the document of the frame is out of reach",e);return}if(!doc||wired.has(doc))return;wired.add(doc);doc.addEventListener("click",e=>this._onClick(e),true);` &&
              `doc.addEventListener("submit",e=>this._onSubmit(e),true)},_onClick(e){const link=e.target?.closest?.("a[href]");if(!link)return;const parsed=parseSapevent(link.getAttribute("href"));if(!parsed)return;` &&
-             `e.preventDefault();this.fireSapevent({...parsed,postdata:""})},_onSubmit(e){const form=e.target;e.preventDefault();if(!form||form.tagName!=="FORM")return;const parsed=parseSapevent(form.getAttribute("` &&
-             `action"));if(!parsed){Lib.logError(``HTMLFrame ${this.getId()}: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are``);return}const data=formData(form,e.submitter);const ge` &&
-             `t=String(form.getAttribute("method")||"").toLowerCase()==="get";this.fireSapevent({action:parsed.action,getdata:get?[parsed.getdata,data].filter(Boolean).join("&"):parsed.getdata,postdata:get?"":data}` &&
-             `)},renderer:{apiVersion:2,render(oRm,oControl){oRm.openStart("iframe",oControl);oRm.attr("sandbox",SANDBOX);oRm.attr("srcdoc",oControl.getContent());oRm.attr("title",oControl.getTitle());oRm.style("wi` &&
-             `dth",oControl.getWidth());oRm.style("height",oControl.getHeight());oRm.style("border","0");oRm.style("display","block");oRm.openEnd();oRm.close("iframe")}}});HTMLFrame._parseSapevent=parseSapevent;HTM` &&
-             `LFrame._formData=formData;return Env.ownClass(HTMLFrame)});` && |\n| &&
+             `e.preventDefault();this.fireSapevent({...parsed,postdata:""})},_onSubmit(e){const form=e.target;e.preventDefault();if(!form||form.tagName!=="FORM")return;const submitter=e.submitter;const action=submi` &&
+             `tter?.getAttribute?.("formaction")||form.getAttribute("action");const method=submitter?.getAttribute?.("formmethod")||form.getAttribute("method");const parsed=parseSapevent(action);if(!parsed){Lib.log` &&
+             `Error(``HTMLFrame ${this.getId()}: a form to ${action} is not sent - only sapevent: actions are``);return}const data=formData(form,submitter);const get=String(method||"").toLowerCase()==="get";this.fire` &&
+             `Sapevent({action:parsed.action,getdata:get?[parsed.getdata,data].filter(Boolean).join("&"):parsed.getdata,postdata:get?"":data})},renderer:{apiVersion:2,render(oRm,oControl){oRm.openStart("iframe",oCo` &&
+             `ntrol);oRm.attr("sandbox",SANDBOX);oRm.attr("srcdoc",oControl.getContent());oRm.attr("title",oControl.getTitle());oRm.style("width",oControl.getWidth());oRm.style("height",oControl.getHeight());oRm.st` &&
+             `yle("border","0");oRm.style("display","block");oRm.openEnd();oRm.close("iframe")}}});HTMLFrame._parseSapevent=parseSapevent;HTMLFrame._formData=formData;return Env.ownClass(HTMLFrame)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/InputExt.js": function(){sap.ui.define(["sap/m/Input","sap/m/InputRenderer","z2ui5/core/Lib","z2ui5/core/Env"],(Input,InputRenderer,Lib,Env)=>{"use strict";const HTML_MODES=new Set(["d` &&

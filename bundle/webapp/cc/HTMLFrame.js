@@ -159,16 +159,28 @@ sap.ui.define(
         // a form is never sent anywhere from the frame
         e.preventDefault();
         if (!form || form.tagName !== "FORM") return;
-        const parsed = parseSapevent(form.getAttribute("action"));
+        // The button that submitted may name its own target: formaction and
+        // formmethod on a <button>/<input type=submit> override the form's
+        // action and method, as a browser does - two buttons of one form
+        // (Save / Delete) sending two sapevent: actions is the shape
+        // abapGit-style pages use. Only the form's own were read, so every
+        // button raised the form's action.
+        const submitter = e.submitter;
+        const action =
+          submitter?.getAttribute?.("formaction") ||
+          form.getAttribute("action");
+        const method =
+          submitter?.getAttribute?.("formmethod") ||
+          form.getAttribute("method");
+        const parsed = parseSapevent(action);
         if (!parsed) {
           Lib.logError(
-            `HTMLFrame ${this.getId()}: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are`,
+            `HTMLFrame ${this.getId()}: a form to ${action} is not sent - only sapevent: actions are`,
           );
           return;
         }
-        const data = formData(form, e.submitter);
-        const get =
-          String(form.getAttribute("method") || "").toLowerCase() === "get";
+        const data = formData(form, submitter);
+        const get = String(method || "").toLowerCase() === "get";
         this.fireSapevent({
           action: parsed.action,
           getdata: get
