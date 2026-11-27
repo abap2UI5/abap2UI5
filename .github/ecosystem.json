@@ -4,6 +4,7 @@
     "Read by .github/scripts/ecosystem-map.mjs (shape check: npm run check:ecosystem; with --live it asks GitHub and npm whether every pin it names still exists and still says what this file says),",
     "by .github/scripts/ecosystem-canary.mjs (the nightly ecosystem-canary.yaml) and by tools/release-ecosystem.mjs (the ecosystem release).",
     "Facts were read from the default branch of every repository on 2026-11-26. A value that could not be established is null with a 'note' saying so - never a guess.",
+    "The four cap2UI5 repositories (kind 'host') were added on 2026-11-27, read from their default branches that day. They pin the core through the npm package, not through a branch: the canary's lint does not reach them, and what tells that a core change breaks them is cap2UI5's own CI job that builds the runtime from main.",
     "A pin's 'ref' is what the file names today: a branch or tag for an abaplint dependency (null = no \"branch\" key, abaplint clones the default branch), a commit for .github/deps.json / A2UI5_PIN / a script pin, a version range for npm."
   ],
   "schema": 1,
@@ -16,7 +17,8 @@
     "docs": "a documentation or presentation site",
     "tooling": "a Node tool around the framework (linter, MCP server, playground, protocol, embed control)",
     "generated": "a repository whose content is built from another one by automation",
-    "library": "an upstream utility catalogue the core copies from"
+    "library": "an upstream utility catalogue the core copies from",
+    "host": "a host that runs the transpiled framework (@abap2ui5/node-runtime) on another platform, and what belongs to it (cap2UI5: the CAP plugin, its samples, its documentation)"
   },
   "pinKinds": {
     "abaplint": "a git dependency of an abaplint config: file + dependencies[url].branch (a branch or a tag - abaplint hands it to git clone --branch; null = the default branch)",
@@ -552,6 +554,71 @@
       ],
       "check": "npm run check",
       "canary": { "lint": ["abaplint.jsonc"], "rename": true }
+    },
+    {
+      "repo": "cap2UI5/cap2UI5",
+      "checkout": "cap2UI5",
+      "kind": "host",
+      "status": "active",
+      "defaultBranch": "main",
+      "branches": {},
+      "release": { "mode": "own", "tags": "vX.Y.Z", "by": ".github/workflows/release.yml" },
+      "dependsOn": [
+        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "plugin/package.json", "field": "dependencies.@abap2ui5/node-runtime", "ref": "1.150.0", "note": "an EXACT pin: the plugin hosts one runtime; the published @cap2ui5/cds-plugin 0.7.0 pins 1.149.0. 1.151.0 (protocol 3, the app-driven windowed table, two more draft-store methods) needs the plugin to follow before the pin can move" },
+        { "repo": "abap2UI5/abap2UI5", "via": "workflow", "file": ".github/workflows/ci.yml", "field": "ref", "ref": "main", "note": "builds and packs the runtime from main beside the pinned one - the job that meets a breaking change first" },
+        { "repo": "abap2UI5/mcp-server", "via": "script", "file": "plugin/lib/agent/vendor/source.json", "field": "commit", "ref": "a4d9f07659cd8a18d2e1f8ee4d2121695f40702b", "note": "lib/appclient.mjs, snapshot.mjs and viewxml.mjs vendored unchanged (scripts/vendor-agent.mjs)" },
+        { "repo": "abap2UI5/protocol", "via": "workflow", "file": ".github/workflows/ci.yml", "field": "ref", "ref": "d1251093e3cbdd9a44ac1a29770a2c1add0ec46b", "note": "the backend conformance suite, against the checkout" }
+      ],
+      "check": "npm run lint && npm test",
+      "canary": null,
+      "note": "the npm package @cap2ui5/cds-plugin (plugin/). npm test needs runtime/ filled first: scripts/assemble-runtime.sh --package <the pinned version>"
+    },
+    {
+      "repo": "cap2UI5/samples",
+      "checkout": "cap2UI5-samples",
+      "kind": "host",
+      "status": "active",
+      "defaultBranch": "main",
+      "branches": {},
+      "release": { "mode": "own", "tags": "vX.Y.Z", "by": ".github/workflows/release.yml" },
+      "dependsOn": [
+        { "repo": "abap2UI5/samples", "via": "pin-file", "file": "ABAP2UI5_SAMPLES_PIN", "field": null, "ref": "2e998ef1c90a1350e4ce1677bba59122fc8dac96", "note": "the commit abap2js translates the samples from (scripts/generate.mjs)" },
+        { "repo": "cap2UI5/cap2UI5", "via": "npm", "file": "package.json", "field": "peerDependencies.@cap2ui5/cds-plugin", "ref": "^0.6.0" }
+      ],
+      "check": "npm test",
+      "canary": null,
+      "note": "the npm package @cap2ui5/samples; no 'check' script in package.json, 'test' is the command"
+    },
+    {
+      "repo": "cap2UI5/samples-stack",
+      "checkout": "cap2UI5-samples-stack",
+      "kind": "host",
+      "status": "active",
+      "defaultBranch": "main",
+      "branches": {},
+      "release": { "mode": "none" },
+      "dependsOn": [
+        { "repo": "cap2UI5/cap2UI5", "via": "npm", "file": "package.json", "field": "dependencies.@cap2ui5/cds-plugin", "ref": "^0.6.0" },
+        { "repo": "abap2UI5/linter", "via": "npm", "file": "package.json", "field": "devDependencies.@abap2ui5/linter", "ref": "^0.11.0" }
+      ],
+      "check": "npm run lint && npm test",
+      "canary": null
+    },
+    {
+      "repo": "cap2UI5/docs",
+      "checkout": "cap2UI5-docs",
+      "kind": "host",
+      "status": "active",
+      "defaultBranch": "main",
+      "branches": {},
+      "release": { "mode": "none" },
+      "dependsOn": [
+        { "repo": "cap2UI5/cap2UI5", "via": "workflow", "file": ".github/workflows/check.yml", "field": "ref", "ref": "main", "note": "scripts/verify-refs.mjs resolves every path, app and option the pages name against it" },
+        { "repo": "abap2UI5/abap2UI5", "via": "workflow", "file": ".github/workflows/check.yml", "field": "ref", "ref": "main", "note": "and every z2ui5_* name against the framework's sources" }
+      ],
+      "check": "npm run check",
+      "canary": null,
+      "note": "a second repository named docs - check it out as cap2UI5-docs (lib-ecosystem.mjs tells the two apart)"
     },
     {
       "repo": "abap-util/abap-util",
