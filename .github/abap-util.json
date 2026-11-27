@@ -1,0 +1,29 @@
+{
+  "master": "abap-util/abap-util",
+  "commit": null,
+  "note": "this copy leads (AGENTS.md, Utilities): there is no pinned master commit, the differences are what the next sync carries back to abap-util",
+  "rename": [
+    ["z2ui5_cl_ui5_util_context", "zabaputil_cl_util_context"],
+    ["z2ui5_cl_ui5_util_http", "zabaputil_cl_util_http"],
+    ["z2ui5_cx_ui5_util_error", "zabaputil_cx_util_error"]
+  ],
+  "copies": [
+    {
+      "copy": "src/00/03/z2ui5_cl_ui5_util_context.clas.abap",
+      "master": "src/zabaputil_cl_util_context.clas.abap",
+      "trimmed": true,
+      "settled": {
+        "class_constructor": "the master keeps cv_char_util_charsize, which has no caller in this trimmed copy",
+        "uuid_get_c32": "the master keeps its gv_uuid_failed guard, dropped here in the 2026-10 full sync"
+      }
+    },
+    {
+      "copy": "src/00/03/z2ui5_cl_ui5_util_http.clas.abap",
+      "master": "src/zabaputil_cl_util_http.clas.abap"
+    },
+    {
+      "copy": "src/00/03/z2ui5_cx_ui5_util_error.clas.abap",
+      "master": "src/zabaputil_cx_util_error.clas.abap"
+    }
+  ]
+}
