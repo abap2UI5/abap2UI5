@@ -153,7 +153,14 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
         AND ( s_options-temperature CN `0123456789.` OR count( val = s_options-temperature
                                                                sub = `.` ) > 1
               " JSON wants a digit on both sides of the point - `.7` and `1.` are no number there
-              OR s_options-temperature CP `.*` OR s_options-temperature CP `*.` ).
+              OR s_options-temperature CP `.*` OR s_options-temperature CP `*.`
+              " and no leading zero in front of another digit - `01` and `00.5` neither
+              OR ( strlen( s_options-temperature ) > 1
+                   AND substring( val = s_options-temperature
+                                  len = 1 ) = `0`
+                   AND substring( val = s_options-temperature
+                                  off = 1
+                                  len = 1 ) <> `.` ) ).
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
         EXPORTING
           text = |the temperature { s_options-temperature } is no number|.

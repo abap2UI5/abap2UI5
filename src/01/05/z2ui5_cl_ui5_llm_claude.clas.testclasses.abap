@@ -214,12 +214,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_bad_temperature.
 
-    DATA lt_bad TYPE string_table.
+    DATA lt_bad  TYPE string_table.
+    DATA lt_good TYPE string_table.
 
     DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_claude( model   = `test-model`
                                                 io_http = NEW ltd_http( ) ).
     " `.7` and `1.` passed the character check and went out as invalid JSON
-    lt_bad = VALUE #( ( `1.2.3` ) ( `.7` ) ( `1.` ) ( `.` ) ).
+    " `01` and `00.5` - a leading zero in front of another digit - as well
+    lt_bad = VALUE #( ( `1.2.3` ) ( `.7` ) ( `1.` ) ( `.` ) ( `01` ) ( `00.5` ) ).
     LOOP AT lt_bad INTO DATA(lv_bad).
       TRY.
           lo_llm->build_request( t_message = conversation( )
@@ -229,6 +231,15 @@ CLASS ltcl_test IMPLEMENTATION.
           cl_abap_unit_assert=>assert_char_cp( exp = `*temperature*`
                                                act = lx->get_text( ) ).
       ENDTRY.
+    ENDLOOP.
+
+    " a zero of its own, and a zero in front of the point, are numbers
+    lt_good = VALUE #( ( `0` ) ( `0.5` ) ( `10` ) ).
+    LOOP AT lt_good INTO DATA(lv_good).
+      DATA(ls_request) = lo_llm->build_request( t_message = conversation( )
+                                                s_options = VALUE #( temperature = lv_good ) ).
+      cl_abap_unit_assert=>assert_char_cp( exp = |*"temperature":{ lv_good }*|
+                                           act = ls_request-body ).
     ENDLOOP.
 
   ENDMETHOD.
