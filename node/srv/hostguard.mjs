@@ -21,12 +21,23 @@
  * The allowed names are 127.0.0.1, localhost and [::1], plus
  *   - the address serve() was told to bind, when that is a name of its own
  *     (HOST=192.168.1.5, HOST=devbox.lan): binding it deliberately is asking
- *     to be reached by it. Not 0.0.0.0 / :: - those name no host;
+ *     to be reached by it. Not * / 0.0.0.0 / :: - those name no host;
  *   - every name in `allowedHosts` (express.mjs: the ALLOWED_HOSTS
  *     environment variable, comma-separated) - for a container reached by its
  *     service name, a LAN address on an all-interfaces bind, a proxy.
  * `allowedHosts` "*" switches the guard off: any Host, any Origin, the old
  * behaviour - for a server behind something that decides this itself.
+ *
+ * WHAT IT IS NOT. It is no access control, and it does not restrict a
+ * client that is not a browser. Host and Origin are headers the client
+ * writes: curl, a script, any program that reaches the port sends the Host
+ * the guard wants and no Origin, and is answered - every app, every event,
+ * every bound value. What the guard stops is a web page, because a browser
+ * does not let a page choose either header. Whether a program on another
+ * machine reaches the port at all is the bind's business, and the
+ * network's: serve() binds 127.0.0.1 unless it is told otherwise, and a
+ * server bound to every interface (npm run express, HOST=*) serves every
+ * machine that can reach it, guard or no guard.
  *
  * WHAT IT DOES NOT CHANGE. createApp() and createHandler() stay unguarded: a
  * host that mounts them owns its server, its names and its exposure (cap2UI5
@@ -36,7 +47,7 @@
 const LOOPBACK_NAMES = ["127.0.0.1", "localhost", "[::1]"];
 
 // binds that name no host a request could address
-const WILDCARD_BINDS = new Set(["", "0.0.0.0", "::", "[::]"]);
+const WILDCARD_BINDS = new Set(["", "*", "0.0.0.0", "::", "[::]"]);
 
 /**
  * A host name as a Host header and URL.hostname spell it: lower case, an

@@ -524,18 +524,30 @@ export async function createApp({ bodyLimit = "10mb", compression = true, ...opt
  * in `allowedHosts` - and, with an Origin, coming from a page there - is
  * answered; any other gets a 403 (srv/hostguard.mjs says why: DNS
  * rebinding). `allowedHosts: "*"` answers every request, as before.
+ *
+ * LOOPBACK BY DEFAULT. `host` unset binds 127.0.0.1: the guard keeps web
+ * pages out, not programs - curl or a script on another machine sends the
+ * Host it likes and no Origin (srv/hostguard.mjs, WHAT IT IS NOT) - so what
+ * keeps the rest of the network out of every app is the bind. Up to
+ * 1.151.0 an unset `host` bound every interface, and a host that called
+ * serve() without one served its apps to the network unasked. Every
+ * interface is asked for by name: "*" (node's own default - :: where the
+ * system has IPv6, which takes IPv4 as well, else 0.0.0.0), or "0.0.0.0" /
+ * "::" for exactly that socket. `npm run express` (srv/express.mjs) asks
+ * for "*" unless HOST says otherwise - the e2e runner and a container
+ * reach it from outside the loopback.
  * @param {{ port?: number | string, host?: string, allowedHosts?: string | string[], handlerClass?: string, bodyLimit?: string, compression?: boolean | object, exit?: object, draftSweepMs?: number | false }} [options]
- *   `host` unset binds every interface; "127.0.0.1" binds loopback only
+ *   `host` unset binds loopback only (127.0.0.1); "*" binds every interface
  * @returns {Promise<import("node:http").Server>}
  */
-export async function serve({ port = 3000, host, allowedHosts, ...options } = {}) {
+export async function serve({ port = 3000, host = "127.0.0.1", allowedHosts, ...options } = {}) {
   const app = await createApp(options);
   const guard = hostGuard({ host, allowedHosts });
   await initialize(initOptions(options));
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => guard(req, res, () => app(req, res)));
     server.once("error", reject);
-    server.listen(port, host, () => {
+    server.listen(port, host === "*" ? undefined : host, () => {
       server.off("error", reject);
       resolve(server);
     });

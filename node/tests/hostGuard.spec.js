@@ -92,6 +92,8 @@ test.describe("the guard", () => {
     // 0.0.0.0 and :: name no host - every interface, loopback names only
     expect([...(allowedHostNames({ host: "0.0.0.0" }) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
     expect([...(allowedHostNames({ host: "::" }) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
+    // "*" is serve()'s every-interface bind - no host either
+    expect([...(allowedHostNames({ host: "*" }) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
     expect([...(allowedHostNames({}) ?? [])]).toEqual(["127.0.0.1", "localhost", "[::1]"]);
   });
 
@@ -149,5 +151,15 @@ test.describe("serve() in front of the framework", () => {
     expect(run.named.added).toBe(200);
     expect(run.named.other).toBe(403);
     expect(run.open.rebound).toBe(200);
+  });
+
+  test("binds loopback when told nothing, every interface for host *", () => {
+    const { bind } = framework();
+    // the package's default: the guard keeps pages out, the bind the network
+    expect(bind.unset).toBe("127.0.0.1");
+    // node's own default socket - :: where there is IPv6, else 0.0.0.0
+    expect(["::", "0.0.0.0"]).toContain(bind.every);
+    expect(bind.everyLoopback).toBe(200);
+    expect(bind.everyStar).toBe(403);
   });
 });
