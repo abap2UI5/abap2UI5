@@ -8,11 +8,13 @@ const { specContext, contextStub, classEnv } = require("./loadLibModule");
 // tree state before every roundtrip and restores it after the next render.
 //
 // The state lives in state.treeStates of the companion's component context
-// (Context.of), keyed by tree_id, and that is where every rule this spec
-// pins comes from:
+// (Context.of), keyed by the companion's slot plus tree_id, and that is
+// where every rule this spec pins comes from:
 //
-//  - keyed by tree_id, so a main-view tree and a tree in a popup keep
-//    independent snapshots instead of overwriting each other;
+//  - keyed by slot and tree_id, so a main-view tree and a tree in a popup
+//    keep independent snapshots even when they share the local id;
+//  - a snapshot carries its binding path and is restored only onto a
+//    binding of the same path (another screen reusing the id);
 //  - a snapshot is only overwritten when the binding is actually resolvable,
 //    so a momentarily missing binding cannot wipe a still-valid one;
 //  - a restore happens once per (snapshot, binding) pair, because
@@ -26,7 +28,12 @@ const { specContext, contextStub, classEnv } = require("./loadLibModule");
 //  - and every entry point logs rather than throws (AGENTS.md rule 10),
 //    including a companion in no component at all (`context: false`,
 //    Context.of answers null), which has nowhere to keep a snapshot.
-function load({ trees = {}, treeStates = {}, context = true } = {}) {
+function load({
+  trees = {},
+  treeStates = {},
+  context = true,
+  slotOf = () => "MAIN",
+} = {}) {
   const errors = [];
   const callbacks = {};
   const lookups = [];
@@ -57,6 +64,8 @@ function load({ trees = {}, treeStates = {}, context = true } = {}) {
         },
       },
       "z2ui5/core/ViewSlots": {
+        // the slot the companion sits in; undefined falls back to MAIN
+        containingSlotKey: (_ctx, owner) => slotOf(owner),
         byIdOfOwner: (owner, id) => {
           lookups.push([owner, id]);
           return trees[id] ?? null;
@@ -81,14 +90,20 @@ function load({ trees = {}, treeStates = {}, context = true } = {}) {
 
 // A tree binding recording what was done to it, and the sap.m.Tree that
 // exposes it under the "items" aggregation.
-function makeBinding(state = null) {
+function makeBinding(state = null, path = "/TREE") {
   const calls = [];
   return {
     calls,
+    getPath: () => path,
     getCurrentTreeState: () => ({ of: state }),
     setTreeState: (s) => calls.push(["setTreeState", s]),
     refresh: (force) => calls.push(["refresh", force]),
   };
+}
+
+// a stored entry as setBackend writes it
+function entry(treeState, path = "/TREE") {
+  return { treeState, path };
 }
 
 function makeTree(binding) {
@@ -123,8 +138,8 @@ test("setBackend snapshots the tree state under the tree_id", () => {
 
   l.instance("tbl").setBackend();
 
-  expect(Object.keys(l.treeStates)).toEqual(["tbl"]);
-  expect(l.treeStates.tbl).toEqual({ of: "expanded" });
+  expect(Object.keys(l.treeStates)).toEqual(["MAIN/tbl"]);
+  expect(l.treeStates["MAIN/tbl"]).toEqual(entry({ of: "expanded" }));
 });
 
 // Two companions on one page must not share one slot.
@@ -136,8 +151,54 @@ test("two trees keep independent snapshots", () => {
   l.instance("a").setBackend();
   l.instance("b").setBackend();
 
-  expect(l.treeStates.a.of).toBe("one");
-  expect(l.treeStates.b.of).toBe("two");
+  expect(l.treeStates["MAIN/a"].treeState.of).toBe("one");
+  expect(l.treeStates["MAIN/b"].treeState.of).toBe("two");
+});
+
+// The tree_id is local to its view or fragment: a MAIN tree and a popup
+// tree may both be "tree". Keyed by the id alone, the companion that ran
+// last overwrote the other's snapshot and MAIN's rebuild restored the
+// popup tree's expansion.
+test("a MAIN tree and a popup tree with one id keep independent snapshots", () => {
+  const mainBinding = makeBinding("main");
+  const popupBinding = makeBinding("popup");
+  const trees = {};
+  const l = load({ trees, slotOf: (owner) => owner._slot });
+  const main = l.instance("tree");
+  main._slot = "MAIN";
+  const popup = l.instance("tree");
+  popup._slot = "POPUP";
+
+  trees.tree = makeTree(mainBinding);
+  main.setBackend();
+  trees.tree = makeTree(popupBinding);
+  popup.setBackend();
+
+  expect(l.treeStates["MAIN/tree"].treeState.of).toBe("main");
+  expect(l.treeStates["POPUP/tree"].treeState.of).toBe("popup");
+
+  // MAIN's rebuilt companion restores MAIN's snapshot, not the popup's
+  const rebuilt = makeBinding();
+  trees.tree = makeTree(rebuilt);
+  const fresh = l.instance("tree");
+  fresh._slot = "MAIN";
+  fresh.onAfterRendering();
+  expect(rebuilt.calls[0]).toEqual(["setTreeState", { of: "main" }]);
+});
+
+// One app's screens reuse local ids too, and the store is only reset on an
+// app switch: screen 2's "tree" bound to another path must not get screen
+// 1's expansion forced onto it.
+test("a snapshot of another binding path is not restored", () => {
+  const binding = makeBinding(null, "/OTHER");
+  const l = load({
+    trees: { tbl: makeTree(binding) },
+    treeStates: { "MAIN/tbl": entry({ a: 1 }, "/TREE") },
+  });
+
+  l.instance("tbl").onAfterRendering();
+
+  expect(binding.calls).toEqual([]);
 });
 
 // byIdOfOwner and not resolveById: the companion has to resolve the tree in
@@ -153,11 +214,11 @@ test("the tree is looked up in the companion's own slot", () => {
 });
 
 test("an unresolvable binding leaves a still-valid snapshot alone", () => {
-  const l = load({ trees: {}, treeStates: { tbl: { kept: true } } });
+  const l = load({ trees: {}, treeStates: { "MAIN/tbl": entry({ kept: true }) } });
 
   l.instance("tbl").setBackend();
 
-  expect(l.treeStates.tbl).toEqual({ kept: true });
+  expect(l.treeStates["MAIN/tbl"]).toEqual(entry({ kept: true }));
 });
 
 test("an empty tree_id snapshots nothing", () => {
@@ -189,7 +250,10 @@ test("a throwing binding is logged, not propagated", () => {
 test("onAfterRendering seeds the snapshot and forces a rebuild", () => {
   const binding = makeBinding();
   const snapshot = { expanded: [1, 2] };
-  const l = load({ trees: { tbl: makeTree(binding) }, treeStates: { tbl: snapshot } });
+  const l = load({
+    trees: { tbl: makeTree(binding) },
+    treeStates: { "MAIN/tbl": entry(snapshot) },
+  });
 
   l.instance("tbl").onAfterRendering();
 
@@ -206,7 +270,7 @@ test("onAfterRendering seeds the snapshot and forces a rebuild", () => {
 // the user made since the last roundtrip.
 test("a second rendering with the same snapshot and binding restores nothing", () => {
   const binding = makeBinding();
-  const l = load({ trees: { tbl: makeTree(binding) }, treeStates: { tbl: { a: 1 } } });
+  const l = load({ trees: { tbl: makeTree(binding) }, treeStates: { "MAIN/tbl": entry({ a: 1 }) } });
   const inst = l.instance("tbl");
 
   inst.onAfterRendering();
@@ -218,13 +282,13 @@ test("a second rendering with the same snapshot and binding restores nothing", (
 
 test("a fresh snapshot restores again", () => {
   const binding = makeBinding();
-  const l = load({ trees: { tbl: makeTree(binding) }, treeStates: { tbl: { a: 1 } } });
+  const l = load({ trees: { tbl: makeTree(binding) }, treeStates: { "MAIN/tbl": entry({ a: 1 }) } });
   const inst = l.instance("tbl");
 
   inst.onAfterRendering();
   // setBackend builds a NEW object every roundtrip, which is what makes a
   // roundtrip distinguishable from a re-render.
-  l.treeStates.tbl = { a: 2 };
+  l.treeStates["MAIN/tbl"] = entry({ a: 2 });
   inst.onAfterRendering();
 
   expect(binding.calls).toHaveLength(4);
@@ -234,7 +298,7 @@ test("a fresh snapshot restores again", () => {
 test("a rebuilt binding restores again, even with the same snapshot", () => {
   const snapshot = { a: 1 };
   const trees = { tbl: makeTree(makeBinding()) };
-  const l = load({ trees, treeStates: { tbl: snapshot } });
+  const l = load({ trees, treeStates: { "MAIN/tbl": entry(snapshot) } });
   const inst = l.instance("tbl");
 
   inst.onAfterRendering();
@@ -257,12 +321,12 @@ test("no snapshot, no binding, no tree_id: nothing happens and nothing throws", 
   expect(binding.calls).toEqual([]);
 
   // snapshot but no resolvable binding
-  const b = load({ trees: {}, treeStates: { tbl: { a: 1 } } });
+  const b = load({ trees: {}, treeStates: { "MAIN/tbl": entry({ a: 1 }) } });
   expect(() => b.instance("tbl").onAfterRendering()).not.toThrow();
   expect(b.errors).toEqual([]);
 
   // no tree_id at all
-  const c = load({ trees: {}, treeStates: { tbl: { a: 1 } } });
+  const c = load({ trees: {}, treeStates: { "MAIN/tbl": entry({ a: 1 }) } });
   expect(() => c.instance("").onAfterRendering()).not.toThrow();
 });
 
@@ -274,7 +338,7 @@ test("in no component: logged once, nothing preserved, rendering goes on", () =>
   const binding = makeBinding("expanded");
   const l = load({
     trees: { tbl: makeTree(binding) },
-    treeStates: { tbl: { a: 1 } },
+    treeStates: { "MAIN/tbl": entry({ a: 1 }) },
     context: false,
   });
   const inst = l.instance("tbl");
@@ -285,7 +349,7 @@ test("in no component: logged once, nothing preserved, rendering goes on", () =>
     inst.onAfterRendering();
   }).not.toThrow();
 
-  expect(l.treeStates).toEqual({ tbl: { a: 1 } });
+  expect(l.treeStates).toEqual({ "MAIN/tbl": entry({ a: 1 }) });
   expect(binding.calls).toEqual([]);
   expect(l.errors).toHaveLength(1);
   expect(l.errors[0][0]).toContain("no component context");
@@ -295,12 +359,13 @@ test("a throwing setTreeState is logged, not propagated", () => {
   const boom = new Error("no adapter");
   const tree = {
     getBinding: () => ({
+      getPath: () => "/TREE",
       setTreeState: () => {
         throw boom;
       },
     }),
   };
-  const l = load({ trees: { tbl: tree }, treeStates: { tbl: { a: 1 } } });
+  const l = load({ trees: { tbl: tree }, treeStates: { "MAIN/tbl": entry({ a: 1 }) } });
 
   expect(() => l.instance("tbl").onAfterRendering()).not.toThrow();
   expect(l.errors[0][0]).toContain("Tree.onAfterRendering");

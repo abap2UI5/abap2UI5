@@ -1651,6 +1651,33 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       expect(h.state.aRenderEvents).toEqual([]);
     });
 
+    // The finally of _processAfterRendering clears the busy state before it
+    // awaits a page transition and the follow-up actions; a click or a
+    // Websocket push can start a roundtrip in that window. The kept event
+    // met eB's busy guard with nothing being built any more and was dropped
+    // under the overlay.
+    test("a roundtrip that started meanwhile keeps them for its own end", () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["KEPT"]);
+      h.state.oResponse._processing = false;
+      // another roundtrip is in flight already
+      h.state.isBusy = true;
+
+      h.ctrl._dispatchQueuedEvent();
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.busy).toEqual([]);
+      expect(h.state.aRenderEvents).toHaveLength(1);
+
+      // that roundtrip has landed: the event goes out now
+      h.state.isBusy = false;
+      h.ctrl._dispatchQueuedEvent();
+
+      expect(h.roundtrips.map((b) => b.ARGUMENTS[0][0])).toEqual(["KEPT"]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
     test("a control that fires before its view has reached the slot is kept too", () => {
       const h = loadForQueue();
       building(h);
@@ -2119,12 +2146,40 @@ test.describe("slotValue (the null-safe read)", () => {
 
   test("a getter that throws is caught, not propagated", () => {
     const { controller, errors, restore } = withSlotStub(() => ({
-      boom() {
+      getBoom() {
         throw new Error("nope");
       },
     }));
-    expect(controller.slotValue("POPUP", "x", "boom")).toBe("");
-    expect(errors).toEqual(["slotValue: 'boom' on 'x' failed"]);
+    expect(controller.slotValue("POPUP", "x", "getBoom")).toBe("");
+    expect(errors).toEqual(["slotValue: 'getBoom' on 'x' failed"]);
+    restore();
+  });
+
+  // No arguments alone still let an argument expression call every
+  // zero-argument method of a control - destroy, close, a fireXxx - outside
+  // the ControlCall whitelist. Only a getter's name is called.
+  test("only a getter is called - destroy, close or a fire are not", () => {
+    const calls = [];
+    const { controller, errors, restore } = withSlotStub(() => ({
+      destroy: () => calls.push("destroy"),
+      close: () => calls.push("close"),
+      firePress: () => calls.push("firePress"),
+      isOpen: () => true,
+      hasStyleClass: () => false,
+      getText: () => "t",
+    }));
+    expect(controller.slotValue("POPUP", "x", "destroy")).toBe("");
+    expect(controller.slotValue("POPUP", "x", "close")).toBe("");
+    expect(controller.slotValue("POPUP", "x", "firePress")).toBe("");
+    // "get" alone, or one that only starts like a getter, is no getter
+    expect(controller.slotValue("POPUP", "x", "getter")).toBe("");
+    expect(calls).toEqual([]);
+    expect(errors).toHaveLength(4);
+    expect(errors[0]).toContain("'destroy' is no getter");
+
+    expect(controller.slotValue("POPUP", "x", "isOpen")).toBe(true);
+    expect(controller.slotValue("POPUP", "x", "hasStyleClass")).toBe(false);
+    expect(controller.slotValue("POPUP", "x", "getText")).toBe("t");
     restore();
   });
 

@@ -45,15 +45,16 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
   METHOD part_01.
 
     result = `sap.ui.require.preload({` && |\n| &&
-             `      "z2ui5/devtools/AbapSource.js": function(){sap.ui.define(["z2ui5/devtools/Inspect"],Inspect=>{"use strict";let cache=null;function appName(ctx){return ctx?.state?.responseData?.S_FRONT?.APP||""}` &&
-             `function systemOrigin(ctx){const endpoint=ctx?.state?.endpoint;if(endpoint){try{return new URL(endpoint,window.location.href).origin}catch{}}return window.location.origin}function sourceUrl(ctx){const` &&
-             ` name=appName(ctx);if(!name)return"";return``${systemOrigin(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``}function adtUrl(ctx){const url=sourceUrl(ctx);if(!url)return"";const e` &&
-             `vent=ctx?.state?.oBody?.S_FRONT?.EVENT;if(!event||cache?.url!==url||!cache?.source)return url;const lineNumber=Inspect.findEventLine(cache.source,event);return lineNumber?``${url}#start=${lineNumber},` &&
-             `1``:url}function openInAdt(ctx){const url=adtUrl(ctx);if(!url)return;window.open(url,"_blank","noopener,noreferrer")}function iframeHtml(ctx){const url=sourceUrl(ctx);if(!url)return"";const iframe=doc` &&
-             `ument.createElement("iframe");iframe.setAttribute("src",url);iframe.setAttribute("style","width:100%;height:85vh;border:none;");return iframe.outerHTML}async function fetchSource(ctx,{refresh=false}={` &&
-             `}){const url=sourceUrl(ctx);if(!url)return"";if(!refresh&&cache?.url===url)return cache.source;let source="";try{const response=await fetch(url,{headers:{Accept:"text/plain"},credentials:"same-origin"` &&
-             `});if(response.ok)source=await response.text()}catch{}if(source)cache={url,source};return source}function cachedSource(ctx){const url=sourceUrl(ctx);return url&&cache?.url===url?cache.source:null}retu` &&
-             `rn{appName,sourceUrl,adtUrl,openInAdt,iframeHtml,fetchSource,cachedSource,_setCache:value=>{cache=value}}});` && |\n| &&
+             `      "z2ui5/devtools/AbapSource.js": function(){sap.ui.define(["z2ui5/devtools/Inspect"],Inspect=>{"use strict";let cache=null;const HTTP_SCHEME=/^https?:\/\//i;function appName(ctx){return ctx?.stat` &&
+             `e?.responseData?.S_FRONT?.APP||""}function systemBase(ctx){const prefix=ctx?.state?.endpointPrefix;if(typeof prefix==="string"){return HTTP_SCHEME.test(prefix)?prefix:window.location.origin+prefix}con` &&
+             `st endpoint=ctx?.state?.endpoint;if(endpoint){try{return new URL(endpoint,window.location.href).origin}catch{}}return window.location.origin}function sourceUrl(ctx){const name=appName(ctx);if(!name)re` &&
+             `turn"";return``${systemBase(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``}function adtUrl(ctx){const url=sourceUrl(ctx);if(!url)return"";const event=ctx?.state?.oBody?.S_FRONT?` &&
+             `.EVENT;if(!event||cache?.url!==url||!cache?.source)return url;const lineNumber=Inspect.findEventLine(cache.source,event);return lineNumber?``${url}#start=${lineNumber},1``:url}function openInAdt(ctx){` &&
+             `const url=adtUrl(ctx);if(!url)return;window.open(url,"_blank","noopener,noreferrer")}function iframeHtml(ctx){const url=sourceUrl(ctx);if(!url)return"";const iframe=document.createElement("iframe");if` &&
+             `rame.setAttribute("src",url);iframe.setAttribute("style","width:100%;height:85vh;border:none;");return iframe.outerHTML}async function fetchSource(ctx,{refresh=false}={}){const url=sourceUrl(ctx);if(!` &&
+             `url)return"";if(!refresh&&cache?.url===url)return cache.source;let source="";try{const response=await fetch(url,{headers:{Accept:"text/plain"},credentials:"same-origin"});if(response.ok)source=await r` &&
+             `esponse.text()}catch{}if(source)cache={url,source};return source}function cachedSource(ctx){const url=sourceUrl(ctx);return url&&cache?.url===url?cache.source:null}return{appName,sourceUrl,adtUrl,open` &&
+             `InAdt,iframeHtml,fetchSource,cachedSource,_setCache:value=>{cache=value}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/devtools/Bindings.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/SlotXml"],(Lib,ViewSlots,Format,SlotXml)=>{"use strict";co` &&
@@ -115,9 +116,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `="{/isJourney}"                />                \x3cButton                    text="Clear Journey"                    tooltip="Drop every recorded journey"                    press=".onClearJourney" ` &&
              `                   visible="{/isJourney}"                />                \x3c!-- Problems: the actions of the fatal-error overlay,                     shown with the error rather than everywhere. --` &&
              `>                \x3cButton                    text="Retry"                    tooltip="Re-run the request that failed"                    press=".onErrorRetry"                    visible="{/hasRetry}` &&
-             `"                />                \x3cButton                    text="Restart"                    tooltip="Restart the app"                    press=".onErrorRestart"                    visible="{/is` &&
-             `ErrorView}"                />                \x3cButton                    text="Logout"                    press=".onErrorLogout"                    visible="{/isErrorView}"                />        `.
+             `"                />                \x3cButton                    text="Restart"                    tooltip="Restart the app"                    press=".onErrorRestart"                    visible="{/is`.
     result = result &&
+             `ErrorView}"                />                \x3cButton                    text="Logout"                    press=".onErrorLogout"                    visible="{/isErrorView}"                />        ` &&
              `        \x3c!-- View & Data: closes the dialog, lets the user click any                     control in the app and reopens with its bindings and                     current values (devtools/Picker.js)` &&
              `. -->                \x3cButton                    text="Pick Control"                    type="Emphasized"                    tooltip="Closes these tools, then click any control in the app. Escape ca` &&
              `ncels."                    press=".onPickControl"                    visible="{/isViewData}"                />                \x3cToggleButton                    text="After Templating"               ` &&
@@ -194,9 +195,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `reviousTab=this.oDialog?.getModel()?.getData()?.selectedTab;this.reopenErrorOnClose=false;this.close();Picker.start(this.ctx,report=>{if(Lib.isDestroyed(this))return;this.show(report?"PICK":previousTa` &&
              `b)})},async onApplyXml(oEvent){const oModel=oEvent.getSource().getModel();const data=oModel.getData();if(LiveEdit.isBusy(this.ctx)){this.showStatus(oModel,"A roundtrip is running - try again.");return` &&
              `}const tabKey=data.selectedTab;const before=this.backendXml(tabKey);const result=await LiveEdit.apply(this.ctx,tabKey,data.value);if(Lib.isDestroyed(this))return;if(!this._appliedXml)this._appliedXml=` &&
-             `{};this._appliedXml[tabKey]={original:before,applied:Tabs.render(this.ctx,tabKey)};this.showStatus(oModel,result)},backendXml(tabKey){const current=Tabs.render(this.ctx,tabKey);const record=this._appl` &&
-             `iedXml?.[tabKey];if(!record)return current;if(record.applied!==current){delete this._appliedXml[tabKey];return current}return record.original},onResetXml(oEvent){const oModel=oEvent.getSource().getMod`.
+             `{};this._appliedXml[tabKey]={original:before,applied:Tabs.render(this.ctx,tabKey)};this.showStatus(oModel,result)},backendXml(tabKey){const current=Tabs.render(this.ctx,tabKey);const record=this._appl`.
     result = result &&
+             `iedXml?.[tabKey];if(!record)return current;if(record.applied!==current){delete this._appliedXml[tabKey];return current}return record.original},onResetXml(oEvent){const oModel=oEvent.getSource().getMod` &&
              `el();const data=oModel.getData();const xml=this.backendXml(data.selectedTab);data.value=xml;data.previousValue=xml;oModel.refresh();this.showStatus(oModel,"")},onShowHelp(){openTextDialog({title:"abap` &&
              `2UI5 - Developer Tools Help",text:Inspect.formatHelp(),editable:false})},onClose(){this.close()},onEscape(oPromise){oPromise.reject();this.close()},async show(initialTab){if(this._showPending)return;t` &&
              `his._showPending=true;try{if(!this.oDialog){await preloadCodeEditor();this.oDialog=await Fragment.load({name:"z2ui5.devtools.DeveloperTools",controller:this,id:this.fragmentId()});this.oDialog.setEsca` &&
@@ -268,9 +269,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `No(Device.support.retina)));out.push(...formatFrontendInfo(ctx));out.push(section("View slots"));out.push(...formatSlots(ctx));return out.join("\n")}function formatBootstrap(ctx){const out=[section("U` &&
              `I5 bootstrap")];const el=bootstrapElement();if(!el){out.push('  (no <script id="sap-ui-bootstrap"> on this page -');out.push("  UI5 was started some other way, e.g. by a launchpad)")}else{out.push(lin` &&
              `e("SDK source",el.src||bootstrapAttr(el,"src")));for(const[label,attr]of BOOTSTRAP_ATTRS){const value=bootstrapAttr(el,attr);if(value)out.push(line(label,truncate(value,MAX_ARG_CHARS)))}}out.push("");` &&
-             `out.push(line("Resource base",resourceUrl("")));out.push(line("z2ui5 root",resourceUrl("z2ui5")));const cci=ctx.state.ccResourceRoot;const ccc=ctx.state.cccResourceRoot;if(cci)out.push(line("z2ui5_cci` &&
-             ` root",cci));if(ccc)out.push(line("z2ui5_ccc root",ccc));return out}function formatFrontendInfo(ctx){const out=[section("Frontend info sent to the backend")];out.push("  (client->get( )-s_focus / -s_s`.
+             `out.push(line("Resource base",resourceUrl("")));out.push(line("z2ui5 root",resourceUrl("z2ui5")));const cci=ctx.state.ccResourceRoot;const ccc=ctx.state.cccResourceRoot;if(cci)out.push(line("z2ui5_cci`.
     result = result &&
+             ` root",cci));if(ccc)out.push(line("z2ui5_ccc root",ccc));return out}function formatFrontendInfo(ctx){const out=[section("Frontend info sent to the backend")];out.push("  (client->get( )-s_focus / -s_s` &&
              `croll, live for the next");out.push("  roundtrip - see -s_ui5 / -s_device above)");out.push("");let focus;let scroll;try{focus=ScrollFocus.getFocusInfo(ctx);scroll=ScrollFocus.getScrollInfo(ctx)}catch` &&
              `(e){Lib.logError("DevTools Inspect: reading focus/scroll failed",e);out.push("  (focus / scroll info unavailable)");return out}out.push(line("Focused control",focus?.ID));if(focus?.SELECTION_START!==u` &&
              `ndefined){out.push(line("Caret",``${focus.SELECTION_START} - ${focus.SELECTION_END}``))}out.push("");let anyScroll=false;for(const slot of ViewSlots.slots){const entry=scroll?.[slot.key];if(!entry)con` &&
@@ -345,9 +346,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `row);if(!cells||typeof cells!=="object")continue;for(const[column,rawCell]of Object.entries(cells)){const cellPath=``${path}/${row}/${column}``;if(isRowDelta(rawCell)){rowDeltaStatements(out,pad,colum` &&
              `n,cellPath,rawCell.__delta,true);continue}const cell=masked(out,pad,cellPath,rawCell);const lit=typeof cell==="string"?literal(cell,pad.length+23):null;if(lit!==null&&!nested&&Number.isInteger(rowInde` &&
              `x)&&isPlainName(table)&&isPlainName(column)){out.push(``${pad}sim->set_cell( table  = \``${table}\````);out.push(``${pad}               row    = ${rowIndex+1}``);out.push(``${pad}               column` &&
-             ` = \``${column}\````);out.push(``${pad}               value  = ${lit} ).``);continue}jsonStatement(out,pad,cellPath,cell)}}}function jsonStatement(out,pad,path,value){const lit=jsonLiteral(value,pad.l` &&
-             `ength+23);const pathLit=literal(path,pad.length+23)||"``/``";out.push(``${pad}sim->set_json( path = ${pathLit}``);out.push(``${pad}               json = ${lit} ).``)}function journeySecrets(journey){r`.
+             ` = \``${column}\````);out.push(``${pad}               value  = ${lit} ).``);continue}jsonStatement(out,pad,cellPath,cell)}}}function jsonStatement(out,pad,path,value){const lit=jsonLiteral(value,pad.l`.
     result = result &&
+             `ength+23);const pathLit=literal(path,pad.length+23)||"``/``";out.push(``${pad}sim->set_json( path = ${pathLit}``);out.push(``${pad}               json = ${lit} ).``)}function journeySecrets(journey){r` &&
              `eturn secretValues(journey.steps.map(step=>step.delta?.value).filter(Boolean))}function maskedArgs(args,values){return args.map(arg=>{if(values.has(arg))return MASK;if(!/^[[{]/.test(arg))return arg;tr` &&
              `y{const parsed=JSON.parse(arg);const shown=maskSecrets(parsed,{values});return safeJson(shown)===safeJson(parsed)?arg:safeJson(shown)}catch{return arg}})}function clickStatement(step,indent,values=new` &&
              ` Set){const pad=" ".repeat(indent);const event=literal(step.event,indent)||"````";if(!step.args.length)return[``${pad}sim->click( ${event} ).``];const out=[``${pad}sim->click( event = ${event}``];cons` &&
@@ -418,9 +419,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              ` ${counts.info} info, ${counts.log} log,``+`` ${counts.debug} debug``+(dropped?`` (${dropped} older console entries dropped)``:""));lines.push("");if(!entries.length){lines.push("  (nothing logged yet` &&
              `)");return lines.join("\n")}for(const entry of entries){const label=LEVEL_LABEL[entry.level]||entry.level.toUpperCase();const head=``  ${entry.ts.slice(11,23)}${entry.previousLoad?"*":" "} ``+``${labe` &&
              `l}  ${entry.source.padEnd(SOURCE_WIDTH)}``;const[first,...rest]=String(entry.text).split("\n");lines.push(``${head}${first}``);for(const line of rest){lines.push(``${CONTINUATION_INDENT}${line.trim()}` &&
-             ```)}}if(entries.some(entry=>entry.previousLoad)){lines.push("");lines.push("  A '*' after the time marks an entry of the PREVIOUS page load,"+" carried across the reload.")}return lines.join("\n")}ret` &&
-             `urn{collectLog,countLevels,formatLog}});` && |\n|.
+             ```)}}if(entries.some(entry=>entry.previousLoad)){lines.push("");lines.push("  A '*' after the time marks an entry of the PREVIOUS page load,"+" carried across the reload.")}return lines.join("\n")}ret`.
     result = result &&
+             `urn{collectLog,countLevels,formatLog}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/devtools/Picker.js": function(){sap.ui.define(["sap/ui/core/Element","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/SlotXml"],(Element,Li` &&
@@ -486,10 +487,10 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `      "z2ui5/devtools/SlotXml.js": function(){sap.ui.define(["z2ui5/core/ViewSlots"],ViewSlots=>{"use strict";function viewContent(view){return view?.mProperties?.viewContent}function slotXml(ctx,slot` &&
              `Key){if(!slotKey)return"";return viewContent(ViewSlots.getView?.(ctx,slotKey))||ViewSlots.getViewXml?.(ctx,slotKey)||""}return{viewContent,slotXml}});` && |\n| &&
              `` && |\n| &&
-             `},` && |\n| &&
-             `      "z2ui5/devtools/Tabs.js": function(){sap.ui.define(["z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/Inspect","z2ui5/devtools/Journey","z2ui5/devtools/Picker","z2ui5/devtools/Recor` &&
-             `der","z2ui5/devtools/SlotXml"],(ViewSlots,Format,Inspect,Journey,Picker,Recorder,SlotXml)=>{"use strict";function getModelJson(view){const model=ViewSlots.trackedModel(view)??view?.getModel?.();return`.
+             `},` && |\n|.
     result = result &&
+             `      "z2ui5/devtools/Tabs.js": function(){sap.ui.define(["z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/Inspect","z2ui5/devtools/Journey","z2ui5/devtools/Picker","z2ui5/devtools/Recor` &&
+             `der","z2ui5/devtools/SlotXml"],(ViewSlots,Format,Inspect,Journey,Picker,Recorder,SlotXml)=>{"use strict";function getModelJson(view){const model=ViewSlots.trackedModel(view)??view?.getModel?.();return` &&
              ` model?.getData?.()}function hasModelData(ctx,slotKey){const data=getModelJson(ViewSlots.getView(ctx,slotKey));return Boolean(data)&&Object.keys(data).length>0}function getRenderedContent(view){return` &&
              ` view?._xContent?.outerHTML}const getSlotXml=SlotXml.slotXml;function slotFilled(ctx,slotKey){return Boolean(getSlotXml(ctx,slotKey))}const GROUPS=[{key:"OVERVIEW",label:"Overview"},{key:"PROBLEMS",la` &&
              `bel:"Problems"},{key:"ROUNDTRIPS",label:"Roundtrips"},{key:"VIEWDATA",label:"View & Data"},{key:"SYSTEM",label:"System"},{key:"SEARCH",label:"Search"}];const DEFAULT_GROUP="OVERVIEW";const SLOTS=[{key` &&

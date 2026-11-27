@@ -86,6 +86,56 @@ test.describe("afterRoundtrip (one value per roundtrip)", () => {
   });
 });
 
+test.describe("fireWhenIdle (a control's late event)", () => {
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+  // View1 runs the roundtrip-end hooks, THEN clears the busy flag
+  const land = (state) => {
+    for (const fn of [...state.onRoundtripEnd]) fn();
+    state.isBusy = false;
+  };
+
+  test("fires right away when no roundtrip is in flight", () => {
+    const { Lib } = loadLib({ state: { isBusy: false } });
+    let fired = 0;
+    Lib.fireWhenIdle({}, () => fired++);
+    expect(fired).toBe(1);
+  });
+
+  test("waits for the roundtrip in flight, and one started meanwhile", async () => {
+    const state = { isBusy: true };
+    const { Lib } = loadLib({ state });
+    let fired = 0;
+    Lib.fireWhenIdle({}, () => fired++);
+    expect(fired).toBe(0);
+    // the hooks run while the busy flag is still set - one macrotask later
+    // it is clear
+    for (const fn of [...state.onRoundtripEnd]) fn();
+    expect(fired).toBe(0);
+    // ... but another roundtrip started in between: wait for that one too
+    state.isBusy = true;
+    await tick();
+    expect(fired).toBe(0);
+    land(state);
+    await tick();
+    expect(fired).toBe(1);
+  });
+
+  test("a destroyed owner gets nothing, and the wait can be cancelled", async () => {
+    const state = { isBusy: true };
+    const { Lib } = loadLib({ state });
+    let fired = 0;
+    const owner = { bIsDestroyed: false };
+    Lib.fireWhenIdle(owner, () => fired++);
+    const cancel = Lib.fireWhenIdle({}, () => fired++);
+    owner.bIsDestroyed = true;
+    cancel();
+    land(state);
+    await tick();
+    expect(fired).toBe(0);
+    expect(state.onRoundtripEnd).toEqual([]);
+  });
+});
+
 test.describe("isDestroyed (async-continuation guard, 1.71 floor)", () => {
   const { Lib } = loadLib();
 

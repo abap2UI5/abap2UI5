@@ -28,7 +28,8 @@
 //   client->follow_up_action( val   = client->cs_event-control_by_id
 //                             t_arg = VALUE #( ( `excel` ) ( `write` ) ) ).
 // `selectionChange` (off by default) fires OnSelectionChange with the new
-// address whenever the user selects something else. `available` turns true
+// address whenever the user selects something else, and writes it to
+// `selectionAddress`. `available` turns true
 // once Excel answered, so a view can bind its Excel buttons' visible to it.
 //
 // What goes over the bridge is bounded: more than `maxCells` cells (header
@@ -392,6 +393,7 @@ sap.ui.define(
 
       exit() {
         clearTimeout(this._selectionTimer);
+        this._cancelSelectionFire?.();
         this._unsubscribe();
       },
 
@@ -643,14 +645,31 @@ sap.ui.define(
             const range = context.workbook.getSelectedRange();
             range.load("address");
             await context.sync();
-            const address = Lib.toText(range.address);
-            if (Lib.isDestroyed(this) || address === this._lastAddress) return;
-            this._lastAddress = address;
-            this.fireOnSelectionChange({ address });
+            this._reportSelection(Lib.toText(range.address));
           }).catch((e) =>
             Lib.logError("ExcelBridge: reading the selection failed", e),
           );
         }, SELECTION_DEBOUNCE_MS);
+      },
+
+      // The selection reaches the backend twice: as `selectionAddress`
+      // (the binding, written at once) and as OnSelectionChange. The event
+      // waits for a roundtrip in flight (Lib.fireWhenIdle) - fired into
+      // one, eB dropped it, and with _lastAddress already moved on the same
+      // address was never reported again: the app kept the old selection.
+      // A newer address replaces one still waiting, and _lastAddress
+      // moves only once the event went out.
+      _reportSelection(address) {
+        if (Lib.isDestroyed(this)) return;
+        this.setProperty("selectionAddress", address, true);
+        this._cancelSelectionFire?.();
+        this._cancelSelectionFire = null;
+        if (address === this._lastAddress) return;
+        this._cancelSelectionFire = Lib.fireWhenIdle(this, () => {
+          this._cancelSelectionFire = null;
+          this._lastAddress = address;
+          this.fireOnSelectionChange({ address });
+        });
       },
 
       renderer: {

@@ -36,6 +36,10 @@ sap.ui.define(
     // roundtrip for as long as the page stays open.
     const RENDER_EVENT_CHAIN_MAX = 25;
 
+    // the method names slotValue( ) calls: a getter's, by UI5's naming
+    // (getValue, isOpen, hasStyleClass) - see there
+    const GETTER_NAME = /^(get|is|has)[A-Z]/;
+
     const View1Controller = Controller.extend("z2ui5.controller.View1", {
       onAfterRendering() {
         // _processAfterRendering re-checks _processed itself - only the
@@ -401,9 +405,19 @@ sap.ui.define(
       // is what ends an app that answers such an event with a view that
       // fires it again - eB resets it for every other event, so only an
       // unbroken run of them counts.
+      //
+      // Not while the app is busy again: the finally of
+      // _processAfterRendering clears the busy state BEFORE it awaits a
+      // page transition and the follow-up actions, and a click, a
+      // Websocket push or a file delivery can start a roundtrip in that
+      // window. eB would meet the busy guard with the render event, and as
+      // nothing is being built any more (_firedWhileBuilding) it was
+      // dropped and the overlay raised. It stays queued for the end of the
+      // roundtrip in flight instead - which drops it there only when that
+      // response rebuilt its view (the token check below).
       _dispatchQueuedEvent() {
         const state = this.ctx.state;
-        while (state.aRenderEvents.length) {
+        while (!state.isBusy && state.aRenderEvents.length) {
           const queued = state.aRenderEvents.shift();
           if (!Lib.isControllerAlive(queued.controller)) continue;
           // the slot has to show the view THAT response built - asked of the
@@ -607,9 +621,14 @@ sap.ui.define(
       // Lib.getTextPath answers a control it cannot walk: the roundtrip still
       // happens and the backend sees an empty argument.
       //
-      // A no-argument getter on purpose. Passing arguments would make this a
+      // A no-argument GETTER on purpose. Passing arguments would make this a
       // second, untyped CONTROL_BY_ID with no whitelist in front of it; what
-      // an app needs here is to READ what the control currently holds.
+      // an app needs here is to READ what the control currently holds. And
+      // a getter by its name (GETTER_NAME): no arguments alone still let an
+      // argument expression call destroy, close, open, invalidate or a
+      // fireXxx - every zero-argument method of the control, outside the
+      // ControlCall whitelist (AGENTS.md rule 19). Anything else is logged
+      // and answered like a method the control does not have.
       slotValue(sSlot, sId, sMethod) {
         try {
           const control = sSlot
@@ -618,6 +637,12 @@ sap.ui.define(
           if (!control) {
             Lib.logError(
               `slotValue: no control '${sId}' in slot '${sSlot || "(any)"}'`,
+            );
+            return "";
+          }
+          if (!GETTER_NAME.test(sMethod)) {
+            Lib.logError(
+              `slotValue: '${sMethod}' is no getter (get..., is..., has...) - not called on control '${sId}'`,
             );
             return "";
           }
