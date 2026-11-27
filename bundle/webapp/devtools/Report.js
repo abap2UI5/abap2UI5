@@ -180,7 +180,7 @@ sap.ui.define(
     // it back for good - the real label and the pending timer are kept per
     // button, so the last press restores the label once.
     const confirmState = new WeakMap();
-    function confirmOnButton(oButton) {
+    function confirmOnButton(oButton, label = "Copied") {
       let state = confirmState.get(oButton);
       if (state) {
         clearTimeout(state.timer);
@@ -188,11 +188,35 @@ sap.ui.define(
         state = { original: oButton.getText(), timer: null };
         confirmState.set(oButton, state);
       }
-      oButton.setText("Copied");
+      oButton.setText(label);
       state.timer = setTimeout(() => {
         confirmState.delete(oButton);
         if (!Lib.isDestroyed(oButton)) oButton.setText(state.original);
       }, 1500);
+    }
+
+    // Copy `text` and say on the button what happened. "Copied" only when
+    // the clipboard said so (Lib.copyToClipboard resolves true): the three
+    // Copy buttons said it regardless, over a clipboard the browser had
+    // refused (no user activation left after an await) - the same lie
+    // copyMarkdown below stopped telling. Nothing to copy is a failure
+    // too: an empty clipboard confirmed as "Copied" reads as a copy that
+    // worked. Resolves with whether the text was copied; never rejects.
+    async function copyWithFeedback(oButton, text) {
+      let copied = false;
+      if (text) {
+        try {
+          copied = (await Lib.copyToClipboard(text)) === true;
+        } catch (e) {
+          Lib.logError("DevTools Report: copy failed", e);
+        }
+      }
+      if (Lib.isDestroyed(oButton)) return copied;
+      let label = "Copied";
+      if (!text) label = "Nothing to copy";
+      else if (!copied) label = "Copy failed";
+      confirmOnButton(oButton, label);
+      return copied;
     }
 
     // Show the whole export in a stretched popup: a read-through TextArea
@@ -229,10 +253,7 @@ sap.ui.define(
                 type: "Emphasized",
                 // Confirm on the button itself: this dialog is modal, so
                 // a MessageToast behind it would be invisible.
-                press: (oEvent) => {
-                  Lib.copyToClipboard(text);
-                  confirmOnButton(oEvent.getSource());
-                },
+                press: (oEvent) => copyWithFeedback(oEvent.getSource(), text),
               }),
               // Two files, because they answer different questions: the
               // report is what a human reads, the history JSON is what
@@ -316,6 +337,7 @@ sap.ui.define(
       buildMarkdown,
       confirmOnButton,
       copyMarkdown,
+      copyWithFeedback,
       issueUrl,
       redactForExport,
       downloadText,
