@@ -564,10 +564,10 @@
       "branches": {},
       "release": { "mode": "own", "tags": "vX.Y.Z", "by": ".github/workflows/release.yml" },
       "dependsOn": [
-        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "plugin/package.json", "field": "dependencies.@abap2ui5/node-runtime", "ref": "1.150.0", "note": "an EXACT pin: the plugin hosts one runtime; the published @cap2ui5/cds-plugin 0.7.0 pins 1.149.0. 1.151.0 (protocol 3, the app-driven windowed table, two more draft-store methods) needs the plugin to follow before the pin can move" },
+        { "repo": "abap2UI5/abap2UI5", "via": "npm", "file": "plugin/package.json", "field": "dependencies.@abap2ui5/node-runtime", "ref": "1.151.0", "note": "an EXACT pin: the plugin hosts one runtime, and a core release that changes the wire, z2ui5_if_client or z2ui5_if_ui5_draft_store needs the plugin to follow before the pin can move (1.151.0 did all three). The published @cap2ui5/cds-plugin 0.7.0 pins 1.149.0" },
         { "repo": "abap2UI5/abap2UI5", "via": "workflow", "file": ".github/workflows/ci.yml", "field": "ref", "ref": "main", "note": "builds and packs the runtime from main beside the pinned one - the job that meets a breaking change first" },
-        { "repo": "abap2UI5/mcp-server", "via": "script", "file": "plugin/lib/agent/vendor/source.json", "field": "commit", "ref": "a4d9f07659cd8a18d2e1f8ee4d2121695f40702b", "note": "lib/appclient.mjs, snapshot.mjs and viewxml.mjs vendored unchanged (scripts/vendor-agent.mjs)" },
-        { "repo": "abap2UI5/protocol", "via": "workflow", "file": ".github/workflows/ci.yml", "field": "ref", "ref": "d1251093e3cbdd9a44ac1a29770a2c1add0ec46b", "note": "the backend conformance suite, against the checkout" }
+        { "repo": "abap2UI5/mcp-server", "via": "script", "file": "plugin/lib/agent/vendor/source.json", "field": "commit", "ref": "7906a2faeb1369caf3ff31fd3e70c96f79f0ba20", "note": "lib/appclient.mjs, snapshot.mjs and viewxml.mjs vendored unchanged (scripts/vendor-agent.mjs)" },
+        { "repo": "abap2UI5/protocol", "via": "workflow", "file": ".github/workflows/ci.yml", "field": "ref", "ref": "789bbd254c3a80459fcf363e1fe614b099943af5", "note": "the backend conformance suite, against the checkout - the commit this repository's test.yaml pins" }
       ],
       "check": "npm run lint && npm test",
       "canary": null,
