@@ -934,4 +934,36 @@ test.describe("secrets", () => {
     const list = h.Recorder.getRecords(h.ctx);
     expect(list[list.length - 1].request.MODEL.MV_PASSWORD).toBe("hunter2");
   });
+
+  // A bare TOKEN in the secret test masked the token table of a
+  // MultiInput and its counter, and every string equal to a secret was
+  // masked anywhere - a password "EQ" hid every range option EQ.
+  test("the history download keeps token tables and values equal to a short secret", () => {
+    const h = loadRecorder();
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
+    const body = fakeRequest({
+      event: "LOGIN",
+      model: {
+        MT_TOKEN: [{ KEY: "EQ", TEXT: "1000" }],
+        TOKEN_COUNT: 3,
+        PLANT: "1000",
+        OPTION: "EQ",
+        MV_PASSWORD: "EQ",
+      },
+    });
+    body.S_FRONT.T_EVENT_ARG = ["EQ"];
+    h.state.oBody = body;
+    h.state.responseData = fakeResponse({ model: { PLANT: "1000" } });
+    h.fireAfterRendering();
+    const { records } = JSON.parse(h.Recorder.exportJson(h.ctx));
+    const record = records[records.length - 1];
+    const model = record.request.MODEL;
+    expect(model.MT_TOKEN).toEqual([{ KEY: "EQ", TEXT: "1000" }]);
+    expect(model.TOKEN_COUNT).toBe(3);
+    expect(model.PLANT).toBe("1000");
+    expect(model.OPTION).toBe("EQ");
+    expect(model.MV_PASSWORD).toBe("***");
+    expect(record.request.S_FRONT.T_EVENT_ARG).toEqual(["***"]);
+  });
 });

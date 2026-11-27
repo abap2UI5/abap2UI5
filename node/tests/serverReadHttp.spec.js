@@ -598,6 +598,36 @@ test.describe("the request size", () => {
   });
 });
 
+// A Back/Forward under the fatal overlay must not leave restore marks for
+// the Retry: Router.sync would take the retried response for a restore,
+// keep the URL on the entry Back went to and write nothing. The Retry
+// re-sends the failed request, so it gets the marks that request went
+// out with - none for a click, a retried restore keeps its own.
+test.describe("the Retry and the browser-navigation marks", () => {
+  test("marks set behind the overlay are cleared", async () => {
+    const env = load();
+    await answer(env, response({ ok: false, status: 503, text: "gateway" }));
+    env.ctx.state.terminated = true;
+    env.ctx.state.navFromHash = true;
+    env.ctx.state.navDirection = "back";
+    env.errors[0].options.onRetry();
+    expect(env.ctx.state.navFromHash).toBe(false);
+    expect(env.ctx.state.navDirection).toBe("");
+  });
+
+  test("a retried restore keeps the marks it went out with", async () => {
+    const env = load();
+    env.ctx.state.navFromHash = true;
+    env.ctx.state.navDirection = "forward";
+    await answer(env, response({ ok: false, status: 503, text: "gateway" }), {});
+    env.ctx.state.terminated = true;
+    env.ctx.state.navDirection = "back";
+    env.errors[0].options.onRetry();
+    expect(env.ctx.state.navFromHash).toBe(true);
+    expect(env.ctx.state.navDirection).toBe("forward");
+  });
+});
+
 // A component that does not own the page (state.ownsPage false, embedded -
 // Component.init) shows the busy state on its own area: the global
 // BusyIndicator would block the host's whole page. The overlay goes on the

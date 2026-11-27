@@ -580,6 +580,60 @@ test.describe("the budget outlives a rebuilt view", () => {
     expect(sockets[1].url).toBe("wss://host.example/apc");
   });
 
+  // An app's Reconnect button rebuilds the view with checkActive false and
+  // then true: the active render is a FRESH control, which never saw the
+  // switch on its own instance. The give-up used to stay for good - the
+  // record outlives every rebuild, and only the instance's _wasInactive
+  // could reset it.
+  test("a rebuild with checkActive off, then on, clears the give-up", () => {
+    const { makeInstance, sockets, advanceClock, state } = load();
+    const first = makeInstance({ path: "/apc" });
+    for (let i = 0; i < 5; i++) {
+      advanceClock(60000);
+      first.onAfterRendering();
+      sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
+    }
+    first.exit();
+
+    const off = makeInstance({ path: "/apc", checkActive: false });
+    off.onAfterRendering();
+    off.exit();
+    expect(state.websocketStates["wss://host.example/apc"].failedAttempts).toBe(0);
+
+    advanceClock(60000);
+    makeInstance({ path: "/apc", checkActive: true }).onAfterRendering();
+    expect(sockets).toHaveLength(6);
+  });
+
+  test("an inactive render clears the backoff too - the next control connects at once", () => {
+    const { makeInstance, sockets, timers } = load();
+    const first = makeInstance({ path: "/apc" });
+    first.onAfterRendering();
+    sockets[0].onclose({ code: 1006, reason: "" });
+    first.exit();
+
+    makeInstance({ path: "/apc", checkActive: false }).onAfterRendering();
+    makeInstance({ path: "/apc" }).onAfterRendering();
+    expect(sockets).toHaveLength(2);
+    expect(timers).toHaveLength(0);
+  });
+
+  test("an inactive control of another URL leaves the give-up alone", () => {
+    const { makeInstance, sockets, advanceClock } = load();
+    const first = makeInstance({ path: "/apc" });
+    for (let i = 0; i < 5; i++) {
+      advanceClock(60000);
+      first.onAfterRendering();
+      sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
+    }
+    first.exit();
+
+    makeInstance({ path: "/apc/other", checkActive: false }).onAfterRendering();
+    advanceClock(60000);
+    makeInstance({ path: "/apc" }).onAfterRendering();
+    expect(sockets).toHaveLength(5);
+  });
+
   test("in no component the control keeps its own budget", () => {
     const { makeInstance, sockets, advanceClock } = load({ context: false });
     const inst = makeInstance({ path: "/apc" });

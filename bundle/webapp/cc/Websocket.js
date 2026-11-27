@@ -26,7 +26,8 @@ sap.ui.define(
     // Reconnect policy for a connection the app did not close: exponential
     // backoff starting here, capped there, and after MAX_CONNECT_ATTEMPTS
     // consecutive failed attempts the control stops trying until the app
-    // changes path/checkActive (each failure already fired `error`, so the
+    // changes the path or switches checkActive off and on again - in the
+    // same control or across a rebuilt view (each failure already fired `error`, so the
     // backend heard about every one). Without this, an app that answers the
     // error event with a view-rebuilding roundtrip re-entered _connect on
     // every render - an unbounded reconnect storm against an inactive ICF
@@ -138,10 +139,22 @@ sap.ui.define(
         // is about hammering the same dead endpoint
         if (rebound && url) this._resetBudget();
         const active = this.getProperty("checkActive");
-        // checkActive switched back on is the app asking for a new attempt
-        // (the ICF node was activated meanwhile) - the give-up is about
-        // hammering the same dead endpoint unasked, and this is the second
-        // trigger the contract above promises next to a path change
+        // checkActive switched off is the app taking the channel down on
+        // purpose, and switching it on again is the app asking for a new
+        // attempt (the ICF node was activated meanwhile) - the give-up is
+        // about hammering the same dead endpoint UNASKED, and an explicit
+        // deactivate/reactivate always hands back whole attempts. The reset
+        // happens at the inactive render, on the URL's record in the
+        // component, and not only when this instance sees the switch: an
+        // app's "Reconnect" rebuilds the view with checkActive false and
+        // then true, so the active render is a FRESH control whose
+        // _wasInactive is undefined - checking the instance alone left the
+        // give-up in place for good, the record outliving every rebuild.
+        // An inactive control never connects, so resetting on every one of
+        // its renders opens no storm; the storm the budget stops is a
+        // control that stays ACTIVE across rebuilds, which still inherits
+        // the give-up (see MAX_CONNECT_ATTEMPTS).
+        if (!active && url) this._resetBudget();
         if (active && this._wasInactive) {
           if (url) this._resetBudget();
           this._doneAfterFirst = false;
@@ -331,7 +344,7 @@ sap.ui.define(
               MAX_CONNECT_ATTEMPTS +
               " failed connection attempts to " +
               url +
-              " - giving up until path or checkActive changes",
+              " - giving up until the app changes the path or switches checkActive off and on again",
           );
         }
       },
