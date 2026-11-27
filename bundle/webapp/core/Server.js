@@ -23,6 +23,17 @@ sap.ui.define(
       "The backend may still have processed the action. Restart the app and " +
       "check its result before you do it again.";
 
+    // What a 410 says: the backend no longer has the draft the request
+    // continued from - expired (the exit's draft_exp_time_in_hours, 4 by
+    // default), cleaned up, or written by another logon. The routine end of
+    // every session left idle, not a defect, so no dump and no Retry
+    // (re-sending the same draft id gets the same answer): the way on is a
+    // fresh start. z2ui5_cl_ui5_http_handler=>_error_response answers it
+    const SESSION_EXPIRED =
+      "Session expired - restart the app. The state of the previous step is " +
+      "no longer on the server: it expired, was cleaned up, or belongs to " +
+      "another logon. What was entered in the last step is lost.";
+
     // The busy overlay of a roundtrip - the global BusyIndicator or the
     // component's own area (Lib.showBusy, shared with View1.controller.js,
     // the other half of the busy protocol). Resolved per call, not
@@ -582,6 +593,10 @@ sap.ui.define(
             // again.
             const status = response.status;
             const fallback = `HTTP ${status}`;
+            if (status === 410) {
+              this.responseError(ctx, SESSION_EXPIRED);
+              return;
+            }
             this.responseError(
               ctx,
               status === 504
