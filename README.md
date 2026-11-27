@@ -23,7 +23,7 @@
 
 <!-- facts:start -->
 <p align="center">
-  <sub>1,103 ABAP unit tests · 88 JS unit specs · 21 browser test suites · 55 CI gates · 27 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
+  <sub>1,103 ABAP unit tests · 88 JS unit specs · 21 browser test suites · 56 CI gates · 27 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
 </p>
 <!-- facts:end -->
 

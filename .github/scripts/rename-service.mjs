@@ -43,8 +43,9 @@ if (!customer && !namespace) {
 // a namespace the place of z2ui5_
 const prefix = customer ? `${name}_` : name;
 
-// abaplint writes the renamed tree below its output folder under the
-// ABSOLUTE path of the checkout - the one folder named src in there
+// the renamed tree below abaplint's output folder: <output>/src from the
+// root-level run config rename-run.mjs writes, <output>/<absolute path of
+// the checkout>/src from an older run - the first folder named src in there
 function renamedSrc(dir) {
   if (!existsSync(dir)) return null;
   for (const entry of readdirSync(dir)) {

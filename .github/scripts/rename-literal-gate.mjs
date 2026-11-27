@@ -154,8 +154,9 @@ function scan(base, label) {
   return { findings, checked };
 }
 
-// the folder of a rename output that holds 00/01/02 - abaplint writes it
-// below the workspace's absolute path, so it is searched, not assumed
+// the folder of a rename output that holds 00/01/02 - <output>/src from
+// rename-run.mjs, below the workspace's absolute path from an older run or
+// another tool's config, so it is searched, not assumed
 function findRenamedSrc(dir) {
   if (existsSync(join(dir, "02")) && existsSync(join(dir, "01"))) return dir;
   for (const entry of readdirSync(dir)) {
