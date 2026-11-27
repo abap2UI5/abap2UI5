@@ -23,7 +23,7 @@
  *        (a branch or tag by `git ls-remote`, a commit by the GitHub API -
  *        GITHUB_TOKEN / GH_TOKEN raise the rate limit, nothing needs one).
  *
- * --live is NOT part of `npm run gates`: it reads thirty repositories over the
+ * --live is NOT part of `npm run gates`: it reads forty repositories over the
  * network, and a pin that moved over there is news about that repository, not
  * a reason to fail a pull request here. A live finding means the map is stale
  * - correct the entry. An unreachable host is a note, never a finding (the

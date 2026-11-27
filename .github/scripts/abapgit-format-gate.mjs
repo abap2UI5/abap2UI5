@@ -40,6 +40,19 @@
 //                carried a raw apostrophe in <DESCRIPT>. abapGit renders XML
 //                through the ABAP iXML writer, which escapes it as &apos;, so
 //                every one of them came back changed on the next pull.
+//   operands     #3074 - z2ui5_cl_ui5f_bundle, _cc and _devtools came out
+//                of tools/app2abap/trans2abap.js with `result = a && b && ...`
+//                statements of up to 441 operands, and on a 7.02 system they
+//                did not compile; the same limit had already hit the guide
+//                class (#2947, "error initializing CLAS scanner", an empty
+//                class shell). abaplint parses the statement, the transpiler
+//                runs it and abaplint's v702 profile has no rule for it, so
+//                every gate was green on all three classes. Measured: 82
+//                operands import on 7.02 (z2ui5_cl_ui5_llm_guide), 311 and
+//                more do not. The rule counts the `&&` operands of one
+//                statement and stops at MAX_CONCAT_OPERANDS, a little over
+//                the measured 82; a generator closes the chain at 80 with
+//                `result = result && ...`.
 //
 // The rest (CRLF, tabs, filename case, sidecar pairing, CLSNAME, LANGU,
 // WITH_UNIT_TESTS) is the same class of defect and costs nothing to check, so
@@ -82,6 +95,43 @@ const masterLanguage =
   readFileSync(join(ROOT, ".abapgit.xml"), "utf8").match(/<MASTER_LANGUAGE>([^<]*)<\/MASTER_LANGUAGE>/)?.[1] ?? "E";
 
 // ------------------------------------------------------- byte-level format
+
+// The operands of the `&&` chain in each statement of an ABAP source, for the
+// statements that have one: [{ line, operands }], line being where the
+// statement starts. A statement ends at a full stop outside a literal and a
+// comment; the literals are '...', `...` (a doubled quote stays inside) and
+// |...| with its { expression } read as code again.
+function concatStatements(source) {
+  const out = [];
+  let operands = 1;
+  let start = null;
+  let quote = null;
+  let depth = 0;
+  source.split("\n").forEach((text, index) => {
+    if (text.startsWith("*")) return;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (start === null && c !== " " && c !== '"') start = index + 1;
+      if (quote) {
+        if (quote === "|" && c === "\\") i++;
+        else if (quote === "|" && c === "{") { depth++; quote = null; }
+        else if (c === quote && quote !== "|" && text[i + 1] === quote) i++;
+        else if (c === quote) quote = null;
+      } else if (depth > 0 && c === "}") { depth--; quote = "|"; }
+      else if (c === "'" || c === "`" || c === "|") quote = c;
+      else if (c === '"') break;
+      else if (c === "&" && text[i + 1] === "&") { operands++; i++; }
+      else if (c === ".") {
+        if (operands > 1) out.push({ line: start, operands });
+        operands = 1;
+        start = null;
+      }
+    }
+  });
+  return out;
+}
+
+const MAX_CONCAT_OPERANDS = 90;
 
 const BOM = Buffer.from([0xef, 0xbb, 0xbf]);
 
@@ -130,6 +180,19 @@ for (const file of files) {
           `${file}:${line}`,
           "linelen",
           `${text.length} characters - ABAP source lines stop at 255; split the literal into && chunks`,
+        );
+      }
+    }
+  }
+
+  if (file.endsWith(".abap")) {
+    for (const { line, operands } of concatStatements(body.toString("utf8"))) {
+      if (operands > MAX_CONCAT_OPERANDS) {
+        add(
+          `${file}:${line}`,
+          "operands",
+          `one statement joins ${operands} operands with && - 7.02 refuses the class over a statement this size; ` +
+            `close it every 80 operands and continue with result = result && ...`,
         );
       }
     }

@@ -23,6 +23,7 @@ unreleased
 * FileUploader: direct upload reads the file on change - it first posted the whole file to the page's own URL
 * SmartMultiInputExt: range data is applied when the inner controls existed before the companion attached - it waited forever
 ! rename.mjs and update-deps.mjs have one source, .github/shared/, checked by check:shared in every repository that carries a copy; the rename survives @abaplint/cli 2.120.122, which moved the output of a run config below .github
+* 702: z2ui5_cl_ui5f_bundle, z2ui5_cl_ui5f_cc and z2ui5_cl_ui5f_devtools compile on 7.02 again - the generator joined up to 441 literals with && in one statement, more than the 7.02 class scanner takes; it closes the statement every 80 operands now, and check:abapgit fails a statement in src/ over 90 (#3074)
 * tools/bsp_rename: a namespace that holds the old name (/Z2UI5/) keeps it in the urls of its ICF nodes and gets its namespace nodes - the node came out as /sap/bc/ui5/ui5 and without them
 * Range tokens: a CP / NP range row whose LOW already is a pattern (abc*, *abc) renders as that pattern - the token template wrapped it in asterisks once more (*abc**). From abap-util, where a pattern token is now stored as typed
 ! ABAP Cloud: the branch cloud carries the whole repository, as 702 does, and is rebuilt on every push to main - always one commit ahead of main, never behind. An installation pulls src/ as before

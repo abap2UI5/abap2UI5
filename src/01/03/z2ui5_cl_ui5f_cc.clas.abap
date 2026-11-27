@@ -114,7 +114,8 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `eof value==="boolean")return{value,format:"General"};if(value==null||typeof value==="object"){return{value:"",format:"@"}}const text=String(value);const date=isoToSerial(text);if(date&&text.length<=25` &&
              `){const own=date.hasTime?"yyyy-mm-dd hh:mm:ss":"yyyy-mm-dd";return{value:date.serial,format:format||own}}return{value:text,format:"@"}}function buildMatrix({rows,columns,numberFormats,header}){const l` &&
              `ist=Array.isArray(rows)?rows:[];const cols=normalizeColumns(columns,list[0]);if(!cols.length)return{values:[],formats:[],columns:0};const keys=cols.map(c=>resolveKey(list[0],c.key));const formats=cols` &&
-             `.map((c,i)=>{if(c.format)return c.format;if(Array.isArray(numberFormats)){return Lib.toText(numberFormats[i])}return Lib.toText(member(numberFormats,[String(c.key)]))});const values=[];const cellForma` &&
+             `.map((c,i)=>{if(c.format)return c.format;if(Array.isArray(numberFormats)){return Lib.toText(numberFormats[i])}return Lib.toText(member(numberFormats,[String(c.key)]))});const values=[];const cellForma`.
+    result = result &&
              `ts=[];if(header){values.push(cols.map(c=>c.header));cellFormats.push(cols.map(()=>"@"))}for(const row of list){const valueRow=[];const formatRow=[];keys.forEach((key,i)=>{const own=row!=null&&hasOwn(r` &&
              `ow,key);const cell=toCell(own?row[key]:undefined,formats[i]);valueRow.push(cell.value);formatRow.push(cell.format)});values.push(valueRow);cellFormats.push(formatRow)}return{values,formats:cellFormats` &&
              `,columns:cols.length}}function unquotedFormat(format){return String(format??"").replace(/"[^"]*"/g,"").replace(/\\./g,"")}function bareFormat(format){return unquotedFormat(format).replace(/\[[^\]]*\]/` &&
@@ -187,7 +188,8 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `,"accuracy","altitudeAccuracy","speed","heading"];const _DEFAULT_TIMEOUT_MS=5e3;function timeoutOf(value){const ms=Number(value);return Number.isFinite(ms)&&ms>0?ms:_DEFAULT_TIMEOUT_MS}const Geolocati` &&
              `on=Control.extend("z2ui5.cc.Geolocation",{metadata:{properties:{longitude:{type:"string",defaultValue:""},latitude:{type:"string",defaultValue:""},altitude:{type:"string",defaultValue:""},accuracy:{ty` &&
              `pe:"string",defaultValue:""},altitudeAccuracy:{type:"string",defaultValue:""},speed:{type:"string",defaultValue:""},heading:{type:"string",defaultValue:""},enableHighAccuracy:{type:"boolean",defaultVa` &&
-             `lue:false},timeout:{type:"string",defaultValue:String(_DEFAULT_TIMEOUT_MS)}},events:{finished:{allowPreventDefault:true,parameters:{}},error:{parameters:{code:{type:"string"},message:{type:"string"}}}` &&
+             `lue:false},timeout:{type:"string",defaultValue:String(_DEFAULT_TIMEOUT_MS)}},events:{finished:{allowPreventDefault:true,parameters:{}},error:{parameters:{code:{type:"string"},message:{type:"string"}}}`.
+    result = result &&
              `}},callbackPosition({coords}){if(Lib.isDestroyed(this))return;for(const prop of _GEO_PROPS){const v=coords[prop];const text=typeof v==="number"&&!Number.isFinite(v)?"":Lib.toText(v);this.setProperty(p` &&
              `rop,text,true)}this.fireFinished()},callbackError(error){if(Lib.isDestroyed(this))return;Lib.logError(``Geolocation error (${error.code}) on ${this.getId()}: ${error.message}``);this.fireError({code:Str` &&
              `ing(error.code),message:error.message})},init(){this._pendingGeolocate=true},exit(){this._pendingGeolocate=false},onAfterRendering(){if(!this._pendingGeolocate)return;this._pendingGeolocate=false;try{` &&
@@ -253,7 +255,8 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `onTokenUpdate=this.onTokenUpdate.bind(this);input.attachTokenUpdate(this._onTokenUpdate);this._validator=args=>{const picked=args?.suggestionObject;if(picked&&typeof picked.getCells==="function"){retu` &&
              `rn this.tokenFromRow(picked)}if(picked){if(args.suggestedToken)return args.suggestedToken;return plainToken(typeof picked.getKey==="function"?picked.getKey():args.text,typeof picked.getText==="functio` &&
              `n"?picked.getText():args.text)}const text=freeText(args.text,input);return plainToken(text,text)};input.addValidator(this._validator)}catch(e){Lib.logError(``MultiInputExt.setControl: setup failed for ` &&
-             `MultiInputId '${this.getProperty("MultiInputId")}'``,e)}}});return Env.ownClass(MultiInputExt)});` && |\n| &&
+             `MultiInputId '${this.getProperty("MultiInputId")}'``,e)}}});return Env.ownClass(MultiInputExt)});` && |\n|.
+    result = result &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/NativeBridgeScan.js": function(){sap.ui.define(["sap/ui/core/Control","sap/m/Button","z2ui5/core/Lib","z2ui5/core/Env"],(Control,Button,Lib,Env)=>{"use strict";const READY_EVENT="abap2` &&
@@ -318,7 +321,8 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `      "z2ui5/cc/UITableExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Control,Lib,Env,ViewSlots,Context)=>{"us` &&
              `e strict";const opSymbols={EQ:"=",NE:"!=",LT:"<",LE:"<=",GT:">",GE:">="};const filterDisplayFns={Contains:v=>``*${v??""}*``,StartsWith:v=>``${v??""}*``,EndsWith:v=>``*${v??""}``};const UITableExt=Control.ex` &&
              `tend("z2ui5.cc.UITableExt",{metadata:{properties:{tableId:{type:"string"}}},init(){this._unhooks=[Lib.hookCallback(this,"onBeforeRoundtrip","readBackend"),Lib.hookCallback(this,"onAfterRendering","app` &&
-             `lyBackend")]},exit(){for(const unhook of this._unhooks)unhook()},readBackend(){const table=this._getTable();this.readFilter(table);this.readSort(table);const kept=this._tableStates();const id=this.get` &&
+             `lyBackend")]},exit(){for(const unhook of this._unhooks)unhook()},readBackend(){const table=this._getTable();this.readFilter(table);this.readSort(table);const kept=this._tableStates();const id=this.get`.
+    result = result &&
              `Property("tableId");if(kept&&id){kept[id]={filters:this.aFilters,sorters:this.aSorters}}},_tableStates(){return Context.of(this)?.state.tableStates??null},applyBackend(){try{const oTable=this._getTabl` &&
              `e();if(!oTable)return;if(this._applyPending&&this._pendingTable===oTable)return;this._applyPending=true;this._pendingTable=oTable;Lib.whenRendered(oTable,this,()=>{if(this._pendingTable!==oTable)retur` &&
              `n;this._applyPending=false;this._pendingTable=null;const kept=this._tableStates()?.[this.getProperty("tableId")]??{};this._applyGuarded(oTable,this.aFilters??kept.filters,"_applyFilters");this._applyG` &&
@@ -384,7 +388,8 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `},` && |\n| &&
              `});` && |\n| &&
              `sap.ui.define("z2ui5/cc/bundle", function () {` && |\n| &&
-             `  "use strict";` && |\n| &&
+             `  "use strict";` && |\n|.
+    result = result &&
              `  return {};` && |\n| &&
              `});` && |\n|.
 

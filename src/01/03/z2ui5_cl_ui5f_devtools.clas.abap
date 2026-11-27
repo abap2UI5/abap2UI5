@@ -116,7 +116,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `                   visible="{/isJourney}"                />                \x3c!-- Problems: the actions of the fatal-error overlay,                     shown with the error rather than everywhere. --` &&
              `>                \x3cButton                    text="Retry"                    tooltip="Re-run the request that failed"                    press=".onErrorRetry"                    visible="{/hasRetry}` &&
              `"                />                \x3cButton                    text="Restart"                    tooltip="Restart the app"                    press=".onErrorRestart"                    visible="{/is` &&
-             `ErrorView}"                />                \x3cButton                    text="Logout"                    press=".onErrorLogout"                    visible="{/isErrorView}"                />        ` &&
+             `ErrorView}"                />                \x3cButton                    text="Logout"                    press=".onErrorLogout"                    visible="{/isErrorView}"                />        `.
+    result = result &&
              `        \x3c!-- View & Data: closes the dialog, lets the user click any                     control in the app and reopens with its bindings and                     current values (devtools/Picker.js)` &&
              `. -->                \x3cButton                    text="Pick Control"                    type="Emphasized"                    tooltip="Closes these tools, then click any control in the app. Escape ca` &&
              `ncels."                    press=".onPickControl"                    visible="{/isViewData}"                />                \x3cToggleButton                    text="After Templating"               ` &&
@@ -194,7 +195,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `lyXml(oEvent){const oModel=oEvent.getSource().getModel();const data=oModel.getData();if(LiveEdit.isBusy(this.ctx)){this.showStatus(oModel,"A roundtrip is running - try again.");return}const tabKey=dat` &&
              `a.selectedTab;const before=this.backendXml(tabKey);const result=await LiveEdit.apply(this.ctx,tabKey,data.value);if(Lib.isDestroyed(this))return;if(!this._appliedXml)this._appliedXml={};this._appliedX` &&
              `ml[tabKey]={original:before,applied:Tabs.render(this.ctx,tabKey)};this.showStatus(oModel,result)},backendXml(tabKey){const current=Tabs.render(this.ctx,tabKey);const record=this._appliedXml?.[tabKey];` &&
-             `if(!record)return current;if(record.applied!==current){delete this._appliedXml[tabKey];return current}return record.original},onResetXml(oEvent){const oModel=oEvent.getSource().getModel();const data=o` &&
+             `if(!record)return current;if(record.applied!==current){delete this._appliedXml[tabKey];return current}return record.original},onResetXml(oEvent){const oModel=oEvent.getSource().getModel();const data=o`.
+    result = result &&
              `Model.getData();const xml=this.backendXml(data.selectedTab);data.value=xml;data.previousValue=xml;oModel.refresh();this.showStatus(oModel,"")},onShowHelp(){openTextDialog({title:"abap2UI5 - Developer ` &&
              `Tools Help",text:Inspect.formatHelp(),editable:false})},onClose(){this.close()},onEscape(oPromise){oPromise.reject();this.close()},async show(initialTab){if(this._showPending)return;this._showPending=` &&
              `true;try{if(!this.oDialog){await preloadCodeEditor();this.oDialog=await Fragment.load({name:"z2ui5.devtools.DeveloperTools",controller:this,id:this.fragmentId()});this.oDialog.setEscapeHandler?.(oProm` &&
@@ -267,7 +269,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `const el=bootstrapElement();if(!el){out.push('  (no <script id="sap-ui-bootstrap"> on this page -');out.push("  UI5 was started some other way, e.g. by a launchpad)")}else{out.push(line("SDK source",e` &&
              `l.src||bootstrapAttr(el,"src")));for(const[label,attr]of BOOTSTRAP_ATTRS){const value=bootstrapAttr(el,attr);if(value)out.push(line(label,truncate(value,MAX_ARG_CHARS)))}}out.push("");out.push(line("R` &&
              `esource base",resourceUrl("")));out.push(line("z2ui5 root",resourceUrl("z2ui5")));const cci=ctx.state.ccResourceRoot;const ccc=ctx.state.cccResourceRoot;if(cci)out.push(line("z2ui5_cci root",cci));if(` &&
-             `ccc)out.push(line("z2ui5_ccc root",ccc));return out}function formatFrontendInfo(ctx){const out=[section("Frontend info sent to the backend")];out.push("  (client->get( )-s_focus / -s_scroll, live for ` &&
+             `ccc)out.push(line("z2ui5_ccc root",ccc));return out}function formatFrontendInfo(ctx){const out=[section("Frontend info sent to the backend")];out.push("  (client->get( )-s_focus / -s_scroll, live for `.
+    result = result &&
              `the next");out.push("  roundtrip - see -s_ui5 / -s_device above)");out.push("");let focus;let scroll;try{focus=ScrollFocus.getFocusInfo(ctx);scroll=ScrollFocus.getScrollInfo(ctx)}catch(e){Lib.logError` &&
              `("DevTools Inspect: reading focus/scroll failed",e);out.push("  (focus / scroll info unavailable)");return out}out.push(line("Focused control",focus?.ID));if(focus?.SELECTION_START!==undefined){out.pu` &&
              `sh(line("Caret",``${focus.SELECTION_START} - ${focus.SELECTION_END}``))}out.push("");let anyScroll=false;for(const slot of ViewSlots.slots){const entry=scroll?.[slot.key];if(!entry)continue;anyScroll=tr` &&
@@ -343,7 +346,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              ` = \``${table}\````);out.push(``${pad}               row    = ${rowIndex+1}``);out.push(``${pad}               column = \``${column}\````);out.push(``${pad}               value  = ${lit} ).``);continue}jsonState` &&
              `ment(out,pad,cellPath,cell)}}}function jsonStatement(out,pad,path,value){const lit=jsonLiteral(value,pad.length+23);const pathLit=literal(path,pad.length+23)||"``/``";out.push(``${pad}sim->set_json( path` &&
              ` = ${pathLit}``);out.push(``${pad}               json = ${lit} ).``)}function journeySecrets(journey){return secretValues(journey.steps.map(step=>step.delta?.value).filter(Boolean))}function maskedArgs(a` &&
-             `rgs,values){return args.map(arg=>{if(values.has(arg))return MASK;if(!/^[[{]/.test(arg))return arg;try{const parsed=JSON.parse(arg);const shown=maskSecrets(parsed,{values});return safeJson(shown)===saf` &&
+             `rgs,values){return args.map(arg=>{if(values.has(arg))return MASK;if(!/^[[{]/.test(arg))return arg;try{const parsed=JSON.parse(arg);const shown=maskSecrets(parsed,{values});return safeJson(shown)===saf`.
+    result = result &&
              `eJson(parsed)?arg:safeJson(shown)}catch{return arg}})}function clickStatement(step,indent,values=new Set){const pad=" ".repeat(indent);const event=literal(step.event,indent)||"````";if(!step.args.length` &&
              `)return[``${pad}sim->click( ${event} ).``];const out=[``${pad}sim->click( event = ${event}``];const argPad=``${pad}            t_arg = VALUE #( ``;const args=maskedArgs(step.args,values);if(args.some((arg,i` &&
              `)=>arg!==step.args[i])){out.unshift(``${pad}" an argument typed into a secret is not exported - put a test value here``)}args.forEach((arg,i)=>{const lit=literal(arg,argPad.length+2)||jsonLiteral(arg,ar` &&
@@ -414,7 +418,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `rce.padEnd(SOURCE_WIDTH)}``;const[first,...rest]=String(entry.text).split("\n");lines.push(``${head}${first}``);for(const line of rest){lines.push(``${CONTINUATION_INDENT}${line.trim()}``)}}if(entries.some` &&
              `(entry=>entry.previousLoad)){lines.push("");lines.push("  A '*' after the time marks an entry of the PREVIOUS page load,"+" carried across the reload.")}return lines.join("\n")}return{collectLog,count` &&
              `Levels,formatLog}});` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `},` && |\n| &&
              `      "z2ui5/devtools/Picker.js": function(){sap.ui.define(["sap/ui/core/Element","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/devtools/Format","z2ui5/devtools/SlotXml"],(Element,Li` &&
              `b,Env,ViewSlots,Format,SlotXml)=>{"use strict";const{FRAMEWORK_CALL,describeValue}=Format;const MAX_VALUE_CHARS=80;const OVERLAY_ID="z2ui5DevToolsPickerOverlay";let active=false;let activeCtx=null;let` &&
@@ -443,8 +448,7 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `ctx,callback){if(active)return;active=true;activeCtx=ctx;onDone=callback;boundMove=event=>{if(event.target===lastNode)return;lastNode=event.target;if(frameId)return;frameId=requestAnimationFrame(()=>{` &&
              `frameId=0;if(active)highlight(controlFromDom(lastNode))})};boundClick=event=>{event.preventDefault();event.stopPropagation();const control=controlFromDom(event.target);let report;try{report=describe(c` &&
              `tx,control)}catch(e){Lib.logError("DevTools Picker: describe failed",e);report="(could not inspect that control)"}if(ctx?.devtools)ctx.devtools.pickReport=report;const done=onDone;stop();if(done)done(` &&
-             `report)};boundKey=event=>{if(event.key!=="Escape")return;event.preventDefault();event.stopPropagation();const done=onDone;stop();if(done)done(null)};document.addEventListener("mousemove",boundMove,tru`.
-    result = result &&
+             `report)};boundKey=event=>{if(event.key!=="Escape")return;event.preventDefault();event.stopPropagation();const done=onDone;stop();if(done)done(null)};document.addEventListener("mousemove",boundMove,tru` &&
              `e);document.addEventListener("click",boundClick,true);document.addEventListener("keydown",boundKey,true)}return{start,stop,describe,isActive:()=>active,lastReport:ctx=>ctx?.devtools?.pickReport||"",_i` &&
              `nternals:{collectBindings,collectEvents,renderValue}}});` && |\n| &&
              `` && |\n| &&
@@ -484,7 +488,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `der","z2ui5/devtools/SlotXml"],(ViewSlots,Format,Inspect,Journey,Picker,Recorder,SlotXml)=>{"use strict";function getModelJson(view){const model=ViewSlots.trackedModel(view)??view?.getModel?.();return` &&
              ` model?.getData?.()}function hasModelData(ctx,slotKey){const data=getModelJson(ViewSlots.getView(ctx,slotKey));return Boolean(data)&&Object.keys(data).length>0}function getRenderedContent(view){return` &&
              ` view?._xContent?.outerHTML}const getSlotXml=SlotXml.slotXml;function slotFilled(ctx,slotKey){return Boolean(getSlotXml(ctx,slotKey))}const GROUPS=[{key:"OVERVIEW",label:"Overview"},{key:"PROBLEMS",la` &&
-             `bel:"Problems"},{key:"ROUNDTRIPS",label:"Roundtrips"},{key:"VIEWDATA",label:"View & Data"},{key:"SYSTEM",label:"System"},{key:"SEARCH",label:"Search"}];const DEFAULT_GROUP="OVERVIEW";const SLOTS=[{key` &&
+             `bel:"Problems"},{key:"ROUNDTRIPS",label:"Roundtrips"},{key:"VIEWDATA",label:"View & Data"},{key:"SYSTEM",label:"System"},{key:"SEARCH",label:"Search"}];const DEFAULT_GROUP="OVERVIEW";const SLOTS=[{key`.
+    result = result &&
              `:"MAIN",label:"Main"},{key:"POPUP",label:"Popup"},{key:"POPOVER",label:"Popover"},{key:"NEST",label:"Nested 1"},{key:"NEST2",label:"Nested 2"}];const ASPECTS=["XML","MODEL","BINDINGS"];const TABS=[{ke` &&
              `y:"OVERVIEW",group:"OVERVIEW",label:"Overview",kind:"text",produce:ctx=>Inspect.formatOverview(ctx),searchable:false},{key:"ERROR",group:"PROBLEMS",label:"Error",kind:"text",produce:ctx=>Inspect.forma` &&
              `tError(ctx),enabled:ctx=>Boolean(ctx.state.lastError),exportOrder:20},{key:"LOG",group:"PROBLEMS",label:"Log",kind:"text",produce:ctx=>Inspect.formatLog(ctx),exportOrder:30},{key:"HISTORY",group:"ROUN` &&
