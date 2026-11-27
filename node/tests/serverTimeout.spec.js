@@ -7,8 +7,9 @@ const { specContext, withBusy } = require("./loadLibModule");
 // AbortController per request, armed by a setTimeout - the client-side
 // roundtrip timeout - and by whatever supersedes the request, with a flag
 // that tells the two apart. And what the timeout turns into: the fetch
-// rejects, readHttp reports the timeout with a Retry, and the Retry
-// re-sends the same request.
+// rejects and readHttp reports the timeout - without a Retry, the backend
+// very likely has the request. A network failure keeps its Retry, and the
+// Retry re-sends the same request.
 //
 // Until 2026-11 the same job had three code paths - AbortSignal.timeout,
 // AbortSignal.any and a manual fallback for browsers without them - and
@@ -91,7 +92,10 @@ const okResponse = () => ({
   json: async () => ({ S_FRONT: { ID: "X" } }),
 });
 
-const TIMEOUT_TEXT = "No backend response within 600 seconds - request aborted";
+const TIMEOUT_TEXT =
+  "No backend response within 600 seconds - request aborted. The backend may " +
+  "still have processed the action. Restart the app and check its result " +
+  "before you do it again.";
 
 test.describe("one request, one abort", () => {
   test("one controller and one timer per request, the controller's signal on the fetch", async () => {
@@ -190,14 +194,15 @@ test.describe("one request, one abort", () => {
 });
 
 // The abort path end to end: the timer fires, the request is aborted, fetch
-// rejects with the AbortError, and the user gets the timeout message with a
-// Retry that re-arms the busy state and sends the identical body - the
-// request may never have reached the server, so a restart would lose the
-// edit.
-test.describe("the timeout -> responseError -> Retry path", () => {
-  test("the timeout aborts the request and is reported, with a Retry", async () => {
-    const { Server, ctx, fetches, errors, busy, controllers, timers, elapse } =
-      loadForAbort();
+// rejects with the AbortError, and the user gets the timeout message -
+// without a Retry: after ten minutes the backend very likely has the request
+// and may have committed it, and a Retry re-sends the draft the event
+// started from, which would run the event a second time. A network failure
+// (the request may never have left) keeps its Retry, which re-arms the busy
+// state and sends the identical body.
+test.describe("the timeout and the Retry path", () => {
+  test("the timeout aborts the request and is reported, without a Retry", async () => {
+    const { Server, ctx, errors, controllers, elapse } = loadForAbort();
     const body = { S_FRONT: { EVENT: "SAVE" }, MODEL: { A: 1 } };
 
     const p = Server.readHttp(ctx, body, { token: 1 });
@@ -207,8 +212,20 @@ test.describe("the timeout -> responseError -> Retry path", () => {
     expect(controllers[0].signal.aborted).toBe(true);
     expect(errors).toHaveLength(1);
     expect(errors[0].msg).toBe(TIMEOUT_TEXT);
-    expect(typeof errors[0].options?.onRetry).toBe("function");
+    expect(errors[0].options).toBeUndefined();
     expect(ctx.server.inflight.size).toBe(0);
+  });
+
+  test("a network failure's Retry re-sends the same body as a request of its own", async () => {
+    const { Server, ctx, fetches, errors, busy, controllers, timers } =
+      loadForAbort();
+    const body = { S_FRONT: { EVENT: "SAVE" }, MODEL: { A: 1 } };
+
+    const p = Server.readHttp(ctx, body, { token: 1 });
+    fetches[0].reject(new TypeError("Failed to fetch"));
+    await p;
+    expect(errors).toHaveLength(1);
+    expect(typeof errors[0].options?.onRetry).toBe("function");
 
     // Retry: busy again (responseError cleared it, and an unguarded click
     // during the retry would abort it silently), the same body out again -
@@ -224,13 +241,10 @@ test.describe("the timeout -> responseError -> Retry path", () => {
     expect(controllers[1].signal.aborted).toBe(false);
     expect(timers[1].cleared).toBe(false);
 
-    elapse(1);
-    await fetches[1].promise.catch(() => {});
+    fetches[1].resolve(okResponse());
+    await fetches[1].promise;
     await new Promise((r) => setTimeout(r, 0));
-    // a second timeout offers a second Retry - the request is still the same
-    expect(errors).toHaveLength(2);
-    expect(errors[1].msg).toBe(TIMEOUT_TEXT);
-    expect(typeof errors[1].options?.onRetry).toBe("function");
+    expect(errors).toHaveLength(1);
   });
 
   test("the Retry takes up the repeating timer the overlay ended", async () => {
@@ -238,9 +252,9 @@ test.describe("the timeout -> responseError -> Retry path", () => {
     // it ended to the Retry object; the Retry re-sends the same draft id,
     // and the backend sends no running declarative timer again
     // (z2ui5_cl_ui5_handler=>main_end_timer) - so the Retry restores it
-    const { Server, ctx, errors, elapse } = loadForAbort();
+    const { Server, ctx, fetches, errors } = loadForAbort();
     const p = Server.readHttp(ctx, {}, null);
-    elapse(0);
+    fetches[0].reject(new TypeError("Failed to fetch"));
     await p;
     const repeat = { event: "POLL", delay: 10 };
     expect(errors[0].options.timerRepeat).toBeNull();
@@ -272,14 +286,13 @@ test.describe("the timeout -> responseError -> Retry path", () => {
   // The timeout guards the body reads too: when it fires after the headers
   // arrived, response.json( ) / .text( ) reject with the abort. Their
   // catches used to read that as a broken body - "Invalid JSON response" or
-  // "could not read error body", without a Retry and without the word
-  // timeout.
+  // "could not read error body", without the word timeout.
   const aborted = () =>
     Object.assign(new Error("signal is aborted without reason"), {
       name: "AbortError",
     });
 
-  test("a timeout while the JSON body is read reports the timeout, with a Retry", async () => {
+  test("a timeout while the JSON body is read reports the timeout, without a Retry", async () => {
     const { Server, ctx, fetches, errors, timers } = loadForAbort();
     const p = Server.readHttp(ctx, { S_FRONT: { EVENT: "SAVE" } }, null);
     fetches[0].resolve({
@@ -295,10 +308,10 @@ test.describe("the timeout -> responseError -> Retry path", () => {
 
     expect(errors).toHaveLength(1);
     expect(errors[0].msg).toBe(TIMEOUT_TEXT);
-    expect(typeof errors[0].options?.onRetry).toBe("function");
+    expect(errors[0].options).toBeUndefined();
   });
 
-  test("a timeout while an error body is read reports the timeout, with a Retry", async () => {
+  test("a timeout while an error body is read reports the timeout, without a Retry", async () => {
     const { Server, ctx, fetches, errors, timers } = loadForAbort();
     const p = Server.readHttp(ctx, {}, null);
     fetches[0].resolve({
@@ -314,7 +327,7 @@ test.describe("the timeout -> responseError -> Retry path", () => {
 
     expect(errors).toHaveLength(1);
     expect(errors[0].msg).toBe(TIMEOUT_TEXT);
-    expect(typeof errors[0].options?.onRetry).toBe("function");
+    expect(errors[0].options).toBeUndefined();
   });
 
   test("a broken body without a timeout is still reported as such", async () => {
