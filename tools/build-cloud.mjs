@@ -22,8 +22,10 @@
 // z2ui5_cl_ui5_icf_handler, as on main (z2ui5_cl_lp_handler until then).
 //
 // The tree is built into the git-ignored tools/out/cloud - nothing generated
-// is committed here. auto-cloud.yaml builds it on every push to main and
-// publishes it as the branch; the same build runs on a pull request
+// is committed here. auto-cloud.yaml builds it on every push to main, lays
+// it over the checkout of main and publishes that as the branch - so the
+// branch carries the rest of the repository too, as 702 does, and what is
+// listed above is what differs from main; the same build runs on a pull request
 // (delivery-check.yaml, `npm run cloud:build`), so what is published has
 // been built once before from the same sources.
 //

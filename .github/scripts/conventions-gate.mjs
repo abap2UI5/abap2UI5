@@ -117,8 +117,8 @@ if (has('AGENTS.md') && !has('CLAUDE.md')) {
  * when the root file went in: `git add --renormalize .` changed nothing, so
  * the tree was already LF throughout and the file records that rather than
  * converting anything. (The tree of the branch `cloud` is not committed
- * here - it is built into the git-ignored tools/out/ and published byte for
- * byte by auto-cloud, out of reach of any attribute of this repository.) */
+ * here - it is built into the git-ignored tools/out/ and laid over main's
+ * tree by auto-cloud, which commits it under these same attributes.) */
 if (!has('.gitattributes')) {
   err('no .gitattributes — CONVENTIONS §6 asks for one in every repository that'
     + ' carries ABAP or generated trees, and this one carries both. Without it a'

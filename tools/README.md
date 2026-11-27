@@ -37,7 +37,7 @@ data there.
 | `src/01/03/` - the frontend as ABAP classes | yes | `check:app2abap` (`check_app2abap.yaml`) |
 | `src/03/02/` - the BSP `Z2UI5` | yes | the same gate: one `npm run app2abap` writes both |
 | the branch `702` | no, generated on `main` | `auto_downport.yaml`, which lints what it publishes |
-| the branch `cloud` | no, built into `tools/out/cloud` | `delivery-check.yaml` on the pull request, `auto-cloud.yaml` on `main` |
+| the branch `cloud` | no, built into `tools/out/cloud` and laid over the tree of `main` | `delivery-check.yaml` on the pull request, `auto-cloud.yaml` on `main` |
 
 `main` has to be installable as it stands, so what an installation pulls from
 it is committed. The two generated branches are a function of `main` and
