@@ -354,6 +354,16 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    "! Is val, surrounding blanks aside, one to nine digits - a text that
+    "! converts into an i without rounding (`1.5`), a sign (`+1`, `-1`), an
+    "! exponent (`1e3`) or an overflow. For a number that comes from outside
+    "! (a browser, a request) and must never end it with a dump.
+    CLASS-METHODS check_int_digits
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS unassign_object
       IMPORTING
         val           TYPE any
@@ -1387,6 +1397,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD check_bound_a_not_initial.
 
     result = xsdbool( check_unassign_initial( val ) = abap_false ).
+
+  ENDMETHOD.
+
+  METHOD check_int_digits.
+
+    " condensed first: `1 000` would pass a check that allows blanks and
+    " then dump in a conversion, and a blanks-only value is no number
+    DATA(lv_val) = condense( val ).
+    result = xsdbool( lv_val IS NOT INITIAL AND lv_val CO `0123456789` AND strlen( lv_val ) <= 9 ).
 
   ENDMETHOD.
 

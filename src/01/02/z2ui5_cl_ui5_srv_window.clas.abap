@@ -88,9 +88,8 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD count_of.
 
-    DATA(lv_val) = condense( val ).
-    IF lv_val IS NOT INITIAL AND lv_val CO `0123456789` AND strlen( lv_val ) <= 9.
-      result = lv_val.
+    IF z2ui5_cl_ui5_util_context=>check_int_digits( val ) = abap_true.
+      result = condense( val ).
     ENDIF.
 
   ENDMETHOD.
