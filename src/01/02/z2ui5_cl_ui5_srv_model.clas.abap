@@ -426,6 +426,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_from   TYPE string
         iv_to     TYPE string.
 
+    " does the `<iv_name>->*` row of a reference at a table alias the
+    " table of another owner (name_ref) - see main_attri_db_save_srtti
+    METHODS dref_check_table_alias
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " abap_true when a reference row takes a payload of its own on the save
     " (it is bound and owns its target); drops the alias of the children of
     " a CLEARed reference on the way - see main_attri_db_save_srtti
@@ -2029,23 +2037,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
 
-          " a dref whose deref is a TABLE has exactly ONE dissolved child:
+          " a dref whose deref is a TABLE has at most ONE dissolved child:
           " diss_dref's non-struct branch creates the single `<name>->*` row
           " (only a struct deref fans out into several children, and that
-          " case is the struct branch below). The child row IS the deref
-          " resolved above; the loop exists to pair the WHERE filter with a
-          " no-match fallthrough, so the unconditional EXIT states that it
-          " can never have a second row to visit. Only the REFERENCE is
-          " detached (below) - the table itself stays as it is, and
-          " main_attri_reattach hands it back to the live instance untouched
-          LOOP AT mt_attri->* TRANSPORTING NO FIELDS USING KEY parent
-               WHERE name_parent = lr_attri->name
-                     AND name_ref IS INITIAL
-                     AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+          " case is the struct branch below). When that child aliases a
+          " table of another owner (name_ref), the load points the reference
+          " at that owner again and there is no payload. Every other table
+          " is stored - also one WITHOUT a child: a reference that was still
+          " INITIAL when the rows were dissolved and got its table later,
+          " never bound, is never dissolved again (dissolve has nothing
+          " pending), and storing only when the child existed lost that
+          " table from the draft. Only the REFERENCE is detached (below) -
+          " the table itself stays as it is, and main_attri_reattach hands
+          " it back to the live instance untouched
+          IF dref_check_table_alias( lr_attri->name ) = abap_false.
             attri_srtti_store( ir_attri = lr_attri
                                iv_val   = <val_deref> ).
-            EXIT.
-          ENDLOOP.
+          ENDIF.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
           attri_srtti_store( ir_attri = lr_attri
@@ -2808,6 +2816,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     refs_below_set( iv_parent = ir_attri->name
                     iv_from   = |{ ir_attri->name }->|
                     iv_to     = |{ ir_attri->name_ref }-| ).
+
+  ENDMETHOD.
+
+  METHOD dref_check_table_alias.
+
+    LOOP AT mt_attri->* TRANSPORTING NO FIELDS USING KEY parent
+         WHERE name_parent = iv_name
+               AND name_ref IS NOT INITIAL
+               AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+      result = abap_true.
+      RETURN.
+    ENDLOOP.
 
   ENDMETHOD.
 

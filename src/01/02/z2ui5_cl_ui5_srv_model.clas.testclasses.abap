@@ -3230,6 +3230,11 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a reference the app CLEARed stays cleared across the draft - the
     " restore used to point it back at the owner its `->*` row still named
     METHODS alias_cleared_stays_cleared FOR TESTING RAISING cx_static_check.
+    " a generic reference still INITIAL when the rows were dissolved, given
+    " a table of its own later and never bound: its row has no `->*` child,
+    " and the save used to store no payload for it - the detach then left
+    " the draft without the table
+    METHODS late_table_survives_draft FOR TESTING RAISING cx_static_check.
 
     " the payload shape every draft before 2026-09 carried: the S-RTTI
     " descriptor graph and the data in ONE asXML document. The framework
@@ -3867,6 +3872,38 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     roundtrip( ).
     cl_abap_unit_assert=>assert_not_bound( act = mo_app->mr_alias_tab
                                            msg = `the restore pointed the cleared alias at its old owner again` ).
+
+  ENDMETHOD.
+
+  METHOD late_table_survives_draft.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA ls_row TYPE ltcl_app_shapes=>ty_s_row.
+    DATA lt_exp TYPE ltcl_app_shapes=>ty_t_row.
+
+    " roundtrip 1: the reference is INITIAL when the rows are dissolved
+    CLEAR mo_app->mr_alias_tab.
+    bind_all( ).
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_reattach( ).
+    cl_abap_unit_assert=>assert_false( row_exists( `MR_ALIAS_TAB->*` ) ).
+
+    " main( ) of roundtrip 2: a table of its own, which nothing binds - so
+    " nothing dissolves the reference again
+    CREATE DATA mo_app->mr_alias_tab LIKE mo_app->mt_std.
+    ASSIGN mo_app->mr_alias_tab->* TO <tab>.
+    ls_row-col1 = `late`.
+    ls_row-col2 = 7.
+    INSERT ls_row INTO TABLE <tab>.
+
+    " the draft read into a new instance carries the table
+    roundtrip( ).
+    cl_abap_unit_assert=>assert_bound( act = mo_app->mr_alias_tab
+                                       msg = `the table was lost from the draft` ).
+    ASSIGN mo_app->mr_alias_tab->* TO <tab>.
+    lt_exp = VALUE #( ( col1 = `late` col2 = 7 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lt_exp
+                                        act = <tab> ).
 
   ENDMETHOD.
 
