@@ -66,6 +66,7 @@ unreleased
 + Agent guide (docs/agents/building-apps.md, llms.txt, z2ui5_cl_ui5_llm_guide): a table of the names that changed for readers who know the old API, the addons and where their catalogue is, and markers around the passages app-template's AGENTS.md carries as essentials - the guide itself moved there into one file of its own
 ! Agent guide: the names that changed are reported by the linter from 0.13.0 on - removed-api names the release and the replacement, and a class on the legacy z2ui5_cl_xml_view builder is judged by every rule that needs no view. The framework's own apps are checked with that release
 * Custom controls: UITableExt and Tree keep a table's filters and sort and a tree's expansion per view slot and binding path - a same-id table or tree in a popup overwrote the main view's state (a rebuild then wiped its filters), and another screen of the same app with a same-id table got the first screen's filters, which could hide every row
+* An event a control fired while its view was built is no longer lost when another roundtrip starts while the response's page transition or follow-up actions finish - it was dropped under the busy overlay; it waits for that roundtrip's end now
 
 2026-11-25 v1.151.0
 -------------------

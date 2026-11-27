@@ -1651,6 +1651,33 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       expect(h.state.aRenderEvents).toEqual([]);
     });
 
+    // The finally of _processAfterRendering clears the busy state before it
+    // awaits a page transition and the follow-up actions; a click or a
+    // Websocket push can start a roundtrip in that window. The kept event
+    // met eB's busy guard with nothing being built any more and was dropped
+    // under the overlay.
+    test("a roundtrip that started meanwhile keeps them for its own end", () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["KEPT"]);
+      h.state.oResponse._processing = false;
+      // another roundtrip is in flight already
+      h.state.isBusy = true;
+
+      h.ctrl._dispatchQueuedEvent();
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.busy).toEqual([]);
+      expect(h.state.aRenderEvents).toHaveLength(1);
+
+      // that roundtrip has landed: the event goes out now
+      h.state.isBusy = false;
+      h.ctrl._dispatchQueuedEvent();
+
+      expect(h.roundtrips.map((b) => b.ARGUMENTS[0][0])).toEqual(["KEPT"]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
     test("a control that fires before its view has reached the slot is kept too", () => {
       const h = loadForQueue();
       building(h);

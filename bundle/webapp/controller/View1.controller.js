@@ -401,9 +401,19 @@ sap.ui.define(
       // is what ends an app that answers such an event with a view that
       // fires it again - eB resets it for every other event, so only an
       // unbroken run of them counts.
+      //
+      // Not while the app is busy again: the finally of
+      // _processAfterRendering clears the busy state BEFORE it awaits a
+      // page transition and the follow-up actions, and a click, a
+      // Websocket push or a file delivery can start a roundtrip in that
+      // window. eB would meet the busy guard with the render event, and as
+      // nothing is being built any more (_firedWhileBuilding) it was
+      // dropped and the overlay raised. It stays queued for the end of the
+      // roundtrip in flight instead - which drops it there only when that
+      // response rebuilt its view (the token check below).
       _dispatchQueuedEvent() {
         const state = this.ctx.state;
-        while (state.aRenderEvents.length) {
+        while (!state.isBusy && state.aRenderEvents.length) {
           const queued = state.aRenderEvents.shift();
           if (!Lib.isControllerAlive(queued.controller)) continue;
           // the slot has to show the view THAT response built - asked of the
