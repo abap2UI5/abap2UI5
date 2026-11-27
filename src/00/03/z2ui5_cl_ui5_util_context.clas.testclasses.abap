@@ -2603,6 +2603,7 @@ CLASS ltcl_edge DEFINITION FINAL
     METHODS test_trim_many_layers       FOR TESTING RAISING cx_static_check.
     METHODS test_utf8_roundtrip         FOR TESTING RAISING cx_static_check.
     METHODS test_utf8_empty             FOR TESTING RAISING cx_static_check.
+    METHODS test_utf8_invalid           FOR TESTING RAISING cx_static_check.
     METHODS test_base64_roundtrip       FOR TESTING RAISING cx_static_check.
     METHODS test_escape_html_entity     FOR TESTING RAISING cx_static_check.
     METHODS test_struc_pairs_signs      FOR TESTING RAISING cx_static_check.
@@ -2756,6 +2757,20 @@ CLASS ltcl_edge IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( `` ) ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_utf8_invalid.
+
+    " bytes that are no UTF-8 - a lone continuation byte - are reported as
+    " such, not as a missing codepage API
+    TRY.
+        z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `41FF42` ) ).
+        cl_abap_unit_assert=>fail( `invalid UTF-8 was accepted` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( act = lx->get_text( )
+                                             exp = `INVALID_UTF8*` ).
+    ENDTRY.
 
   ENDMETHOD.
 
