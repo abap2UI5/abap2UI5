@@ -396,6 +396,18 @@ sap.ui.define(
         return;
       }
 
+      // Under the fatal overlay (Server.responseError) nothing is restored -
+      // restoreFromRoute turns the navigation away - so nothing may be
+      // marked for a restore either. The flags below used to be set first:
+      // the restore never went out, they stayed set, and the response of
+      // the overlay's Retry (the failed request again, not this route) was
+      // taken for the restore - "the hash already matches", so the URL kept
+      // the entry Back went to while the screen showed the retried one.
+      // The trail and hashPushCount above DO move: they follow where the
+      // browser stands, whatever the app does with it, and the Retry's
+      // render then writes its route into that entry (updateAppRoute).
+      if (state.terminated) return;
+
       // A different app state: restore it. Mark the roundtrip as
       // browser-initiated so the render does NOT rewrite the hash (the
       // browser sits at a non-top history position - rewriting there would
@@ -533,6 +545,8 @@ sap.ui.define(
     // Only called while routing is on and the response named an app.
     function updateAppRoute(ctx, mOptions, ID, app) {
       const state = ctx.state;
+      // the app on screen BEFORE this response - see returnsToCaller
+      const prevApp = state.currentApp;
 
       // In FRESH mode the route carries the class only, so every history
       // entry (Back/Forward/reload/bookmark) starts the app fresh; in KEEP
@@ -574,8 +588,42 @@ sap.ui.define(
         // nav_app_call consumes this entry instead of taking its fallback
         writeHash(ctx, route, true);
       } else if (getHash() !== route) {
+        if (returnsToCaller(ctx, prevApp, app)) {
+          state.hashPushCount = Math.max(0, state.hashPushCount - 1);
+        }
         write(ctx, route, true);
       }
+    }
+
+    // A response that returns to the caller - client->nav_app_leave( ) -
+    // writes the caller's route over the entry the CALL pushed (a replace,
+    // above): the pop of that push. hashPushCount counted the push
+    // (writeHash), and kept counting it after the pop, so a hash_back
+    // with a fallback in the caller stepped history.back( ) onto the
+    // caller's own older entry instead of taking its fallback - and under
+    // FRESH routing, where both entries read "app/<CLASS>", that step
+    // changed no hash at all: nothing saw it, the count stayed, and the
+    // NEXT hash_back left the page, the case the fallback exists for. As
+    // AGENTS.md puts it, nav_app_call pushes and nav_app_leave pops; so
+    // the count follows the app stack: a call that went back where it came
+    // from leaves the depth it started at.
+    //
+    // The wire carries no leave flag for the URL (navBack is a view option,
+    // absent when the caller shows no new view), so it is recognized here:
+    // the app changes without a nav_app_call (a Back/Forward restore never
+    // gets here, see navFromHash), the entry being overwritten is one this
+    // page load pushed (hashPushCount > 0 - the boot entry is at 0), and
+    // the entry behind it routes to the class that now renders - the
+    // caller's entry, repointed to its draft when it called
+    // (repointCallerEntry). A leave to another app than the caller, or a
+    // call of the same class, is no pop of that push and counts as before.
+    function returnsToCaller(ctx, prevApp, app) {
+      const r = ctx.router;
+      if (ctx.state.hashPushCount <= 0 || r.trailPos <= 0) return false;
+      const upper = (s) => String(s).toUpperCase();
+      if (upper(prevApp) === upper(app)) return false;
+      const behind = parse(r.trail[r.trailPos - 1]);
+      return Boolean(behind) && upper(behind.app) === upper(app);
     }
 
     // Keep the URL in sync with what was just rendered - run once per

@@ -403,7 +403,7 @@ sap.ui.define(
     // MS_LOGIN-PASSWORD) and a table cell /T_USERS/0/PASSWORD alike - the
     // top-level name alone let the other two through.
     function masked(out, pad, name, value) {
-      const shown = maskSecrets(value, { secret: isSecretName(name) });
+      const shown = maskSecrets(value, { secret: isSecretName(name, value) });
       if (safeJson(shown) !== safeJson(value)) {
         out.push(
           `${pad}" ${name}: the value typed is not exported - put a test value here`,
@@ -501,7 +501,9 @@ sap.ui.define(
         if (!/^[[{]/.test(arg)) return arg;
         try {
           const parsed = JSON.parse(arg);
-          const shown = maskSecrets(parsed, { values });
+          // an argument: a typed secret is masked in it whatever its
+          // length (Format.maskSecrets, inArgs)
+          const shown = maskSecrets(parsed, { values, inArgs: true });
           return safeJson(shown) === safeJson(parsed) ? arg : safeJson(shown);
         } catch {
           return arg;
@@ -729,7 +731,9 @@ sap.ui.define(
           parts.push(`${name}[${rows.join(",")}]`);
         } else {
           // masked like the export: this tab is copied into the bug report
-          const shown = maskSecrets(value, { secret: isSecretName(name) });
+          const shown = maskSecrets(value, {
+            secret: isSecretName(name, value),
+          });
           let text =
             typeof shown === "string" ? JSON.stringify(shown) : safeJson(shown);
           if (text.length > 40) text = `${text.slice(0, 37)}...`;

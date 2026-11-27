@@ -15,11 +15,21 @@ name: bump-deps
 # .github/shared/update-deps.mjs does the npm part (every package.json with
 # a lockfile, latest versions, the lockfile refreshed) and, with --actions,
 # moves every pinned action to its latest release. The default token may not
-# change files under .github/workflows/, so the actions are updated only
-# when the secret DEPS_TOKEN exists (a token that may push workflow files) -
-# without it the pull request carries everything else. It is the SOURCE of
-# the .github/scripts/update-deps.mjs every other repository carries
-# (check:shared), so this repository runs the source rather than a copy.
+# change files under .github/workflows/, so those moves reach the pull
+# request only when the secret DEPS_TOKEN exists (a token that may push
+# workflow files) - without it the pull request carries everything else. It
+# is the SOURCE of the .github/scripts/update-deps.mjs every other repository
+# carries (check:shared), so this repository runs the source rather than a
+# copy.
+#
+# Two jobs, because npm installs freshly published packages and runs their
+# install scripts - and anything run in a job can tamper with the later steps
+# of that job ($GITHUB_ENV, $GITHUB_PATH, the files they execute). `update`
+# runs npm and the mirror refresh with no secret at all: a read-only token,
+# no credential in .git/config, and --actions reads the latest releases
+# (public data) with that read-only token. What it changed goes to `pr` as a
+# patch. `pr` is the only job DEPS_TOKEN reaches, and it runs nothing of the
+# repository's: a fresh checkout, the patch, the pull request.
 
 on:
   schedule:
@@ -39,8 +49,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+    outputs:
+      go: ${{ steps.when.outputs.go }}
     steps:
     - name: Only on the last Sunday of the month
       id: when
@@ -61,15 +72,14 @@ jobs:
       with:
         node-version: '22'
 
+    # --actions on every run: reading a release needs no more than the job's
+    # read-only token; whether the moved pins under .github/workflows may be
+    # pushed is decided in `pr`, by DEPS_TOKEN
     - name: npm dependencies and GitHub Actions
       if: steps.when.outputs.go == 'true'
       env:
-        DEPS_TOKEN: ${{ secrets.DEPS_TOKEN }}
-        GH_TOKEN: ${{ secrets.DEPS_TOKEN || github.token }}
-      run: |
-        flags=""
-        if [ -n "$DEPS_TOKEN" ]; then flags="--actions"; fi
-        node .github/shared/update-deps.mjs $flags --summary "$RUNNER_TEMP/summary.md"
+        GH_TOKEN: ${{ github.token }}
+      run: node .github/shared/update-deps.mjs --actions --summary "$RUNNER_TEMP/summary.md"
 
     # the vendored upstream sources under src/00/ from their mirror
     # repositories (was vendor-mirror.yaml's schedule)
@@ -84,23 +94,73 @@ jobs:
           cp "$RUNNER_TEMP/$repo"/src/z* "$path"/
         done
         if ! git diff --quiet -- src/00; then
+          # the backticks are Markdown, not a shell expansion
+          # shellcheck disable=SC2016
           printf '**Vendored mirrors**\n\n- `src/00/01` (ajson) and `src/00/02` (srtti) refreshed from their mirror repositories\n\n' >> "$RUNNER_TEMP/summary.md"
         fi
 
-    # the default token may not push a change to a workflow file - without
-    # DEPS_TOKEN such changes (a shared workflow copy) wait for the next run
-    - name: Without DEPS_TOKEN, leave workflow files out
+    # everything changed, new files and deleted ones included, as one binary
+    # patch against the commit `pr` checks out again (.gitignore keeps
+    # node_modules out of it)
+    - name: Hand the changes over
       if: steps.when.outputs.go == 'true'
-      env:
-        DEPS_TOKEN: ${{ secrets.DEPS_TOKEN }}
       run: |
-        if [ -z "$DEPS_TOKEN" ] && ! git diff --quiet -- .github/workflows; then
+        set -euo pipefail
+        mkdir -p "$RUNNER_TEMP/bump-deps"
+        git add -A
+        git diff --cached --binary > "$RUNNER_TEMP/bump-deps/changes.patch"
+        cp "$RUNNER_TEMP/summary.md" "$RUNNER_TEMP/bump-deps/summary.md"
+        git diff --cached --stat
+    - if: steps.when.outputs.go == 'true'
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: bump-deps
+        path: ${{ runner.temp }}/bump-deps/
+        if-no-files-found: error
+        retention-days: 1
+
+  # The only job with a write token and the only one DEPS_TOKEN reaches. It
+  # runs no npm and no script of the repository: a fresh checkout of the same
+  # commit, the patch laid over it, the pull request. create-pull-request
+  # authenticates with its own token input
+  pr:
+    needs: update
+    if: needs.update.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: bump-deps
+        path: ${{ runner.temp }}/bump-deps
+    - name: Lay the changes over the checkout
+      run: |
+        set -euo pipefail
+        if [ -s "$RUNNER_TEMP/bump-deps/changes.patch" ]; then
+          git apply --binary "$RUNNER_TEMP/bump-deps/changes.patch"
+        fi
+        git status --short
+
+    # the default token may not push a change to a workflow file - without
+    # DEPS_TOKEN such changes (a moved action, a shared workflow copy) wait
+    # for the next run
+    - name: Without DEPS_TOKEN, leave workflow files out
+      env:
+        HAS_DEPS_TOKEN: ${{ secrets.DEPS_TOKEN != '' }}
+      run: |
+        if [ "$HAS_DEPS_TOKEN" != "true" ] && [ -n "$(git status --porcelain -- .github/workflows)" ]; then
           git checkout -- .github/workflows
-          printf -- '- left out: changes to .github/workflows (they need the DEPS_TOKEN secret)\n' >> "$RUNNER_TEMP/summary.md"
+          git clean -fdq -- .github/workflows
+          printf -- '- left out: changes to .github/workflows (they need the DEPS_TOKEN secret)\n' >> "$RUNNER_TEMP/bump-deps/summary.md"
         fi
 
     - name: Open the monthly pull request
-      if: steps.when.outputs.go == 'true'
       uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
         token: ${{ secrets.DEPS_TOKEN || github.token }}
@@ -108,4 +168,4 @@ jobs:
         delete-branch: true
         title: Monthly dependency update
         commit-message: Monthly dependency update
-        body-path: ${{ runner.temp }}/summary.md
+        body-path: ${{ runner.temp }}/bump-deps/summary.md
