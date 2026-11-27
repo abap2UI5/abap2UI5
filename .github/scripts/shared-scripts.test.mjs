@@ -20,7 +20,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { outRefusal, parseJsonc, prefixOf, renamedSource, runConfig } from "../shared/rename.mjs";
+import { objectOf, outRefusal, parseJsonc, prefixOf, renamedSource, runConfig } from "../shared/rename.mjs";
 import { formatLike, nextSpec, pinActions, transpilerOf } from "../shared/update-deps.mjs";
 
 test("JSONC: comments, trailing commas, // inside a string", () => {
@@ -97,6 +97,13 @@ test("rename: the names distributions and build-rename take, and no other", () =
   assert.throws(() => prefixOf("/ca2ui5"), /invalid name/);
   assert.throws(() => prefixOf("zabcdefghij"), /11 characters, this repository allows at most 10/);
   assert.throws(() => prefixOf("zabcdefg", 6, "four classes over 25"), /at most 6 \(.*four classes over 25\)/);
+});
+
+test("rename: an ICF node's name, padded or exactly 15 characters long", () => {
+  assert.deepEqual(objectOf("src/z2ui5_cci      001108d002800838e37bde4c3.sicf.xml").name, "z2ui5_cci");
+  assert.equal(objectOf("src/zxxxxxxxx_agent8dc23e1f0a9b4c7d2e6f1a0b6.sicf.xml").name, "zxxxxxxxx_agent");
+  assert.equal(objectOf("src/zcl_x_app.clas.xml").name, "zcl_x_app");
+  assert.equal(objectOf("src/#abc#cl_x.clas.xml").name, "/abc/cl_x");
 });
 
 test("update-deps: the transpiler a runtime package records", () => {

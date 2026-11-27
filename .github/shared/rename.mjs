@@ -155,6 +155,18 @@ const TYPES = "CLAS|INTF|TABL|DTEL|DOMA|TTYP|PROG|MSAG|SICF";
 // config in .github/abaplint put the renamed tree into .github/src). The
 // addon's global.exclude patterns are regular expressions on the file name
 // and go through unchanged
+// the object an abapGit file holds: its name and type. An ICF node's file is
+// its name padded to 15 characters and a 25-character hash; a name of exactly
+// 15 leaves no space before the hash (@abaplint/cli 2.120.122 renames them so),
+// so there the name is the first 15 characters, not everything up to a space
+export function objectOf(file) {
+  const m = basename(file).match(/^(.+?)\.([a-z0-9]{4})\.xml$/);
+  if (!m) return undefined;
+  const raw = m[1].replace(/#/g, "/");
+  const name = m[2] === "sicf" && raw.length === 40 ? raw.slice(0, 15).trimEnd() : raw.split(" ")[0];
+  return { name, type: m[2].toUpperCase(), file };
+}
+
 export function runConfig({ source, deps = [], skipped = [], others = [], prefix, renameOwn, own = {}, output }) {
   const config = {
     global: {
@@ -417,11 +429,6 @@ function main() {
   if (!srcOut) fail(`no renamed ${SOURCE}/ under ${OUTPUT_REL}`);
 
   // -------------------------------------------------------- what was renamed
-  const objectOf = (file) => {
-    const m = basename(file).match(/^(.+?)\.([a-z0-9]{4})\.xml$/);
-    if (!m) return undefined;
-    return { name: m[1].replace(/#/g, "/").split(" ")[0], type: m[2].toUpperCase(), file };
-  };
   const original = new Set();
   // renameSkip included: a literal naming what stays behind is just as wrong
   for (const dir of [SRC, ...[...cloned.values()].map((f) => join(DEPS, f, "src"))]) {
