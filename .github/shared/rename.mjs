@@ -280,7 +280,9 @@ function main() {
     return { dependencies: [] };
   }
 
-  const isAbap2UI5 = (url) => /github\.com\/abap2ui5(-addons)?\//i.test(url ?? "");
+  // anchored: only a repository of the two orgs on github.com itself, never a
+  // URL that merely contains that path on some other host
+  const isAbap2UI5 = (url) => /^https:\/\/github\.com\/abap2ui5(-addons)?\//i.test(url ?? "");
   const repoKey = (url) => url.toLowerCase().replace(/\.git$/, "").replace(/\/$/, "");
   const ownUrl = (() => {
     try {
