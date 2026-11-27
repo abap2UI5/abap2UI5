@@ -68,17 +68,24 @@ sap.ui.define(
       // used to walk it four times per roundtrip.
       readBackend() {
         const table = this._getTable();
+        // set by readFilter, which reads the binding under its own guard
+        this._readPath = undefined;
         this.readFilter(table);
         this.readSort(table);
-        // Kept on the component's context too, under the table id: a
-        // view_display rebuild destroys THIS companion with its view and
-        // the new one starts without aFilters/aSorters - the snapshot on
-        // the instance alone never reached the fresh binding it exists
-        // for. cc/Tree keeps its expansion snapshot the same way.
+        // Kept on the component's context too: a view_display rebuild
+        // destroys THIS companion with its view and the new one starts
+        // without aFilters/aSorters - the snapshot on the instance alone
+        // never reached the fresh binding it exists for. cc/Tree keeps its
+        // expansion snapshot the same way. Keyed by slot AND table id (see
+        // _stateKey), and the binding path goes with it (see _keptFor).
         const kept = this._tableStates();
-        const id = this.getProperty("tableId");
-        if (kept && id) {
-          kept[id] = { filters: this.aFilters, sorters: this.aSorters };
+        const key = this._stateKey();
+        if (kept && key) {
+          kept[key] = {
+            filters: this.aFilters,
+            sorters: this.aSorters,
+            path: this._readPath,
+          };
         }
       },
 
@@ -86,6 +93,40 @@ sap.ui.define(
       // component, where there is nowhere to keep anything
       _tableStates() {
         return Context.of(this)?.state.tableStates ?? null;
+      },
+
+      // The key of this companion's snapshot: the slot it sits in plus the
+      // table id. The id alone is LOCAL to a view or fragment - a table
+      // "table" in MAIN and one in a popup both wrote kept["table"], the
+      // companion that ran last won, and MAIN's rebuild then applied the
+      // popup table's state (an unfiltered one is [], and filter([]) wiped
+      // the MAIN filters this control exists to restore). The slot is the
+      // one byIdOfOwner resolves the table in. Undefined without a table id.
+      _stateKey() {
+        const id = this.getProperty("tableId");
+        if (!id) return undefined;
+        const slot =
+          ViewSlots.containingSlotKey(Context.of(this), this) ?? "MAIN";
+        return `${slot}/${id}`;
+      },
+
+      // The predecessor's snapshot for this table - but only when it was
+      // read from a binding of the same path. One app's screens reuse
+      // local ids too, and the store is reset only on an app switch: the
+      // NAME filter of screen 1's "table" landed on screen 2's "table", and
+      // a Contains on a path that table does not have hid every row,
+      // without a column showing the filter.
+      // Runs in the deferred half (no try/catch around it): log, never throw.
+      _keptFor(oTable) {
+        try {
+          const kept = this._tableStates()?.[this._stateKey()];
+          if (!kept) return {};
+          const path = oTable.getBinding()?.getPath?.();
+          return kept.path === path ? kept : {};
+        } catch (e) {
+          Lib.logError(`UITableExt._keptFor failed${this._forTable()}`, e);
+          return {};
+        }
       },
 
       // The ONE apply path. There used to be a second, imperative one -
@@ -122,8 +163,7 @@ sap.ui.define(
             this._pendingTable = null;
             // a companion created by the rebuild has read nothing yet -
             // what its predecessor read is on the context
-            const kept =
-              this._tableStates()?.[this.getProperty("tableId")] ?? {};
+            const kept = this._keptFor(oTable);
             this._applyGuarded(
               oTable,
               this.aFilters ?? kept.filters,
@@ -172,6 +212,8 @@ sap.ui.define(
           // can skip when that same binding is still in place (see
           // _applyFilters).
           this._filterBinding = binding;
+          // the path the snapshot was read from (see _keptFor)
+          this._readPath = binding?.getPath?.();
           // the release-dependent read (getFilters since 1.96, the private
           // aFilters before) lives in core/Env.js like every other one
           this.aFilters = Env.controlFilters(binding);

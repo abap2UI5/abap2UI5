@@ -1166,7 +1166,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `  });` && |\n| &&
              `})();` && |\n| &&
              `(function(){"use strict";var bundleScript=document.currentScript;var bundleUrl=bundleScript&&bundleScript.src||"";sap.ui.define("z2ui5/embed",function(){var installation={componentName:"z2ui5.embed.fr` &&
-             `ontend",ccBundle:"754783bb7afffde3",bundleUrl,componentData:{nodePath:"@z2ui5-node-path@",ccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_cci",cccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_ccc"},create:functio` &&
+             `ontend",ccBundle:"81e39136f6b6ce6c",bundleUrl,componentData:{nodePath:"@z2ui5-node-path@",ccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_cci",cccResourceRoot:"/sap/bc/ui5_ui5/sap/z2ui5_ccc"},create:functio` &&
              `n(settings){return new Promise(function(resolve,reject){sap.ui.require(["z2ui5/core/Embed"],function(Embed){resolve(Embed.create(settings,installation))},reject)})}};return installation})})();` && |\n| &&
              `` && |\n|.
 

@@ -311,35 +311,38 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `      "z2ui5/cc/Tree.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Context","z2ui5/core/Env"],(Control,Lib,ViewSlots,Context,Env)=>{"use stri` &&
              `ct";const Tree=Control.extend("z2ui5.cc.Tree",{metadata:{properties:{tree_id:{type:"string"}}},_getTreeBinding(){const treeControl=ViewSlots.byIdOfOwner(this,this.getProperty("tree_id"));return treeCo` &&
              `ntrol?.getBinding("items")},_treeStates(where){const states=Context.of(this)?.state.treeStates;if(states)return states;if(!this._noContextLogged){this._noContextLogged=true;Lib.logError(``Tree.${where` &&
-             `}: no component context, tree state not preserved``)}return null},setBackend(){try{const id=this.getProperty("tree_id");if(!id)return;const treeStates=this._treeStates("setBackend");if(!treeStates)ret` &&
-             `urn;const binding=this._getTreeBinding();if(binding){treeStates[id]=binding.getCurrentTreeState()}}catch(e){Lib.logError(``Tree.setBackend: failed for tree_id '${this.getProperty("tree_id")}'``,e)}},i` &&
-             `nit(){this._unhook=Lib.hookCallback(this,"onBeforeRoundtrip","setBackend")},exit(){this._unhook()},onAfterRendering(){try{const id=this.getProperty("tree_id");if(!id)return;const snapshot=this._treeSt` &&
-             `ates("onAfterRendering")?.[id];if(!snapshot)return;const binding=this._getTreeBinding();if(!binding)return;if(this._appliedSnapshot===snapshot&&this._appliedBinding===binding){return}this._appliedSnap` &&
-             `shot=snapshot;this._appliedBinding=binding;binding.setTreeState(snapshot);binding.refresh(true)}catch(e){Lib.logError(``Tree.onAfterRendering: setTreeState failed for tree_id '${this.getProperty("tree` &&
-             `_id")}'``,e)}},renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Tree)});` && |\n| &&
+             `}: no component context, tree state not preserved``)}return null},_stateKey(){const id=this.getProperty("tree_id");if(!id)return undefined;const slot=ViewSlots.containingSlotKey(Context.of(this),this)` &&
+             `??"MAIN";return``${slot}/${id}``},setBackend(){try{const key=this._stateKey();if(!key)return;const treeStates=this._treeStates("setBackend");if(!treeStates)return;const binding=this._getTreeBinding();` &&
+             `if(binding){treeStates[key]={treeState:binding.getCurrentTreeState(),path:binding.getPath?.()}}}catch(e){Lib.logError(``Tree.setBackend: failed for tree_id '${this.getProperty("tree_id")}'``,e)}},init` &&
+             `(){this._unhook=Lib.hookCallback(this,"onBeforeRoundtrip","setBackend")},exit(){this._unhook()},onAfterRendering(){try{const key=this._stateKey();if(!key)return;const snapshot=this._treeStates("onAfte` &&
+             `rRendering")?.[key];if(!snapshot)return;const binding=this._getTreeBinding();if(!binding)return;if(snapshot.path!==binding.getPath?.())return;if(this._appliedSnapshot===snapshot&&this._appliedBinding=` &&
+             `==binding){return}this._appliedSnapshot=snapshot;this._appliedBinding=binding;binding.setTreeState(snapshot.treeState);binding.refresh(true)}catch(e){Lib.logError(``Tree.onAfterRendering: setTreeState` &&
+             ` failed for tree_id '${this.getProperty("tree_id")}'``,e)}},renderer:{apiVersion:2,render:Lib.renderInvisibleSpan}});return Env.ownClass(Tree)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/cc/UITableExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Control,Lib,Env,ViewSlots,Context)=>{"us` &&
-             `e strict";const opSymbols={EQ:"=",NE:"!=",LT:"<",LE:"<=",GT:">",GE:">="};const filterDisplayFns={Contains:v=>``*${v??""}*``,StartsWith:v=>``${v??""}*``,EndsWith:v=>``*${v??""}``};const UITableExt=Cont`.
+             `      "z2ui5/cc/UITableExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/Env","z2ui5/core/ViewSlots","z2ui5/core/Context"],(Control,Lib,Env,ViewSlots,Context)=>{"us`.
     result = result &&
+             `e strict";const opSymbols={EQ:"=",NE:"!=",LT:"<",LE:"<=",GT:">",GE:">="};const filterDisplayFns={Contains:v=>``*${v??""}*``,StartsWith:v=>``${v??""}*``,EndsWith:v=>``*${v??""}``};const UITableExt=Cont` &&
              `rol.extend("z2ui5.cc.UITableExt",{metadata:{properties:{tableId:{type:"string"}}},init(){this._unhooks=[Lib.hookCallback(this,"onBeforeRoundtrip","readBackend"),Lib.hookCallback(this,"onAfterRendering` &&
-             `","applyBackend")]},exit(){for(const unhook of this._unhooks)unhook()},readBackend(){const table=this._getTable();this.readFilter(table);this.readSort(table);const kept=this._tableStates();const id=th` &&
-             `is.getProperty("tableId");if(kept&&id){kept[id]={filters:this.aFilters,sorters:this.aSorters}}},_tableStates(){return Context.of(this)?.state.tableStates??null},applyBackend(){try{const oTable=this._g` &&
-             `etTable();if(!oTable)return;if(this._applyPending&&this._pendingTable===oTable)return;this._applyPending=true;this._pendingTable=oTable;Lib.whenRendered(oTable,this,()=>{if(this._pendingTable!==oTable` &&
-             `)return;this._applyPending=false;this._pendingTable=null;const kept=this._tableStates()?.[this.getProperty("tableId")]??{};this._applyGuarded(oTable,this.aFilters??kept.filters,"_applyFilters");this._` &&
-             `applyGuarded(oTable,this.aSorters??kept.sorters,"_applySorters")})}catch(e){this._applyPending=false;this._pendingTable=null;Lib.logError(``UITableExt.applyBackend failed${this._forTable()}``,e)}},_ap` &&
-             `plyGuarded(oTable,aValues,method){try{this[method](oTable,aValues)}catch(e){Lib.logError(``UITableExt.${method} failed${this._forTable()}``,e)}},_forTable(){return`` for tableId '${this.getProperty("t` &&
-             `ableId")}'``},_getTable(){return ViewSlots.byIdOfOwner(this,this.getProperty("tableId"))},readFilter(oTable){try{const binding=oTable?.getBinding();this._filterBinding=binding;this.aFilters=Env.contro` &&
-             `lFilters(binding)}catch(e){Lib.logError(``UITableExt.readFilter failed${this._forTable()}``,e)}},_applyFilters(oTable,aFilters){if(!aFilters)return;const binding=oTable.getBinding();if(!binding)return` &&
-             `;if(binding===this._filterBinding)return;binding.filter(aFilters);this._filterBinding=binding;const columns=oTable.getColumns();for(const oFilter of aFilters){let sProperty=oFilter.sPath;if(!sProperty` &&
-             `&&oFilter.aFilters?.[0]){sProperty=oFilter.aFilters[0].sPath}if(!sProperty)continue;const operator=oFilter.sOperator;let vValue=oFilter.oValue1;if(vValue===undefined)vValue=oFilter.oValue2;if(vValue==` &&
-             `=undefined&&oFilter.aFilters?.[0]){vValue=oFilter.aFilters[0].oValue1}let displayFn;if(operator==="BT"){displayFn=v=>{const from=Lib.toText(v);const to=Lib.toText(oFilter.oValue2);return``${from}..${t` &&
-             `o}``}}else if(filterDisplayFns[operator]){displayFn=filterDisplayFns[operator]}else{const prefix=opSymbols[operator]||"";displayFn=v=>``${prefix}${Lib.toText(v)}``}const display=displayFn(vValue);for(` &&
-             `const oCol of columns){if(oCol.getFilterProperty?.()===sProperty){oCol.setFilterValue(display);oCol.setFiltered(Boolean(display))}}}},readSort(oTable){try{const binding=oTable?.getBinding();this._sort` &&
-             `Binding=binding;this.aSorters=binding?binding.aSorters:undefined}catch(e){Lib.logError(``UITableExt.readSort failed${this._forTable()}``,e)}},_applySorters(oTable,aSorters){if(!aSorters)return;const b` &&
-             `inding=oTable.getBinding();if(!binding)return;if(binding===this._sortBinding)return;binding.sort(aSorters);this._sortBinding=binding;const columns=oTable.getColumns();for(const[index,sorter]of aSorter` &&
-             `s.entries()){for(const oCol of columns){if(oCol.getSortProperty?.()===sorter.sPath){oCol.setSorted(true);oCol.setSortOrder(sorter.bDescending?"Descending":"Ascending");if(oCol.setSortIndex)oCol.setSor` &&
-             `tIndex(index)}}}},renderer:Lib.EMPTY_RENDERER});return Env.ownClass(UITableExt)});` && |\n| &&
+             `","applyBackend")]},exit(){for(const unhook of this._unhooks)unhook()},readBackend(){const table=this._getTable();this._readPath=undefined;this.readFilter(table);this.readSort(table);const kept=this._` &&
+             `tableStates();const key=this._stateKey();if(kept&&key){kept[key]={filters:this.aFilters,sorters:this.aSorters,path:this._readPath}}},_tableStates(){return Context.of(this)?.state.tableStates??null},_s` &&
+             `tateKey(){const id=this.getProperty("tableId");if(!id)return undefined;const slot=ViewSlots.containingSlotKey(Context.of(this),this)??"MAIN";return``${slot}/${id}``},_keptFor(oTable){try{const kept=th` &&
+             `is._tableStates()?.[this._stateKey()];if(!kept)return{};const path=oTable.getBinding()?.getPath?.();return kept.path===path?kept:{}}catch(e){Lib.logError(``UITableExt._keptFor failed${this._forTable()` &&
+             `}``,e);return{}}},applyBackend(){try{const oTable=this._getTable();if(!oTable)return;if(this._applyPending&&this._pendingTable===oTable)return;this._applyPending=true;this._pendingTable=oTable;Lib.whe` &&
+             `nRendered(oTable,this,()=>{if(this._pendingTable!==oTable)return;this._applyPending=false;this._pendingTable=null;const kept=this._keptFor(oTable);this._applyGuarded(oTable,this.aFilters??kept.filters` &&
+             `,"_applyFilters");this._applyGuarded(oTable,this.aSorters??kept.sorters,"_applySorters")})}catch(e){this._applyPending=false;this._pendingTable=null;Lib.logError(``UITableExt.applyBackend failed${this` &&
+             `._forTable()}``,e)}},_applyGuarded(oTable,aValues,method){try{this[method](oTable,aValues)}catch(e){Lib.logError(``UITableExt.${method} failed${this._forTable()}``,e)}},_forTable(){return`` for tableI` &&
+             `d '${this.getProperty("tableId")}'``},_getTable(){return ViewSlots.byIdOfOwner(this,this.getProperty("tableId"))},readFilter(oTable){try{const binding=oTable?.getBinding();this._filterBinding=binding;` &&
+             `this._readPath=binding?.getPath?.();this.aFilters=Env.controlFilters(binding)}catch(e){Lib.logError(``UITableExt.readFilter failed${this._forTable()}``,e)}},_applyFilters(oTable,aFilters){if(!aFilters` &&
+             `)return;const binding=oTable.getBinding();if(!binding)return;if(binding===this._filterBinding)return;binding.filter(aFilters);this._filterBinding=binding;const columns=oTable.getColumns();for(const oF` &&
+             `ilter of aFilters){let sProperty=oFilter.sPath;if(!sProperty&&oFilter.aFilters?.[0]){sProperty=oFilter.aFilters[0].sPath}if(!sProperty)continue;const operator=oFilter.sOperator;let vValue=oFilter.oVal` &&
+             `ue1;if(vValue===undefined)vValue=oFilter.oValue2;if(vValue===undefined&&oFilter.aFilters?.[0]){vValue=oFilter.aFilters[0].oValue1}let displayFn;if(operator==="BT"){displayFn=v=>{const from=Lib.toText(` &&
+             `v);const to=Lib.toText(oFilter.oValue2);return``${from}..${to}``}}else if(filterDisplayFns[operator]){displayFn=filterDisplayFns[operator]}else{const prefix=opSymbols[operator]||"";displayFn=v=>``${pr` &&
+             `efix}${Lib.toText(v)}``}const display=displayFn(vValue);for(const oCol of columns){if(oCol.getFilterProperty?.()===sProperty){oCol.setFilterValue(display);oCol.setFiltered(Boolean(display))}}}},readSo` &&
+             `rt(oTable){try{const binding=oTable?.getBinding();this._sortBinding=binding;this.aSorters=binding?binding.aSorters:undefined}catch(e){Lib.logError(``UITableExt.readSort failed${this._forTable()}``,e)}` &&
+             `},_applySorters(oTable,aSorters){if(!aSorters)return;const binding=oTable.getBinding();if(!binding)return;if(binding===this._sortBinding)return;binding.sort(aSorters);this._sortBinding=binding;const c` &&
+             `olumns=oTable.getColumns();for(const[index,sorter]of aSorters.entries()){for(const oCol of columns){if(oCol.getSortProperty?.()===sorter.sPath){oCol.setSorted(true);oCol.setSortOrder(sorter.bDescendin` &&
+             `g?"Descending":"Ascending");if(oCol.setSortIndex)oCol.setSortIndex(index)}}}},renderer:Lib.EMPTY_RENDERER});return Env.ownClass(UITableExt)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/cc/UploadSetExt.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Lib","z2ui5/core/ViewSlots","z2ui5/core/Env"],(Control,Lib,ViewSlots,Env)=>{"use strict";const UploadSetEx` &&
@@ -387,9 +390,9 @@ CLASS z2ui5_cl_ui5f_cc IMPLEMENTATION.
              `ass(Websocket)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `});` && |\n| &&
-             `sap.ui.define("z2ui5/cc/bundle", function () {` && |\n|.
+             `});` && |\n|.
     result = result &&
+             `sap.ui.define("z2ui5/cc/bundle", function () {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return {};` && |\n| &&
              `});` && |\n|.
