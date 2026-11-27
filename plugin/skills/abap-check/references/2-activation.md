@@ -353,9 +353,10 @@ typed rules skip it, which hid the second shape on the first try).
   was canceled"* (abap2UI5-addons/layout-management `5b1c8b7`). Every part
   is short and every line passes; the system checks the joined literal. `&&`
   has no limit but is not allowed in a `CONSTANTS ... VALUE` - build the text
-  in a method with `&&`.
+  in a method with `&&`. `check_syntax` reports the joined length from
+  abaplint/abaplint#4823 on (merged 2026-11-27, not yet in a release).
 
-**Backlog:** abaplint · abaplint-method-parameter-not-compatible, abaplint-literal-operator-length
+**Backlog:** abaplint · abaplint-method-parameter-not-compatible
 
 ### Do not depend on DDIC objects that are not everywhere
 
