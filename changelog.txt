@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* app2abap: the generated text classes keep every line within 255 characters on a line of backticks, the bundle embeds only the files git knows of a frontend kind (a .DS_Store broke it, a stray note would have shipped), and a relative sap.ui.define dependency on a deferred bundle is refused like an absolute one
 * Developer tools: Report a Bug, the history download and the ABAP Unit export mask secrets in every view - a value bound to a name like PASSWORD went out in the Bindings, Journey and Model Diff text, in the raw history JSON, and in structure fields and table cells of the unit test
 * Developer tools: "Copied" only when the clipboard took it - a refused or empty copy said Copied anyway
 * After a fatal error nothing is sent until Retry or Restart - a shortcut, a hash change or a websocket message still sent a roundtrip behind the error dialog, and Retry then replayed an older draft

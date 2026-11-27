@@ -61,6 +61,23 @@ test("no generated line outgrows ABAP's 255, and no method grows with the text",
   expect(abapGetValue(abap)).toBe(text);
 });
 
+test("a line of backticks is cut on its escaped length - doubled, it stays within ABAP's 255", () => {
+  // the cut used to be taken on the raw text, before every backtick was
+  // doubled: 200 backticks became a literal of 400 characters
+  const text = `${"`".repeat(1000)}\na${"`".repeat(333)}\n`;
+  const abap = textClass(text);
+  expect(Math.max(...abap.split("\n").map((l) => l.length))).toBeLessThan(255);
+  expect(abapGetValue(abap)).toBe(text);
+});
+
+test("a line over 255 is refused by the generator, naming itself and not the class to edit", () => {
+  // a header line is written as it is given - the one place left where a
+  // long line could come from
+  expect(() =>
+    GEN.abapTextClass("z2ui5_cl_ui5f_x", "text", ["h".repeat(300)]),
+  ).toThrow(/tools\/app2abap\/trans2abap\.js \(abapTextClass\) wrote line 3 of z2ui5_cl_ui5f_x with 302 characters/);
+});
+
 // The proof minifyJs runs, checked on its own; minifyJs itself is below.
 test("trailing whitespace inside a template literal is refused, not silently dropped", () => {
   // the embedded copy strips every line's trailing blanks - inside a
@@ -270,5 +287,111 @@ test.describe("the custom controls bundle split", () => {
         new Map([["cc/Tree.js", 'sap.ui.define(["z2ui5/devtools/Format"], () => {});']]),
       ),
     ).not.toThrow();
+  });
+
+  test("a relative dependency is resolved against the module before it is judged", () => {
+    // read as written, "../cc/Dirty" named no z2ui5/ module and passed
+    expect(() =>
+      GEN.assertNoEagerDependencyOnDeferred(
+        new Map([["core/Server.js", 'sap.ui.define(["./Lib", "../cc/Dirty"], () => {});']]),
+      ),
+    ).toThrow(/core\/Server\.js: sap\.ui\.define names \.\.\/cc\/Dirty \(z2ui5\/cc\/Dirty\), a module of the custom controls bundle/);
+    expect(() =>
+      GEN.assertNoEagerDependencyOnDeferred(
+        new Map([["devtools/Inspect.js", 'sap.ui.define(["./Format", "../core/Lib"], () => {});']]),
+      ),
+    ).not.toThrow();
+    // a control naming its sibling relatively stays inside its own bundle
+    expect(() =>
+      GEN.assertNoEagerDependencyOnDeferred(
+        new Map([["cc/InputExt.js", 'sap.ui.define(["./Dirty"], () => {});']]),
+      ),
+    ).not.toThrow();
+  });
+});
+
+// What of bundle/webapp is embedded: the files git knows, of the kinds a
+// frontend file is - not whatever lies on disk. A gitignored .DS_Store
+// failed the generation, a stray notes.txt would have shipped.
+test.describe("which files of the folder are the frontend", () => {
+  const fs = require("fs");
+  const os = require("os");
+  const { execFileSync } = require("child_process");
+
+  function folder(files) {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "trans2abap-files-"));
+    const dir = path.join(root, "webapp");
+    for (const [name, text] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
+      fs.writeFileSync(path.join(dir, name), text);
+    }
+    return { root, dir };
+  }
+  const names = (dir, files) =>
+    files.map((f) => path.relative(dir, f).split(path.sep).join("/")).sort();
+  const git = (root, ...args) =>
+    execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], {
+      cwd: root,
+      stdio: "ignore",
+    });
+
+  test("in a checkout: tracked and new files of a frontend kind, nothing ignored", () => {
+    const { root, dir } = folder({
+      "Component.js": "",
+      "core/Lib.js": "",
+      "view/App.view.xml": "",
+      "i18n/i18n.properties": "",
+      "core/New.js": "",
+      ".gitignore": ".DS_Store\n",
+      ".DS_Store": "\u0000\u0001",
+      "notes.txt": "a stray note",
+    });
+    try {
+      git(root, "init", "-q");
+      git(root, "add", "webapp/Component.js", "webapp/core/Lib.js", "webapp/view/App.view.xml", "webapp/i18n/i18n.properties", "webapp/.gitignore");
+      expect(names(dir, GEN.frontendFiles(dir, root))).toEqual([
+        "Component.js",
+        "core/Lib.js",
+        "core/New.js",
+        "i18n/i18n.properties",
+        "view/App.view.xml",
+      ]);
+      // committed, a file of another kind is a decision the list has to make
+      git(root, "add", "webapp/notes.txt");
+      expect(() => GEN.frontendFiles(dir, root)).toThrow(
+        /webapp\/notes\.txt is no frontend file .* extend FRONTEND_EXTENSIONS/,
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("outside a checkout: the same kinds, dot-files left out, a link refused", () => {
+    const { root, dir } = folder({
+      "Component.js": "",
+      "css/style.css": "",
+      "manifest.json": "",
+      ".DS_Store": "\u0000",
+      "notes.txt": "",
+    });
+    try {
+      expect(names(dir, GEN.frontendFiles(dir, root))).toEqual([
+        "Component.js",
+        "css/style.css",
+        "manifest.json",
+      ]);
+      fs.symlinkSync(path.join(root, "elsewhere.js"), path.join(dir, "Linked.js"));
+      expect(() => GEN.frontendFiles(dir, root)).toThrow(
+        /webapp\/Linked\.js is a symbolic link/,
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("the repository's own folder: every file the bundle ships", () => {
+    const files = GEN.frontendFiles();
+    expect(files.length).toBeGreaterThan(60);
+    expect(files.every((f) => /\.(js|xml|json|css)$/.test(f))).toBe(true);
   });
 });
