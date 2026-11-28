@@ -36,7 +36,7 @@
  * (npm run ecosystem:canary -- <arguments>)
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, symlinkSync, writeFileSync, appendFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, symlinkSync, writeFileSync, appendFileSync } from "node:fs";
 import path from "node:path";
 import { ROOT, loadMap, parseJsonc, abaplintDeps, is702 } from "./lib/ecosystem-map.mjs";
 
@@ -123,12 +123,21 @@ const run = (name, cmd, cmdArgs, env = {}) => {
 if (result.steps.every((s) => s.ok)) {
   for (const config of entry.canary.lint) run(`abaplint ${config}`, abaplint, [config]);
 
-  /* 3. the rename - the repository's own script, which finds abaplint in its
-   * node_modules/.bin (rename.mjs) or on the PATH (an `abaplint ... --rename`
-   * script). The consumer's dependencies are not installed, so both are given
-   * the one abaplint this run lints with. */
+  /* 3. the rename - the repository's own script, which finds abaplint as
+   * node_modules/@abaplint/cli/abaplint (the shared rename.mjs, which starts
+   * it with `node <cli>`), in node_modules/.bin (older rename scripts) or on
+   * the PATH (an `abaplint ... --rename` script). The consumer's dependencies
+   * are not installed, so all three are given the one abaplint this run lints
+   * with: the package directory the --abaplint binary resolves into, linked
+   * whole, so the cli finds its build next to it. */
   if (entry.canary.rename) {
-    const bin = path.join(dir, "node_modules", ".bin");
+    const modules = path.join(dir, "node_modules");
+    const cliPackage = path.dirname(realpathSync(abaplint));
+    if (!existsSync(path.join(modules, "@abaplint", "cli", "abaplint"))) {
+      mkdirSync(path.join(modules, "@abaplint"), { recursive: true });
+      symlinkSync(cliPackage, path.join(modules, "@abaplint", "cli"), "dir");
+    }
+    const bin = path.join(modules, ".bin");
     if (!existsSync(path.join(bin, "abaplint"))) {
       mkdirSync(bin, { recursive: true });
       symlinkSync(abaplint, path.join(bin, "abaplint"));
