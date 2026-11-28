@@ -29,8 +29,6 @@ const NAMES = [
   { name: "z2ui5_cl_ui5_view_builder", note: "the successor (not a blocker - a control number)", successor: true },
   { name: "factory_plain", note: "§2 - obsolete inside the obsolete builder" },
   { name: "cs_event-nav_container_to", note: "§1 - remapped onto control_by_id" },
-  { name: "custom_mapper", note: "§1 - hands app code a type from the AJSON mirror" },
-  { name: "custom_filter", note: "§1 - same" },
   { name: "check_sticky", note: "§1 - mirror of z2ui5_cl_ui5_app_cont" },
   { name: "check_initialized", note: "§1 - same" },
   /* Not a name but a call shape: follow_up_action( ) whose val is a string

@@ -70,10 +70,10 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     DATA mr_cell_tab   TYPE REF TO data.
     DATA mt_cell_names TYPE string_table.
 
-    " the class name of a mapper or filter the service has already asked
-    " for, keyed on the reference - a memo for check_same_impl, which used
-    " to describe the STORED implementation again on every re-bind of the
-    " same attribute (one RTTI call per mapper and per filter, per render).
+    " the class name of a filter the service has already asked for, keyed
+    " on the reference - a memo for check_same_impl, which used to describe
+    " the STORED implementation again on every re-bind of the same
+    " attribute (one RTTI call per filter, per render).
     " Same life as the memo above: one render, and a reference is a class
     " for as long as it exists, so an entry cannot go stale
     TYPES:
@@ -118,15 +118,16 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    " Raise when the same attribute is rebound with a different mapper/filter
-    " implementation. iv_label names the kind for the error text.
+    " Raise when the same attribute is rebound with a different filter
+    " implementation (omit_initial on one bind, omit_initial_paths on the
+    " other). iv_label names the kind for the error text.
     METHODS check_same_impl
       IMPORTING
         ir_existing TYPE REF TO object
         ir_new      TYPE REF TO object
         iv_label    TYPE string.
 
-    " Raise when a mapper/filter used for a new binding is not serializable.
+    " Raise when a filter used for a new binding is not serializable.
     " iv_label names the kind for the error text.
     METHODS check_serializable
       IMPORTING
@@ -254,10 +255,9 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     " the same OBJECT is the same implementation - no class name to ask
     " for. An app that hands the instance it stored in an attribute to
-    " every _bind( ) lands here; one that builds a filter per call (the
-    " shape z2ui5_cl_ui5_util_json_fl asks for, since the stored instance
-    " is written into the draft) pays one RTTI call for the new object and
-    " reads the stored one's name from the memo after the first re-bind
+    " every _bind( ) lands here; _bind( omit_initial ) builds a filter per
+    " call and pays one RTTI call for the new object, reading the stored
+    " one's name from the memo after the first re-bind
     IF ir_existing = ir_new.
       RETURN.
     ENDIF.
@@ -284,10 +284,6 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_raise_existing.
-
-    check_same_impl( ir_existing = mr_attri->custom_mapper
-                     ir_new      = ms_config-custom_mapper
-                     iv_label    = `mappers` ).
 
     check_same_impl( ir_existing = mr_attri->custom_filter
                      ir_new      = ms_config-custom_filter
@@ -340,8 +336,8 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " the window is the order of the rows the browser holds (a list of row
     " numbers) - it needs a table with row numbers to write a delta to (a
     " sorted or hashed one has none), whose rows the serializer writes
-    " itself (a mapper or a filter of its own, omit_initial among them,
-    " would see a window instead of the table)
+    " itself (the omit_initial filter would see a window instead of the
+    " table)
     IF ms_config-window <= 0.
       RETURN.
     ENDIF.
@@ -349,8 +345,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     DATA(lv_reason) = COND string(
       WHEN mr_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table THEN `it is no internal table`
       WHEN mr_attri->check_json = abap_true THEN `it is bound with json = abap_true elsewhere`
-      WHEN mr_attri->custom_filter IS BOUND OR mr_attri->custom_mapper IS BOUND
-        THEN `it is bound with omit_initial or a custom mapper or filter elsewhere` ).
+      WHEN mr_attri->custom_filter IS BOUND THEN `it is bound with omit_initial elsewhere` ).
     IF lv_reason IS INITIAL AND z2ui5_cl_ui5_util_context=>rtti_check_table_standard( val ) = abap_false.
       lv_reason = `it is no STANDARD table`.
     ENDIF.
@@ -373,16 +368,12 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " (main_attri_db_save_srtti clears only DATA references) - so a
     " non-serializable implementation has to be refused here, at bind time
     " and with a readable message, instead of surfacing later as an
-    " APP_SERIALIZATION_ERROR. z2ui5_if_ajson_mapping composes
-    " if_serializable_object, so the mapper check cannot fire today;
-    " z2ui5_if_ajson_filter does not, which makes the filter check the
-    " load-bearing one. This used to check the custom_*_back refs instead -
-    " refs nothing can set since _bind stopped evaluating them.
+    " APP_SERIALIZATION_ERROR. Only the framework's own filters arrive
+    " here (_bind( omit_initial ) - an app hands in none since 2026-11-28),
+    " and z2ui5_if_ajson_filter does not compose if_serializable_object:
+    " the check keeps a new filter class of the framework honest.
     check_serializable( ir_ref   = ms_config-custom_filter
                         iv_label = `custom_filter` ).
-
-    check_serializable( ir_ref   = ms_config-custom_mapper
-                        iv_label = `custom_mapper` ).
 
   ENDMETHOD.
 
@@ -498,17 +489,16 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " the table first, as a bare path - bind_attri sets ms_config to that
     " call's config, so THIS call's config (switch_default_model,
     " path_only) is put in place afterwards for the cell and its
-    " decoration. The mapper and the filter (omit_initial arrives as one)
-    " belong to the TABLE, which is what the serializer applies them to:
-    " passed on, they are stored on a first bind, adopted on a later one and
-    " refused when they differ from what is there - exactly as a _bind( ) of
-    " the table itself treats them. The cell bind used to hand the table an
-    " empty config, so the options were dropped without a word while the
+    " decoration. The filter (omit_initial arrives as one) belongs to the
+    " TABLE, which is what the serializer applies it to: passed on, it is
+    " stored on a first bind, adopted on a later one and refused when it
+    " differs from what is there - exactly as a _bind( ) of the table
+    " itself treats it. The cell bind used to hand the table an empty
+    " config, so the options were dropped without a word while the
     " _bind( ) doc promised none of that. check_json stays with the cell
     " and has no effect there - a property of the table's rows, see the doc
     result = bind_attri( val    = config-tab
                          config = VALUE #( path_only     = abap_true
-                                           custom_mapper = config-custom_mapper
                                            custom_filter = config-custom_filter ) ).
     ms_config = config.
 
@@ -539,13 +529,13 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     " A second _bind( ) on an attribute that is ALREADY bound used to be a
     " no-op for everything but the path: update_model_attri( ) - the only place
-    " custom_filter, custom_mapper and check_json are stored - runs on the
+    " custom_filter and check_json are stored - runs on the
     " new-binding branch alone. check_raise_existing( ) does not cover it
     " either: it refuses two DIFFERENT implementations, and an option the
     " stored attribute does not carry yet is not a conflict. So
     "
     "   client->_bind( mv_x ).
-    "   client->_bind( val = mv_x custom_filter = lo_filter ).
+    "   client->_bind( val = mv_x omit_initial = abap_true ).
     "
     " dropped the filter silently - and because mt_attri is serialized into
     " the draft, the order of the two calls in the first render decided the
@@ -557,12 +547,6 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       check_serializable( ir_ref   = ms_config-custom_filter
                           iv_label = `custom_filter` ).
       mr_attri->custom_filter = ms_config-custom_filter.
-    ENDIF.
-
-    IF ms_config-custom_mapper IS BOUND AND mr_attri->custom_mapper IS NOT BOUND.
-      check_serializable( ir_ref   = ms_config-custom_mapper
-                          iv_label = `custom_mapper` ).
-      mr_attri->custom_mapper = ms_config-custom_mapper.
     ENDIF.
 
     " check_json only ever turns ON: whether a value carries JSON is a property
@@ -620,7 +604,6 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     mr_attri->bind          = abap_true.
     mr_attri->custom_filter = ms_config-custom_filter.
-    mr_attri->custom_mapper = ms_config-custom_mapper.
     mr_attri->check_json    = ms_config-check_json.
     mr_attri->name_client   = get_client_name( ).
     window_adopt( ).

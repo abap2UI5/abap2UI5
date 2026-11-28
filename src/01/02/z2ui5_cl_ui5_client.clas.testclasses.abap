@@ -1,8 +1,8 @@
 " ---------------------------------------------------------------------------
 " The API contract of z2ui5_if_client as an app sees it: what each method
 " answers, what it queues, what it refuses. Where a case here also proves
-" the model underneath (a binding path, a cell, a mapper or filter across
-" the draft), the systematic coverage is in the structured suites of
+" the model underneath (a binding path, a cell, an omit_initial filter
+" across the draft), the systematic coverage is in the structured suites of
 " z2ui5_cl_ui5_srv_bind (ltcl_01_path, ltcl_02_cell, ltcl_03_options) and
 " z2ui5_cl_ui5_srv_model (ltcl_01_dissolve to ltcl_05_draft); this file
 " keeps the call through the client as the app writes it.
@@ -26,43 +26,6 @@ ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
-  ENDMETHOD.
-ENDCLASS.
-
-
-" deliberately WITHOUT if_serializable_object - the probe for
-" check_raise_new, which must refuse it at bind time (a bound filter is
-" serialized into the draft with mt_attri, and the transpiler does not
-" enforce serializability, so bind time is the only place the suite can
-" prove the refusal)
-CLASS ltcl_bad_filter DEFINITION FINAL.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-CLASS ltcl_bad_filter IMPLEMENTATION.
-  METHOD z2ui5_if_ajson_filter~keep_node.
-    rv_keep = abap_true.
-  ENDMETHOD.
-ENDCLASS.
-
-
-" a caller's own filter, serializable so _bind( ) accepts it (see
-" ltcl_bad_filter above for the refusal). It drops exactly one node name,
-" which is what makes an AND with the framework's own filter visible
-CLASS ltcl_good_filter DEFINITION FINAL.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
-    INTERFACES if_serializable_object.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-CLASS ltcl_good_filter IMPLEMENTATION.
-  METHOD z2ui5_if_ajson_filter~keep_node.
-    rv_keep = xsdbool( is_node-name <> `DROPME` ).
   ENDMETHOD.
 ENDCLASS.
 
@@ -141,11 +104,9 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_decimals FOR TESTING RAISING cx_static_check.
     METHODS test_omit_filters_serial  FOR TESTING RAISING cx_static_check.
-    METHODS test_bind_filter_not_serial FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_db_save FOR TESTING RAISING cx_static_check.
     " what _bind( ) WIRES, as opposed to what the filter classes do
     METHODS test_omit_paths_wired     FOR TESTING RAISING cx_static_check.
-    METHODS test_omit_paths_and_filter FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell        FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell_assign FOR TESTING RAISING cx_static_check.
     " _bind( ) takes a data reference like window_bind_tab( ) does
@@ -1426,9 +1387,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_omit_filters_serial.
 
     " every filter the framework itself hands into a binding is serialized
-    " into the draft with mt_attri, so all three local classes have to pass
-    " the same contract check that check_raise_new applies to a caller's
-    " filter. CALL TRANSFORMATION under the transpiler does not enforce
+    " into the draft with mt_attri, so both local classes have to pass the
+    " contract check that check_raise_new applies at bind time. CALL
+    " TRANSFORMATION under the transpiler does not enforce
     " if_serializable_object, so this check IS what the suite can prove -
     " a real system enforces it at db_save
     DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
@@ -1442,41 +1403,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true(
         z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_paths ) ).
 
-    cl_abap_unit_assert=>assert_true(
-        z2ui5_cl_ui5_util_context=>rtti_check_serializable(
-            NEW lcl_and_filter( ii_first  = li_paths
-                                ii_second = li_omit ) ) ).
-
-    " and the probe class is really refused by the same check - otherwise
-    " test_bind_filter_not_serial proves nothing
-    cl_abap_unit_assert=>assert_false(
-        z2ui5_cl_ui5_util_context=>rtti_check_serializable( NEW ltcl_bad_filter( ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD test_bind_filter_not_serial.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
-
-    li_client ?= mo_client.
-
-    TRY.
-        li_client->_bind( val           = mo_test_app->mv_name
-                          custom_filter = NEW ltcl_bad_filter( ) ).
-        cl_abap_unit_assert=>fail(
-            `a non-serializable custom_filter must be refused at bind time - serialized into the draft it fails only at db_save on a real system` ).
-      CATCH z2ui5_cx_ui5_util_error INTO lx.
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `serializable` ) ).
-    ENDTRY.
-
   ENDMETHOD.
 
 
   METHOD test_omit_paths_wired.
 
-    " the three filter classes are covered directly; what nothing covered is
+    " the two filter classes are covered directly; what nothing covered is
     " the WIRING in _bind( ) - which of them a given parameter combination
     " installs on the attribute. Asserted through the stored filter's
     " behaviour rather than its class, so the test says what the binding
@@ -1503,49 +1435,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
         act = li_stored->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
-
-  ENDMETHOD.
-
-  METHOD test_omit_paths_and_filter.
-
-    " a caller's filter next to an omit: BOTH have to pass. Replacing one
-    " with the other would drop a rule the app asked for without a word,
-    " and the combined object rides into the draft on mt_attri - the reason
-    " the framework combines with its own serializable AND rather than
-    " ajson's create_and_filter
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client ?= mo_client.
-
-    DATA(li_custom) = CAST z2ui5_if_ajson_filter( NEW ltcl_good_filter( ) ).
-
-    li_client->_bind( val                = mo_test_app->mv_name
-                      custom_filter      = li_custom
-                      omit_initial_paths = VALUE #( ( `MIN` ) ) ).
-
-    " the reference first, then the component: the v702 downport does not
-    " lower `REF #( tab[ ] )->comp` as one expression
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    lr_attri = REF #( mo_action->mo_app->mt_attri->*[ name = `MV_NAME` ] ).
-    DATA(li_stored) = lr_attri->custom_filter.
-    cl_abap_unit_assert=>assert_bound( li_stored ).
-
-    " the CALLER's rule still applies - a filled node it names is dropped
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `DROPME` type = `str` value = `filled` ) ) ).
-    " ...and so does the framework's, on the name the caller says nothing about
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
-    " a node neither of them names survives
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_true
-        act = li_stored->keep_node( VALUE #( name = `OTHER` type = `str` value = `filled` ) ) ).
-
-    " and the combination is still serializable, or the next db_save would
-    " fail on a system with the binding metadata in hand
-    cl_abap_unit_assert=>assert_true(
-        z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_stored ) ).
 
   ENDMETHOD.
 

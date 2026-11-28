@@ -281,7 +281,14 @@ Register a backend event and return the handler expression for a view attribute 
 ```abap
 _bind(
     val TYPE data
-    path TYPE abap_bool DEFAULT abap_false )
+    path TYPE abap_bool DEFAULT abap_false
+    tab TYPE data OPTIONAL
+    tab_index TYPE i OPTIONAL
+    switch_default_model TYPE abap_bool DEFAULT abap_false
+    omit_initial TYPE abap_bool DEFAULT abap_false
+    omit_initial_paths TYPE string_table OPTIONAL
+    json TYPE abap_bool DEFAULT abap_false )
+    -> string
 ```
 
 Bind a public attribute of the app to the view. Returns the binding expression for a view attribute - `\{/NAME\}` - and registers val, so its value travels to the client with the response and what the user edits travels back before the next main( ), without a line of code for the transport.

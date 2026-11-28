@@ -518,37 +518,22 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    DATA(li_filter) = custom_filter.
-
-    " omit_initial wires ajson's empty filter into the slot the serializer
-    " already evaluates (z2ui5_cl_ui5_srv_model->main_json_stringify), so an
-    " initial field stays ABSENT from the model and the control keeps its own
-    " default. A caller-supplied filter is kept: both have to pass.
-    " no TRY around the construction: the three local classes have no
-    " constructor that can raise, so the CATCH that used to sit here (falling
-    " back to the caller's filter) guarded nothing
-    IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
-      DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
-      IF omit_initial_paths IS NOT INITIAL.
-        " scoped: only the listed columns are dropped when initial, so a
-        " boolean that must send abap_false survives
-        li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
-      ELSE.
-        " NOT the vendored create_empty_filter: that one also drops a
-        " table ROW whose fields are all initial, which reindexes the
-        " client array against the backend table and corrupts the
-        " write-back (whole-table and __delta) - see the local class
-        li_omit = NEW lcl_empty_filter_keep_rows( ).
-      ENDIF.
-      IF li_filter IS BOUND.
-        " NOT the vendored create_and_filter: its class is not
-        " serializable and the combined ref ends up in the draft -
-        " see the local class
-        li_filter = NEW lcl_and_filter( ii_first  = li_filter
-                                        ii_second = li_omit ).
-      ELSE.
-        li_filter = li_omit.
-      ENDIF.
+    " omit_initial wires the framework's own ajson filter into the slot the
+    " serializer evaluates (z2ui5_cl_ui5_srv_model->main_json_stringify), so
+    " an initial field stays ABSENT from the model and the control keeps its
+    " own default. No TRY around the construction: the two local classes
+    " have no constructor that can raise
+    DATA li_filter TYPE REF TO z2ui5_if_ajson_filter.
+    IF omit_initial_paths IS NOT INITIAL.
+      " scoped: only the listed columns are dropped when initial, so a
+      " boolean that must send abap_false survives
+      li_filter = NEW lcl_initial_paths_filter( omit_initial_paths ).
+    ELSEIF omit_initial = abap_true.
+      " NOT the vendored create_empty_filter: that one also drops a table
+      " ROW whose fields are all initial, which reindexes the client array
+      " against the backend table and corrupts the write-back (whole-table
+      " and __delta) - see the local class
+      li_filter = NEW lcl_empty_filter_keep_rows( ).
     ENDIF.
 
     " val and tab take the data or a data reference to it, like window_bind_tab( )
@@ -556,7 +541,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                 config = VALUE #(
                                     path_only            = path
                                     custom_filter        = li_filter
-                                    custom_mapper        = custom_mapper
                                     tab                  = val_as_data_ref( tab )
                                     tab_index            = tab_index
                                     switch_default_model = switch_default_model

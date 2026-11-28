@@ -146,25 +146,17 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         t_token TYPE STANDARD TABLE OF ty_s_fast WITH EMPTY KEY,
       END OF ty_s_fast_state.
 
-    TYPES:
-      BEGIN OF ty_s_mapper_cache,
-        mapper TYPE REF TO z2ui5_if_ajson_mapping,
-        ajson  TYPE REF TO z2ui5_if_ajson,
-      END OF ty_s_mapper_cache.
-    TYPES ty_t_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
-
-    "! the compatibility branch of main_json_stringify - an attribute with
-    "! a custom_mapper or custom_filter of its own, through a scratch
-    "! instance per mapper (ct_mapper_cache) or the shared one (ci_default)
+    "! the omit_initial branch of main_json_stringify - an attribute with
+    "! a filter (_bind( omit_initial* )), through the shared scratch
+    "! instance ci_default
     METHODS json_custom_set
       IMPORTING
-        ir_attri        TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        ir_ref          TYPE REF TO data
-        io_result       TYPE REF TO z2ui5_if_ajson
+        ir_attri   TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        ir_ref     TYPE REF TO data
+        io_result  TYPE REF TO z2ui5_if_ajson
       CHANGING
-        ci_default      TYPE REF TO z2ui5_if_ajson
-        ct_mapper_cache TYPE ty_t_mapper_cache
-        cs_fast         TYPE ty_s_fast_state
+        ci_default TYPE REF TO z2ui5_if_ajson
+        cs_fast    TYPE ty_s_fast_state
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -1119,11 +1111,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " a no-op on it
         DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                        ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
-        " the scratch instance for a filtered attribute without a mapper
-        " of its own - created when the first such attribute asks for it
+        " the scratch instance for a filtered attribute - created when the
+        " first such attribute asks for it
         DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
-
-        DATA lt_mapper_cache TYPE ty_t_mapper_cache.
 
         " the fast path (json_fast_set): a bound table of flat rows is
         " written as text directly and spliced into the stringified tree
@@ -1161,26 +1151,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          " a mapper or filter is attached to an ajson INSTANCE, so those
-          " attributes keep the scratch-instance detour the direct set cannot
-          " express: convert into the scratch, filter, copy into the result
-          "
-          " This branch is COMPATIBILITY ONLY - _bind( custom_mapper ) and
-          " _bind( custom_filter ) are obsolete (the note on those parameters
-          " in z2ui5_if_client says why and what to write instead), and no app
-          " class in samples, samples-controls or samples-stack has ever
-          " reached them. Do not extend it, and do not route a new feature
-          " through it: the branch above is where a declarative flag belongs -
-          " omit_initial was built exactly there, out of the one filter this
-          " slot was really used for (create_empty_filter). Kept because a
-          " customer app that passes one must keep working
-          IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
-            json_custom_set( EXPORTING ir_attri        = lr_attri
-                                       ir_ref          = lr_ref
-                                       io_result       = li_ajson_result
-                             CHANGING  ci_default      = li_ajson_default
-                                       ct_mapper_cache = lt_mapper_cache
-                                       cs_fast         = ls_fast ).
+          " a filter is attached to an ajson INSTANCE, so an attribute bound
+          " with omit_initial keeps the scratch-instance detour the direct set
+          " cannot express: convert into the scratch, filter, copy into the
+          " result. The filter is the framework's own - the app-supplied
+          " mapper and filter of _bind( ) were removed on 2026-11-28
+          IF lr_attri->custom_filter IS BOUND.
+            json_custom_set( EXPORTING ir_attri   = lr_attri
+                                       ir_ref     = lr_ref
+                                       io_result  = li_ajson_result
+                             CHANGING  ci_default = li_ajson_default
+                                       cs_fast    = ls_fast ).
             CONTINUE.
           ENDIF.
 
@@ -1242,23 +1223,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD json_custom_set.
 
-    IF ir_attri->custom_mapper IS BOUND.
-      ASSIGN ct_mapper_cache[ mapper = ir_attri->custom_mapper ] TO FIELD-SYMBOL(<mapper_cache>). "#EC CI_SORTSEQ
-      IF <mapper_cache> IS ASSIGNED.
-        DATA(ajson) = <mapper_cache>-ajson.
-      ELSE.
-        ajson = z2ui5_cl_ajson=>create_empty(
-                    ii_custom_mapping = ir_attri->custom_mapper ).
-        INSERT VALUE #( mapper = ir_attri->custom_mapper
-                        ajson  = ajson ) INTO TABLE ct_mapper_cache.
-      ENDIF.
-    ELSE.
-      IF ci_default IS NOT BOUND.
-        ci_default = z2ui5_cl_ajson=>create_empty(
-                         ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
-      ENDIF.
-      ajson = ci_default.
+    IF ci_default IS NOT BOUND.
+      ci_default = z2ui5_cl_ajson=>create_empty(
+                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     ENDIF.
+    DATA(ajson) = ci_default.
 
     FIELD-SYMBOLS <val> TYPE any.
     ASSIGN ir_ref->* TO <val>.
@@ -1266,16 +1235,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                 iv_path         = `/`
                 iv_val          = <val> ).
 
-    IF ir_attri->custom_filter IS BOUND.
-      ajson = ajson->filter( ir_attri->custom_filter ).
-    ENDIF.
+    ajson = ajson->filter( ir_attri->custom_filter ).
 
-    " a filter alone (omit_initial is one) keeps the upper-case names, so
-    " a namespaced component is grouped like on every other road
-    " (json_ns_text); a mapper of the app's own names the members itself
-    IF ir_attri->custom_mapper IS NOT BOUND
-        AND find( val = ir_attri->name_client
-                  sub = `//` ) < 0
+    " the filter keeps the upper-case names, so a namespaced component is
+    " grouped like on every other road (json_ns_text)
+    IF find( val = ir_attri->name_client
+             sub = `//` ) < 0
         AND z2ui5_cl_ui5_util_context=>rtti_check_namespaced( ir_ref ) = abap_true.
       json_fast_token( EXPORTING iv_json   = json_ns_text( ajson->mt_json_tree )
                                  iv_path   = ir_attri->name_client
@@ -3183,13 +3148,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = lr_old->name.
       IF sy-subrc = 0.
         " restore everything update_model_attri stored on the bound attribute -
-        " dropping the mapper/filter refs here would silently serialize the
-        " attribute unmapped after a refresh, and dropping the window of a
+        " dropping the filter ref here would silently serialize the attribute
+        " unfiltered after a refresh, and dropping the window of a
         " window_bind_tab( ) table would send it without its total and the
         " app event that loads more
         lr_attri->bind                = lr_old->bind.
         lr_attri->name_client         = lr_old->name_client.
-        lr_attri->custom_mapper       = lr_old->custom_mapper.
         lr_attri->custom_filter       = lr_old->custom_filter.
         lr_attri->check_json          = lr_old->check_json.
         lr_attri->window_size         = lr_old->window_size.
@@ -3747,9 +3711,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               " changes nothing. Deliberately kept a replace: a top-level
               " structure attribute is written the same way
               " (whole_value_apply), and the two have to agree. The one
-              " sender of a genuinely PARTIAL object is the obsolete
-              " _bind( custom_filter ) dropping a non-initial field - such a
-              " field is cleared here, exactly as on the attribute level
+              " sender of a genuinely PARTIAL object was the app-supplied
+              " _bind( custom_filter ), removed 2026-11-28, which could drop a
+              " non-initial field - such a field is cleared here, exactly as
+              " on the attribute level
               json_to_abap( io_json = io_delta->slice( iv_path )
                             ir_ref  = ir_comp ).
             ENDIF.
