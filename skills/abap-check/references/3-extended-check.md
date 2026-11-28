@@ -450,8 +450,8 @@ and points here, so a new trap is added here and nowhere else.
   ended in a tolerable failure, a warning on every run. Code that must run on
   both ends falls back dynamically to the Cloud class instead of failing. Not
   gated: which object is deprecated where is a list no script here holds.
-  All three were fixed in `abap2UI5/mirror-ajson`, not here - `src/00/01` is a
-  mirror (rule 1).
+  All three were fixed in the ajson mirror (`abap-util/mirror-ajson` since
+  2026-11), not here - `src/00/01` is a vendored copy (rule 1).
 - **A test that reaches a Standard-only class.** `test_client_create_url`
   called `z2ui5_cl_ui5_util_http=>client_create`, the `CL_HTTP_CLIENT` half,
   and an ABAP Unit run in ABAP Cloud reported the exception as an error

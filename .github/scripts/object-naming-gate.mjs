@@ -15,11 +15,13 @@
 //             cannot be changed to satisfy a convention
 //   src/99  - frozen production code (rule 1); it ships as-is until the
 //             removal plan retires it
-//   MIRRORED - src/00/01 (ajson) and src/00/02 (S-RTTI) are force-synced from
-//             their mirror repositories by vendor-mirror.yaml, which does
-//             `rm <target>/z*` + `cp <mirror>/src/z*`. A rename here is reverted
-//             on the next scheduled run unless the mirror repos are renamed too,
-//             and their interfaces sit in the signature of z2ui5_if_client~_bind
+//
+// src/00/01 (ajson) and src/00/02 (S-RTTI) are judged like everything else
+// since 2026-11-28: .github/scripts/vendor-mirror.mjs renames every object it
+// vendors to a name on the ui5 segment (z2ui5_cl_ui5_ajson), so the copy is
+// not reverted to a foreign name on the next run. They were exempt while the
+// copy was taken from the mirrors as it was and their interfaces sat in the
+// signature of z2ui5_if_client~_bind.
 
 import { fileURLToPath } from "url";
 import { walk, baseName, dirName } from "./lib/walk.mjs";
@@ -31,8 +33,6 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const EXEMPT = [
   ["src/02", "public API - a stable contract, see AGENTS.md rule 5"],
   ["src/99", "frozen package - ships as-is until the removal plan retires it"],
-  ["src/00/01", "mirrored from abap2UI5/mirror-ajson by vendor-mirror.yaml"],
-  ["src/00/02", "mirrored from abap2UI5/mirror-srtti by vendor-mirror.yaml"],
 ];
 
 // Nothing is pending: every layer outside EXEMPT is on the ui5 segment. If a

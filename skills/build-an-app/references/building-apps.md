@@ -514,7 +514,7 @@ reasoning:
   marshals each control into an object carrying its `ID` plus its public
   properties, so `client->get_event_arg( )` returns a JSON array. Read the one
   property you need out of it BY HAND, per the bullet below — not with
-  `z2ui5_cl_ajson`, which is framework-internal. Do **not** parse a display
+  `z2ui5_cl_ui5_ajson`, which is framework-internal. Do **not** parse a display
   string such as `filterString` — it is localized and its format is not a
   contract.
   **Read only the fields you need**, and never expect the payload to be the
