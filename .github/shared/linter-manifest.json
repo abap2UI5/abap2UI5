@@ -303,14 +303,14 @@
   ],
   "objects": {
     "src/00/01": [
-      "z2ui5_cl_ui5_ajson",
-      "z2ui5_cl_ui5_ajson_rilib",
-      "z2ui5_cx_ui5_ajson_error",
-      "z2ui5_if_ui5_ajson",
-      "z2ui5_if_ui5_ajson_filter",
-      "z2ui5_if_ui5_ajson_map",
-      "z2ui5_if_ui5_ajson_rinit",
-      "z2ui5_if_ui5_ajson_types"
+      "z2ui5_cl_ui5_ajs",
+      "z2ui5_cl_ui5_ajs_rilib",
+      "z2ui5_cx_ui5_ajs_error",
+      "z2ui5_if_ui5_ajs",
+      "z2ui5_if_ui5_ajs_filter",
+      "z2ui5_if_ui5_ajs_map",
+      "z2ui5_if_ui5_ajs_rinit",
+      "z2ui5_if_ui5_ajs_types"
     ],
     "src/00/02": [
       "z2ui5_cl_ui5_srt_aunit",

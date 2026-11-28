@@ -1,4 +1,4 @@
-INTERFACE z2ui5_if_ui5_ajson_rinit PUBLIC.
+INTERFACE z2ui5_if_ui5_ajs_rinit PUBLIC.
 
   TYPES:
     BEGIN OF ty_data_ref,
@@ -12,7 +12,7 @@ INTERFACE z2ui5_if_ui5_ajson_rinit PUBLIC.
 
   METHODS get_data_ref
     IMPORTING
-      !is_node      TYPE z2ui5_if_ui5_ajson_types=>ty_node
+      !is_node      TYPE z2ui5_if_ui5_ajs_types=>ty_node
     RETURNING
       VALUE(ro_ref) TYPE REF TO data.
 

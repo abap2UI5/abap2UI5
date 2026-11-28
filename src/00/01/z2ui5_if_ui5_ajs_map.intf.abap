@@ -1,4 +1,4 @@
-INTERFACE z2ui5_if_ui5_ajson_map
+INTERFACE z2ui5_if_ui5_ajs_map
   PUBLIC.
 
   INTERFACES if_serializable_object.
@@ -21,7 +21,7 @@ INTERFACE z2ui5_if_ui5_ajson_map
       WITH UNIQUE SORTED KEY by_name COMPONENTS from.
 
   TYPES:
-    ty_table_of TYPE STANDARD TABLE OF REF TO z2ui5_if_ui5_ajson_map.
+    ty_table_of TYPE STANDARD TABLE OF REF TO z2ui5_if_ui5_ajs_map.
 
   METHODS to_abap " deprecated, will be removed
     IMPORTING
@@ -39,8 +39,8 @@ INTERFACE z2ui5_if_ui5_ajson_map
 
   METHODS rename_node
     IMPORTING
-      !is_node TYPE z2ui5_if_ui5_ajson_types=>ty_node
+      !is_node TYPE z2ui5_if_ui5_ajs_types=>ty_node
     CHANGING
-      !cv_name TYPE z2ui5_if_ui5_ajson_types=>ty_node-name.
+      !cv_name TYPE z2ui5_if_ui5_ajs_types=>ty_node-name.
 
 ENDINTERFACE.

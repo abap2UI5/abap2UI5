@@ -1,4 +1,4 @@
-class z2ui5_cx_ui5_ajson_error definition
+class z2ui5_cx_ui5_ajs_error definition
   public
   inheriting from CX_STATIC_CHECK
   final
@@ -45,7 +45,7 @@ public section.
       !IV_LOCATION type STRING optional
       !IS_NODE type ANY optional
     raising
-      z2ui5_cx_ui5_ajson_error .
+      z2ui5_cx_ui5_ajs_error .
   methods SET_LOCATION
     importing
       !IV_LOCATION type STRING optional
@@ -64,7 +64,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cx_ui5_ajson_error IMPLEMENTATION.
+CLASS z2ui5_cx_ui5_ajs_error IMPLEMENTATION.
 
 
 method CONSTRUCTOR.
@@ -90,7 +90,7 @@ endmethod.
 
 method raise.
 
-  data lx type ref to z2ui5_cx_ui5_ajson_error.
+  data lx type ref to z2ui5_cx_ui5_ajs_error.
 
   create object lx exporting message = iv_msg.
   lx->set_location(

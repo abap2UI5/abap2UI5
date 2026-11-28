@@ -1,11 +1,11 @@
 " A filter for the adopt tests. It declares if_serializable_object for the
 " same reason the framework's own filters do (see lcl_empty_filter_keep_rows
-" in z2ui5_cl_ui5_client.clas.locals_imp): z2ui5_if_ui5_ajson_filter does not
+" in z2ui5_cl_ui5_client.clas.locals_imp): z2ui5_if_ui5_ajs_filter does not
 " compose it, and check_serializable( ) refuses a filter that cannot be
 " written into the draft.
 CLASS ltcl_test_filter DEFINITION FINAL CREATE PUBLIC.
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ui5_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
     INTERFACES if_serializable_object.
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -14,7 +14,7 @@ ENDCLASS.
 
 CLASS ltcl_test_filter IMPLEMENTATION.
 
-  METHOD z2ui5_if_ui5_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
 
     rv_keep = abap_true.
 
@@ -27,7 +27,7 @@ ENDCLASS.
 " than the stored one is refused, whatever the two filters do.
 CLASS ltcl_test_filter_other DEFINITION FINAL CREATE PUBLIC.
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ui5_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
     INTERFACES if_serializable_object.
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -36,7 +36,7 @@ ENDCLASS.
 
 CLASS ltcl_test_filter_other IMPLEMENTATION.
 
-  METHOD z2ui5_if_ui5_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
 
     rv_keep = abap_true.
 
@@ -154,12 +154,12 @@ CLASS ltcl_bnd_filter_dead DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ui5_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
 ENDCLASS.
 
 CLASS ltcl_bnd_filter_dead IMPLEMENTATION.
 
-  METHOD z2ui5_if_ui5_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
     rv_keep = abap_true.
   ENDMETHOD.
 

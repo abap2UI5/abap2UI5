@@ -18,7 +18,7 @@
 //
 // src/00/01 (ajson) and src/00/02 (S-RTTI) are judged like everything else
 // since 2026-11-28: .github/scripts/vendor-mirror.mjs renames every object it
-// vendors to a name on the ui5 segment (z2ui5_cl_ui5_ajson), so the copy is
+// vendors to a name on the ui5 segment (z2ui5_cl_ui5_ajs), so the copy is
 // not reverted to a foreign name on the next run. They were exempt while the
 // copy was taken from the mirrors as it was and their interfaces sat in the
 // signature of z2ui5_if_client~_bind.

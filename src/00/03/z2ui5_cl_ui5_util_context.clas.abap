@@ -525,7 +525,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     "! A UTC time stamp as an ISO 8601 instant, `YYYY-MM-DDTHH:MM:SSZ` -
     "! `0000-00-00T00:00:00Z` for an initial one and for one that is no
     "! valid point in time. Statement for statement what
-    "! z2ui5_cl_ui5_ajson's lcl_abap_to_json=>format_timestamp does, because a
+    "! z2ui5_cl_ui5_ajs's lcl_abap_to_json=>format_timestamp does, because a
     "! caller writes it into a document next to what ajson wrote
     "! (z2ui5_cl_ui5_srv_model=>json_row): the two must not differ in a
     "! single character, whatever the platform makes of an odd value
@@ -2973,7 +2973,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_json_kind.
 
-    " the same distinctions z2ui5_cl_ui5_ajson's lcl_abap_to_json=>convert_value
+    " the same distinctions z2ui5_cl_ui5_ajs's lcl_abap_to_json=>convert_value
     " makes, in the same order - a boolean by its type name first, so an
     " abap_bool (a CHAR 1) is not a string
     CASE val->absolute_name.

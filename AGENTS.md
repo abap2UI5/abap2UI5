@@ -108,7 +108,7 @@ app hash through `Router.navTo()`.
 ```
 src/
 ├── 00/   Layer 0: Utilities
-│   ├── 01/   AJSON (z2ui5_cl_ui5_ajson) — vendored, DO NOT MODIFY
+│   ├── 01/   AJSON (z2ui5_cl_ui5_ajs) — vendored, DO NOT MODIFY
 │   ├── 02/   S-RTTI (z2ui5_cl_ui5_srt_*) — vendored, DO NOT MODIFY
 │   └── 03/   z2ui5_cl_ui5_util_context (+ _http, _json_fl, z2ui5_cx_ui5_util_error) — see "Utilities"
 ├── 01/   Layer 1: Core engine
@@ -381,7 +381,7 @@ keep the numbers. The frontend rules (2, 7, 8, 10, 12–19, 21) are written out 
 full in **`bundle/AGENTS.md`**, under the same numbers.
 
 1. **Do not modify `src/00/01/` (AJSON) or `src/00/02/` (S-RTTI)** — copied from `abap-util/mirror-ajson` and
-   `abap-util/mirror-srtti` and renamed by `.github/scripts/vendor-mirror.mjs`; a change belongs in the mirror.
+   `abap-util/mirror-srtti` and renamed by `.github/scripts/vendor-mirror.mjs` (names: `.github/vendor-mirror.json`); a change belongs in the mirror.
    **Do not bring back an object of the former `src/99/`** (see "Layered Design").
    All builder work happens in `z2ui5_cl_ui5_view_builder`.
 2. **NEVER edit any file under `src/01/03/` or `src/03/02/` by hand** — they are generated from `bundle/webapp/`

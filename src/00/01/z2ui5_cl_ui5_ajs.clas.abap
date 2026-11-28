@@ -1,83 +1,83 @@
-CLASS z2ui5_cl_ui5_ajson DEFINITION
+CLASS z2ui5_cl_ui5_ajs DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    INTERFACES z2ui5_if_ui5_ajson.
+    INTERFACES z2ui5_if_ui5_ajs.
 
     ALIASES:
-      is_empty FOR z2ui5_if_ui5_ajson~is_empty,
-      exists FOR z2ui5_if_ui5_ajson~exists,
-      members FOR z2ui5_if_ui5_ajson~members,
-      get FOR z2ui5_if_ui5_ajson~get,
-      get_boolean FOR z2ui5_if_ui5_ajson~get_boolean,
-      get_integer FOR z2ui5_if_ui5_ajson~get_integer,
-      get_number FOR z2ui5_if_ui5_ajson~get_number,
-      get_date FOR z2ui5_if_ui5_ajson~get_date,
-      get_timestamp FOR z2ui5_if_ui5_ajson~get_timestamp,
-      get_string FOR z2ui5_if_ui5_ajson~get_string,
-      slice FOR z2ui5_if_ui5_ajson~slice,
-      to_abap FOR z2ui5_if_ui5_ajson~to_abap,
-      array_to_string_table FOR z2ui5_if_ui5_ajson~array_to_string_table.
+      is_empty FOR z2ui5_if_ui5_ajs~is_empty,
+      exists FOR z2ui5_if_ui5_ajs~exists,
+      members FOR z2ui5_if_ui5_ajs~members,
+      get FOR z2ui5_if_ui5_ajs~get,
+      get_boolean FOR z2ui5_if_ui5_ajs~get_boolean,
+      get_integer FOR z2ui5_if_ui5_ajs~get_integer,
+      get_number FOR z2ui5_if_ui5_ajs~get_number,
+      get_date FOR z2ui5_if_ui5_ajs~get_date,
+      get_timestamp FOR z2ui5_if_ui5_ajs~get_timestamp,
+      get_string FOR z2ui5_if_ui5_ajs~get_string,
+      slice FOR z2ui5_if_ui5_ajs~slice,
+      to_abap FOR z2ui5_if_ui5_ajs~to_abap,
+      array_to_string_table FOR z2ui5_if_ui5_ajs~array_to_string_table.
 
     ALIASES:
-      clear FOR z2ui5_if_ui5_ajson~clear,
-      set FOR z2ui5_if_ui5_ajson~set,
-      setx FOR z2ui5_if_ui5_ajson~setx,
-      set_boolean FOR z2ui5_if_ui5_ajson~set_boolean,
-      set_string FOR z2ui5_if_ui5_ajson~set_string,
-      set_integer FOR z2ui5_if_ui5_ajson~set_integer,
-      set_date FOR z2ui5_if_ui5_ajson~set_date,
-      set_timestamp FOR z2ui5_if_ui5_ajson~set_timestamp,
-      set_null FOR z2ui5_if_ui5_ajson~set_null,
-      delete FOR z2ui5_if_ui5_ajson~delete,
-      touch_array FOR z2ui5_if_ui5_ajson~touch_array,
-      push FOR z2ui5_if_ui5_ajson~push,
-      stringify FOR z2ui5_if_ui5_ajson~stringify.
+      clear FOR z2ui5_if_ui5_ajs~clear,
+      set FOR z2ui5_if_ui5_ajs~set,
+      setx FOR z2ui5_if_ui5_ajs~setx,
+      set_boolean FOR z2ui5_if_ui5_ajs~set_boolean,
+      set_string FOR z2ui5_if_ui5_ajs~set_string,
+      set_integer FOR z2ui5_if_ui5_ajs~set_integer,
+      set_date FOR z2ui5_if_ui5_ajs~set_date,
+      set_timestamp FOR z2ui5_if_ui5_ajs~set_timestamp,
+      set_null FOR z2ui5_if_ui5_ajs~set_null,
+      delete FOR z2ui5_if_ui5_ajs~delete,
+      touch_array FOR z2ui5_if_ui5_ajs~touch_array,
+      push FOR z2ui5_if_ui5_ajs~push,
+      stringify FOR z2ui5_if_ui5_ajs~stringify.
 
     ALIASES:
-      clone FOR z2ui5_if_ui5_ajson~clone,
-      filter FOR z2ui5_if_ui5_ajson~filter,
-      map FOR z2ui5_if_ui5_ajson~map.
+      clone FOR z2ui5_if_ui5_ajs~clone,
+      filter FOR z2ui5_if_ui5_ajs~filter,
+      map FOR z2ui5_if_ui5_ajs~map.
 
     ALIASES:
-      mt_json_tree FOR z2ui5_if_ui5_ajson~mt_json_tree,
-      keep_item_order FOR z2ui5_if_ui5_ajson~keep_item_order,
-      format_datetime FOR z2ui5_if_ui5_ajson~format_datetime,
-      to_abap_corresponding_only FOR z2ui5_if_ui5_ajson~to_abap_corresponding_only,
-      freeze FOR z2ui5_if_ui5_ajson~freeze.
+      mt_json_tree FOR z2ui5_if_ui5_ajs~mt_json_tree,
+      keep_item_order FOR z2ui5_if_ui5_ajs~keep_item_order,
+      format_datetime FOR z2ui5_if_ui5_ajs~format_datetime,
+      to_abap_corresponding_only FOR z2ui5_if_ui5_ajs~to_abap_corresponding_only,
+      freeze FOR z2ui5_if_ui5_ajs~freeze.
 
     CLASS-METHODS parse
       IMPORTING
         !iv_json            TYPE any
         !iv_freeze          TYPE abap_bool DEFAULT abap_false
-        !ii_custom_mapping  TYPE REF TO z2ui5_if_ui5_ajson_map OPTIONAL
+        !ii_custom_mapping  TYPE REF TO z2ui5_if_ui5_ajs_map OPTIONAL
         !iv_keep_item_order TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajson
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajs
       RAISING
-        z2ui5_cx_ui5_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     CLASS-METHODS create_empty " Might be deprecated, prefer using new( ) or create object
       IMPORTING
-        !ii_custom_mapping TYPE REF TO z2ui5_if_ui5_ajson_map OPTIONAL
+        !ii_custom_mapping TYPE REF TO z2ui5_if_ui5_ajs_map OPTIONAL
         iv_keep_item_order TYPE abap_bool DEFAULT abap_false
         iv_format_datetime TYPE abap_bool DEFAULT abap_true
         iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajson.
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajs.
 
     " Experimental ! May change
     CLASS-METHODS create_from " TODO, rename to 'from' ?
       IMPORTING
-        !ii_source_json TYPE REF TO z2ui5_if_ui5_ajson
-        !ii_filter TYPE REF TO z2ui5_if_ui5_ajson_filter OPTIONAL " Might be deprecated, use filter() instead
-        !ii_mapper TYPE REF TO z2ui5_if_ui5_ajson_map OPTIONAL " Might be deprecated, use map() instead
+        !ii_source_json TYPE REF TO z2ui5_if_ui5_ajs
+        !ii_filter TYPE REF TO z2ui5_if_ui5_ajs_filter OPTIONAL " Might be deprecated, use filter() instead
+        !ii_mapper TYPE REF TO z2ui5_if_ui5_ajs_map OPTIONAL " Might be deprecated, use map() instead
       RETURNING
-        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajson
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajs
       RAISING
-        z2ui5_cx_ui5_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS constructor
       IMPORTING
@@ -91,7 +91,7 @@ CLASS z2ui5_cl_ui5_ajson DEFINITION
         iv_format_datetime TYPE abap_bool DEFAULT abap_true
         iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajson.
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ui5_ajs.
 
     CLASS-METHODS normalize_path
       IMPORTING
@@ -105,36 +105,36 @@ CLASS z2ui5_cl_ui5_ajson DEFINITION
 
     CLASS-DATA go_float_regex TYPE REF TO cl_abap_regex.
 
-    DATA ms_opts TYPE z2ui5_if_ui5_ajson=>ty_opts.
-    DATA mi_custom_mapping TYPE REF TO z2ui5_if_ui5_ajson_map. " DEPRECATED, will be removed
+    DATA ms_opts TYPE z2ui5_if_ui5_ajs=>ty_opts.
+    DATA mi_custom_mapping TYPE REF TO z2ui5_if_ui5_ajs_map. " DEPRECATED, will be removed
 
     METHODS get_item
       IMPORTING
         iv_path        TYPE string
       RETURNING
-        VALUE(rv_item) TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+        VALUE(rv_item) TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     METHODS prove_path_exists
       IMPORTING
         iv_path              TYPE string
       RETURNING
-        VALUE(rr_end_node) TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node
+        VALUE(rr_end_node) TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node
       RAISING
-        z2ui5_cx_ui5_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
     METHODS delete_subtree
       IMPORTING
         iv_path           TYPE string
         iv_name           TYPE string
-        ir_parent         TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node OPTIONAL
+        ir_parent         TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node OPTIONAL
       RETURNING
-        VALUE(rs_top_node) TYPE z2ui5_if_ui5_ajson_types=>ty_node.
+        VALUE(rs_top_node) TYPE z2ui5_if_ui5_ajs_types=>ty_node.
     METHODS read_only_watchdog
       RAISING
-        z2ui5_cx_ui5_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_ajs IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -159,7 +159,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
     DATA lo_mutator_queue TYPE REF TO lcl_mutator_queue.
 
     IF ii_source_json IS NOT BOUND.
-      z2ui5_cx_ui5_ajson_error=>raise( 'Source not bound' ).
+      z2ui5_cx_ui5_ajs_error=>raise( 'Source not bound' ).
     ENDIF.
 
     CREATE OBJECT ro_instance
@@ -224,7 +224,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
   METHOD get_item.
 
-    DATA ls_path_name TYPE z2ui5_if_ui5_ajson_types=>ty_path_name.
+    DATA ls_path_name TYPE z2ui5_if_ui5_ajs_types=>ty_path_name.
     ls_path_name = lcl_utils=>split_path( iv_path ).
 
     READ TABLE mt_json_tree
@@ -290,7 +290,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
         CLEAR ls_new_node.
         IF lr_node_parent IS NOT INITIAL. " if has parent
           lr_node_parent->children = lr_node_parent->children + 1.
-          IF lr_node_parent->type = z2ui5_if_ui5_ajson_types=>node_type-array.
+          IF lr_node_parent->type = z2ui5_if_ui5_ajs_types=>node_type-array.
             ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
@@ -298,7 +298,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
         ENDIF.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
-        ls_new_node-type = z2ui5_if_ui5_ajson_types=>node_type-object.
+        ls_new_node-type = z2ui5_if_ui5_ajs_types=>node_type-object.
         INSERT ls_new_node INTO TABLE mt_json_tree REFERENCE INTO rr_end_node.
       ENDIF.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.
@@ -313,34 +313,34 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
   METHOD read_only_watchdog.
     IF ms_opts-read_only = abap_true.
-      z2ui5_cx_ui5_ajson_error=>raise( 'This json instance is read only' ).
+      z2ui5_cx_ui5_ajs_error=>raise( 'This json instance is read only' ).
     ENDIF.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~array_to_string_table.
+  METHOD z2ui5_if_ui5_ajs~array_to_string_table.
 
     DATA lv_normalized_path TYPE string.
-    DATA lr_node TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_node TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lr_node = get_item( iv_path ).
 
     IF lr_node IS INITIAL.
-      z2ui5_cx_ui5_ajson_error=>raise( |Path not found: { iv_path }| ).
+      z2ui5_cx_ui5_ajs_error=>raise( |Path not found: { iv_path }| ).
     ENDIF.
-    IF lr_node->type <> z2ui5_if_ui5_ajson_types=>node_type-array.
-      z2ui5_cx_ui5_ajson_error=>raise( |Array expected at: { iv_path }| ).
+    IF lr_node->type <> z2ui5_if_ui5_ajs_types=>node_type-array.
+      z2ui5_cx_ui5_ajs_error=>raise( |Array expected at: { iv_path }| ).
     ENDIF.
 
     LOOP AT mt_json_tree ASSIGNING <item> WHERE path = lv_normalized_path.
       CASE <item>-type.
-        WHEN z2ui5_if_ui5_ajson_types=>node_type-number OR z2ui5_if_ui5_ajson_types=>node_type-string.
+        WHEN z2ui5_if_ui5_ajs_types=>node_type-number OR z2ui5_if_ui5_ajs_types=>node_type-string.
           APPEND <item>-value TO rt_string_table.
-        WHEN z2ui5_if_ui5_ajson_types=>node_type-null.
+        WHEN z2ui5_if_ui5_ajs_types=>node_type-null.
           APPEND '' TO rt_string_table.
-        WHEN z2ui5_if_ui5_ajson_types=>node_type-boolean.
+        WHEN z2ui5_if_ui5_ajs_types=>node_type-boolean.
           DATA lv_tmp TYPE string.
           IF <item>-value = 'true'.
             lv_tmp = abap_true.
@@ -349,7 +349,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
           ENDIF.
           APPEND lv_tmp TO rt_string_table.
         WHEN OTHERS.
-          z2ui5_cx_ui5_ajson_error=>raise( |Cannot convert [{ <item>-type
+          z2ui5_cx_ui5_ajs_error=>raise( |Cannot convert [{ <item>-type
             }] to string at [{ <item>-path }{ <item>-name }]| ).
       ENDCASE.
     ENDLOOP.
@@ -357,7 +357,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~clear.
+  METHOD z2ui5_if_ui5_ajs~clear.
 
     read_only_watchdog( ).
     CLEAR mt_json_tree.
@@ -365,16 +365,16 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~clone.
+  METHOD z2ui5_if_ui5_ajs~clone.
     ri_json = create_from( me ).
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~delete.
+  METHOD z2ui5_if_ui5_ajs~delete.
 
     read_only_watchdog( ).
 
-    DATA ls_split_path TYPE z2ui5_if_ui5_ajson_types=>ty_path_name.
+    DATA ls_split_path TYPE z2ui5_if_ui5_ajs_types=>ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
@@ -386,32 +386,32 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~exists.
+  METHOD z2ui5_if_ui5_ajs~exists.
     rv_exists = boolc( get_item( iv_path ) IS NOT INITIAL ).
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~filter.
+  METHOD z2ui5_if_ui5_ajs~filter.
     ri_json = create_from(
       ii_source_json = me
       ii_filter      = ii_filter ).
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~format_datetime.
+  METHOD z2ui5_if_ui5_ajs~format_datetime.
     ms_opts-format_datetime = iv_use_iso.
     ri_json = me.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~freeze.
+  METHOD z2ui5_if_ui5_ajs~freeze.
     ms_opts-read_only = abap_true.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get.
+  METHOD z2ui5_if_ui5_ajs~get.
 
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     lr_item = get_item( iv_path ).
     IF lr_item IS NOT INITIAL.
       rv_value = lr_item->value.
@@ -420,13 +420,13 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_boolean.
+  METHOD z2ui5_if_ui5_ajs~get_boolean.
 
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS INITIAL OR lr_item->type = z2ui5_if_ui5_ajson_types=>node_type-null.
+    IF lr_item IS INITIAL OR lr_item->type = z2ui5_if_ui5_ajs_types=>node_type-null.
       RETURN.
-    ELSEIF lr_item->type = z2ui5_if_ui5_ajson_types=>node_type-boolean.
+    ELSEIF lr_item->type = z2ui5_if_ui5_ajs_types=>node_type-boolean.
       rv_value = boolc( lr_item->value = 'true' ).
     ELSEIF lr_item->value IS NOT INITIAL.
       rv_value = abap_true.
@@ -435,16 +435,16 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_date.
+  METHOD z2ui5_if_ui5_ajs~get_date.
 
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     DATA lv_y TYPE c LENGTH 4.
     DATA lv_m TYPE c LENGTH 2.
     DATA lv_d TYPE c LENGTH 2.
 
     lr_item = get_item( iv_path ).
 
-    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ui5_ajson_types=>node_type-string.
+    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ui5_ajs_types=>node_type-string.
       FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})(T|$)'
         IN lr_item->value
         SUBMATCHES lv_y lv_m lv_d ##REGEX_POSIX.
@@ -454,20 +454,20 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_integer.
+  METHOD z2ui5_if_ui5_ajs~get_integer.
 
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ui5_ajson_types=>node_type-number.
+    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ui5_ajs_types=>node_type-number.
       rv_value = lr_item->value.
     ENDIF.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_node_type.
+  METHOD z2ui5_if_ui5_ajs~get_node_type.
 
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     lr_item = get_item( iv_path ).
     IF lr_item IS NOT INITIAL.
       rv_node_type = lr_item->type.
@@ -476,32 +476,32 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_number.
+  METHOD z2ui5_if_ui5_ajs~get_number.
 
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ui5_ajson_types=>node_type-number.
+    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ui5_ajs_types=>node_type-number.
       rv_value = lr_item->value.
     ENDIF.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_string.
+  METHOD z2ui5_if_ui5_ajs~get_string.
 
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS NOT INITIAL AND lr_item->type <> z2ui5_if_ui5_ajson_types=>node_type-null.
+    IF lr_item IS NOT INITIAL AND lr_item->type <> z2ui5_if_ui5_ajs_types=>node_type-null.
       rv_value = lr_item->value.
     ENDIF.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_timestamp.
+  METHOD z2ui5_if_ui5_ajs~get_timestamp.
 
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
 
     lr_item = get_item( iv_path ).
 
@@ -513,17 +513,17 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
     TRY.
         rv_value = lo_to_abap->to_timestamp( lr_item->value ).
-      CATCH z2ui5_cx_ui5_ajson_error.
+      CATCH z2ui5_cx_ui5_ajs_error.
         RETURN.
     ENDTRY.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~get_timestampl.
+  METHOD z2ui5_if_ui5_ajs~get_timestampl.
 
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
-    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
 
     lr_item = get_item( iv_path ).
 
@@ -535,32 +535,32 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
     TRY.
         rv_value = lo_to_abap->to_timestampl( lr_item->value ).
-      CATCH z2ui5_cx_ui5_ajson_error.
+      CATCH z2ui5_cx_ui5_ajs_error.
         RETURN.
     ENDTRY.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~is_empty.
+  METHOD z2ui5_if_ui5_ajs~is_empty.
     rv_yes = boolc( lines( mt_json_tree ) = 0 ).
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~keep_item_order.
+  METHOD z2ui5_if_ui5_ajs~keep_item_order.
     ms_opts-keep_item_order = abap_true.
     ri_json = me.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~map.
+  METHOD z2ui5_if_ui5_ajs~map.
     ri_json = create_from(
       ii_source_json = me
       ii_mapper      = ii_mapper ).
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~members.
+  METHOD z2ui5_if_ui5_ajs~members.
 
     DATA lv_normalized_path TYPE string.
     FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
@@ -574,30 +574,30 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~opts.
+  METHOD z2ui5_if_ui5_ajs~opts.
     rs_opts = ms_opts.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~push.
+  METHOD z2ui5_if_ui5_ajs~push.
 
-    DATA lr_parent TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
-    DATA lr_new_node TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_parent TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
+    DATA lr_new_node TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
 
     read_only_watchdog( ).
 
     lr_parent = get_item( iv_path ).
 
     IF lr_parent IS INITIAL.
-      z2ui5_cx_ui5_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
+      z2ui5_cx_ui5_ajs_error=>raise( |Path [{ iv_path }] does not exist| ).
     ENDIF.
 
-    IF lr_parent->type <> z2ui5_if_ui5_ajson_types=>node_type-array.
-      z2ui5_cx_ui5_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
+    IF lr_parent->type <> z2ui5_if_ui5_ajs_types=>node_type-array.
+      z2ui5_cx_ui5_ajs_error=>raise( |Path [{ iv_path }] is not array| ).
     ENDIF.
 
-    DATA lt_new_nodes TYPE z2ui5_if_ui5_ajson_types=>ty_nodes_tt.
-    DATA ls_new_path TYPE z2ui5_if_ui5_ajson_types=>ty_path_name.
+    DATA lt_new_nodes TYPE z2ui5_if_ui5_ajs_types=>ty_nodes_tt.
+    DATA ls_new_path TYPE z2ui5_if_ui5_ajs_types=>ty_path_name.
     DATA lv_new_index TYPE i.
 
     lv_new_index     = lr_parent->children + 1.
@@ -621,12 +621,12 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set.
+  METHOD z2ui5_if_ui5_ajs~set.
 
-    DATA ls_split_path TYPE z2ui5_if_ui5_ajson_types=>ty_path_name.
-    DATA lr_parent TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
-    DATA ls_deleted_node TYPE z2ui5_if_ui5_ajson_types=>ty_node.
-    DATA lv_item_order TYPE z2ui5_if_ui5_ajson_types=>ty_node-order.
+    DATA ls_split_path TYPE z2ui5_if_ui5_ajs_types=>ty_path_name.
+    DATA lr_parent TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
+    DATA ls_deleted_node TYPE z2ui5_if_ui5_ajs_types=>ty_node.
+    DATA lv_item_order TYPE z2ui5_if_ui5_ajs_types=>ty_node-order.
 
     read_only_watchdog( ).
 
@@ -637,9 +637,9 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
     ENDIF.
 
     IF iv_node_type IS NOT INITIAL
-      AND iv_node_type <> z2ui5_if_ui5_ajson_types=>node_type-boolean AND iv_node_type <> z2ui5_if_ui5_ajson_types=>node_type-null
-      AND iv_node_type <> z2ui5_if_ui5_ajson_types=>node_type-number AND iv_node_type <> z2ui5_if_ui5_ajson_types=>node_type-string.
-      z2ui5_cx_ui5_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
+      AND iv_node_type <> z2ui5_if_ui5_ajs_types=>node_type-boolean AND iv_node_type <> z2ui5_if_ui5_ajs_types=>node_type-null
+      AND iv_node_type <> z2ui5_if_ui5_ajs_types=>node_type-number AND iv_node_type <> z2ui5_if_ui5_ajs_types=>node_type-string.
+      z2ui5_cx_ui5_ajs_error=>raise( |Unexpected type { iv_node_type }| ).
     ENDIF.
 
     ls_split_path = lcl_utils=>split_path( iv_path ).
@@ -673,14 +673,14 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
     lv_item_order = ls_deleted_node-order.
 
     " convert to json
-    DATA lt_new_nodes TYPE z2ui5_if_ui5_ajson_types=>ty_nodes_tt.
+    DATA lt_new_nodes TYPE z2ui5_if_ui5_ajs_types=>ty_nodes_tt.
     DATA lv_array_index TYPE i.
 
-    IF lr_parent->type = z2ui5_if_ui5_ajson_types=>node_type-array.
+    IF lr_parent->type = z2ui5_if_ui5_ajs_types=>node_type-array.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
-    ELSEIF lr_parent->type = z2ui5_if_ui5_ajson_types=>node_type-object
+    ELSEIF lr_parent->type = z2ui5_if_ui5_ajs_types=>node_type-object
       AND lv_item_order = 0 AND ms_opts-keep_item_order = abap_true.
       lv_item_order = lr_parent->children + 1.
     ENDIF.
@@ -713,7 +713,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~setx.
+  METHOD z2ui5_if_ui5_ajs~setx.
 
     DATA lv_path TYPE string.
     DATA lv_val TYPE string.
@@ -741,28 +741,28 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
     ENDIF.
 
     IF lv_val = 'null'.
-      z2ui5_if_ui5_ajson~set_null( lv_path ).
+      z2ui5_if_ui5_ajs~set_null( lv_path ).
     ELSEIF lv_val = 'true'.
-      z2ui5_if_ui5_ajson~set_boolean(
+      z2ui5_if_ui5_ajs~set_boolean(
         iv_path = lv_path
         iv_val  = abap_true ).
     ELSEIF lv_val = 'false'.
-      z2ui5_if_ui5_ajson~set_boolean(
+      z2ui5_if_ui5_ajs~set_boolean(
         iv_path = lv_path
         iv_val  = abap_false ).
     ELSEIF lv_val CO '0123456789'.
       lv_int = lv_val.
-      z2ui5_if_ui5_ajson~set_integer(
+      z2ui5_if_ui5_ajs~set_integer(
         iv_path = lv_path
         iv_val  = lv_int ).
     ELSEIF lv_val CO '0123456789.' AND go_float_regex->create_matcher( text = lv_val )->match( ) = abap_true.
       lv_dec = lv_val.
-      z2ui5_if_ui5_ajson~set(
+      z2ui5_if_ui5_ajs~set(
         iv_path = lv_path
         iv_val  = lv_dec ).
     ELSEIF lv_val+0(1) = '{' OR lv_val+0(1) = '['.
       "Expect object/array, but no further checks, parser will catch errors
-      z2ui5_if_ui5_ajson~set(
+      z2ui5_if_ui5_ajs~set(
         iv_path = lv_path
         iv_val  = parse(
           iv_json = lv_val
@@ -775,7 +775,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
           off = 1
           len = lv_last - 1 ).
       ENDIF.
-      z2ui5_if_ui5_ajson~set_string(
+      z2ui5_if_ui5_ajs~set_string(
         iv_path = lv_path
         iv_val  = lv_val ).
     ENDIF.
@@ -785,13 +785,13 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set_boolean.
+  METHOD z2ui5_if_ui5_ajs~set_boolean.
 
     ri_json = me.
 
     DATA lv_bool TYPE abap_bool.
     lv_bool = boolc( iv_val IS NOT INITIAL ).
-    z2ui5_if_ui5_ajson~set(
+    z2ui5_if_ui5_ajs~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_bool ).
@@ -799,14 +799,14 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set_date.
+  METHOD z2ui5_if_ui5_ajs~set_date.
 
     ri_json = me.
 
     DATA lv_val TYPE string.
     lv_val = lcl_abap_to_json=>format_date( iv_val ).
 
-    z2ui5_if_ui5_ajson~set(
+    z2ui5_if_ui5_ajs~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
@@ -814,11 +814,11 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set_integer.
+  METHOD z2ui5_if_ui5_ajs~set_integer.
 
     ri_json = me.
 
-    z2ui5_if_ui5_ajson~set(
+    z2ui5_if_ui5_ajs~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = iv_val ).
@@ -826,12 +826,12 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set_null.
+  METHOD z2ui5_if_ui5_ajs~set_null.
 
     ri_json = me.
 
     DATA lv_null_ref TYPE REF TO data.
-    z2ui5_if_ui5_ajson~set(
+    z2ui5_if_ui5_ajs~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_null_ref ).
@@ -839,13 +839,13 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set_string.
+  METHOD z2ui5_if_ui5_ajs~set_string.
 
     ri_json = me.
 
     DATA lv_val TYPE string.
     lv_val = iv_val.
-    z2ui5_if_ui5_ajson~set(
+    z2ui5_if_ui5_ajs~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
@@ -853,14 +853,14 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set_timestamp.
+  METHOD z2ui5_if_ui5_ajs~set_timestamp.
 
     ri_json = me.
 
     DATA lv_timestamp_iso TYPE string.
     lv_timestamp_iso = lcl_abap_to_json=>format_timestamp( iv_val ).
 
-    z2ui5_if_ui5_ajson~set(
+    z2ui5_if_ui5_ajs~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_timestamp_iso ).
@@ -868,14 +868,14 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~set_timestampl.
+  METHOD z2ui5_if_ui5_ajs~set_timestampl.
 
     ri_json = me.
 
     DATA lv_timestamp_iso TYPE string.
     lv_timestamp_iso = lcl_abap_to_json=>format_timestampl( iv_val ).
 
-    z2ui5_if_ui5_ajson~set(
+    z2ui5_if_ui5_ajs~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_timestamp_iso ).
@@ -883,17 +883,17 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~slice.
+  METHOD z2ui5_if_ui5_ajs~slice.
 
     " TODO: idea
     " read only mode (for read only jsons or a param)
     " which would reuse the original tree, so copy a reference of the tree, presuming that it is not changed
     " this will be faster, in particular for array iterations
 
-    DATA lo_section         TYPE REF TO z2ui5_cl_ui5_ajson.
+    DATA lo_section         TYPE REF TO z2ui5_cl_ui5_ajs.
     DATA ls_item            LIKE LINE OF mt_json_tree.
     DATA lv_normalized_path TYPE string.
-    DATA ls_path_parts      TYPE z2ui5_if_ui5_ajson_types=>ty_path_name.
+    DATA ls_path_parts      TYPE z2ui5_if_ui5_ajs_types=>ty_path_name.
     DATA lv_path_len        TYPE i.
     DATA lv_path_pattern    TYPE string.
 
@@ -928,7 +928,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~stringify.
+  METHOD z2ui5_if_ui5_ajs~stringify.
 
     rv_json = lcl_json_serializer=>stringify(
       it_json_tree       = mt_json_tree
@@ -938,12 +938,12 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~touch_array.
+  METHOD z2ui5_if_ui5_ajs~touch_array.
 
-    DATA lr_node TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
-    DATA ls_deleted_node TYPE z2ui5_if_ui5_ajson_types=>ty_node.
+    DATA lr_node TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
+    DATA ls_deleted_node TYPE z2ui5_if_ui5_ajs_types=>ty_node.
     DATA ls_new_node LIKE LINE OF mt_json_tree.
-    DATA ls_split_path TYPE z2ui5_if_ui5_ajson_types=>ty_path_name.
+    DATA ls_split_path TYPE z2ui5_if_ui5_ajs_types=>ty_path_name.
 
     read_only_watchdog( ).
 
@@ -951,7 +951,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
     IF ls_split_path IS INITIAL. " Assign root, exceptional processing
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = z2ui5_if_ui5_ajson_types=>node_type-array.
+      ls_new_node-type = z2ui5_if_ui5_ajs_types=>node_type-array.
       INSERT ls_new_node INTO TABLE mt_json_tree.
       RETURN.
     ENDIF.
@@ -966,7 +966,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
     IF lr_node IS INITIAL. " Or node was cleared
 
-      DATA lr_parent TYPE REF TO z2ui5_if_ui5_ajson_types=>ty_node.
+      DATA lr_parent TYPE REF TO z2ui5_if_ui5_ajs_types=>ty_node.
       lr_parent = prove_path_exists( ls_split_path-path ).
       ASSERT lr_parent IS NOT INITIAL.
 
@@ -974,7 +974,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = z2ui5_if_ui5_ajson_types=>node_type-array.
+      ls_new_node-type = z2ui5_if_ui5_ajs_types=>node_type-array.
 
       IF ms_opts-keep_item_order = abap_true.
         IF ls_deleted_node IS NOT INITIAL.
@@ -986,8 +986,8 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
       INSERT ls_new_node INTO TABLE mt_json_tree.
 
-    ELSEIF lr_node->type <> z2ui5_if_ui5_ajson_types=>node_type-array.
-      z2ui5_cx_ui5_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
+    ELSEIF lr_node->type <> z2ui5_if_ui5_ajs_types=>node_type-array.
+      z2ui5_cx_ui5_ajs_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     ENDIF.
 
     ri_json = me.
@@ -995,7 +995,7 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~to_abap.
+  METHOD z2ui5_if_ui5_ajs~to_abap.
 
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
@@ -1008,14 +1008,14 @@ CLASS z2ui5_cl_ui5_ajson IMPLEMENTATION.
 
     lo_to_abap->to_abap(
       EXPORTING
-        it_nodes    = z2ui5_if_ui5_ajson~mt_json_tree
+        it_nodes    = z2ui5_if_ui5_ajs~mt_json_tree
       CHANGING
         c_container = ev_container ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ui5_ajson~to_abap_corresponding_only.
+  METHOD z2ui5_if_ui5_ajs~to_abap_corresponding_only.
     ms_opts-to_abap_corresponding_only = iv_enable.
     ri_json = me.
   ENDMETHOD.

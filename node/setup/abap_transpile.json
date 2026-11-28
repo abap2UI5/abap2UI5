@@ -26,7 +26,7 @@
       "reposrc": false
     },
     "skip": [
-      {"object": "Z2UI5_CL_UI5_AJSON", "class": "ltcl_abap_to_json", "method": "set_value_timestampl", "note": "lv_timestampl + '0.1234567' answers .1245184: packed arithmetic goes through a JS double - backlog/items/runtime-packed-copy-precision.md (abaplint/transpiler#1962)"}
+      {"object": "Z2UI5_CL_UI5_AJS", "class": "ltcl_abap_to_json", "method": "set_value_timestampl", "note": "lv_timestampl + '0.1234567' answers .1245184: packed arithmetic goes through a JS double - backlog/items/runtime-packed-copy-precision.md (abaplint/transpiler#1962)"}
     ]
   }
 }

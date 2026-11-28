@@ -87,10 +87,7 @@ jobs:
       if: steps.when.outputs.go == 'true'
       run: |
         set -euo pipefail
-        for repo in mirror-ajson mirror-srtti; do
-          git clone --quiet --depth 1 "https://github.com/abap-util/$repo.git" "$RUNNER_TEMP/$repo"
-        done
-        node .github/scripts/vendor-mirror.mjs "$RUNNER_TEMP/mirror-ajson" "$RUNNER_TEMP/mirror-srtti"
+        node .github/scripts/vendor-mirror.mjs
         if ! git diff --quiet -- src/00; then
           # the backticks are Markdown, not a shell expansion
           # shellcheck disable=SC2016

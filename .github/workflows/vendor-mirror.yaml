@@ -6,9 +6,10 @@ name: vendor-mirror
 #
 # The mirrors rename their upstream to abap-util's prefix (zabaputil_) and
 # apply their local patches; abap-util takes them as they are.
-# .github/scripts/vendor-mirror.mjs takes the objects this repository uses
-# and renames each one to this repository's name for it (z2ui5_cl_ui5_ajson,
-# z2ui5_cl_ui5_srt_type, ...) - the table, and why it is a table, are there.
+# .github/scripts/vendor-mirror.mjs clones both, takes the objects this
+# repository uses and renames each one to this repository's name for it
+# (z2ui5_cl_ui5_ajs, z2ui5_cl_ui5_srt_type, ...): the table is
+# .github/vendor-mirror.json, why it is a table the script's header.
 
 # no schedule: bump-deps.yaml does this once a month, in its one
 # pull request; a dispatch still runs it on its own
@@ -36,9 +37,7 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: run
       run: |
-        git clone --depth 1 https://github.com/abap-util/mirror-ajson.git "$RUNNER_TEMP/mirror-ajson"
-        git clone --depth 1 https://github.com/abap-util/mirror-srtti.git "$RUNNER_TEMP/mirror-srtti"
-        node .github/scripts/vendor-mirror.mjs "$RUNNER_TEMP/mirror-ajson" "$RUNNER_TEMP/mirror-srtti"
+        node .github/scripts/vendor-mirror.mjs
         git status
     - name: Open PR
       uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1

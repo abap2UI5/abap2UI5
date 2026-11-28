@@ -17,7 +17,7 @@ class ltcl_error implementation.
 
   method raise.
 
-    data lx type ref to z2ui5_cx_ui5_ajson_error.
+    data lx type ref to z2ui5_cx_ui5_ajs_error.
     data lv_msg type string.
 
     lv_msg = repeat( val = 'a'
@@ -25,9 +25,9 @@ class ltcl_error implementation.
                                            occ = 50 ) && '123'.
 
     try.
-      z2ui5_cx_ui5_ajson_error=>raise( lv_msg ).
+      z2ui5_cx_ui5_ajs_error=>raise( lv_msg ).
       cl_abap_unit_assert=>fail( ).
-    catch z2ui5_cx_ui5_ajson_error into lx.
+    catch z2ui5_cx_ui5_ajs_error into lx.
       cl_abap_unit_assert=>assert_equals(
         exp = lv_msg
         act = lx->get_text( ) ).
@@ -37,13 +37,13 @@ class ltcl_error implementation.
 
   method raise_w_location.
 
-    data lx type ref to z2ui5_cx_ui5_ajson_error.
+    data lx type ref to z2ui5_cx_ui5_ajs_error.
 
     try.
-      z2ui5_cx_ui5_ajson_error=>raise( iv_msg = 'a'
+      z2ui5_cx_ui5_ajs_error=>raise( iv_msg = 'a'
                                        iv_location = 'b' ).
       cl_abap_unit_assert=>fail( ).
-    catch z2ui5_cx_ui5_ajson_error into lx.
+    catch z2ui5_cx_ui5_ajs_error into lx.
       cl_abap_unit_assert=>assert_equals(
         exp = 'a @b'
         act = lx->get_text( ) ).
@@ -53,17 +53,17 @@ class ltcl_error implementation.
 
   method raise_w_node.
 
-    data lx type ref to z2ui5_cx_ui5_ajson_error.
-    data ls_node type z2ui5_if_ui5_ajson_types=>ty_node.
+    data lx type ref to z2ui5_cx_ui5_ajs_error.
+    data ls_node type z2ui5_if_ui5_ajs_types=>ty_node.
 
     ls_node-path = '/x/'.
     ls_node-name = 'y'.
 
     try.
-      z2ui5_cx_ui5_ajson_error=>raise( iv_msg = 'a'
+      z2ui5_cx_ui5_ajs_error=>raise( iv_msg = 'a'
                                        is_node = ls_node ).
       cl_abap_unit_assert=>fail( ).
-    catch z2ui5_cx_ui5_ajson_error into lx.
+    catch z2ui5_cx_ui5_ajs_error into lx.
       cl_abap_unit_assert=>assert_equals(
         exp = 'a @/x/y'
         act = lx->get_text( ) ).
@@ -73,13 +73,13 @@ class ltcl_error implementation.
 
   method set_location.
 
-    data lx type ref to z2ui5_cx_ui5_ajson_error.
+    data lx type ref to z2ui5_cx_ui5_ajs_error.
 
     try.
-      z2ui5_cx_ui5_ajson_error=>raise( iv_msg = 'a'
+      z2ui5_cx_ui5_ajs_error=>raise( iv_msg = 'a'
                                        iv_location = 'b' ).
       cl_abap_unit_assert=>fail( ).
-    catch z2ui5_cx_ui5_ajson_error into lx.
+    catch z2ui5_cx_ui5_ajs_error into lx.
       cl_abap_unit_assert=>assert_equals(
         exp = lx->location
         act = 'b' ).
@@ -93,9 +93,9 @@ class ltcl_error implementation.
     endtry.
 
     try.
-      z2ui5_cx_ui5_ajson_error=>raise( iv_msg = 'a' ).
+      z2ui5_cx_ui5_ajs_error=>raise( iv_msg = 'a' ).
       cl_abap_unit_assert=>fail( ).
-    catch z2ui5_cx_ui5_ajson_error into lx.
+    catch z2ui5_cx_ui5_ajs_error into lx.
       cl_abap_unit_assert=>assert_equals(
         exp = lx->location
         act = '' ).

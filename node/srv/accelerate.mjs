@@ -3,7 +3,7 @@
  *
  * Until @abaplint/runtime 2.13.96, two of its functions made a roundtrip with
  * one large table quadratic: LOOP AT ... WHERE over a sorted primary key
- * evaluated the WHERE on every row (z2ui5_cl_ui5_ajson's stringify runs one per
+ * evaluated the WHERE on every row (z2ui5_cl_ui5_ajs's stringify runs one per
  * node), and CP compiled a regular expression per call that walked the whole
  * rest of a string behind a trailing * (open-abap's XML parser asks one per
  * token of the draft). The event roundtrip of 2000 rows took 22.6 s in a CAP
