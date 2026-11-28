@@ -40,6 +40,10 @@ const EXTERNAL = new Map([
     "the name of Z2UI5_CL_CONFIG_APP up to 2026-11 - the fallback for an older config-management install",
   ],
   [
+    "Z2UI5_CL_CCI_BUNDLE",
+    "ships in abap2UI5-addons/custom-controls - called dynamically, a missing class is a 404 (z2ui5_cl_ui5_http_handler=>_cci_call)",
+  ],
+  [
     "Z2UI5_CL_CC_DEMO_OUT",
     "sample custom control of the samples repository - referenced from frozen src/99",
   ],

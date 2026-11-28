@@ -174,20 +174,31 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `get(node);if(found)return found;node=typeof node.getParent==="function"?node.getParent():null}return null}return{create,destroy,resetApp,registerView,runAsOwner,of}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/core/CustomControls.js": function(){sap.ui.define([],()=>{"use strict";const BUNDLE_PARAM="z2ui5-bundle";const BUNDLE_CC="cc";const VERSION_PARAM="z2ui5-version";const EMBED_MODULE="z2ui5` &&
-             `/embed";const BUNDLE_MODULE="z2ui5/cc/bundle";const NAMES_CONTROLS=/z2ui5(?:[./]cc|_cc[ci])\b/;let loaded=false;let loading=null;function namesControls(xml){return NAMES_CONTROLS.test(String(xml??""))` &&
-             `}function frontendBundle(){try{const embed=sap.ui.require(EMBED_MODULE);const version=embed?.ccBundle;if(typeof version!=="string"||!version)return null;const url=embed.bundleUrl;return{version,url:ty` &&
-             `peof url==="string"&&url?url:null}}catch{return null}}function bundleUrl(ctx,frontend){const base=frontend.url||ctx?.state?.url;if(!base)return null;try{const url=new URL(base,window.location.href);ur` &&
-             `l.hash="";url.searchParams.set(BUNDLE_PARAM,BUNDLE_CC);url.searchParams.set(VERSION_PARAM,frontend.version);return url.href}catch{return null}}function bundleArrived(){try{return Boolean(sap.ui.requir` &&
-             `e(BUNDLE_MODULE))}catch{return false}}const LOAD_TIMEOUT=6e4;function loadScript(url){return new Promise((resolve,reject)=>{const script=document.createElement("script");let timer=null;const settle=(o` &&
-             `k,reason)=>{if(timer===null)return;clearTimeout(timer);timer=null;if(ok){resolve();return}script.remove();reject(new Error(``the custom controls this view uses could not be loaded${reason}: ${url}``))` &&
-             `};timer=setTimeout(()=>settle(false,`` (no answer within ${LOAD_TIMEOUT/1e3} seconds)``),LOAD_TIMEOUT);script.src=url;script.async=true;script.onerror=()=>settle(false,"");script.onload=()=>setTimeout` &&
-             `(()=>settle(bundleArrived(),""),0);document.head.appendChild(script)})}function ensure(ctx,xml){if(loaded||!namesControls(xml))return Promise.resolve();const frontend=frontendBundle();if(!frontend)ret` &&
-             `urn Promise.resolve();if(bundleArrived()){loaded=true;return Promise.resolve()}if(!loading){const url=bundleUrl(ctx,frontend);const load=url?loadScript(url):Promise.reject(new Error("the custom contro` &&
-             `ls this view uses could not be loaded: no endpoint to load them from"));loading=load.then(()=>{loaded=true;loading=null},e=>{loading=null;throw e})}return loading}return{ensure,namesControls}});` && |\n| &&
+             `      "z2ui5/core/CustomControls.js": function(){sap.ui.define([],()=>{"use strict";const BUNDLE_PARAM="z2ui5-bundle";const BUNDLE_CC="cc";const VERSION_PARAM="z2ui5-version";const BUNDLE_CCI="cci";co` &&
+             `nst NAME_PARAM="z2ui5-name";const EMBED_MODULE="z2ui5/embed";const BUNDLE_MODULE="z2ui5/cc/bundle";const NAMES_CONTROLS=/z2ui5(?:[./]cc|_cc[ci])\b/;const CCI_XMLNS=/\bxmlns(?::([\w.-]+))?\s*=\s*["']z2` &&
+             `ui5_cci\.cc["']/g;const CCI_MODULE=/z2ui5_cci\/cc\/(\w+)/g;const CCI_CLASS=/z2ui5_cci\.cc\.([A-Z]\w*)/g;let loaded=false;let loading=null;const communityLoads=new Map;let communityOff=false;function n` &&
+             `amesControls(xml){return NAMES_CONTROLS.test(String(xml??""))}function communityControls(xml){const text=String(xml??"");const names=new Set;for(const[,prefix]of text.matchAll(CCI_XMLNS)){const tag=pr` &&
+             `efix?``${prefix.replace(/[.-]/g,"\\$&")}:``:"";const element=new RegExp(``<${tag}([A-Z]\\w*)[\\s/>]``,"g");for(const[,name]of text.matchAll(element))names.add(name)}for(const[,name]of text.matchAll(CC` &&
+             `I_MODULE))names.add(name);for(const[,name]of text.matchAll(CCI_CLASS))names.add(name);return[...names].sort()}function frontendBundle(){try{const embed=sap.ui.require(EMBED_MODULE);const version=embed` &&
+             `?.ccBundle;if(typeof version!=="string"||!version)return null;const url=embed.bundleUrl;return{version,url:typeof url==="string"&&url?url:null}}catch{return null}}function bundleUrl(ctx,frontend){cons` &&
+             `t base=frontend.url||ctx?.state?.url;if(!base)return null;try{const url=new URL(base,window.location.href);url.hash="";url.searchParams.set(BUNDLE_PARAM,BUNDLE_CC);url.searchParams.set(VERSION_PARAM,f` &&
+             `rontend.version);return url.href}catch{return null}}function communityUrl(ctx,frontend,names){const base=frontend.url||ctx?.state?.url;if(!base)return null;try{const url=new URL(base,window.location.h` &&
+             `ref);url.hash="";url.searchParams.set(BUNDLE_PARAM,BUNDLE_CCI);url.searchParams.set(NAME_PARAM,names.join(","));url.searchParams.delete(VERSION_PARAM);return url.href}catch{return null}}function bundl` &&
+             `eArrived(){try{return Boolean(sap.ui.require(BUNDLE_MODULE))}catch{return false}}const LOAD_TIMEOUT=6e4;function loadScript(url,arrived){return new Promise((resolve,reject)=>{const script=document.cre` &&
+             `ateElement("script");let timer=null;const settle=(ok,reason)=>{if(timer===null)return;clearTimeout(timer);timer=null;if(ok){resolve();return}script.remove();reject(new Error(``the custom controls this` &&
+             ` view uses could not be loaded${reason}: ${url}``))};timer=setTimeout(()=>settle(false,`` (no answer within ${LOAD_TIMEOUT/1e3} seconds)``),LOAD_TIMEOUT);script.src=url;script.async=true;script.onerro` &&
+             `r=()=>settle(false,"");script.onload=()=>setTimeout(()=>settle(arrived(),""),0);document.head.appendChild(script)})}function ensureOwn(ctx,xml){if(loaded||!namesControls(xml))return Promise.resolve();` &&
+             `const frontend=frontendBundle();if(!frontend)return Promise.resolve();if(bundleArrived()){loaded=true;return Promise.resolve()}if(!loading){const url=bundleUrl(ctx,frontend);const load=url?loadScript(` &&
+             `url,bundleArrived):Promise.reject(new Error("the custom controls this view uses could not be loaded: no endpoint to load them from"));loading=load.then(()=>{loaded=true;loading=null},e=>{loading=null;` &&
+             `throw e})}return loading}function ensureCommunity(ctx,xml){if(communityOff)return Promise.resolve();const names=communityControls(xml);if(!names.length)return Promise.resolve();const frontend=frontend` &&
+             `Bundle();if(!frontend)return Promise.resolve();const missing=names.filter(name=>!communityLoads.has(name));if(missing.length){const url=communityUrl(ctx,frontend,missing);const load=url?loadScript(url` &&
+             `,()=>true).catch(()=>{communityOff=true;for(const name of missing)communityLoads.delete(name)}):Promise.resolve();for(const name of missing)communityLoads.set(name,load)}return Promise.all(names.map(n` &&
+             `ame=>communityLoads.get(name))).then(()=>undefined)}function ensure(ctx,xml){return Promise.all([ensureOwn(ctx,xml),ensureCommunity(ctx,xml)]).then(()=>undefined)}return{ensure,namesControls,community` &&
+             `Controls}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/core/Embed.js": function(){sap.ui.define(["sap/ui/core/Component","sap/ui/core/ComponentContainer"],(Component,ComponentContainer)=>{"use strict";const AREA="z2ui5EmbedArea";const STYLE=` &&
+             `      "z2ui5/core/Embed.js": function(){sap.ui.define(["sap/ui/core/Component","sap/ui/core/ComponentContainer"],(Component,ComponentContainer)=>{"use strict";const AREA="z2ui5EmbedArea";const STYLE=`.
+    result = result &&
              ```.${AREA} .sapMShell.sapMShellAppWidthLimited .sapMShellCentralBox ``+"{ left: 0; margin-left: 0; width: 100%; }";const STYLE_ID="z2ui5-embed-style";function installStyle(){if(document.getElementById` &&
              `(STYLE_ID))return;const marker=document.createElement("meta");marker.id=STYLE_ID;document.head.appendChild(marker);try{const sheet=new CSSStyleSheet;sheet.replaceSync(STYLE);document.adoptedStyleSheet` &&
              `s=[...document.adoptedStyleSheets,sheet]}catch(e){const style=document.createElement("style");style.textContent=STYLE;document.head.appendChild(style)}}function startupParameters(params,app){const res` &&
@@ -197,8 +208,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `=>[].concat(startup[name])[0];const params={};for(const name of Object.keys(startup)){if(name!=="app_start"&&first(name)!=null){params[name]=first(name)}}const app=settings.app||first("app_start")||""` &&
              `;return Object.assign({},settings,{app:String(app),params:Object.assign(params,settings.params)})}function componentData(settings,installation){const data=Object.assign({},installation.componentData,{` &&
              `endpoint:settings.endpoint});const parameters=startupParameters(settings.params,settings.app);if(Object.keys(parameters).length)data.startupParameters=parameters;if(settings.ownsPage===true)data.ownsP` &&
-             `age=true;return data}function createComponent(settings,installation){const create=()=>Component.create({name:installation.componentName,manifest:true,handleValidation:true,componentData:componentData(`.
-    result = result &&
+             `age=true;return data}function createComponent(settings,installation){const create=()=>Component.create({name:installation.componentName,manifest:true,handleValidation:true,componentData:componentData(` &&
              `settings,installation)});const owner=settings.host&&Component.getOwnerComponentFor(settings.host);if(owner){try{return owner.runAsOwner(create)}catch(e){}}return create()}return{startupParameters,comp` &&
              `onentData,withHostStart,create(settings,installation){const part=settings.ownsPage!==true;if(part)installStyle();return Promise.resolve(createComponent(withHostStart(settings),installation)).then(comp` &&
              `onent=>{const container=new ComponentContainer({lifecycle:"Container",propagateModel:false,width:"100%",height:"100%",component});if(part)container.addStyleClass(AREA);return container})}}});` && |\n| &&
@@ -261,7 +271,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `f(document.getElementById(STYLE_ID))return;const head=document.head||document.documentElement;if(!head)return;const style=document.createElement("style");style.id=STYLE_ID;style.textContent=DIALOG_STY` &&
              `LES;head.appendChild(style)}catch{}}function withClass(control,className){if(control&&typeof control.addStyleClass==="function"){control.addStyleClass(className)}return control}function createContaine` &&
              `r(){document.getElementById("z2ui5ServerErrorContainer")?.remove();const container=document.createElement("div");container.id="z2ui5ServerErrorContainer";container.style.cssText=``\n      position: fi` &&
-             `xed;\n      top: 50%;\n      left: 50%;\n      transform: translate(-50%, -50%);\n      width: 90%;\n      height: 90%;\n      background: white;\n      border: 1px solid #bb0000;\n      border-radius` &&
+             `xed;\n      top: 50%;\n      left: 50%;\n      transform: translate(-50%, -50%);\n      width: 90%;\n      height: 90%;\n      background: white;\n      border: 1px solid #bb0000;\n      border-radius`.
+    result = result &&
              `: 0;\n      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);\n      z-index: 9999;\n      display: flex;\n      flex-direction: column;\n      font-family: "72", "72full", Arial, Helvetica, sans-serif;\n  ` &&
              `  ``;document.body.appendChild(container);return container}function hasErrorDetails(ctx){return(ctx?.state?.onErrorDetails||[]).length>0}function openErrorDetails(ctx){for(const fn of ctx?.state?.onEr` &&
              `rorDetails||[]){if(!fn)continue;try{fn()}catch{}}}function restart(ctx){if(typeof ctx?.restart==="function"){ctx.restart();return}window.location.reload()}function showFriendlyDialog(ctx,title,details` &&
@@ -271,8 +282,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `,MESSAGE_CLASS)});if(String(details||"").trim()!==message){content.push(withClass(new Text({text:"Choose Details for the full technical information."}),HINT_CLASS))}const restartButton=new Button({tex` &&
              `t:"Restart",type:"Emphasized",press:()=>{dialog.close();restart(ctx)}});const copyText=``${title||DEFAULT_TITLE}\n\n${details}``;const copyButton=new Button({text:"Copy",press:()=>{copyToClipboard(cop` &&
              `yText);copyButton.setText("Copied");setTimeout(()=>{if(!copyButton.bIsDestroyed)copyButton.setText("Copy")},1500)}});const buttons=[];if(hasErrorDetails(ctx)){buttons.push(new Button({text:"Details",p` &&
-             `ress:()=>{dialog.close();openErrorDetails(ctx)}}))}buttons.push(copyButton);if(typeof options.onRetry==="function"){buttons.push(new Button({text:"Retry",press:()=>{dialog.close();options.onRetry()}})`.
-    result = result &&
+             `ress:()=>{dialog.close();openErrorDetails(ctx)}}))}buttons.push(copyButton);if(typeof options.onRetry==="function"){buttons.push(new Button({text:"Retry",press:()=>{dialog.close();options.onRetry()}})` &&
              `)}buttons.push(restartButton);const dialog=new Dialog({title:title||"Application Error",type:"Message",state:"Error",icon:"sap-icon://message-error",contentWidth:"36rem",escapeHandler:oPromise=>oPromi` &&
              `se.reject(),content,buttons,initialFocus:restartButton,afterClose:()=>{if(store.dialog===dialog)store.dialog=null;dialog.destroy()}});withClass(dialog,DIALOG_CLASS);store.dialog=dialog;dialog.open();r` &&
              `eturn true}catch(e){window.console?.error?.("ErrorView: friendly dialog failed",e);return false}}function reset(ctx){const store=ctx.errorView;store.title="";store.details="";store.options={}}function` &&
@@ -335,7 +345,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `Timers(ctx){const timers=ctx?.state?.timers;if(!timers)return;for(const key in timers){cancelTimer(timers[key]);delete timers[key]}}function resolveStorageType(Storage,type,context,verb){const typeKey` &&
              `=String(type||"").toLowerCase();const known=Storage.Type[typeKey];const storageType=known||Storage.Type.session;if(type&&!known){logError(``${context}: unknown type '${type}', ${verb} the session stor` &&
              `e``)}return storageType}function setShellTitle(ctx,title,label){const launchpad=ctx?.state?.oLaunchpad;if(!launchpad)return false;if(ctx.state.ownsPage===false){logError(``${label}: the shell title is` &&
-             ` the page's - '${title}' is not set. The component does not own the page (embedded, ownsPage); its host titles the shell``);return false}const shell=launchpad.ShellUIService;if(!shell?.setTitle){launc` &&
+             ` the page's - '${title}' is not set. The component does not own the page (embedded, ownsPage); its host titles the shell``);return false}const shell=launchpad.ShellUIService;if(!shell?.setTitle){launc`.
+    result = result &&
              `hpad.pendingTitle=title;return true}delete launchpad.pendingTitle;try{const result=shell.setTitle(title);if(result?.catch){result.catch(e=>logError(``${label}: ShellUIService.setTitle failed``,e))}}ca` &&
              `tch(e){logError(``${label}: ShellUIService.setTitle failed``,e)}return true}function cancelTimer(handle){if(typeof handle==="function")handle();else clearTimeout(handle)}function applyTokenUpdate(cont` &&
              `rol,oEvent){const isRemoved=oEvent.getParameter("type")==="removed";const rawList=oEvent.getParameter(isRemoved?"removedTokens":"addedTokens")||[];const tokens=rawList.map(item=>({KEY:item.getKey(),TE` &&
@@ -345,8 +356,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `turn list.filter(file=>{if(!(Number(file?.size)>limit))return true;logError(``file '${file?.name??""}' is over the limit of ${maxMegabytes} MB - not read``);try{onTooBig?.(file)}catch(e){logError("wit` &&
              `hinFileSize: the size handler failed",e)}return false})}function dispatchWhenIdle(oController,args){const fire=()=>{if(!isControllerAlive(oController))return;if(oController.ctx?.state?.isBusy){afterRo` &&
              `undtrip(oController,()=>setTimeout(fire,0));return}oController.eB(...args)};fire()}function fireWhenIdle(owner,fire){let cancel=()=>{};const attempt=()=>{cancel=()=>{};if(isDestroyed(owner))return;if(` &&
-             `Context.of(owner)?.state.isBusy){cancel=afterRoundtrip(owner,()=>{const id=setTimeout(attempt,0);cancel=()=>clearTimeout(id)});return}fire()};attempt();return()=>cancel()}function runCallbacks(callbac`.
-    result = result &&
+             `Context.of(owner)?.state.isBusy){cancel=afterRoundtrip(owner,()=>{const id=setTimeout(attempt,0);cancel=()=>clearTimeout(id)});return}fire()};attempt();return()=>cancel()}function runCallbacks(callbac` &&
              `ks,...args){if(!callbacks)return;for(const fn of callbacks){if(!fn)continue;try{fn(...args)}catch(e){logError("runCallbacks: callback failed",e)}}}const pendingDelegates=new WeakMap;function onNextRen` &&
              `dering(control,fn,key){let byKey;if(key){byKey=pendingDelegates.get(control);if(!byKey){byKey=new Map;pendingDelegates.set(control,byKey)}const prev=byKey.get(key);if(prev)control.removeEventDelegate(` &&
              `prev)}const delegate={onAfterRendering:()=>{control.removeEventDelegate(delegate);if(byKey)byKey.delete(key);fn()}};if(byKey)byKey.set(key,delegate);control.addEventDelegate(delegate)}function whenRen` &&
@@ -412,15 +422,15 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `edEvents,toText,modelPathOf,bindingPathOf,toCaretIndex,deriveSystemType,isValidRedirectURL,isSafeRedirectProtocol,isSafeDownloadURL,isValidContextId,withSapClient,buildDeltaFromPaths,sanitizeMessageDe` &&
              `tails,isRootModelSlot,effectiveSizeLimit,renderInvisibleSpan,EMPTY_RENDERER,hookCallback,normalizeEventArgs,eventOptions,byteLength,lazyByteLength}});` && |\n| &&
              `` && |\n| &&
-             `},` && |\n| &&
+             `},` && |\n|.
+    result = result &&
              `      "z2ui5/core/RootSlot.js": function(){sap.ui.define(["sap/ui/core/Control","z2ui5/core/Env"],(Control,Env)=>{"use strict";const RootSlot=Control.extend("z2ui5.core.RootSlot",{metadata:{aggregatio` &&
              `ns:{root:{type:"sap.ui.core.Control",multiple:false}},defaultAggregation:"root"},renderer:{apiVersion:2,render(rm,oSlot){rm.openStart("div",oSlot);rm.style("width","100%");rm.style("height","100%");rm` &&
              `.openEnd();const oRoot=oSlot.getAggregation("root");if(oRoot)rm.renderControl(oRoot);rm.close("div")}}});return Env.ownClass(RootSlot)});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/Router.js": function(){sap.ui.define(["sap/ui/core/routing/HashChanger","z2ui5/core/Lib"],(HashChanger,Lib)=>{"use strict";const APP_ROUTE_PREFIX="/app/";const SHELL_SEPARATOR="&/";f` &&
-             `unction hashChanger(){return HashChanger.getInstance()}function splitHash(sHash){const raw=String(sHash||"").replace(/^#/,"");if(!raw||raw.startsWith("/"))return{shell:"",app:raw};const i=raw.indexOf(`.
-    result = result &&
+             `unction hashChanger(){return HashChanger.getInstance()}function splitHash(sHash){const raw=String(sHash||"").replace(/^#/,"");if(!raw||raw.startsWith("/"))return{shell:"",app:raw};const i=raw.indexOf(` &&
              `SHELL_SEPARATOR);if(i<0)return{shell:"",app:raw};let app=raw.slice(i+SHELL_SEPARATOR.length).replace(/^\/+/,"");if(app)app=``/${app}``;return{shell:raw.slice(0,i),app}}function appHashOf(sHash){return` &&
              ` splitHash(sHash).app}function getHash(){return appHashNormalized(hashChanger().getHash())}function appHashNormalized(sHash){const app=appHashOf(sHash);if(app==="/")return"";return app&&!app.startsWit` &&
              `h("/")?``/${app}``:app}function getRawHash(){return String(window.location.hash||"").replace(/^#/,"")}function patternFor(sClass,sDraftId){const base=``${APP_ROUTE_PREFIX}${sClass}``;return sDraftId?` &&
@@ -483,7 +493,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `lot.key];continue}const id=stripSlotPrefix(ctx,entry.control.getId(),slot);out[slot.key]={ID:id,X:entry.dom.scrollLeft||0,Y:entry.dom.scrollTop||0}}return Object.keys(out).length?out:undefined}functio` &&
              `n reset(ctx){clearScrollCache(ctx)}return{getFocusInfo,getScrollInfo,onScrollCapture,closestUi5Element,focusTextInput,isInComponent,mayMoveFocus,watchFocus,unwatchFocus,reset}});` && |\n| &&
              `` && |\n| &&
-             `},` && |\n| &&
+             `},` && |\n|.
+    result = result &&
              `      "z2ui5/core/Server.js": function(){sap.ui.define(["sap/ui/VersionInfo","z2ui5/core/Lib","z2ui5/core/Session","z2ui5/core/ScrollFocus","z2ui5/core/ViewSlots","z2ui5/core/ErrorView"],(VersionInfo,` &&
              `Lib,Session,ScrollFocus,ViewSlots,ErrorView)=>{"use strict";const REQUEST_TIMEOUT_MS=6e5;const RESET_BUILD_WAIT_MS=1e4;function keepBuildChain(chain){if(!chain)return chain;let timer;const giveUp=new ` &&
              `Promise(resolve=>{timer=setTimeout(()=>{Lib.logError("Server: a view build of the previous app did not finish within "+RESET_BUILD_WAIT_MS/1e3+" seconds - the next build no longer waits for it");resol` &&
@@ -493,8 +504,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `rn{PROTOCOL:3,endSession(ctx){if(!Lib.isValidContextId(ctx.state.contextId))return;fetch(ctx.state.url,{method:"HEAD",keepalive:true,headers:{"sap-terminate":"session","sap-contextid":ctx.state.contex` &&
              `tId,"sap-contextid-accept":"header"}}).catch(()=>{});ctx.state.contextId=null},reset(ctx){ctx.server.requestSeq+=1;this._abortInflight(ctx);ctx.server.viewBuild=keepBuildChain(ctx.server.viewBuild);Li` &&
              `b.dropQueuedEvents(ctx.state);ctx.state.timerRepeat=null;ErrorView.reset(ctx)},restoreFromRoute(ctx){if(ctx.state.terminated)return;ctx.state.isBusy=true;ctx.state.tickInFlight=false;showBusy(ctx,0);L` &&
-             `ib.cancelPendingTimers(ctx);ctx.state.timerRepeat=null;Lib.dropQueuedEvents(ctx.state);this.roundtrip(ctx,{});ctx.server.restoreSeq=ctx.server.requestSeq},roundtrip(ctx,oBody={}){const state=ctx.state`.
-    result = result &&
+             `ib.cancelPendingTimers(ctx);ctx.state.timerRepeat=null;Lib.dropQueuedEvents(ctx.state);this.roundtrip(ctx,{});ctx.server.restoreSeq=ctx.server.requestSeq},roundtrip(ctx,oBody={}){const state=ctx.state` &&
              `;state.oBody=oBody;const eventName=oBody.ARGUMENTS?.[0]?.[0];const oConfig=state.oConfig;const config={...Session.config(ctx,oConfig,oBody.ID),S_FOCUS:ScrollFocus.getFocusInfo(ctx),S_SCROLL:ScrollFocu` &&
              `s.getScrollInfo(ctx)};oBody.S_FRONT={ID:oBody.ID,EVENT:eventName,HASH:state.ownsPage?window.location.hash:""};const sFront=oBody.S_FRONT;if(oBody.TIMER)sFront.TIMER=true;delete oBody.TIMER;if(!oBody.I` &&
              `D){const route=ctx.router?.startRoute?.();if(route?.DRAFT&&route.DRAFT===ctx.router?.failedDraft){delete route.DRAFT}if(route)sFront.ROUTE=route}if(Object.values(config).some(v=>v!==undefined)){sFront` &&
@@ -557,7 +567,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `,controllerProp:"oControllerPopover",fragmentId:"popoverId"}];function ownId(ctx,localId){const owner=ctx?.component;return owner?.createId?owner.createId(localId):localId}function fragmentIdOf(ctx,sl` &&
              `ot){return slot.fragmentId?ownId(ctx,slot.fragmentId):undefined}const slotsByKey=new Map(slots.map(s=>[s.key,s]));function byKey(key){return slotsByKey.get(key)}function getView(ctx,key){const slot=by` &&
              `Key(key);return slot?ctx?.state[slot.prop]:undefined}function setView(ctx,key,view,xml){const slot=byKey(key);if(!slot)return;ctx.state[slot.prop]=view;Context.registerView(ctx,view);slotXmlStore(ctx)` &&
-             `[key]=xml;slotAppStore(ctx)[key]=ctx.state.oResponse?.APP;ctx.state.slotToken[key]=ctx.state.oResponse?.TOKEN;attachSharedModels(ctx,view)}function getViewXml(ctx,key){return slotXmlStore(ctx)[key]}fu` &&
+             `[key]=xml;slotAppStore(ctx)[key]=ctx.state.oResponse?.APP;ctx.state.slotToken[key]=ctx.state.oResponse?.TOKEN;attachSharedModels(ctx,view)}function getViewXml(ctx,key){return slotXmlStore(ctx)[key]}fu`.
+    result = result &&
              `nction slotXmlStore(ctx){return ctx.state.slotXml}function getViewApp(ctx,key){return slotAppStore(ctx)[key]}function slotAppStore(ctx){return ctx.state.slotApp}function getViewToken(ctx,key){return c` &&
              `tx.state.slotToken[key]}function attachSharedModels(ctx,view){if(!view)return;if(ctx.state.oDeviceModel){view.setModel(ctx.state.oDeviceModel,"device")}const messaging=Env.getMessaging?.();if(messagin` &&
              `g){view.setModel(messaging.getMessageModel(),"message");messaging.registerObject(view,true)}}function getController(ctx,key){const slot=byKey(key);return slot?ctx?.state[slot.controllerProp]:undefined` &&
@@ -567,8 +578,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `r){const isOurs=m=>m?._z2ui5Tracked?m:undefined;if(!owner?.getModel)return undefined;return isOurs(owner.getModel())??isOurs(owner.getModel("http"))}function responseModel(ctx,oController){const app=c` &&
              `tx?.state?.oResponse?.APP;let oView;if(app){for(const slot of slots){if(getViewApp(ctx,slot.key)!==app)continue;const candidate=getView(ctx,slot.key);if(candidate){oView=candidate;break}}}if(!oView)oV` &&
              `iew=oController?.getView?.();if(!oView)return undefined;return trackedModel(oView)??oView.getModel?.()}function containingSlotKey(ctx,element){const state=ctx?.state;if(!state)return undefined;let cur` &&
-             `rent=element;while(current){for(const slot of slots){if(state[slot.prop]===current)return slot.key}current=current.getParent?.()}return undefined}function byIdOfOwner(owner,id){const ctx=Context.of(ow`.
-    result = result &&
+             `rent=element;while(current){for(const slot of slots){if(state[slot.prop]===current)return slot.key}current=current.getParent?.()}return undefined}function byIdOfOwner(owner,id){const ctx=Context.of(ow` &&
              `ner);if(!ctx)return undefined;return byId(ctx,containingSlotKey(ctx,owner)??"MAIN",id)}function destroy(ctx,key){const slot=byKey(key);if(!slot||!ctx?.state)return;for(const dep of slot.dependentSlots` &&
              `??[])destroy(ctx,dep);delete slotXmlStore(ctx)[key];delete slotAppStore(ctx)[key];delete ctx.state.slotToken[key];const view=ctx.state[slot.prop];if(!view)return;for(const inner of slot.containedSlots` &&
              `??[]){if(isInside(ctx.state[byKey(inner).prop],view))destroy(ctx,inner)}if(slot.fragmentId){try{if(view.close)view.close()}catch(e){Lib.logError(``ViewSlots.destroy: view.close() failed for ${key}``,e` &&
@@ -628,7 +638,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `inding,args.slice(4))}const handlers={BINDING_CALL:evBindingCall};return{handlers}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/core/actions/Browser.js": function(){sap.ui.define(["sap/m/MessageBox","sap/m/library","sap/ui/util/Storage","z2ui5/core/Router","z2ui5/core/Lib","z2ui5/core/ViewSlots"],(MessageBox,mobil` &&
+             `      "z2ui5/core/actions/Browser.js": function(){sap.ui.define(["sap/m/MessageBox","sap/m/library","sap/ui/util/Storage","z2ui5/core/Router","z2ui5/core/Lib","z2ui5/core/ViewSlots"],(MessageBox,mobil`.
+    result = result &&
              `eLibrary,Storage,Router,Lib,ViewSlots)=>{"use strict";const _URLHelper=mobileLibrary.URLHelper;function evClipboardCopy(oController,args){const value=args[1];Lib.copyToClipboard(value!==null&&typeof v` &&
              `alue==="object"?JSON.stringify(value):value)}const ACTIVE_DATA_MIME=/^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i;const ACTIVE_FILE_EXTENSION=/\.(html?|shtml|xht(ml)?|svgz?|hta|mht(` &&
              `ml)?)\s*$/i;const UNSAFE_FILENAME_CHARS=/[\\/:*?"<>|\x00-\x1f]/g;function evDownloadB64File(oController,args){if(!Lib.isSafeDownloadURL(args[1])){Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` &&
@@ -638,8 +649,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ent.body.appendChild(a);a.click();document.body.removeChild(a)}function boundPayload(oController,raw,action){if(raw==null||typeof raw!=="string")return raw;const path=Lib.modelPathOf(raw);if(!path){Li` &&
              `b.logError(``${action}: '${raw}' is neither a payload nor a model path``);return undefined}const oModel=ViewSlots.responseModel(oController?.ctx,oController);const value=oModel?.getProperty(path);if(v` &&
              `alue==null){Lib.logError(``${action}: nothing bound at the model path '${path}'``)}return value}function evStoreData(oController,args){const payload=boundPayload(oController,args[1],"STORE_DATA");if(p` &&
-             `ayload==null){if(args[1]==null){Lib.logError("STORE_DATA: no payload - pass the storage structure or its model path")}return}const{TYPE,PREFIX,VALUE,KEY}=payload;try{const storageType=Lib.resolveStora`.
-    result = result &&
+             `ayload==null){if(args[1]==null){Lib.logError("STORE_DATA: no payload - pass the storage structure or its model path")}return}const{TYPE,PREFIX,VALUE,KEY}=payload;try{const storageType=Lib.resolveStora` &&
              `geType(Storage,TYPE,"STORE_DATA","writing to");const oStorage=new Storage(storageType,PREFIX);if(VALUE===""||VALUE==null){oStorage.remove(KEY)}else{oStorage.put(KEY,VALUE)}}catch(e){Lib.logError(``STO` &&
              `RE_DATA: storage operation failed for key '${KEY}'``,e)}}function evHashBack(oController,args){Router.navBack(oController?.ctx,args?args[1]:undefined)}function evLocationReload(oController,args){if(Li` &&
              `b.isValidRedirectURL(args[1])){window.location.href=args[1]}else{MessageBox.error("Invalid redirect URL. Only relative URLs to the same domain are allowed.")}}function evSystemLogout(oController,args)` &&
@@ -705,7 +715,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ge&&typeof page.getId==="function")return page.getId();Lib.logError(``CONTROL_CALL: no control '${raw}' for the page argument``);return raw}case"controlIdOrNull":return resolveControlOrNull(raw,view,c` &&
              `tx);case"anchor":return resolveControl(raw,view,ctx);case"within":return resolveControlOrNull(raw,view,ctx);case"object":if(raw&&typeof raw==="object")return raw;try{return JSON.parse(raw)}catch{Lib.l` &&
              `ogError(``CONTROL_CALL: malformed object argument '${raw}'``);return{}}default:return raw}}function castArgAuto(raw){if(raw==="X"||raw==="true")return true;if(raw===""||raw===" "||raw==="false")return` &&
-             ` false;return raw}function setsStringProperty(control,method){if(!control||typeof method!=="string"||!/^set[A-Z]/.test(method))return false;const prop=control.getMetadata?.()?.getAllProperties?.()[met` &&
+             ` false;return raw}function setsStringProperty(control,method){if(!control||typeof method!=="string"||!/^set[A-Z]/.test(method))return false;const prop=control.getMetadata?.()?.getAllProperties?.()[met`.
+    result = result &&
              `hod.charAt(3).toLowerCase()+method.slice(4)];if(!prop)return false;const primitive=prop.getType?.()?.getPrimitiveType?.()?.getName?.();return primitive?primitive==="string":prop.type==="string"}const ` &&
              `NULLABLE_KINDS=["controlIdOrNull"];function castArgs(kinds,rawArgs,view,target,ctx){if(kinds===null){const keepString=setsStringProperty(target?.control,target?.method);return rawArgs.map((raw,i)=>i==` &&
              `=0&&keepString?raw:castArgAuto(raw))}let count=rawArgs.length;while(count<kinds.length&&NULLABLE_KINDS.includes(kinds[count]))count++;return kinds.slice(0,count).map((kind,i)=>castArg(kind,rawArgs[i],` &&
@@ -715,8 +726,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ntrol.indexOfItem==="function"){return control.getSelectedItems().map(item=>control.indexOfItem(item)).filter(i=>i>=0)}return null}function whenAnchorRendered(anchor,oController,fn){const guarded=()=>` &&
              `{if(!Lib.isControllerAlive(oController))return;fn()};if(anchor&&typeof anchor.getDomRef==="function"){Lib.whenRendered(anchor,oController,guarded,"open")}else{guarded()}}function pseudoToggleBy({contr` &&
              `ol,id,view,kinds,args,oController}){if(!control||typeof control.openBy!=="function"){Lib.logError(``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``);return}const anchor=castArgs(kinds,args` &&
-             `.slice(4),view,undefined,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(control.isOpen?.())control.close();else control.openBy(anchor)})}function pseudoOpenBy({control,id,view,kind`.
-    result = result &&
+             `.slice(4),view,undefined,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(control.isOpen?.())control.close();else control.openBy(anchor)})}function pseudoOpenBy({control,id,view,kind` &&
              `s,args,oController}){if(!control||typeof control.openBy!=="function"&&typeof control.open!=="function"){Lib.logError(``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``);return}const anchor=ca` &&
              `stArgs(kinds,args.slice(4),view,undefined,oController?.ctx)[0];whenAnchorRendered(anchor,oController,()=>{if(typeof control.openBy==="function")control.openBy(anchor);else control.open(false,anchor,"b` &&
              `egin top","begin bottom",anchor)})}function pseudoCss({control,id,args}){const prop=String(args[4]??"").toLowerCase();if(!CSS_PROPERTIES.includes(prop)){Lib.logError(``CONTROL_BY_ID: css property '${a` &&
@@ -779,7 +789,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `=ViewSlots.resolveById(ctx,id);if(!c)return false;if(typeof c.isOpen==="function")return!!c.isOpen();return typeof c.getVisible==="function"?c.getVisible()!==false:true}function shortcutEntry(ctx,comb` &&
              `o){const shortcuts=ctx.state.shortcuts;if(!Object.prototype.hasOwnProperty.call(shortcuts,combo)){return undefined}const scopes=shortcuts[combo];for(const key of Object.keys(scopes)){if(key===SHORTCUT` &&
              `_GLOBAL||SHORTCUT_SLOTS.includes(key))continue;if(scopeControlOpen(ctx,key))return scopes[key]}for(const key of SHORTCUT_SLOTS){if(scopes[key]&&ViewSlots.getView(ctx,key)){const own=ViewSlots.getContr` &&
-             `oller(ctx,key);return own?{...scopes[key],controller:own}:scopes[key]}}return scopes[SHORTCUT_GLOBAL]}function commitFocusedValue(){if(typeof document==="undefined")return;const active=document.active` &&
+             `oller(ctx,key);return own?{...scopes[key],controller:own}:scopes[key]}}return scopes[SHORTCUT_GLOBAL]}function commitFocusedValue(){if(typeof document==="undefined")return;const active=document.active`.
+    result = result &&
              `Element;if(!active||active===document.body)return;try{const control=ScrollFocus.closestUi5Element(active);if(control?.isA?.("sap.m.InputBase")&&typeof control.onChange==="function"){control.onChange()` &&
              `}}catch(e){Lib.logError("KEYBOARD_SHORTCUT: committing the focused field failed",e)}}function ownsKeystroke(ctx,target){if(ctx.state.ownsPage!==false)return true;if(!target||target===document.body||ta` &&
              `rget===document.documentElement){return Boolean(ctx.focus?.userInside)}return ScrollFocus.isInComponent(ctx,target)}function installShortcutListener(ctx){if(ctx.shortcuts.listener||typeof document==="` &&
@@ -789,8 +800,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `HORTCUT: dispatch failed",e)}};ctx.shortcuts.listener=listener;document.addEventListener("keydown",listener)}function reset(ctx){const listener=ctx?.shortcuts?.listener;if(!listener||typeof document==` &&
              `="undefined")return;document.removeEventListener("keydown",listener);ctx.shortcuts.listener=null}function evKeyboardShortcut(oController,args){const ctx=oController?.ctx;if(!ctx){Lib.logError("KEYBOAR` &&
              `D_SHORTCUT: no context to register in");return}const combo=normalizeShortcut(args[1]);if(!combo){Lib.logError(``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``);return}const r` &&
-             `aw=String(args[3]??"");const upper=raw.toUpperCase();const scope=SHORTCUT_SLOTS.includes(upper)?upper:raw;const shortcuts=ctx.state.shortcuts;if(combo in Object.prototype){Lib.logError(``KEYBOARD_SHOR`.
-    result = result &&
+             `aw=String(args[3]??"");const upper=raw.toUpperCase();const scope=SHORTCUT_SLOTS.includes(upper)?upper:raw;const shortcuts=ctx.state.shortcuts;if(combo in Object.prototype){Lib.logError(``KEYBOARD_SHOR` &&
              `TCUT: '${args[1]}' is not a key combination``);return}const scopes=shortcuts[combo]??(shortcuts[combo]=Object.create(null));if(!args[2]){delete scopes[scope];if(Object.keys(scopes).length===0)delete s` &&
              `hortcuts[combo];return}scopes[scope]={event:args[2],controller:oController};installShortcutListener(ctx)}const handlers={KEYBOARD_SHORTCUT:evKeyboardShortcut};return{handlers,reset,normalizeShortcut,s` &&
              `hortcutFromEvent,shortcutCandidates}});` && |\n| &&
@@ -856,7 +866,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `);let bPlaced;try{bPlaced=await displayView(ctx,xml,ctx.state.oResponse?.OVIEWMODEL,mOptions,(c,oView)=>swapAlone(c,oView,oOld,aOldClients),localId)}catch(e){if(oOld)leavePage(ctx,oOld,aOldClients);th` &&
              `row e}if(!bPlaced&&oOld)leavePage(ctx,oOld,aOldClients);return bPlaced})}function displayStandalone(ctx,slotKey,xml,mOptions,seq){return chainBuild(ctx,seq,()=>{ViewSlots.destroy(ctx,slotKey);if(slotK` &&
              `ey==="POPUP")return displayFragment(ctx,xml,seq);return displayPopover(ctx,xml,mOptions.openById,seq)})}function updateModelIfRequired(ctx,slotKey){const oView=ViewSlots.getView(ctx,slotKey);if(!oView` &&
-             `)return;const sSlotApp=ViewSlots.getViewApp(ctx,slotKey);const sResponseApp=ctx.state.oResponse?.APP;if(sSlotApp&&sResponseApp&&sSlotApp!==sResponseApp)return;const tracked=resolveTrackedModel(oView);` &&
+             `)return;const sSlotApp=ViewSlots.getViewApp(ctx,slotKey);const sResponseApp=ctx.state.oResponse?.APP;if(sSlotApp&&sResponseApp&&sSlotApp!==sResponseApp)return;const tracked=resolveTrackedModel(oView);`.
+    result = result &&
              `if(tracked){if(tracked._z2ui5BuiltFrom&&tracked._z2ui5BuiltFrom===ctx.state.oResponse?.TOKEN){return}applyStoredSizeLimit(ctx,slotKey,tracked);const pending=tracked._z2ui5ChangedPaths;const keep=[];if` &&
              `(pending?.size){for(const path of pending){const value=tracked.getProperty(path);if(value!==undefined)keep.push([path,value])}}tracked.setData(dataForSlot(slotKey,ctx.state.oResponse?.OVIEWMODEL));kee` &&
              `p.forEach(([path,value],i)=>{tracked.setProperty(path,value,undefined,i<keep.length-1)});return}const oModel=createViewModel(ctx,slotKey);applyStoredSizeLimit(ctx,slotKey,oModel);oView.setModel(oModel` &&
@@ -864,8 +875,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ewSlots.slots){if(slot.ownsModel)updateModelIfRequired(ctx,slot.key)}return undefined}if(isSuperseded(ctx,seq))return undefined;if(slotKey==="MAIN"){const reusable={...options};for(const key of TRANSI` &&
              `TION_OPTIONS)delete reusable[key];ctx.state.lastMainDisplayOptions=reusable;return displayMain(ctx,xml,options,seq)}if(slotKey==="POPUP"||slotKey==="POPOVER"){return displayStandalone(ctx,slotKey,xml,` &&
              `options,seq)}ViewSlots.destroy(ctx,slotKey);return displayNestedView(ctx,xml,slotKey,options,seq)}return{action,resolveTrackedModel,dispatchQueuedWindows}});` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/core/actions/Variants.js": function(){sap.ui.define(["z2ui5/core/Lib","z2ui5/core/ViewSlots"],(Lib,ViewSlots)=>{"use strict";const SMART_VARIANT_INIT_TRIES=50;const SMART_VARIANT_INIT_DEL` &&
              `AY=100;function anchorPersoControl(oSVM,target){if(oSVM._oPersoControl)return;if(typeof oSVM.setPersControler==="function"){oSVM.setPersControler(target)}else{oSVM._oPersoControl=target}}function ensu` &&
@@ -930,14 +940,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `(args[3])||0;const behavior=args[4]||"auto";const smooth=behavior==="smooth";let handled=false;try{const delegate=oElement.getScrollDelegate?.();if(delegate?.scrollTo){delegate.scrollTo(x,y,smooth?SMO` &&
              `OTH_SCROLL_MS:0);handled=true}}catch{}if(!handled){const dom=document.getElementById(``${oElement.getId()}-inner``)||oElement.getDomRef();if(dom?.scrollTo){dom.scrollTo({top:y,left:x,behavior})}else i` &&
              `f(dom){dom.scrollTop=y;dom.scrollLeft=x}else if(oElement.scrollTo){oElement.scrollTo(y,smooth?SMOOTH_SCROLL_MS:0)}}}catch(e){Lib.logError(``SCROLL_TO: failed for '${args[1]}'``,e)}}function evScrollIn` &&
-             `toView(oController,args){try{const oElement=resolveTarget(oController,"SCROLL_INTO_VIEW",args[1]);if(!oElement)return;const dom=oElement.getDomRef();if(!dom||!dom.scrollIntoView)return;dom.scrollIntoV` &&
+             `toView(oController,args){try{const oElement=resolveTarget(oController,"SCROLL_INTO_VIEW",args[1]);if(!oElement)return;const dom=oElement.getDomRef();if(!dom||!dom.scrollIntoView)return;dom.scrollIntoV`.
+    result = result &&
              `iew({behavior:args[2]||"smooth",block:args[3]||"start",inline:args[4]||"nearest"})}catch(e){Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``,e)}}const handlers={SET_SIZE_LIMIT:evSetSizeLimit` &&
              `,SET_ODATA_MODEL:evSetODataModel,BIND_ELEMENT:evBindElement,START_TIMER:evStartTimer,STOP_TIMER:evStopTimer,SET_FOCUS:evSetFocus,SCROLL_TO:evScrollTo,SCROLL_INTO_VIEW:evScrollIntoView};return{handlers` &&
              `,resumeRepeatTimer}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/css/style.css": '/* Enter your custom styles here */',` && |\n|.
-    result = result &&
+             `      "z2ui5/css/style.css": '/* Enter your custom styles here */',` && |\n| &&
              `      "z2ui5/devtools/Console.js": function(){sap.ui.define(["z2ui5/devtools/Persist"],Persist=>{"use strict";const MAX_ENTRIES=300;const MAX_TEXT_CHARS=2e3;const MAX_DEPTH=4;const MAX_ITEMS=20;const ` &&
              `MAX_NODES=1e3;const RELOAD_KEY="z2ui5.devtools.console";const RELOAD_MAX_ENTRIES=40;const ALERT_KEY="z2ui5.devtools.openOnError";const METHODS=["log","info","warn","error","debug"];let entries=[];let ` &&
              `dropped=0;const originals={};let users=0;let ui5Listener=null;let onWindowError=null;let onRejection=null;let onPageHide=null;const onErrorEntry=new Set;let capturing=false;let pendingUi5Echo=null;fun` &&
@@ -1000,7 +1010,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/devtools/Diff.js": function(){sap.ui.define([],()=>{"use strict";const MAX_DIFF_ENTRIES=200;const MAX_DIFF_DEPTH=12;const MAX_DIFF_LINES=4e3;const DIFF_LOOKAHEAD=25;function isPlainObject` &&
-             `(value){return value!==null&&typeof value==="object"&&!Array.isArray(value)}function walk(before,after,path,out,depth){if(out.length>=MAX_DIFF_ENTRIES)return;if(before===after)return;if(depth>MAX_DIFF` &&
+             `(value){return value!==null&&typeof value==="object"&&!Array.isArray(value)}function walk(before,after,path,out,depth){if(out.length>=MAX_DIFF_ENTRIES)return;if(before===after)return;if(depth>MAX_DIFF`.
+    result = result &&
              `_DEPTH){out.push({path,type:"changed",before:"(too deep)",after:""});return}const bothObjects=isPlainObject(before)&&isPlainObject(after);const bothArrays=Array.isArray(before)&&Array.isArray(after);i` &&
              `f(bothObjects){const keys=new Set([...Object.keys(before),...Object.keys(after)]);for(const key of keys){walk(before[key],after[key],``${path}/${key}``,out,depth+1)}return}if(bothArrays){const length=` &&
              `Math.max(before.length,after.length);for(let i=0;i<length;i++){walk(before[i],after[i],``${path}/${i}``,out,depth+1)}return}if(before===undefined){out.push({path,type:"added",before:undefined,after});` &&
@@ -1009,8 +1020,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `0;while((i<a.length||j<b.length)&&out.length<MAX_DIFF_ENTRIES){if(i<a.length&&j<b.length&&a[i]===b[j]){i+=1;j+=1;continue}let addedRun=-1;let removedRun=-1;for(let k=1;k<=DIFF_LOOKAHEAD;k+=1){if(added` &&
              `Run<0&&i<a.length&&j+k<b.length&&a[i]===b[j+k]){addedRun=k}if(removedRun<0&&j<b.length&&i+k<a.length&&b[j]===a[i+k]){removedRun=k}if(addedRun>=0||removedRun>=0)break}if(addedRun>=0&&(removedRun<0||add` &&
              `edRun<=removedRun)){for(let k=0;k<addedRun;k+=1){out.push({type:"+",line:b[j+k],number:j+k+1})}j+=addedRun}else if(removedRun>=0){for(let k=0;k<removedRun;k+=1){out.push({type:"-",line:a[i+k],number:i` &&
-             `+k+1})}i+=removedRun}else{if(i<a.length){out.push({type:"-",line:a[i],number:i+1});i+=1}if(j<b.length){out.push({type:"+",line:b[j],number:j+1});j+=1}}}return out}return{collectDiff,diffLines,MAX_DIFF`.
-    result = result &&
+             `+k+1})}i+=removedRun}else{if(i<a.length){out.push({type:"-",line:a[i],number:i+1});i+=1}if(j<b.length){out.push({type:"+",line:b[j],number:j+1});j+=1}}}return out}return{collectDiff,diffLines,MAX_DIFF` &&
              `_ENTRIES,_internals:{MAX_DIFF_DEPTH,MAX_DIFF_LINES,DIFF_LOOKAHEAD}}});` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
@@ -1071,7 +1081,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `t),renderMs:null,totalMs:null,viewCount:0,actionCount:0,messages:[],rendered:false,request:null,response:null});rec.records.sort((a,b)=>a.ts<b.ts?-1:a.ts>b.ts?1:0)}function extractMessages(response){c` &&
              `onst custom=response?.S_FRONT?.ACTIONS;if(!Array.isArray(custom))return[];const out=[];for(const item of custom){if(!Array.isArray(item))continue;const call=item[0]==="CONTROL_GLOBAL"?item.slice(1):it` &&
              `em;const target=call[0];if(target!=="MESSAGE_TOAST"&&target!=="MESSAGE_BOX")continue;let text=typeof call[2]==="string"?call[2]:"";if(text.length>MAX_MESSAGE_CHARS){text=``${text.slice(0,MAX_MESSAGE_C` &&
-             `HARS)}...``}out.push({target,method:call[1]||"",text})}return out}function recordBytes(record){if(!record.request&&!record.response)return 0;return(record.reqBytes||0)+(record.respBytes||0)}function e` &&
+             `HARS)}...``}out.push({target,method:call[1]||"",text})}return out}function recordBytes(record){if(!record.request&&!record.response)return 0;return(record.reqBytes||0)+(record.respBytes||0)}function e`.
+    result = result &&
              `nforcePayloadBudget(rec){for(const record of rec.records){if(rec.payloadBytes<=PAYLOAD_BUDGET_BYTES)return;if(!record.request&&!record.response)continue;rec.payloadBytes-=recordBytes(record);record.re` &&
              `quest=null;record.response=null;record.payloadEvicted=true}}function pushRecord(rec,record){record.seq=rec.nextSeq++;rec.records.push(record);rec.payloadBytes+=recordBytes(record);while(rec.records.le` &&
              `ngth>MAX_RECORDS){const dropped=rec.records.shift();rec.payloadBytes-=recordBytes(dropped)}enforcePayloadBudget(rec)}function isRecordingPayloads(){return Persist.readFlag(PAYLOAD_FLAG_KEY)}function s` &&
@@ -1080,8 +1091,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `if(typeof known==="number")return known;try{return Lib.byteLength(JSON.stringify({value:oBody}))}catch{return null}}function onAfterRendering(ctx){try{const rec=recorderOf(ctx);if(!rec)return;const st` &&
              `ate=ctx.state;const tRendered=now();sweepEntries(ctx,rec);const net=takeNetworkFor(rec,tRendered);const response=state.responseData;const sFront=response?.S_FRONT;const keepPayloads=isRecordingPayload` &&
              `s();const reqBytes=measureRequest(ctx,state.oBody);pushRecord(rec,{ts:(new Date).toISOString(),event:state.oBody?.S_FRONT?.EVENT||"",idSent:state.oBody?.S_FRONT?.ID||"",idReceived:sFront?.ID||"",app:s` &&
-             `Front?.APP||"",reqBytes,respBytes:net?.bytes??null,backendMs:net?Math.round(net.end-net.start):null,renderMs:net?Math.round(tRendered-net.end):null,totalMs:net?Math.round(tRendered-net.start):null,vie`.
-    result = result &&
+             `Front?.APP||"",reqBytes,respBytes:net?.bytes??null,backendMs:net?Math.round(net.end-net.start):null,renderMs:net?Math.round(tRendered-net.end):null,totalMs:net?Math.round(tRendered-net.start):null,vie` &&
              `wCount:Object.keys(sFront?.VIEWS||{}).length,actionCount:sFront?.ACTIONS?.length||0,messages:extractMessages(response),rendered:true,request:keepPayloads?state.oBody:null,response:keepPayloads?respons` &&
              `e:null});flushStaleUnpaired(rec)}catch(e){Lib.logError("DevTools Recorder: onAfterRendering failed",e)}}function withoutPayloads(record){const copy={...record};delete copy.request;delete copy.response` &&
              `;return copy}function persist(rec){const slim=rec.records.slice(-RELOAD_MAX_RECORDS).map(record=>({...withoutPayloads(record),previousLoad:true}));Persist.saveList(RELOAD_KEY,slim)}function restore(re` &&
@@ -1145,7 +1155,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `ypeof oContextOrRow.getProperty==="function")return oContextOrRow;if(typeof oContextOrRow.getBindingContext==="function"){return oContextOrRow.getBindingContext()||null}return null}return{extractData(` &&
              `oContextOrRow,oColumn,bIncludeHtmlMimeType){const sBindings=oColumn&&typeof oColumn.data==="function"?oColumn.data("bindings"):null;if(!sBindings)return undefined;const oContext=contextOf(oContextOrRo` &&
              `w);const aCellData=String(sBindings).split(",").map(sPath=>sPath.trim()).filter(Boolean).map(sPath=>toCellValue(oContext?oContext.getProperty(sPath):undefined));if(!bIncludeHtmlMimeType)return aCellDa` &&
-             `ta;return{text:aCellData,html:formatMessage(oColumn.data("template")||"{0}",aCellData.map(escapeHtml))}}}});` && |\n| &&
+             `ta;return{text:aCellData,html:formatMessage(oColumn.data("template")||"{0}",aCellData.map(escapeHtml))}}}});` && |\n|.
+    result = result &&
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/model/formatter.js": function(){sap.ui.define(["sap/ui/core/IconPool"],IconPool=>{"use strict";function parseYmd(value){const d=abapDigits(value,ISO_DAY);return[Number(d.slice(0,4)),Numbe` &&
@@ -1153,8 +1164,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `^\d{2}:\d{2}:\d{2}$/;function localDay(value){const[year,month,day]=parseYmd(value);const date=new Date(2e3,0,1);date.setFullYear(year,month,day);if(date.getFullYear()!==year||date.getMonth()!==month|` &&
              `|date.getDate()!==day){return null}return date}function isNoAbapDate(d){const s=abapDigits(d,ISO_DAY);if(!/^\d{8}$/.test(s))return true;return s.slice(0,4)==="0000"||s.slice(4,6)==="00"||s.slice(6,8)=` &&
              `=="00"}return{DateCreateObject(s){if(!s)return null;if(ISO_DAY.test(String(s)))return localDay(s);const date=new Date(s);return Number.isNaN(date.getTime())?null:date},DateAbapDateToDateObject(d){if(i` &&
-             `sNoAbapDate(d))return null;return localDay(d)},DateAbapDateTimeToDateObject(d,t){if(isNoAbapDate(d))return null;const date=localDay(d);if(!date)return null;const time=t?abapDigits(t,ISO_TIME):"000000"`.
-    result = result &&
+             `sNoAbapDate(d))return null;return localDay(d)},DateAbapDateTimeToDateObject(d,t){if(isNoAbapDate(d))return null;const date=localDay(d);if(!date)return null;const time=t?abapDigits(t,ISO_TIME):"000000"` &&
              `;date.setHours(Number(time.slice(0,2)),Number(time.slice(2,4)),Number(time.slice(4,6)));return date},expandInlineIcons(text){if(!text)return"";return String(text).replace(/%%icon:(sap-icon:\/\/[^%]+)%` &&
              `%/g,(match,uri)=>{const info=IconPool.getIconInfo(uri);if(!info)return"";return``<span class="sapMMsgStripInlineIcon" style="font-family:'${info.fontFamily}'">${info.content}</span>``})}}});` && |\n| &&
              `` && |\n| &&

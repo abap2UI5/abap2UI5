@@ -312,3 +312,132 @@ test.describe("the custom controls bundle", () => {
     expect(h.scripts).toEqual([]);
   });
 });
+
+// The community controls (abap2UI5-addons/custom-controls, z2ui5_cci): the
+// backend serves them out of the addon's classes on ?z2ui5-bundle=cci, and
+// they are loaded by control - the names a view carries, those not asked
+// for yet, one request per view. A load that fails never fails the build:
+// the addon used to be a BSP, and the loader still finds that one.
+const CCI_URL = (names) =>
+  `${ENDPOINT}?z2ui5-bundle=cci&z2ui5-name=${encodeURIComponent(names)}`;
+const cciView = (...controls) =>
+  '<mvc:View xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5_cci="z2ui5_cci.cc">' +
+  controls.map((name) => `<z2ui5_cci:${name}/>`).join("") +
+  "</mvc:View>";
+const isCci = (el) => /[?&]z2ui5-bundle=cci(&|$)/.test(el.src);
+
+test.describe("which community controls a view names", () => {
+  const { CustomControls } = load();
+  const of = (xml) => CustomControls.communityControls(xml);
+
+  test("the elements of their namespace, under any prefix, sorted and once each", () => {
+    expect(of(cciView("Gauge", "ChartJs", "Gauge"))).toEqual(["ChartJs", "Gauge"]);
+    expect(
+      of(
+        '<mvc:View xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc" xmlns:c.c-i=\'z2ui5_cci.cc\'>' +
+          '<Page><c.c-i:Clock id="a"/><Button/></Page></mvc:View>',
+      ),
+    ).toEqual(["Clock"]);
+  });
+
+  test("a module id and a class name anywhere in the text", () => {
+    expect(of('<Button core:require="{ S: \'z2ui5_cci/cc/SignaturePad\' }"/>')).toEqual([
+      "SignaturePad",
+    ]);
+    expect(of("<Input type=\"z2ui5_cci.cc.Validator\"/>")).toEqual(["Validator"]);
+  });
+
+  test("nothing of our own controls, of the customer's, or of another namespace", () => {
+    expect(of(VIEW)).toEqual([]);
+    expect(of(PLAIN)).toEqual([]);
+    expect(of('<View xmlns:x="z2ui5_ccc.cc"><x:Thing/></View>')).toEqual([]);
+    expect(of('<View xmlns:x="z2ui5_cci.ccx"><x:Thing/></View>')).toEqual([]);
+    expect(of(null)).toEqual([]);
+  });
+});
+
+test.describe("the community controls, by control", () => {
+  test("the controls of the view are asked of the node in one request, without a version", async () => {
+    const h = load();
+    let settled = false;
+    const done = h.CustomControls.ensure(h.ctx, cciView("Gauge", "ChartJs")).then(() => {
+      settled = true;
+    });
+    await h.settle();
+    const cci = h.scripts.filter(isCci);
+    expect(cci.length).toBe(1);
+    expect(cci[0].src).toBe(CCI_URL("ChartJs,Gauge"));
+    expect(settled).toBe(false);
+    // a view of that namespace also gets our own bundle, as before: the
+    // addon's code may build on one of our controls
+    expect(h.scripts.length).toBe(2);
+    for (const [index] of h.scripts.entries()) await h.arrive(index);
+    await done;
+    expect(settled).toBe(true);
+  });
+
+  test("comes from where the frontend bundle came from, with that URL's own parameters", async () => {
+    const h = load({
+      bundleUrl:
+        "http://localhost:3000/sap/bc/z2ui5?sap-client=100&z2ui5-bundle=8b869b8233e7a7aa&z2ui5-version=1#x",
+    });
+    const done = h.CustomControls.ensure(h.ctx, cciView("Clock"));
+    await h.settle();
+    expect(h.scripts.find(isCci).src).toBe(
+      "http://localhost:3000/sap/bc/z2ui5?sap-client=100&z2ui5-bundle=cci&z2ui5-name=Clock",
+    );
+    for (const [index] of h.scripts.entries()) await h.arrive(index);
+    await done;
+  });
+
+  test("a control asked for before is not asked for again - a later view asks for what is new", async () => {
+    const h = load();
+    let done = h.CustomControls.ensure(h.ctx, cciView("ChartJs"));
+    await h.settle();
+    for (const [index] of h.scripts.entries()) await h.arrive(index);
+    await done;
+    expect(h.scripts.filter(isCci).length).toBe(1);
+
+    await h.CustomControls.ensure(h.ctx, cciView("ChartJs"));
+    expect(h.scripts.filter(isCci).length).toBe(1);
+
+    done = h.CustomControls.ensure(h.ctx, cciView("Gauge", "ChartJs"));
+    await h.settle();
+    const cci = h.scripts.filter(isCci);
+    expect(cci.length).toBe(2);
+    expect(cci[1].src).toBe(CCI_URL("Gauge"));
+    await h.arrive();
+    await done;
+  });
+
+  test("two views that build while a control loads share the one load", async () => {
+    const h = load();
+    const first = h.CustomControls.ensure(h.ctx, cciView("ChartJs"));
+    const second = h.CustomControls.ensure(h.ctx, cciView("ChartJs"));
+    await h.settle();
+    expect(h.scripts.filter(isCci).length).toBe(1);
+    for (const [index] of h.scripts.entries()) await h.arrive(index);
+    await Promise.all([first, second]);
+  });
+
+  test("a node that does not serve them: the build goes on, and the node is not asked again", async () => {
+    const h = load();
+    const done = h.CustomControls.ensure(h.ctx, cciView("ChartJs"));
+    await h.settle();
+    const index = h.scripts.findIndex(isCci);
+    await h.fail(index);
+    await h.arrive(h.scripts.findIndex((el) => !isCci(el)));
+    // resolved, not rejected: the loader is left to find the control
+    expect(await rejection(done)).toBe(null);
+    expect(h.scripts[index].removed).toBe(true);
+
+    await h.CustomControls.ensure(h.ctx, cciView("Gauge"));
+    expect(h.scripts.filter(isCci).length).toBe(1);
+  });
+
+  test("a frontend whose files are served one by one asks for nothing", async () => {
+    const h = load({ bundled: false });
+    await h.CustomControls.ensure(h.ctx, cciView("ChartJs"));
+    expect(h.scripts).toEqual([]);
+  });
+});

@@ -137,6 +137,28 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " the value stays the one word _is_cc_request compares.
     CONSTANTS c_bundle_version TYPE string VALUE `z2ui5-version`.
 
+    " The value of c_bundle_param that asks for a file of the COMMUNITY
+    " CONTROLS (abap2UI5-addons/custom-controls, the frontend namespace
+    " z2ui5_cci): GET <node>?z2ui5-bundle=cci&z2ui5-name=<name> - see
+    " _http_get_cci. Not a text of this repository: the addon generates its
+    " controls and their libraries into classes of its own and this node
+    " serves them, so the addon needs no BSP and no ICF node, and what a
+    " page loads comes from the one endpoint it already talks to.
+    CONSTANTS c_bundle_cci TYPE string VALUE `cci`.
+
+    " ...and the parameter that names WHAT of them: a list of controls
+    " (`ChartJs,Gauge`) or one library file (`lib/chart.umd.js`). The
+    " grammar is the addon's; this class hands the value over and reads
+    " one thing off it, the content type (_is_css_request).
+    CONSTANTS c_bundle_name TYPE string VALUE `z2ui5-name`.
+
+    " The class of the addon that answers, resolved dynamically (listed in
+    " dynamic-name-gate's EXTERNAL): static methods HASH and GET, each
+    " IMPORTING name TYPE string RETURNING VALUE(result) TYPE string. A
+    " system without the addon, or with one from before it had the class,
+    " has no such class - the request is a 404 then (_cci_call).
+    CONSTANTS c_class_cci_bundle TYPE string VALUE `Z2UI5_CL_CCI_BUNDLE`.
+
     " The token in the bundle's tail (bundle/tail/embed.js, NODE_PATH_TOKEN
     " in tools/app2abap/trans2abap.js) that _http_get_bundle replaces with
     " the path of the request as the system saw it.
@@ -261,6 +283,52 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         it_params     TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    " a GET that asks for a file of the community controls - c_bundle_param
+    " with the value c_bundle_cci
+    CLASS-METHODS _is_cci_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " ...and whether what it names is a stylesheet (a name ending in .css)
+    CLASS-METHODS _is_css_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " the value of c_bundle_name as the addon reads it - see the method
+    CLASS-METHODS _cci_name
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " one of the two methods of c_class_cci_bundle (HASH, GET) - initial
+    " when the class or the method is not there
+    CLASS-METHODS _cci_call
+      IMPORTING
+        iv_method     TYPE string
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the validator of what a request for the community controls names -
+    " initial when the addon does not know the name
+    CLASS-METHODS _cci_etag
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " a file of the community controls - see the method
+    CLASS-METHODS _http_get_cci
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
 
     " the frontend as a script of its own - see the method. iv_path is the
     " path of THIS request as the system saw it (ty_s_http_req-path), which
@@ -1126,6 +1194,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " A file of the community controls the same way, with the digest the
+    " addon gives for the name: its libraries are asked for by it (the
+    " addon generates each URL with the digest of the file), its controls
+    " without one, which revalidates.
+    IF _is_cci_request( it_params ) = abap_true.
+      DATA(lv_cci_hash) = _cci_call( iv_method = `HASH`
+                                     iv_name   = _cci_name( it_params ) ).
+      result = xsdbool( lv_cci_hash IS NOT INITIAL
+                        AND line_exists( it_params[ n = c_bundle_version
+                                                    v = lv_cci_hash ] ) ). "#EC CI_SORTSEQ
+      RETURN.
+    ENDIF.
+
     " the one parameter with the one value - the hash is lower-case hex
     result = xsdbool( line_exists( it_params[ n = c_bundle_param
                                               v = z2ui5_cl_ui5f_preload=>build_hash ] ) ). "#EC CI_SORTSEQ
@@ -1145,6 +1226,146 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the one parameter with the one value - see c_bundle_cc
     result = xsdbool( line_exists( it_params[ n = c_bundle_param
                                               v = c_bundle_cc ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _is_cci_request.
+
+    " the one parameter with the one value - see c_bundle_cci
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param
+                                              v = c_bundle_cci ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _is_css_request.
+
+    " The one thing this class reads off the name: a stylesheet has to go
+    " out as text/css - under nosniff a <link rel="stylesheet"> refuses
+    " anything else. Every other name is a script.
+    IF _is_cci_request( it_params ) = abap_false.
+      RETURN.
+    ENDIF.
+    DATA(lv_name) = to_lower( _cci_name( it_params ) ).
+    DATA(lv_len) = strlen( lv_name ).
+    IF lv_len < 4.
+      RETURN.
+    ENDIF.
+    lv_len = lv_len - 4.
+    result = xsdbool( lv_name+lv_len(4) = `.css` ).
+
+  ENDMETHOD.
+
+  METHOD _cci_name.
+
+    " url_param_get_tab keeps a value as the URL carries it, and the
+    " browser's URLSearchParams percent-encodes the two separators the
+    " names use: the comma between controls and the slash of lib/<file>.
+    " Those two are decoded and nothing else - a name is letters, digits,
+    " `_`, `-` and `.`, and what the addon does not know it answers with
+    " nothing (it looks the name up, it never builds anything from it).
+    ASSIGN it_params[ n = c_bundle_name ] TO FIELD-SYMBOL(<ls_param>). "#EC CI_SORTSEQ
+    IF <ls_param> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
+    result = <ls_param>-v.
+    result = replace( val  = result
+                      sub  = `%2C`
+                      with = `,`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `%2c`
+                      with = `,`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `%2F`
+                      with = `/`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `%2f`
+                      with = `/`
+                      occ  = 0 ).
+
+  ENDMETHOD.
+
+  METHOD _cci_call.
+
+    " Dynamic, because the class is the addon's: the core does not depend
+    " on it, the dependency runs the other way. No class (the addon is not
+    " installed, or is one that still ships its BSP) and no such method are
+    " the same answer as an unknown name - nothing, which _http_get_cci
+    " turns into a 404 and the frontend into "ask the loader instead"
+    " (bundle/webapp/core/CustomControls.js). The method name is one of two
+    " literals of this class, never a value of the request.
+    IF iv_name IS INITIAL.
+      RETURN.
+    ENDIF.
+    TRY.
+        CALL METHOD (c_class_cci_bundle)=>(iv_method)
+          EXPORTING
+            name   = iv_name
+          RECEIVING
+            result = result.
+      CATCH cx_sy_dyn_call_error ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD _cci_etag.
+
+    " the addon's digest of what the name answers, in the key like the
+    " digests of the bundles of this repository (_bundle_etag) - with the
+    " name, so two files never share a tag
+    DATA(lv_name) = _cci_name( it_params ).
+    DATA(lv_hash) = _cci_call( iv_method = `HASH`
+                               iv_name   = lv_name ).
+    IF lv_hash IS INITIAL.
+      RETURN.
+    ENDIF.
+    result = _get_etag( |{ c_bundle_param }={ c_bundle_cci }:{ lv_name }:{ lv_hash }| ).
+
+  ENDMETHOD.
+
+  METHOD _http_get_cci.
+
+    " GET <node>?z2ui5-bundle=cci&z2ui5-name=<name> - a file of the
+    " community controls (abap2UI5-addons/custom-controls), which that
+    " repository generates into classes and this node serves, instead of a
+    " BSP next to it: a system without BSPs (ABAP Cloud) can have the
+    " controls, and a page behind one destination (SAP Build Work Zone)
+    " reaches them where it reaches everything else. The name is either a
+    " list of controls - answered as ONE script, sap.ui.require.preload( )
+    " over those modules and what they depend on, so a view loads the
+    " controls it names and no others - or one library file of theirs.
+    " Served like the bundles of this repository: with nosniff, under a tag
+    " that a conditional GET revalidates to a bodyless 304, and, asked for
+    " by its digest, kept by the browser without asking (set_response). The
+    " digest is asked for first and on its own: the addon answers it from
+    " constants, the text only by joining it. No user or app data, the same
+    " for everybody. What the addon does not know is a 404.
+    DATA(lv_name) = _cci_name( it_params ).
+    DATA(lv_etag) = _cci_etag( it_params ).
+
+    IF lv_etag IS NOT INITIAL.
+      result = _http_not_modified( lv_etag ).
+      IF result IS NOT INITIAL.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    IF _cci_call( iv_method = `HASH`
+                  iv_name   = lv_name ) IS NOT INITIAL.
+      result-body = _cci_call( iv_method = `GET`
+                               iv_name   = lv_name ).
+    ENDIF.
+    IF result-body IS INITIAL.
+      result-body          = `Not Found`.
+      result-status_code   = 404.
+      result-status_reason = `Not Found`.
+      RETURN.
+    ENDIF.
+
+    result-status_code   = 200.
+    result-status_reason = `OK`.
 
   ENDMETHOD.
 
@@ -1359,12 +1580,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " main( ) having read the header (a direct _main( ) call), and costs one
     " header read on a full shell reply
     " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools, ?z2ui5-bundle=cc)
-    " revalidate the same way, each under its own tag
+    " revalidate the same way, each under its own tag - and so does a file
+    " of the community controls (?z2ui5-bundle=cci), under the addon's
     DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
                                AND _is_bundle_request( ms_req-t_params ) = abap_true ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
-      lv_etag_get = COND #( WHEN lv_bundle = abap_true
+      lv_etag_get = COND #( WHEN lv_bundle = abap_true AND _is_cci_request( ms_req-t_params ) = abap_true
+                            THEN _cci_etag( ms_req-t_params )
+                            WHEN lv_bundle = abap_true
                             THEN _bundle_etag( iv_devtools = _is_devtools_request( ms_req-t_params )
                                                iv_cc       = _is_cc_request( ms_req-t_params ) )
                             ELSE sv_get_etag ).
@@ -1385,7 +1609,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Options: nosniff header below, stops a container that defaults to
     " text/html from rendering a reflected app name / exception text as markup
     " (reflected-XSS). Success bodies are HTML for the GET shell, JavaScript
-    " for the bundles and JSON for the POST roundtrip.
+    " for the bundles and JSON for the POST roundtrip - and CSS for a
+    " stylesheet of the community controls (_is_css_request).
     " nosniff is set here, not left to the exit's security headers alone: an
     " exit that ASSIGNS its own t_security_header instead of appending to it
     " (or one that raises, which costs its headers) dropped it from every
@@ -1393,6 +1618,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " wrong for any of these bodies; the exit's headers below still follow.
     DATA(lv_content_type) = COND string(
         WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
+        WHEN lv_bundle = abap_true AND _is_css_request( ms_req-t_params ) = abap_true
+                                       THEN `text/css; charset=UTF-8`
         WHEN lv_bundle = abap_true     THEN `application/javascript; charset=UTF-8`
         WHEN ms_req-method = `GET`     THEN `text/html; charset=UTF-8`
         ELSE `application/json; charset=UTF-8` ).
@@ -1618,6 +1845,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
               result = _http_get_devtools( ).
             ELSEIF _is_cc_request( is_req-t_params ) = abap_true.
               result = _http_get_cc( ).
+            ELSEIF _is_cci_request( is_req-t_params ) = abap_true.
+              result = _http_get_cci( is_req-t_params ).
             ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
             ELSE.

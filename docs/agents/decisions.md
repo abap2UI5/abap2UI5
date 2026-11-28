@@ -49,6 +49,37 @@ The following items may look like gaps but are intentional design choices:
   tools opened never asks for the bundle (`devtools-bundle` e2e). The old
   numbers (2026-08-28: `devtools/` was 32.7% of the preload, 23.2% deferrable)
   were the measurement this change was made on.
+- **The community controls are served by the node, out of the addon's
+  classes, and loaded by control** (2026-11-28, maintainer decision). Until
+  then abap2UI5-addons/custom-controls shipped its modules as a BSP
+  (`Z2UI5_CCI`, two ICF nodes) next to the framework, which the frontend
+  reached through the resource root `z2ui5_cci`. A BSP is what ABAP Cloud does
+  not have, what abaplint cannot rename, and what a page behind one
+  destination (SAP Build Work Zone) does not reach. The addon generates its
+  modules and its third-party libraries into classes now, and the handler
+  answers `?z2ui5-bundle=cci&z2ui5-name=<name>` by calling the addon's class
+  dynamically (`c_class_cci_bundle`, `_http_get_cci`): `HASH` first, from
+  constants, for the tag and the 304, `GET` for the text. Decided with it:
+  (1) **The core knows one class name and two method names, nothing of the
+  content.** The grammar of a name (a list of controls, or `lib/<file>`) and
+  the dependencies between the modules are the addon's; the one thing the
+  handler reads off a name is `.css`, for the content type. No registry and no
+  interface in `src/02`: a second provider would be a second constant, and
+  the customer's controls (`z2ui5_ccc`) stay a BSP on purpose.
+  (2) **By control, not as a bundle** - the opposite of what was decided for
+  our own controls, because the numbers are the opposite: two dozen controls
+  of which a view uses one or two, some of them hundreds of KB with their
+  library. `core/CustomControls.js` reads the names off the view and asks for
+  those it has not asked for, one request per view.
+  (3) **A load that fails does not fail the build.** An installation with the
+  BSP has no class: the node answers 404, the frontend remembers that for the
+  page and leaves the loader to the resource root, which `manifest.json`
+  keeps. So the two halves can be updated in either order.
+  (4) **No version in the request for controls.** The frontend bundle is kept
+  by the browser under its own digest and cannot carry the addon's; the
+  script is revalidated instead (a 304 per view that needs a new control).
+  The libraries are asked for by their digest, which the addon writes into
+  its own URLs, and are kept for good.
 - **The custom controls are a bundle of their own, loaded when a view names
   one.** Until 2026-11-23 the 17 files of `bundle/webapp/cc/` rode in the
   frontend bundle of every page: 56 KB of its 247 KB as delivered (minified),

@@ -36,6 +36,10 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     " GET ?z2ui5-bundle=cc is the custom controls as a script, and the
     " frontend bundle carries none of them
     METHODS test_main_get_cc        FOR TESTING RAISING cx_static_check.
+    " GET ?z2ui5-bundle=cci is a file of the community controls, answered
+    " by the addon's class - what that does not know is a 404, never the
+    " page and never the frontend bundle
+    METHODS test_main_get_cci_unknown FOR TESTING RAISING cx_static_check.
     METHODS test_cc_not_in_bundle   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -631,6 +635,32 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         path     = `/sap/bc/z2ui5`
         t_params = VALUE #( ( n = `z2ui5-version` v = z2ui5_cl_ui5f_preload=>cc_hash ) ) ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_main_get_cci_unknown.
+
+    " Holds with and without abap2UI5-addons/custom-controls on the system:
+    " no class at all, or a class that does not know the name, is the same
+    " answer. (The answer for a name it knows is the addon's to test; the
+    " browser half is node/tests/e2e/cci-bundle.spec.js.)
+    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle` v = `cci` )
+                            ( n = `z2ui5-name`   v = `NoSuchControl%2Clib%2Fno-such-file.js` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 404
+                                        act = ls_result-status_code ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.require.preload` ) ).
+
+    " ...and so is a request that names nothing
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle` v = `cci` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 404
+                                        act = ls_result-status_code ).
 
   ENDMETHOD.
 

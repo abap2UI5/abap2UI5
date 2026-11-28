@@ -466,6 +466,10 @@ again:
   the first view that names one is built) — nothing outside `bundle/webapp/cc/` may name a control as a
   `sap.ui.define` dependency (`trans2abap.js` refuses it), and no control moves back into the frontend bundle
   because one app needs it at start. Details: `bundle/AGENTS.md`, rule 2.
+- **The community controls (`z2ui5_cci`) are served by this node out of the addon's classes** (`?z2ui5-bundle=cci`,
+  `z2ui5_cl_ui5_http_handler=>_http_get_cci`, a dynamic call of `c_class_cci_bundle`) and loaded by control, and a
+  load that fails falls back to the addon's former BSP - no registry, no interface in `src/02`, and `z2ui5_ccc` stays
+  a BSP. Reasoning: `docs/agents/decisions.md`.
 - **No app base class and no lifecycle hooks on `z2ui5_if_app`**; the repeated dispatcher is not duplication.
 - **No named frontend-action wrappers on `z2ui5_if_client`** — `follow_up_action` stays the only API.
 - **Embedding as a reuse component goes as far as demand asked** — do not re-propose the rest as cleanup.

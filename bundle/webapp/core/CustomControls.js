@@ -64,6 +64,29 @@
 // surfaces where every failed view build does, in the error overlay
 // (View1._processAfterRendering).
 //
+// THE COMMUNITY CONTROLS (abap2UI5-addons/custom-controls, the namespace
+// z2ui5_cci) come the same way, with two differences. They are not a text
+// of this repository: the addon generates its modules into classes of its
+// own, and the backend serves them on GET <node>?z2ui5-bundle=cci
+// (z2ui5_cl_ui5_http_handler=>_http_get_cci), so the addon needs no BSP -
+// a system without BSPs can have the controls, and a page behind one
+// destination reaches them where it reaches everything else. And they are
+// loaded BY CONTROL, not as one bundle: two dozen controls of which a view
+// uses one or two. ensure( ) reads the names of the controls off the view
+// (communityControls) and asks for those it has not asked for yet, in one
+// request per view - &z2ui5-name=ChartJs,Gauge. The backend answers one
+// script, sap.ui.require.preload( ) over those modules and everything they
+// depend on, which is the addon's knowledge and not this module's.
+//
+// A load of THOSE that fails does not fail the build. The addon used to be
+// a BSP (z2ui5_cci, the resource root Component.init still wires in), and
+// an installation that has that one has no class to answer: the node says
+// 404, the script element reports an error, and the view is built as it
+// always was - the UI5 loader asks the BSP. The answer is remembered for
+// the page (communityOff), so such an installation pays one request per
+// page load and not one per view. Where neither is installed the loader's
+// own error names the module and the path it tried, as before.
+//
 // Rule 13 holds: the script is a file of the backend's origin, allowed by
 // script-src 'self' - no inline script, no eval.
 sap.ui.define([], () => {
@@ -76,6 +99,11 @@ sap.ui.define([], () => {
   const BUNDLE_PARAM = "z2ui5-bundle";
   const BUNDLE_CC = "cc";
   const VERSION_PARAM = "z2ui5-version";
+
+  // ...and the value that picks the community controls, with the parameter
+  // that names which of them (c_bundle_cci, c_bundle_name)
+  const BUNDLE_CCI = "cci";
+  const NAME_PARAM = "z2ui5-name";
 
   // The module the frontend bundle defines at its end (bundle/tail/embed.js)
   const EMBED_MODULE = "z2ui5/embed";
@@ -90,12 +118,43 @@ sap.ui.define([], () => {
   // boundary keeps a longer name of somebody else's (z2ui5.ccx) out.
   const NAMES_CONTROLS = /z2ui5(?:[./]cc|_cc[ci])\b/;
 
+  // The community controls a view names, three ways - the same three the
+  // header lists for our own: an xmlns of their namespace (under whatever
+  // prefix, the elements of that prefix are the controls), a module id, a
+  // class name.
+  const CCI_XMLNS = /\bxmlns(?::([\w.-]+))?\s*=\s*["']z2ui5_cci\.cc["']/g;
+  const CCI_MODULE = /z2ui5_cci\/cc\/(\w+)/g;
+  const CCI_CLASS = /z2ui5_cci\.cc\.([A-Z]\w*)/g;
+
   // whether the controls are in (page-wide), and the load in flight
   let loaded = false;
   let loading = null;
 
+  // the community controls asked for (page-wide): the load each name rides
+  // in, settled or not - and whether this node serves them at all
+  const communityLoads = new Map();
+  let communityOff = false;
+
   function namesControls(xml) {
     return NAMES_CONTROLS.test(String(xml ?? ""));
+  }
+
+  // The names of the community controls in a view, sorted - the value of
+  // NAME_PARAM is the same for the same view, whatever order it names them
+  // in. A name the addon does not have (an element of another namespace
+  // that happens to share the prefix of an unprefixed xmlns) is the
+  // backend's to skip.
+  function communityControls(xml) {
+    const text = String(xml ?? "");
+    const names = new Set();
+    for (const [, prefix] of text.matchAll(CCI_XMLNS)) {
+      const tag = prefix ? `${prefix.replace(/[.-]/g, "\\$&")}:` : "";
+      const element = new RegExp(`<${tag}([A-Z]\\w*)[\\s/>]`, "g");
+      for (const [, name] of text.matchAll(element)) names.add(name);
+    }
+    for (const [, name] of text.matchAll(CCI_MODULE)) names.add(name);
+    for (const [, name] of text.matchAll(CCI_CLASS)) names.add(name);
+    return [...names].sort();
   }
 
   // What the frontend bundle says about itself: the version of the custom
@@ -132,6 +191,24 @@ sap.ui.define([], () => {
     }
   }
 
+  // The URL the community controls `names` are loaded from: the same node,
+  // the same way. No version - this frontend does not know the addon's -
+  // so the browser revalidates the script (a 304 once it has it).
+  function communityUrl(ctx, frontend, names) {
+    const base = frontend.url || ctx?.state?.url;
+    if (!base) return null;
+    try {
+      const url = new URL(base, window.location.href);
+      url.hash = "";
+      url.searchParams.set(BUNDLE_PARAM, BUNDLE_CCI);
+      url.searchParams.set(NAME_PARAM, names.join(","));
+      url.searchParams.delete(VERSION_PARAM);
+      return url.href;
+    } catch {
+      return null;
+    }
+  }
+
   function bundleArrived() {
     try {
       return Boolean(sap.ui.require(BUNDLE_MODULE));
@@ -154,8 +231,10 @@ sap.ui.define([], () => {
   // Generous on purpose: the bundle is a few hundred KB, and a slow line
   // must not turn a load that would have arrived into an error overlay.
   const LOAD_TIMEOUT = 60000;
+  //
+  // `arrived` is what tells the script that ran from any other 200.
   /** @returns {Promise<void>} */
-  function loadScript(url) {
+  function loadScript(url, arrived) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
       let timer = null;
@@ -183,7 +262,7 @@ sap.ui.define([], () => {
       script.async = true;
       script.onerror = () => settle(false, "");
       // the bundle's module settles in the task after the script ran
-      script.onload = () => setTimeout(() => settle(bundleArrived(), ""), 0);
+      script.onload = () => setTimeout(() => settle(arrived(), ""), 0);
       document.head.appendChild(script);
     });
   }
@@ -193,7 +272,7 @@ sap.ui.define([], () => {
   // finds itself, and for every view after the first. Rejects when the
   // bundle could not be loaded (see the header).
   /** @returns {Promise<void>} */
-  function ensure(ctx, xml) {
+  function ensureOwn(ctx, xml) {
     if (loaded || !namesControls(xml)) return Promise.resolve();
     const frontend = frontendBundle();
     if (!frontend) return Promise.resolve();
@@ -205,7 +284,7 @@ sap.ui.define([], () => {
     if (!loading) {
       const url = bundleUrl(ctx, frontend);
       const load = url
-        ? loadScript(url)
+        ? loadScript(url, bundleArrived)
         : Promise.reject(
             new Error(
               "the custom controls this view uses could not be loaded: no endpoint to load them from",
@@ -225,5 +304,45 @@ sap.ui.define([], () => {
     return loading;
   }
 
-  return { ensure, namesControls };
+  // Resolves once the community controls the view names were asked for and
+  // the answer ran - or was refused, see the header: it never rejects. At
+  // once for a view that names none, for names asked for before, and for a
+  // frontend whose files the loader finds itself. Nothing tells the script
+  // from another 200 here: what it registers is not asked of the loader
+  // before the view is built, and a view that then misses a module fails
+  // with the loader's own error.
+  /** @returns {Promise<void>} */
+  function ensureCommunity(ctx, xml) {
+    if (communityOff) return Promise.resolve();
+    const names = communityControls(xml);
+    if (!names.length) return Promise.resolve();
+    const frontend = frontendBundle();
+    if (!frontend) return Promise.resolve();
+    const missing = names.filter((name) => !communityLoads.has(name));
+    if (missing.length) {
+      const url = communityUrl(ctx, frontend, missing);
+      const load = url
+        ? loadScript(url, () => true).catch(() => {
+            communityOff = true;
+            for (const name of missing) communityLoads.delete(name);
+          })
+        : Promise.resolve();
+      for (const name of missing) communityLoads.set(name, load);
+    }
+    return Promise.all(names.map((name) => communityLoads.get(name))).then(
+      () => undefined,
+    );
+  }
+
+  // Resolves once every control the view names is registered with the
+  // loader - ours (rejecting when they could not be loaded) and the
+  // community's (never rejecting). The two loads run side by side.
+  /** @returns {Promise<void>} */
+  function ensure(ctx, xml) {
+    return Promise.all([ensureOwn(ctx, xml), ensureCommunity(ctx, xml)]).then(
+      () => undefined,
+    );
+  }
+
+  return { ensure, namesControls, communityControls };
 });
