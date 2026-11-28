@@ -38,11 +38,10 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
     INTERFACES z2ui5_if_ajson_mapping.
 
     "! The upper-case field mapping every model and response serialization
-    "! attaches. A caller that needs a mapper of its OWN still builds one -
-    "! this is the shared, unconfigurable instance, and nothing may be
-    "! stored on an attribute from here: a mapper on mt_attri is serialized
-    "! into the draft (z2ui5_cl_ui5_srv_bind=>check_raise_new), and a draft
-    "! must not carry a reference every session shares.
+    "! attaches - the shared, unconfigurable instance. It is attached to an
+    "! ajson instance, never stored on mt_attri (the attribute row carries
+    "! no mapper since 2026-11-28), so no draft carries a reference every
+    "! session shares.
     CLASS-METHODS mapper_upper
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ajson_mapping.

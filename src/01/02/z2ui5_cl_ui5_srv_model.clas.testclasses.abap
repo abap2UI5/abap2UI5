@@ -1400,7 +1400,6 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
 
     DATA(lr_attri) = bind( REF #( mo_app->ms_flat ) ).
     lr_attri->custom_filter = NEW ltcl_shp_filter( ).
-    lr_attri->custom_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( ).
     lr_attri->check_json    = abap_false.
     DATA(lr_json) = bind( REF #( mo_app->mv_string ) ).
     lr_json->check_json = abap_true.
@@ -1413,7 +1412,6 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `/MS_FLAT`
                                         act = lr_after->name_client ).
     cl_abap_unit_assert=>assert_bound( lr_after->custom_filter ).
-    cl_abap_unit_assert=>assert_bound( lr_after->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = row( `MV_STRING` )-check_json ).
 
@@ -1796,8 +1794,6 @@ CLASS ltcl_03_model_out DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS json_bind_initial_null   FOR TESTING RAISING cx_static_check.
     " a filter drops what it says (omit_initial)
     METHODS filter_applied           FOR TESTING RAISING cx_static_check.
-    " a mapper renames what it says
-    METHODS mapper_applied           FOR TESTING RAISING cx_static_check.
     " the snapshot before main( ): unchanged values are no change - also
     " when a bound row cannot be reached (its reference was cleared), which
     " the snapshot leaves out and used to count as bound anew, pushing the
@@ -1983,19 +1979,6 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_result->exists( `/MS_FLAT/COL1` )
                                         msg = `an initial field must stay ABSENT, not serialize as an empty string` ).
-
-  ENDMETHOD.
-
-  METHOD mapper_applied.
-
-    DATA(lr_attri) = bind( REF #( mo_app->ms_flat ) ).
-    lr_attri->custom_mapper = z2ui5_cl_ajson_mapping=>create_lower_case( ).
-
-    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( mo_model->main_json_stringify( ) ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `flat`
-                                        act = lo_result->get_string( `/MS_FLAT/col1` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_result->exists( `/MS_FLAT/COL1` ) ).
 
   ENDMETHOD.
 
@@ -3642,7 +3625,7 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " the host swapped its sub-app's class (sample 338), before and after
     METHODS class_swap_before_load   FOR TESTING RAISING cx_static_check.
     METHODS class_swap_after_load    FOR TESTING RAISING cx_static_check.
-    " what a bind carries survives: mapper, filter, json flag
+    " what a bind carries survives: filter, json flag
     METHODS bind_options_survive     FOR TESTING RAISING cx_static_check.
     " values with markup survive both serializations
     METHODS markup_survives          FOR TESTING RAISING cx_static_check.
@@ -4150,24 +4133,21 @@ CLASS ltcl_05_draft IMPLEMENTATION.
 
   METHOD bind_options_survive.
 
-    " mapper, filter and the json flag travel in mt_attri - a filter class
-    " that is not serializable would be the app's fault (srv_bind refuses
-    " it at bind time), a mapper always serializes
+    " the filter and the json flag travel in mt_attri - a filter class that
+    " is not serializable is refused at bind time (srv_bind)
     CLEAR mo_app->ms_flat-col1.
     DATA(lr_flat) = bind( REF #( mo_app->ms_flat ) ).
     lr_flat->custom_filter = NEW ltcl_shp_filter( ).
-    lr_flat->custom_mapper = z2ui5_cl_ajson_mapping=>create_lower_case( ).
     mo_app->mv_string = `{"sap.app":{"type":"card"}}`.
     DATA(lr_json) = bind( REF #( mo_app->mv_string ) ).
     lr_json->check_json = abap_true.
     DATA(lv_before) = mo_model->main_json_stringify( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_before CS `"col2"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_before CS `"col1"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_before CS `"COL2"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_before CS `"COL1"` ) ).
 
     roundtrip( ).
 
     cl_abap_unit_assert=>assert_bound( row( `MS_FLAT` )-custom_filter ).
-    cl_abap_unit_assert=>assert_bound( row( `MS_FLAT` )-custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = row( `MV_STRING` )-check_json ).
     cl_abap_unit_assert=>assert_equals( exp = lv_before

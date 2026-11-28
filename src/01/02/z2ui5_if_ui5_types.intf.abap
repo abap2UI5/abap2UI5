@@ -64,7 +64,8 @@ INTERFACE z2ui5_if_ui5_types
   TYPES:
     BEGIN OF ty_s_bind_config,
       path_only            TYPE abap_bool,
-      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping,
+      " omit_initial / omit_initial_paths as the framework's own ajson
+      " filter (z2ui5_cl_ui5_client, local classes) - no app hands one in
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter,
       tab                  TYPE REF TO data,
       tab_index            TYPE i,
@@ -95,8 +96,13 @@ INTERFACE z2ui5_if_ui5_types
       " type, and is restored from the combined document as before
       srtti_type        TYPE string,
       check_dissolved   TYPE abap_bool,
+      " omit_initial / omit_initial_paths, see ty_s_bind_config. Its twin
+      " custom_mapper was DROPPED 2026-11-28 together with the two _bind( )
+      " parameters an app passed them through - the same deliberate
+      " draft-format break as the one under type_name below: a draft written
+      " before carries a surplus element and does not deserialize, the next
+      " start is a fresh app
       custom_filter     TYPE REF TO z2ui5_if_ajson_filter,
-      custom_mapper     TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
       check_json        TYPE abap_bool,
       " live only: the draft stores the row without it

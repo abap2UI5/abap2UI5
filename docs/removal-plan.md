@@ -36,6 +36,26 @@ later one, the deprecation issue linked from the `BREAKING:` line - is
 
 ## 0. Already done (do not re-litigate)
 
+- [x] `custom_mapper` and `custom_filter` of `z2ui5_if_client~_bind( )`
+      removed on 2026-11-28 (maintainer decision). Both handed app code a
+      reference into the mirrored AJSON library (`src/00/01`), a type this
+      repository does not own; obsolete since 2026-09-13, replaced by
+      `omit_initial` / `omit_initial_paths` and `json = abap_true`. Zero
+      callers in `samples`, `samples-controls` and `samples-stack`; the three
+      addons that named them were migrated first - `app-sql-console` (the
+      native console's spreadsheet export binds with `omit_initial` through
+      `z2ui5_cl_cci_spreadsheet=>render`), `rap-ext` (the forwarding client
+      drops the two parameters) and `custom-controls`
+      (`z2ui5_cl_cci_json_filter` deleted). The filter slot stays INTERNAL:
+      `omit_initial` is still carried as the framework's own ajson filter on
+      the attribute row; the mapper slot is gone from the row, which is a
+      draft-format break for drafts written before the update (one error
+      page, then a fresh start). Migration: drop `custom_filter =
+      z2ui5_cl_ajson_filter_lib=>create_empty_filter( )` (or any empty-value
+      filter) for `omit_initial = abap_true`; a renaming mapper is replaced
+      by shaping the value in ABAP, or by composing the JSON and binding it
+      with `json = abap_true`. API snapshot regenerated, exception 15 in
+      `docs/agents/api-snapshot-exceptions.md`.
 - [x] `_bind_edit( )`, `view_model_update( )`, `nest_view_model_update( )`,
       `nest2_view_model_update( )`, `popup_model_update( )` and
       `popover_model_update( )` of `z2ui5_if_client` removed on 2026-11-22
@@ -308,20 +328,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       Content-Security-Policy, theme or bootstrap. Still owed: the examples
       on the Setup, Security, Style/CSS, Bootstrap-Attributes and
       Logon-Language pages of `abap2UI5/docs` write the old name.
-- [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
-      the declaration. Still evaluated. They hand app code a reference into the **mirrored**
-      AJSON library (`src/00/01`, synced from an external project), so an app
-      implementing `z2ui5_if_ajson_mapping` / `_filter` binds itself to a type
-      this repo does not own.
-      - Removing them is a signature change of `_bind( )`. They were meant to
-        ride along with the `_bind_edit` removal; that went first on its own
-        (2026-11-22, see §0), so these two go in a change of their own.
-      - Zero usages across samples, samples-controls and samples-stack.
-      - Blocker: `z2ui5_if_ajson_mapping` / `z2ui5_if_ajson_filter` reach app
-        code only through these four parameters — check for downstream users
-        before cutting, there is no declarative equivalent for a *custom*
-        transformation (only `omit_initial` / `omit_initial_paths` / `json`).
-
 - [ ] **`get_request( )`** of `z2ui5_cl_ui5_http_handler` — public API with
       no caller anywhere in this repository (the class comment at the
       declaration says so): it reads the raw request off the server object
@@ -565,8 +571,8 @@ rather than by guessing; each entry names the callers that exist today.
 
 - [x] **Parsing JSON.** An event argument arrives as a JSON string, and there
       is no released way to read it. `z2ui5_cl_ajson` is the mirrored library
-      in `src/00/01` — synced from another project, and the same type this
-      plan wants to stop handing app code through `custom_mapper` (§1).
+      in `src/00/01` — synced from another project, and the same type the
+      removal of `custom_mapper` (§0, 2026-11-28) stopped handing app code.
       - Neither alternative is portable: `/ui2/cl_json` is not released for
         ABAP Cloud, `xco_cp_json` does not exist on 7.02.
       - `z2ui5_cl_ui5_json` in `src/02` was the answer for two weeks — a

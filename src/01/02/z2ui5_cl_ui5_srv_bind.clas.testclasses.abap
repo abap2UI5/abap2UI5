@@ -439,9 +439,9 @@ CLASS ltcl_02_cell DEFINITION FINAL INHERITING FROM ltcl_00_base
     " memo only ever holds a table the check passed for, and a refused
     " reference never replaces it
     METHODS std_verdict_memoised    FOR TESTING RAISING cx_static_check.
-    " the mapper and the filter of a cell bind land on the TABLE, and a
-    " second cell with a different mapper is refused like a second _bind( )
-    " of the table would be
+    " the filter of a cell bind lands on the TABLE, and a second cell with a
+    " different filter is refused like a second _bind( ) of the table would
+    " be
     METHODS cell_carries_options    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -451,35 +451,30 @@ CLASS ltcl_02_cell IMPLEMENTATION.
   METHOD cell_carries_options.
 
     DATA(lo_filter) = NEW ltcl_test_filter( ).
-    DATA(lo_mapper) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
 
     bind( ir_val    = cell_name( 1 )
           is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
                                tab_index     = 1
-                               custom_filter = lo_filter
-                               custom_mapper = lo_mapper ) ).
+                               custom_filter = lo_filter ) ).
 
-    " stored on the table's row - the one the serializer applies them to
+    " stored on the table's row - the one the serializer applies it to
     DATA(lr_tab) = mo_bind->get_model( )->main_attri_search( REF #( mo_app->mt_tab ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_filter
                                         act = lr_tab->custom_filter ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_mapper
-                                        act = lr_tab->custom_mapper ).
 
-    " the same options again, for another cell: no conflict
+    " the same option again, for another cell: no conflict
     bind( ir_val    = cell_name( 2 )
           is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
                                tab_index     = 2
-                               custom_filter = lo_filter
-                               custom_mapper = lo_mapper ) ).
+                               custom_filter = lo_filter ) ).
 
-    " a different mapper for a cell of the same table: refused, as the
+    " a different filter for a cell of the same table: refused, as the
     " table's own second bind would be - it used to be dropped silently
     expect_bind_error( ir_val    = cell_name( 1 )
                        is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
                                             tab_index     = 1
-                                            custom_mapper = z2ui5_cl_ajson_mapping=>create_lower_case( ) )
-                       iv_text   = `Two different mappers` ).
+                                            custom_filter = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) )
+                       iv_text   = `Two different filters` ).
 
   ENDMETHOD.
 
@@ -731,7 +726,7 @@ ENDCLASS.
 
 
 " ---------------------------------------------------------------------------
-" 03 - the options: mapper, filter and the json flag are stored on the
+" 03 - the options: the filter and the json flag are stored on the
 " attribute row and travel with the draft. A later bind adopts what the row
 " does not carry yet, keeps what it has, and refuses a different
 " implementation or one that cannot be serialized
@@ -740,11 +735,11 @@ CLASS ltcl_03_options DEFINITION FINAL INHERITING FROM ltcl_00_base
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
   PRIVATE SECTION.
-    " the first bind stores all three
+    " the first bind stores both
     METHODS options_stored          FOR TESTING RAISING cx_static_check.
     " a plain first bind invents nothing
     METHODS plain_bind_stores_none  FOR TESTING RAISING cx_static_check.
-    " a later bind with a filter, a mapper or json adopts it
+    " a later bind with a filter or json adopts it
     METHODS later_bind_adopts       FOR TESTING RAISING cx_static_check.
     " a later plain bind keeps them - json only ever turns on
     METHODS later_plain_bind_keeps  FOR TESTING RAISING cx_static_check.
@@ -755,8 +750,7 @@ CLASS ltcl_03_options DEFINITION FINAL INHERITING FROM ltcl_00_base
     " the class name of a stored implementation is asked once per service -
     " a re-bind with a fresh instance reads it from the memo
     METHODS impl_name_memoised      FOR TESTING RAISING cx_static_check.
-    " a different mapper or filter for the same attribute is refused
-    METHODS different_mapper_refused FOR TESTING RAISING cx_static_check.
+    " a different filter for the same attribute is refused
     METHODS different_filter_refused FOR TESTING RAISING cx_static_check.
     " a filter that cannot be serialized is refused at bind time - on the
     " first bind and when a later bind would adopt it
@@ -779,18 +773,14 @@ CLASS ltcl_03_options IMPLEMENTATION.
   METHOD options_stored.
 
     DATA(lo_filter) = NEW ltcl_test_filter( ).
-    DATA(lo_mapper) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
 
     bind( ir_val    = REF #( mo_app->mv_value )
           is_config = VALUE #( custom_filter = lo_filter
-                               custom_mapper = lo_mapper
                                check_json    = abap_true ) ).
 
     DATA(lr_attri) = mo_bind->mr_attri.
     cl_abap_unit_assert=>assert_equals( exp = lo_filter
                                         act = lr_attri->custom_filter ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_mapper
-                                        act = lr_attri->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lr_attri->check_json ).
 
@@ -802,7 +792,6 @@ CLASS ltcl_03_options IMPLEMENTATION.
 
     DATA(lr_attri) = mo_bind->mr_attri.
     cl_abap_unit_assert=>assert_not_bound( lr_attri->custom_filter ).
-    cl_abap_unit_assert=>assert_not_bound( lr_attri->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lr_attri->check_json ).
 
@@ -820,14 +809,11 @@ CLASS ltcl_03_options IMPLEMENTATION.
     bind( ir_val    = REF #( mo_app->mv_value )
           is_config = VALUE #( custom_filter = lo_filter ) ).
     bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
-    bind( ir_val    = REF #( mo_app->mv_value )
           is_config = VALUE #( check_json = abap_true ) ).
 
     DATA(lr_attri) = mo_bind->mr_attri.
     cl_abap_unit_assert=>assert_equals( exp = lo_filter
                                         act = lr_attri->custom_filter ).
-    cl_abap_unit_assert=>assert_bound( lr_attri->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lr_attri->check_json ).
 
@@ -838,7 +824,6 @@ CLASS ltcl_03_options IMPLEMENTATION.
     DATA(lo_filter) = NEW ltcl_test_filter( ).
     bind( ir_val    = REF #( mo_app->mv_value )
           is_config = VALUE #( custom_filter = lo_filter
-                               custom_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( )
                                check_json    = abap_true ) ).
 
     bind( REF #( mo_app->mv_value ) ).
@@ -846,7 +831,6 @@ CLASS ltcl_03_options IMPLEMENTATION.
     DATA(lr_attri) = mo_bind->mr_attri.
     cl_abap_unit_assert=>assert_equals( exp = lo_filter
                                         act = lr_attri->custom_filter ).
-    cl_abap_unit_assert=>assert_bound( lr_attri->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lr_attri->check_json ).
 
@@ -856,11 +840,9 @@ CLASS ltcl_03_options IMPLEMENTATION.
 
     " a second INSTANCE of the same class - what every render creates anew
     bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_filter = NEW ltcl_test_filter( )
-                               custom_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+          is_config = VALUE #( custom_filter = NEW ltcl_test_filter( ) ) ).
     DATA(lv_path) = bind( ir_val    = REF #( mo_app->mv_value )
-                          is_config = VALUE #( custom_filter = NEW ltcl_test_filter( )
-                                               custom_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+                          is_config = VALUE #( custom_filter = NEW ltcl_test_filter( ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MV_VALUE}`
                                         act = lv_path ).
@@ -920,17 +902,6 @@ CLASS ltcl_03_options IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD different_mapper_refused.
-
-    bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
-
-    expect_bind_error( ir_val    = REF #( mo_app->mv_value )
-                       is_config = VALUE #( custom_mapper = z2ui5_cl_ajson_mapping=>create_lower_case( ) )
-                       iv_text   = `Two different mappers` ).
-
-  ENDMETHOD.
-
   METHOD different_filter_refused.
 
     bind( ir_val    = REF #( mo_app->mv_value )
@@ -961,14 +932,14 @@ CLASS ltcl_03_options IMPLEMENTATION.
   METHOD options_per_attribute.
 
     bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( )
+          is_config = VALUE #( custom_filter = NEW ltcl_test_filter( )
                                check_json    = abap_true ) ).
     bind( REF #( mo_app->xx ) ).
 
     DATA(lr_attri) = mo_bind->mr_attri.
     cl_abap_unit_assert=>assert_equals( exp = `XX`
                                         act = lr_attri->name ).
-    cl_abap_unit_assert=>assert_not_bound( lr_attri->custom_mapper ).
+    cl_abap_unit_assert=>assert_not_bound( lr_attri->custom_filter ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lr_attri->check_json ).
 

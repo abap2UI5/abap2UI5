@@ -71,7 +71,7 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_POPUP_VALUE_HELP", "ships in abap2UI5-addons/popups"],
   ["Z2UI5_IF_POPUP_RESULT", "ships in abap2UI5-addons/popups"],
   ["Z2UI5_CL_CCI_SPREADSHEET", "ships in abap2UI5-addons/custom-controls"],
-  ["Z2UI5_CL_CCI_JSON_FILTER", "ships in abap2UI5-addons/custom-controls"],
+  ["Z2UI5_CL_CCI_JSON_FILTER", "shipped in abap2UI5-addons/custom-controls until 2026-11, removed with _bind( custom_filter )"],
   ["Z2UI5_CL_CCI_SIGNATURE_PAD", "the name of Z2UI5_CL_CCI_SIGNATURE in abap2UI5-addons/custom-controls up to 2026-11"],
   ["Z2UI5_CL_CCI_NETWORK_STATUS", "the name of Z2UI5_CL_CCI_NET_STATUS in abap2UI5-addons/custom-controls up to 2026-11"],
   ["Z2UI5_CL_CCI_RICH_TEXT_EDITOR", "the name of Z2UI5_CL_CCI_RICH_TEXT in abap2UI5-addons/custom-controls up to 2026-11"],

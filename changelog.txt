@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+- BREAKING: z2ui5_if_client~_bind( ) lost custom_mapper and custom_filter, obsolete since 2026-09 - both handed app code a type of the mirrored AJSON library. Use omit_initial / omit_initial_paths instead of an empty-value filter, and shape the value in ABAP (or bind composed JSON with json = abap_true) instead of a mapper. A draft written before the update does not restore once - the next start is a fresh app
 ! CI: bump-deps.yaml runs npm, update-deps.mjs --actions (with the read-only job token) and the mirror refresh in a job that holds no secret, and hands the changes as a patch to a second job, the only one DEPS_TOKEN reaches, which runs no npm and opens the pull request - a just-bumped package ran in the job of the token step and could tamper with it through $GITHUB_ENV, $GITHUB_PATH or the files it runs
 ! CI: the jobs that publish (release.yaml, backend-prebuilt.yaml) run in the environment release, which a maintainer has to set up with reviewers and deployment rules (RELEASING.md); release.yaml keeps no write token in .git/config while npm runs and pushes the 702 tag with the token for that command only
 * CI: autofix (/fix on a pull request, which runs in main's cache scope) takes the setup action from the default branch and only restores caches - a pull request could save an abap-deps cache that release.yaml and backend-prebuilt.yaml restore before they publish; npm run deps resets and cleans a checkout at its pin before accepting it
