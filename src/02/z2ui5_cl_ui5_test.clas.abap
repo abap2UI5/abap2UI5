@@ -62,7 +62,7 @@ CLASS z2ui5_cl_ui5_test DEFINITION PUBLIC FINAL CREATE PRIVATE FOR TESTING.
         t_arg TYPE string_table,
         json  TYPE string,
       END OF ty_s_action.
-    TYPES ty_t_action TYPE STANDARD TABLE OF ty_s_action WITH EMPTY KEY.
+    TYPES ty_t_action TYPE STANDARD TABLE OF ty_s_action WITH DEFAULT KEY.
 
     " One message the last response shows. type is `toast` for a message
     " toast, else the sap.m.MessageBox method of the box - `information`,
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_ui5_test DEFINITION PUBLIC FINAL CREATE PRIVATE FOR TESTING.
         text  TYPE string,
         title TYPE string,
       END OF ty_s_message.
-    TYPES ty_t_message TYPE STANDARD TABLE OF ty_s_message WITH EMPTY KEY.
+    TYPES ty_t_message TYPE STANDARD TABLE OF ty_s_message WITH DEFAULT KEY.
 
     "! The first roundtrip of an app - a page load that starts the given
     "! instance. Prepare the instance before (a constructor parameter, an
@@ -221,7 +221,7 @@ CLASS z2ui5_cl_ui5_test DEFINITION PUBLIC FINAL CREATE PRIVATE FOR TESTING.
         slot TYPE string,
         xml  TYPE string,
       END OF ty_s_slot.
-    TYPES ty_t_slot TYPE STANDARD TABLE OF ty_s_slot WITH EMPTY KEY.
+    TYPES ty_t_slot TYPE STANDARD TABLE OF ty_s_slot WITH DEFAULT KEY.
 
     " the page origin every start request names
     CONSTANTS c_origin   TYPE string VALUE `https://localhost`.
@@ -326,8 +326,8 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
   METHOD start.
 
-    result = NEW #( ).
-    result->mi_store = NEW lcl_store( ).
+    CREATE OBJECT result.
+    CREATE OBJECT result->mi_store TYPE lcl_store.
 
     " the request names no app - the handler starts the instance itself
     " (z2ui5_cl_ui5_handler->mo_app_start)
@@ -338,13 +338,17 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
   METHOD start_called.
 
-    result = start( NEW lcl_caller( app ) ).
+    DATA temp5 TYPE REF TO lcl_caller.
+    CREATE OBJECT temp5 TYPE lcl_caller EXPORTING APP = app.
+    result = start( temp5 ).
 
   ENDMETHOD.
 
   METHOD event.
 
-    roundtrip( request_event( iv_event = CONV #( val )
+    DATA temp6 TYPE string.
+    temp6 = val.
+    roundtrip( request_event( iv_event = temp6
                               t_arg    = t_arg ) ).
     result = me.
 
@@ -370,6 +374,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD restore.
+    DATA lv_request TYPE string.
 
     IF mv_id IS INITIAL OR mi_store->check_exists( mv_id ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -377,7 +382,8 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     ENDIF.
 
     " a route restore
-    DATA(lv_request) = request_page( iv_app   = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mi_app )
+
+    lv_request = request_page( iv_app   = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mi_app )
                                      iv_draft = mv_id ).
 
     " a new page: nothing on screen, no model, no session kept
@@ -389,25 +395,45 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
   METHOD set_model.
 
-    DATA(lv_path) = CONV string( path ).
+    DATA temp7 TYPE string.
+    DATA lv_path LIKE temp7.
+        DATA temp8 TYPE REF TO z2ui5_if_ui5_ajs.
+        DATA temp1 TYPE string.
+        DATA li_model LIKE temp8.
+        DATA x TYPE REF TO cx_root.
+    DATA temp9 LIKE sy-subrc.
+    temp7 = path.
+
+    lv_path = temp7.
     IF lv_path IS INITIAL OR lv_path(1) <> `/`.
       lv_path = `/` && lv_path.
     ENDIF.
 
     TRY.
-        DATA(li_model) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( COND string( WHEN mv_model IS INITIAL
-                                                                                  THEN `{}`
-                                                                                  ELSE mv_model ) ) ).
+
+
+        IF mv_model IS INITIAL.
+          temp1 = `{}`.
+        ELSE.
+          temp1 = mv_model.
+        ENDIF.
+        temp8 ?= z2ui5_cl_ui5_ajs=>parse( temp1 ).
+
+        li_model = temp8.
         li_model->set( iv_path         = path_to_json( lv_path )
                        iv_val          = val
                        iv_ignore_empty = abap_false ).
         mv_model = li_model->stringify( ).
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
 
-    IF NOT line_exists( mt_edit[ table_line = lv_path ] ). "#EC CI_SORTSEQ
+
+    READ TABLE mt_edit WITH KEY table_line = lv_path TRANSPORTING NO FIELDS.
+    temp9 = sy-subrc.
+    IF NOT temp9 = 0. "#EC CI_SORTSEQ
       INSERT lv_path INTO TABLE mt_edit.
     ENDIF.
     result = me.
@@ -415,9 +441,15 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_page.
+        DATA temp10 TYPE REF TO z2ui5_if_ui5_ajs.
+        DATA li_request LIKE temp10.
+        DATA x TYPE REF TO cx_root.
 
     TRY.
-        DATA(li_request) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
+
+        temp10 ?= z2ui5_cl_ui5_ajs=>create_empty( ).
+
+        li_request = temp10.
         li_request->set( iv_path = `/value/S_FRONT/ORIGIN`
                          iv_val  = c_origin ).
         li_request->set( iv_path = `/value/S_FRONT/PATHNAME`
@@ -429,7 +461,8 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
                            iv_val  = iv_draft ).
         ENDIF.
         result = li_request->stringify( ).
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
@@ -437,16 +470,24 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_event.
+        DATA temp11 TYPE REF TO z2ui5_if_ui5_ajs.
+        DATA li_request LIKE temp11.
+          DATA lv_arg LIKE LINE OF t_arg.
+        DATA x TYPE REF TO cx_root.
 
     TRY.
-        DATA(li_request) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
+
+        temp11 ?= z2ui5_cl_ui5_ajs=>create_empty( ).
+
+        li_request = temp11.
         li_request->set( iv_path = `/value/S_FRONT/ID`
                          iv_val  = mv_id ).
         li_request->set( iv_path = `/value/S_FRONT/EVENT`
                          iv_val  = iv_event ).
         IF t_arg IS NOT INITIAL.
           li_request->touch_array( `/value/S_FRONT/T_EVENT_ARG` ).
-          LOOP AT t_arg INTO DATA(lv_arg).
+
+          LOOP AT t_arg INTO lv_arg.
             li_request->push( iv_path = `/value/S_FRONT/T_EVENT_ARG`
                               iv_val  = lv_arg ).
           ENDLOOP.
@@ -457,7 +498,8 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
         ENDIF.
         request_delta( li_request ).
         result = li_request->stringify( ).
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
@@ -466,6 +508,25 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_delta.
+    DATA temp12 TYPE REF TO z2ui5_if_ui5_ajs.
+    DATA li_model LIKE temp12.
+    DATA lt_whole TYPE string_table.
+    DATA lv_path LIKE LINE OF mt_edit.
+      TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_part TYPE temp1.
+      DATA lv_attr TYPE string.
+      FIELD-SYMBOLS <temp2> LIKE LINE OF lt_part.
+      DATA temp3 LIKE sy-tabix.
+      DATA temp13 LIKE sy-subrc.
+      FIELD-SYMBOLS <temp14> LIKE LINE OF lt_part.
+      DATA temp15 LIKE sy-tabix.
+      FIELD-SYMBOLS <temp4> LIKE LINE OF lt_part.
+      DATA temp5 LIKE sy-tabix.
+        DATA lv_cell TYPE string.
+        FIELD-SYMBOLS <temp6> LIKE LINE OF lt_part.
+        DATA temp7 LIKE sy-tabix.
+        FIELD-SYMBOLS <temp1> LIKE LINE OF lt_part.
+        DATA temp2 LIKE sy-tabix.
 
     " The delta the browser builds from the edited paths (core/Lib.js,
     " buildDeltaFromPaths): a table cell - /TAB/<row>/<field> - travels as
@@ -474,20 +535,75 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     IF mt_edit IS INITIAL OR mv_model IS INITIAL.
       RETURN.
     ENDIF.
-    DATA(li_model) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( mv_model ) ).
-    DATA lt_whole TYPE string_table.
 
-    LOOP AT mt_edit INTO DATA(lv_path).
+    temp12 ?= z2ui5_cl_ui5_ajs=>parse( mv_model ).
+
+    li_model = temp12.
+
+
+
+    LOOP AT mt_edit INTO lv_path.
+
+
       SPLIT substring( val = lv_path
-                       off = 1 ) AT `/` INTO TABLE DATA(lt_part).
-      DATA(lv_attr) = `/` && lt_part[ 1 ].
-      IF line_exists( lt_whole[ table_line = lv_attr ] ). "#EC CI_SORTSEQ
+                       off = 1 ) AT `/` INTO TABLE lt_part.
+
+
+
+      temp3 = sy-tabix.
+      READ TABLE lt_part INDEX 1 ASSIGNING <temp2>.
+      sy-tabix = temp3.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      lv_attr = `/` && <temp2>.
+
+      READ TABLE lt_whole WITH KEY table_line = lv_attr TRANSPORTING NO FIELDS.
+      temp13 = sy-subrc.
+      IF temp13 = 0. "#EC CI_SORTSEQ
         CONTINUE.
       ENDIF.
       " one level of rows: <attr>/<row>/<field>, the row a number and the
       " field a name - a deeper edit ships the field of the row whole
-      IF lines( lt_part ) >= 3 AND lt_part[ 2 ] CO `0123456789` AND lt_part[ 3 ] CN `0123456789`.
-        DATA(lv_cell) = |/{ lt_part[ 2 ] }/{ lt_part[ 3 ] }|.
+
+
+      IF lines( lt_part ) >= 3.
+        temp15 = sy-tabix.
+        READ TABLE lt_part INDEX 2 ASSIGNING <temp14>.
+        sy-tabix = temp15.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+      ENDIF.
+
+
+      IF lines( lt_part ) >= 3 AND <temp14> CO `0123456789`.
+        temp5 = sy-tabix.
+        READ TABLE lt_part INDEX 3 ASSIGNING <temp4>.
+        sy-tabix = temp5.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+      ENDIF.
+      IF lines( lt_part ) >= 3 AND <temp14> CO `0123456789` AND <temp4> CN `0123456789`.
+
+
+
+        temp7 = sy-tabix.
+        READ TABLE lt_part INDEX 2 ASSIGNING <temp6>.
+        sy-tabix = temp7.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+
+
+        temp2 = sy-tabix.
+        READ TABLE lt_part INDEX 3 ASSIGNING <temp1>.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        lv_cell = |/{ <temp6> }/{ <temp1> }|.
         ii_request->set( iv_path         = |/value/MODEL{ lv_attr }/__delta{ lv_cell }|
                          iv_val          = li_model->slice( path_to_json( lv_attr && lv_cell ) )
                          iv_ignore_empty = abap_false ).
@@ -507,32 +623,45 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     " the in-memory store for exactly this roundtrip; get_instance( ) answers
     " a fresh shipped store when none is installed, which is what putting
     " that answer back restores
-    DATA(li_store_before) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
+    DATA li_store_before TYPE REF TO z2ui5_if_ui5_draft_store.
+        DATA lv_count TYPE i.
+        DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+        DATA temp1 TYPE xsdboolean.
+        DATA ls_result TYPE z2ui5_if_ui5_types=>ty_s_http_res.
+        DATA temp16 TYPE REF TO z2ui5_if_app.
+        DATA lx_json TYPE REF TO z2ui5_cx_ui5_ajs_error.
+    li_store_before = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     z2ui5_cl_ui5_srv_draft=>set_instance( mi_store ).
 
     TRY.
-        DATA(lv_count) = mi_store->count_entries_total( ).
+
+        lv_count = mi_store->count_entries_total( ).
 
         " a stateful session answers from the handler it kept, exactly as
         " z2ui5_cl_ui5_http_handler=>_http_post does
-        DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
         IF mo_handler IS BOUND.
           lo_handler = mo_handler.
           lo_handler->mv_request_json = iv_request.
         ELSE.
-          lo_handler = NEW #( iv_request ).
+          CREATE OBJECT lo_handler EXPORTING VAL = iv_request.
           " a stateless request starts in a new internal session: no
           " container of an earlier roundtrip is buffered there, the app
           " comes back from the draft store
           z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
         ENDIF.
-        lo_handler->mv_session_sticky = xsdbool( mo_handler IS BOUND ).
+
+        temp1 = boolc( mo_handler IS BOUND ).
+        lo_handler->mv_session_sticky = temp1.
         lo_handler->mo_app_start = io_app.
 
-        DATA(ls_result) = lo_handler->main( ).
+
+        ls_result = lo_handler->main( ).
         CLEAR lo_handler->mo_app_start.
 
-        mi_app = CAST #( lo_handler->mo_action->mo_app->mo_app ).
+
+        temp16 ?= lo_handler->mo_action->mo_app->mo_app.
+        mi_app = temp16.
         " the navigation first: it ends the timer the response of the app
         " navigated to may arm again
         roundtrip_nav( io_handler = lo_handler
@@ -545,7 +674,8 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
           CLEAR mo_handler.
         ENDIF.
 
-      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
+
+      CATCH z2ui5_cx_ui5_ajs_error INTO lx_json.
         z2ui5_cl_ui5_srv_draft=>set_instance( li_store_before ).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = lx_json.
@@ -558,22 +688,30 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD roundtrip_nav.
+    DATA lo_cont LIKE io_handler->mo_action->mo_app.
+    DATA temp17 TYPE REF TO lcl_store.
+      DATA temp18 TYPE REF TO z2ui5_if_app.
 
     CLEAR: mi_called, mi_left.
 
     " a navigation hop saves the app it leaves (z2ui5_cl_ui5_action=>
     " prepare_app_stack) and the app it reaches names that draft as its
     " previous app - a previous app saved in THIS roundtrip is the hop
-    DATA(lo_cont) = io_handler->mo_action->mo_app.
+
+    lo_cont = io_handler->mo_action->mo_app.
+
+    temp17 ?= mi_store.
     IF lo_cont->ms_draft-id_prev_app IS INITIAL
-        OR CAST lcl_store( mi_store )->check_written_since( id    = lo_cont->ms_draft-id_prev_app
+        OR temp17->check_written_since( id    = lo_cont->ms_draft-id_prev_app
                                                             count = iv_count ) = abap_false.
       RETURN.
     ENDIF.
 
     IF io_handler->mo_action->ms_actual-check_nav_back = abap_true.
       " what client->get_app_prev( ) answers on that roundtrip
-      mi_left = CAST #( z2ui5_cl_ui5_app_cont=>db_load( lo_cont->ms_draft-id_prev_app )->mo_app ).
+
+      temp18 ?= z2ui5_cl_ui5_app_cont=>db_load( lo_cont->ms_draft-id_prev_app )->mo_app.
+      mi_left = temp18.
     ELSE.
       mi_called = mi_app.
     ENDIF.
@@ -585,7 +723,11 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
   METHOD response_read.
 
-    DATA(li_json) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( iv_body ) ).
+    DATA temp19 TYPE REF TO z2ui5_if_ui5_ajs.
+    DATA li_json LIKE temp19.
+    temp19 ?= z2ui5_cl_ui5_ajs=>parse( iv_body ).
+
+    li_json = temp19.
     mv_response = iv_body.
     mv_id = li_json->get_string( `/S_FRONT/ID` ).
 
@@ -606,13 +748,23 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
     " the frontend's order (View1): MAIN first - a new main view takes the
     " nested views with it, they live inside it - then the others
-    DATA(lt_order) = VALUE string_table( ( z2ui5_if_client=>cs_view-main )
-                                         ( z2ui5_if_client=>cs_view-nested )
-                                         ( z2ui5_if_client=>cs_view-nested2 )
-                                         ( z2ui5_if_client=>cs_view-popup )
-                                         ( z2ui5_if_client=>cs_view-popover ) ).
-    LOOP AT lt_order INTO DATA(lv_slot).
-      DATA(lv_path) = |/S_FRONT/VIEWS/{ lv_slot }|.
+    DATA temp20 TYPE string_table.
+    DATA lt_order LIKE temp20.
+    DATA lv_slot LIKE LINE OF lt_order.
+      DATA lv_path TYPE string.
+        DATA temp22 TYPE z2ui5_cl_ui5_test=>ty_s_slot.
+    CLEAR temp20.
+    INSERT z2ui5_if_client=>cs_view-main INTO TABLE temp20.
+    INSERT z2ui5_if_client=>cs_view-nested INTO TABLE temp20.
+    INSERT z2ui5_if_client=>cs_view-nested2 INTO TABLE temp20.
+    INSERT z2ui5_if_client=>cs_view-popup INTO TABLE temp20.
+    INSERT z2ui5_if_client=>cs_view-popover INTO TABLE temp20.
+
+    lt_order = temp20.
+
+    LOOP AT lt_order INTO lv_slot.
+
+      lv_path = |/S_FRONT/VIEWS/{ lv_slot }|.
       IF ii_json->exists( lv_path ) = abap_false.
         CONTINUE.
       ENDIF.
@@ -621,14 +773,23 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
         DELETE mt_slot WHERE slot = z2ui5_if_client=>cs_view-nested OR slot = z2ui5_if_client=>cs_view-nested2.
       ENDIF.
       IF ii_json->get_boolean( lv_path && `/DESTROY` ) = abap_false.
-        INSERT VALUE #( slot = lv_slot
-                        xml  = ii_json->get_string( lv_path && `/XML` ) ) INTO TABLE mt_slot.
+
+        CLEAR temp22.
+        temp22-slot = lv_slot.
+        temp22-xml = ii_json->get_string( lv_path && `/XML` ).
+        INSERT temp22 INTO TABLE mt_slot.
       ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
 
   METHOD response_actions.
+    DATA lv_index TYPE i.
+    DATA lv_count TYPE i.
+      DATA lv_entry TYPE string.
+      DATA temp23 TYPE ty_s_action.
+      DATA ls_action LIKE temp23.
+      DATA lv_arg TYPE i.
 
     CLEAR mt_action.
     IF ii_json->exists( `/S_FRONT/ACTIONS` ) = abap_false.
@@ -637,14 +798,21 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
     " by index, not over members( ): ajson sorts the member names as text,
     " so the eleventh action (`10`) came before the third (`2`)
-    DATA lv_index TYPE i.
-    DATA(lv_count) = lines( ii_json->members( `/S_FRONT/ACTIONS` ) ).
+
+
+    lv_count = lines( ii_json->members( `/S_FRONT/ACTIONS` ) ).
     WHILE lv_index < lv_count.
       lv_index = lv_index + 1.
-      DATA(lv_entry) = |/S_FRONT/ACTIONS/{ lv_index }|.
-      DATA(ls_action) = VALUE ty_s_action( name = ii_json->get_string( lv_entry && `/1` )
-                                           json = ii_json->slice( lv_entry )->stringify( ) ).
-      DATA(lv_arg) = 2.
+
+      lv_entry = |/S_FRONT/ACTIONS/{ lv_index }|.
+
+      CLEAR temp23.
+      temp23-name = ii_json->get_string( lv_entry && `/1` ).
+      temp23-json = ii_json->slice( lv_entry )->stringify( ).
+
+      ls_action = temp23.
+
+      lv_arg = 2.
       WHILE ii_json->exists( |{ lv_entry }/{ lv_arg }| ) = abap_true.
         INSERT node_text( ii_json = ii_json
                           iv_path = |{ lv_entry }/{ lv_arg }| ) INTO TABLE ls_action-t_arg.
@@ -656,6 +824,12 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD timer_read.
+    DATA ls_action LIKE LINE OF mt_action.
+          DATA temp24 TYPE string.
+          DATA temp25 TYPE string.
+          DATA temp26 TYPE string.
+          DATA temp27 TYPE string.
+          DATA temp2 TYPE xsdboolean.
 
     " one timer per app: a START_TIMER arms it (its fourth argument `X`
     " repeats it), STOP_TIMER ends it, and a one-shot timer is spent by
@@ -663,11 +837,28 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     IF mv_timer_again = abap_false.
       CLEAR mv_timer.
     ENDIF.
-    LOOP AT mt_action INTO DATA(ls_action).
+
+    LOOP AT mt_action INTO ls_action.
       CASE ls_action-name.
         WHEN z2ui5_if_client=>cs_event-start_timer.
-          mv_timer       = VALUE #( ls_action-t_arg[ 1 ] OPTIONAL ).
-          mv_timer_again = xsdbool( VALUE string( ls_action-t_arg[ 4 ] OPTIONAL ) = abap_true ).
+
+          CLEAR temp24.
+
+          READ TABLE ls_action-t_arg INTO temp25 INDEX 1.
+          IF sy-subrc = 0.
+            temp24 = temp25.
+          ENDIF.
+          mv_timer       = temp24.
+
+          CLEAR temp26.
+
+          READ TABLE ls_action-t_arg INTO temp27 INDEX 4.
+          IF sy-subrc = 0.
+            temp26 = temp27.
+          ENDIF.
+
+          temp2 = boolc( temp26 = abap_true ).
+          mv_timer_again = temp2.
         WHEN z2ui5_if_client=>cs_event-stop_timer.
           CLEAR: mv_timer, mv_timer_again.
       ENDCASE.
@@ -677,7 +868,8 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
   METHOD node_text.
 
-    DATA(lv_type) = ii_json->get_node_type( iv_path ).
+    DATA lv_type TYPE z2ui5_if_ui5_ajs_types=>ty_node_type.
+    lv_type = ii_json->get_node_type( iv_path ).
     IF lv_type = z2ui5_if_ui5_ajs_types=>node_type-object OR lv_type = z2ui5_if_ui5_ajs_types=>node_type-array.
       result = ii_json->slice( iv_path )->stringify( ).
     ELSE.
@@ -690,13 +882,20 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
     " a segment of digits is a row of a table - from 0 in the model the
     " browser binds, from 1 in an ajson path
-    SPLIT iv_path AT `/` INTO TABLE DATA(lt_part).
-    LOOP AT lt_part INTO DATA(lv_part).
+    TYPES temp2 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_part TYPE temp2.
+    DATA lv_part LIKE LINE OF lt_part.
+        DATA temp28 TYPE i.
+    SPLIT iv_path AT `/` INTO TABLE lt_part.
+
+    LOOP AT lt_part INTO lv_part.
       IF lv_part IS INITIAL.
         CONTINUE.
       ENDIF.
       IF lv_part CO `0123456789`.
-        lv_part = |{ CONV i( lv_part ) + 1 }|.
+
+        temp28 = lv_part.
+        lv_part = |{ temp28 + 1 }|.
       ENDIF.
       result = |{ result }/{ lv_part }|.
     ENDLOOP.
@@ -708,7 +907,8 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
   METHOD slot_get.
 
-    LOOP AT mt_slot INTO DATA(ls_slot) WHERE slot = iv_slot. "#EC CI_SORTSEQ
+    DATA ls_slot LIKE LINE OF mt_slot.
+    LOOP AT mt_slot INTO ls_slot WHERE slot = iv_slot. "#EC CI_SORTSEQ
       result = ls_slot-xml.
       RETURN.
     ENDLOOP.
@@ -752,9 +952,21 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD model.
+      DATA temp29 TYPE string.
+        DATA temp30 TYPE REF TO z2ui5_if_ui5_ajs.
+        DATA li_model LIKE temp30.
+        DATA temp31 TYPE string.
+        DATA lv_path TYPE string.
+        DATA x TYPE REF TO cx_root.
 
     IF path IS INITIAL.
-      result = COND #( WHEN mv_model IS INITIAL THEN `{}` ELSE mv_model ).
+
+      IF mv_model IS INITIAL.
+        temp29 = `{}`.
+      ELSE.
+        temp29 = mv_model.
+      ENDIF.
+      result = temp29.
       RETURN.
     ENDIF.
     IF mv_model IS INITIAL.
@@ -762,13 +974,20 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(li_model) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( mv_model ) ).
-        DATA(lv_path) = path_to_json( CONV #( path ) ).
+
+        temp30 ?= z2ui5_cl_ui5_ajs=>parse( mv_model ).
+
+        li_model = temp30.
+
+        temp31 = path.
+
+        lv_path = path_to_json( temp31 ).
         IF li_model->exists( lv_path ) = abap_true.
           result = node_text( ii_json = li_model
                               iv_path = lv_path ).
         ENDIF.
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
@@ -786,11 +1005,34 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     " ["MESSAGE_TOAST","show",text,{...}] and ["MESSAGE_BOX",type,text,
     " {title,...}] as the client queues them, the same behind
     " ["CONTROL_GLOBAL",...] when the app called follow_up_action( )
-    LOOP AT mt_action INTO DATA(ls_action).
-      DATA(lt_arg) = ls_action-t_arg.
-      DATA(lv_name) = ls_action-name.
+    DATA ls_action LIKE LINE OF mt_action.
+      DATA lt_arg LIKE ls_action-t_arg.
+      DATA lv_name LIKE ls_action-name.
+        DATA temp32 TYPE z2ui5_cl_ui5_test=>ty_s_action-name.
+        DATA temp33 TYPE string.
+      DATA temp34 TYPE ty_s_message.
+      DATA temp8 TYPE z2ui5_cl_ui5_test=>ty_s_message-type.
+      DATA temp9 TYPE string.
+      DATA temp10 TYPE z2ui5_cl_ui5_test=>ty_s_message-text.
+      DATA temp11 TYPE string.
+      DATA ls_message LIKE temp34.
+      DATA temp35 TYPE string.
+      DATA temp36 TYPE string.
+      DATA lv_opt LIKE temp35.
+    LOOP AT mt_action INTO ls_action.
+
+      lt_arg = ls_action-t_arg.
+
+      lv_name = ls_action-name.
       IF lv_name = z2ui5_if_client=>cs_event-control_global.
-        lv_name = VALUE #( lt_arg[ 1 ] OPTIONAL ).
+
+        CLEAR temp32.
+
+        READ TABLE lt_arg INTO temp33 INDEX 1.
+        IF sy-subrc = 0.
+          temp32 = temp33.
+        ENDIF.
+        lv_name = temp32.
         DELETE lt_arg INDEX 1.
       ENDIF.
       IF lv_name <> z2ui5_if_ui5_types=>cs_global_target-message_toast
@@ -798,12 +1040,38 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(ls_message) = VALUE ty_s_message( type = VALUE #( lt_arg[ 1 ] OPTIONAL )
-                                             text = VALUE #( lt_arg[ 2 ] OPTIONAL ) ).
+
+      CLEAR temp34.
+
+      CLEAR temp8.
+
+      READ TABLE lt_arg INTO temp9 INDEX 1.
+      IF sy-subrc = 0.
+        temp8 = temp9.
+      ENDIF.
+      temp34-type = temp8.
+
+      CLEAR temp10.
+
+      READ TABLE lt_arg INTO temp11 INDEX 2.
+      IF sy-subrc = 0.
+        temp10 = temp11.
+      ENDIF.
+      temp34-text = temp10.
+
+      ls_message = temp34.
       IF lv_name = z2ui5_if_ui5_types=>cs_global_target-message_toast.
         ls_message-type = `toast`.
       ENDIF.
-      DATA(lv_opt) = VALUE string( lt_arg[ 3 ] OPTIONAL ).
+
+      CLEAR temp35.
+
+      READ TABLE lt_arg INTO temp36 INDEX 3.
+      IF sy-subrc = 0.
+        temp35 = temp36.
+      ENDIF.
+
+      lv_opt = temp35.
       IF lv_opt IS NOT INITIAL AND lv_opt(1) = `{`.
         TRY.
             ls_message-title = z2ui5_cl_ui5_ajs=>parse( lv_opt )->z2ui5_if_ui5_ajs~get_string( `/title` ).

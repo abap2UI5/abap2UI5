@@ -91,7 +91,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
   METHOD mapper_upper.
 
     IF gi_mapper_upper IS NOT BOUND.
-      gi_mapper_upper = NEW z2ui5_cl_ui5_util_json_fl( ).
+      CREATE OBJECT gi_mapper_upper TYPE z2ui5_cl_ui5_util_json_fl.
     ENDIF.
     result = gi_mapper_upper.
 
@@ -123,16 +123,24 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
   METHOD check_number_initial.
 
-    result = xsdbool( val CO `0.-+Ee` ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( val CO `0.-+Ee` ).
+    result = temp1.
 
   ENDMETHOD.
 
   METHOD escape_controls.
+          DATA temp8 TYPE xstring.
+    DATA lv_off TYPE i.
+    DATA lv_len TYPE i.
+        DATA lv_hex TYPE i.
 
     IF gv_controls_built = abap_false.
       gv_controls_built = abap_true.
       TRY.
-          gv_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( c_controls_hex ) ).
+
+          temp8 = c_controls_hex.
+          gv_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( temp8 ).
         CATCH z2ui5_cx_ui5_util_error.
           " no codepage API (UNSUPPORTED_CODEPAGE_API): degrade like
           " z2ui5_cl_ui5_util_context=>c_escape_xml - the set stays empty and the
@@ -148,11 +156,14 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
     ENDIF.
 
     " one replace per character, no regex - see c_escape_xml of the context class for why
-    DATA(lv_off) = 0.
-    DATA(lv_len) = strlen( gv_controls ).
+
+    lv_off = 0.
+
+    lv_len = strlen( gv_controls ).
     WHILE lv_off < lv_len.
       IF result CA gv_controls+lv_off(1).
-        DATA(lv_hex) = lv_off * 2.
+
+        lv_hex = lv_off * 2.
         result = replace( val  = result
                           sub  = gv_controls+lv_off(1)
                           with = `\u00` && c_controls_hex+lv_hex(2)

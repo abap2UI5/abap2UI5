@@ -94,7 +94,7 @@ INTERFACE z2ui5_if_client
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH DEFAULT KEY.
 
   TYPES:
     "! One value of this roundtrip's model that could NOT be applied - a
@@ -146,7 +146,7 @@ INTERFACE z2ui5_if_client
   "! The table of skipped values get( )-t_model_skipped carries, one
   "! ty_s_model_skip row per table cell or bound scalar this roundtrip
   "! could not apply.
-  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH EMPTY KEY.
+  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH DEFAULT KEY.
 
   TYPES:
     "! Everything the frontend sent with this roundtrip - the return type of
@@ -1111,7 +1111,7 @@ INTERFACE z2ui5_if_client
       path       TYPE string,
       descending TYPE abap_bool,
     END OF ty_s_bind_tab_sort.
-  TYPES ty_t_bind_tab_sort TYPE STANDARD TABLE OF ty_s_bind_tab_sort WITH EMPTY KEY.
+  TYPES ty_t_bind_tab_sort TYPE STANDARD TABLE OF ty_s_bind_tab_sort WITH DEFAULT KEY.
 
   TYPES:
     "! One condition of the filter of a window request (ty_s_window_request).
@@ -1133,7 +1133,7 @@ INTERFACE z2ui5_if_client
       value1   TYPE string,
       value2   TYPE string,
     END OF ty_s_bind_tab_filter.
-  TYPES ty_t_bind_tab_filter TYPE STANDARD TABLE OF ty_s_bind_tab_filter WITH EMPTY KEY.
+  TYPES ty_t_bind_tab_filter TYPE STANDARD TABLE OF ty_s_bind_tab_filter WITH DEFAULT KEY.
 
   CONSTANTS:
     "! Why the browser asks (ty_s_window_request-reason).

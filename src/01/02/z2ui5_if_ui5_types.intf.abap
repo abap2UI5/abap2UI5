@@ -167,7 +167,7 @@ INTERFACE z2ui5_if_ui5_types
       " nested view's insert/destroy methods, the MAIN view's model switch
       options TYPE REF TO z2ui5_if_ui5_ajs,
     END OF ty_s_system_action.
-  TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
+  TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH DEFAULT KEY.
 
   " One QUEUED frontend action, built as JSON right away (o_json, the
   " ["EVENT",...] array) and embedded into the response as-is - no string
@@ -176,7 +176,7 @@ INTERFACE z2ui5_if_ui5_types
     BEGIN OF ty_s_queued_action,
       o_json TYPE REF TO z2ui5_if_ui5_ajs,
     END OF ty_s_queued_action.
-  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
+  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH DEFAULT KEY.
 
   " What an app asked the frontend to DO - a focus, a toast, a control
   " method. The frontend runs the list last, once the views of the response
