@@ -297,7 +297,7 @@ CLASS ltcl_00_base DEFINITION ABSTRACT
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     " roundtrip 1: an app's first render, saved as a draft - answers the id
     METHODS started_with
@@ -822,7 +822,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = ls_request-s_front-t_event_arg[ 3 ] ).
     cl_abap_unit_assert=>assert_equals( exp = `last`
                                         act = ls_request-s_front-t_event_arg[ 5 ] ).
-    DATA(lo_arg) = z2ui5_cl_ajson=>parse( ls_request-s_front-t_event_arg[ 4 ] ).
+    DATA(lo_arg) = z2ui5_cl_ui5_ajs=>parse( ls_request-s_front-t_event_arg[ 4 ] ).
     cl_abap_unit_assert=>assert_equals( exp = `a"b\c` && z2ui5_cl_ui5_util_context=>cv_char_util_newline && `dA`
                                         act = lo_arg->get_string( `/K` ) ).
   ENDMETHOD.
@@ -1070,7 +1070,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_app_start_encoded_slash.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_no_comp_data TYPE REF TO z2ui5_if_ajson.
+    DATA lo_no_comp_data TYPE REF TO z2ui5_if_ui5_ajs.
     lo_handler = NEW #( val = `` ).
 
     " a percent-encoded namespace in the query is the class name it spells
@@ -1104,7 +1104,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
 
     " the query path reads the launchpad spelling too now
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_no_comp_data TYPE REF TO z2ui5_if_ajson.
+    DATA lo_no_comp_data TYPE REF TO z2ui5_if_ui5_ajs.
     lo_handler = NEW #( val = `` ).
     cl_abap_unit_assert=>assert_equals(
         exp = `/NS/ZCL_APP`
@@ -1407,8 +1407,8 @@ CLASS ltcl_02_response IMPLEMENTATION.
     lo_handler = NEW #( val = `` ).
     DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `01` ) ).
     ls_response-s_front-id = `ID123`.
-    ls_response-model      = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/NAME`
-                                                                   iv_val  = `a` && lv_ctrl && `b` )->stringify( ).
+    ls_response-model      = z2ui5_cl_ui5_ajs=>create_empty( )->set( iv_path = `/NAME`
+                                                                   iv_val    = `a` && lv_ctrl && `b` )->stringify( ).
 
     DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
 
@@ -1426,10 +1426,10 @@ CLASS ltcl_02_response IMPLEMENTATION.
     DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     lo_handler = NEW #( val = `` ).
     ls_response-s_front-id = `ID123`.
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ) )
+    INSERT VALUE #( o_json = z2ui5_cl_ui5_ajs=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ) )
            INTO TABLE ls_response-s_front-s_action-t_custom.
-    ls_response-s_front-o_views = z2ui5_cl_ajson=>parse( `{"MAIN":{"XML":""},"POPUP":{"DESTROY":true}}` ).
-    ls_response-s_front-o_nav   = z2ui5_cl_ajson=>parse( `{"setNavRouting":"KEEP"}` ).
+    ls_response-s_front-o_views = z2ui5_cl_ui5_ajs=>parse( `{"MAIN":{"XML":""},"POPUP":{"DESTROY":true}}` ).
+    ls_response-s_front-o_nav   = z2ui5_cl_ui5_ajs=>parse( `{"setNavRouting":"KEEP"}` ).
 
     DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
 

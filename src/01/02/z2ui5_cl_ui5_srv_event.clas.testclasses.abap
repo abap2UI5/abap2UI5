@@ -26,7 +26,7 @@ CLASS ltcl_json IMPLEMENTATION.
         result = io_event->get_event_client_ajson( val   = val
                                                    view  = view
                                                    t_arg = t_arg )->stringify( ).
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_error).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_error).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = lx_error.

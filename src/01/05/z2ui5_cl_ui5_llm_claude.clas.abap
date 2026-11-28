@@ -105,7 +105,7 @@ CLASS z2ui5_cl_ui5_llm_claude DEFINITION
 
     CLASS-METHODS read_text
       IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
+        io_json       TYPE REF TO z2ui5_if_ui5_ajs
       RETURNING
         VALUE(result) TYPE string.
 
@@ -157,7 +157,7 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
         " the body through the framework's JSON writer - every value escaped
         " by it, the system prompt a top-level field (the Messages API has
         " no system role), each message a nested object
-        DATA(lo_body) = z2ui5_cl_ajson=>create_empty( ).
+        DATA(lo_body) = z2ui5_cl_ui5_ajs=>create_empty( ).
         lo_body->set( iv_path = `/model`
                       iv_val  = lv_model ).
         lo_body->set_integer( iv_path = `/max_tokens`
@@ -169,11 +169,11 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
         IF s_options-temperature IS NOT INITIAL.
           lo_body->set( iv_path      = `/temperature`
                         iv_val       = s_options-temperature
-                        iv_node_type = z2ui5_if_ajson_types=>node_type-number ).
+                        iv_node_type = z2ui5_if_ui5_ajs_types=>node_type-number ).
         ENDIF.
         lo_body->touch_array( `/messages` ).
         LOOP AT t_message INTO DATA(ls_message).
-          DATA(lo_item) = z2ui5_cl_ajson=>create_empty( ).
+          DATA(lo_item) = z2ui5_cl_ui5_ajs=>create_empty( ).
           lo_item->set( iv_path = `/role`
                         iv_val  = ls_message-role ).
           lo_item->set( iv_path = `/content`
@@ -182,7 +182,7 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
                          iv_val  = lo_item ).
         ENDLOOP.
         result = lo_body->stringify( ).
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
           EXPORTING
             text     = `the request body could not be written as JSON`

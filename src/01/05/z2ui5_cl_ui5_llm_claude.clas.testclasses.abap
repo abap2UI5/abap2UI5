@@ -90,7 +90,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(ls_request) = lo_llm->build_request( system    = `Answer briefly.`
                                               t_message = conversation( ) ).
 
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( ls_request-body ).
+    DATA(lo_json) = z2ui5_cl_ui5_ajs=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = `test-model`
                                         act = lo_json->get_string( `/model` ) ).
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_llm_claude=>cv_default_max_tokens
@@ -152,7 +152,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_char_cp( exp = `*say \"hi\"\nand \\ bye*`
                                          act = ls_request-body ).
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( ls_request-body ).
+    DATA(lo_json) = z2ui5_cl_ui5_ajs=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = lv_text
                                         act = lo_json->get_string( `/messages/1/content` ) ).
 
@@ -168,7 +168,7 @@ CLASS ltcl_test IMPLEMENTATION.
                                                                    max_tokens  = 200
                                                                    temperature = `0.2` ) ).
 
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( ls_request-body ).
+    DATA(lo_json) = z2ui5_cl_ui5_ajs=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = `other-model`
                                         act = lo_json->get_string( `/model` ) ).
     cl_abap_unit_assert=>assert_equals( exp = 200

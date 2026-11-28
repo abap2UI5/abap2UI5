@@ -66,7 +66,7 @@ INTERFACE z2ui5_if_ui5_types
       path_only            TYPE abap_bool,
       " omit_initial / omit_initial_paths as the framework's own ajson
       " filter (z2ui5_cl_ui5_client, local classes) - no app hands one in
-      custom_filter        TYPE REF TO z2ui5_if_ajson_filter,
+      custom_filter        TYPE REF TO z2ui5_if_ui5_ajs_filter,
       tab                  TYPE REF TO data,
       tab_index            TYPE i,
       switch_default_model TYPE abap_bool,
@@ -102,7 +102,7 @@ INTERFACE z2ui5_if_ui5_types
       " draft-format break as the one under type_name below: a draft written
       " before carries a surplus element and does not deserialize, the next
       " start is a fresh app
-      custom_filter     TYPE REF TO z2ui5_if_ajson_filter,
+      custom_filter     TYPE REF TO z2ui5_if_ui5_ajs_filter,
       " the bound string carries JSON - serialize it as a node, not as text
       check_json        TYPE abap_bool,
       " live only: the draft stores the row without it
@@ -165,7 +165,7 @@ INTERFACE z2ui5_if_ui5_types
       xml     TYPE string,
       " the slot-specific extras as a JSON object - the popover's anchor, a
       " nested view's insert/destroy methods, the MAIN view's model switch
-      options TYPE REF TO z2ui5_if_ajson,
+      options TYPE REF TO z2ui5_if_ui5_ajs,
     END OF ty_s_system_action.
   TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
 
@@ -174,7 +174,7 @@ INTERFACE z2ui5_if_ui5_types
   " round trip.
   TYPES:
     BEGIN OF ty_s_queued_action,
-      o_json TYPE REF TO z2ui5_if_ajson,
+      o_json TYPE REF TO z2ui5_if_ui5_ajs,
     END OF ty_s_queued_action.
   TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
 
@@ -345,11 +345,11 @@ INTERFACE z2ui5_if_ui5_types
         " POPOVER - a nested view is inserted into the main control tree),
         " so nothing here is sorted. Unbound or empty: no slot changes
         " (z2ui5_cl_ui5_frontend=>slots_serialize)
-        o_views  TYPE REF TO z2ui5_if_ajson,
+        o_views  TYPE REF TO z2ui5_if_ui5_ajs,
         " NAV: the URL intent of this roundtrip, the options the frontend's
         " Router.sync takes. Unbound: none - the frontend still syncs the
         " URL once per response (z2ui5_cl_ui5_frontend=>nav_serialize)
-        o_nav    TYPE REF TO z2ui5_if_ajson,
+        o_nav    TYPE REF TO z2ui5_if_ui5_ajs,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.
@@ -373,7 +373,7 @@ INTERFACE z2ui5_if_ui5_types
       " tree that is the model itself (the shape the tests hand in) carries
       " no path either - the consumer prefixes what it reads with the path
       " (z2ui5_cl_ui5_srv_model=>main_json_to_attri)
-      o_model    TYPE REF TO z2ui5_if_ajson,
+      o_model    TYPE REF TO z2ui5_if_ui5_ajs,
       model_path TYPE string,
       BEGIN OF s_front,
         id             TYPE string,
@@ -384,7 +384,7 @@ INTERFACE z2ui5_if_ui5_types
         " stays unbound: the session keeps the data as a string
         " (ty_s_session-comp_data), and z2ui5_cl_ui5_client=>get( ) parses
         " that on demand instead of the handler parsing it per roundtrip
-        o_comp_data    TYPE REF TO z2ui5_if_ajson,
+        o_comp_data    TYPE REF TO z2ui5_if_ui5_ajs,
         origin         TYPE string,
         pathname       TYPE string,
         search         TYPE string,

@@ -117,11 +117,11 @@ CLASS z2ui5_cl_ui5_llm_openai DEFINITION
 
     CLASS-METHODS message_push
       IMPORTING
-        io_body TYPE REF TO z2ui5_if_ajson
+        io_body TYPE REF TO z2ui5_if_ui5_ajs
         role    TYPE string
         content TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     CLASS-METHODS map_stop_reason
       IMPORTING
@@ -156,7 +156,7 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
 
   METHOD message_push.
 
-    DATA(lo_item) = z2ui5_cl_ajson=>create_empty( ).
+    DATA(lo_item) = z2ui5_cl_ui5_ajs=>create_empty( ).
     lo_item->set( iv_path = `/role`
                   iv_val  = role ).
     lo_item->set( iv_path = `/content`
@@ -182,7 +182,7 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
     lv_system = system.
 
     TRY.
-        DATA(lo_body) = z2ui5_cl_ajson=>create_empty( ).
+        DATA(lo_body) = z2ui5_cl_ui5_ajs=>create_empty( ).
         lo_body->set( iv_path = `/model`
                       iv_val  = lv_model ).
         IF s_options-max_tokens > 0.
@@ -194,7 +194,7 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
         IF s_options-temperature IS NOT INITIAL.
           lo_body->set( iv_path      = `/temperature`
                         iv_val       = s_options-temperature
-                        iv_node_type = z2ui5_if_ajson_types=>node_type-number ).
+                        iv_node_type = z2ui5_if_ui5_ajs_types=>node_type-number ).
         ENDIF.
         lo_body->touch_array( `/messages` ).
         " the system prompt is the first message - this API has no field for it
@@ -209,7 +209,7 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
                         content = ls_message-content ).
         ENDLOOP.
         result = lo_body->stringify( ).
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
           EXPORTING
             text     = `the request body could not be written as JSON`

@@ -953,7 +953,7 @@ CLASS ltcl_04_model IMPLEMENTATION.
     bind( ir_val  = mo_user->mr_handle_tab
           iv_path = `/MR_HANDLE_TAB` ).
 
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( mo_cont->model_json_stringify( ) ).
+    DATA(lo_json) = z2ui5_cl_ui5_ajs=>parse( mo_cont->model_json_stringify( ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `text`
                                         act = lo_json->get_string( `/MV_STRING` ) ).
@@ -969,7 +969,7 @@ CLASS ltcl_04_model IMPLEMENTATION.
     bind_all( ).
     " a whole value for the scalars, a cell edit (the __delta form) for
     " the runtime-built table
-    DATA(lo_front) = z2ui5_cl_ajson=>parse(
+    DATA(lo_front) = z2ui5_cl_ui5_ajs=>parse(
         `{"MV_STRING":"written","MO_INNER_MV_INNER":"inner-written",` &&
         `"MR_HANDLE_TAB":{"__delta":{"0":{"COL1":"handle-written"}}}}` ).
 
@@ -998,7 +998,7 @@ CLASS ltcl_04_model IMPLEMENTATION.
           iv_path = `/MT_STD` ).
     " a cell edit whose number is no number: refused, kept, and reported -
     " the other cell of the same edit is written
-    DATA(lo_front) = z2ui5_cl_ajson=>parse(
+    DATA(lo_front) = z2ui5_cl_ui5_ajs=>parse(
         `{"MT_STD":{"__delta":{"0":{"COL1":"still fine","COL2":"not a number"}}}}` ).
 
     DATA(lt_skipped) = mo_cont->model_json_parse( lo_front ).

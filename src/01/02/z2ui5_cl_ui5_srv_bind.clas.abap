@@ -370,7 +370,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " and with a readable message, instead of surfacing later as an
     " APP_SERIALIZATION_ERROR. Only the framework's own filters arrive
     " here (_bind( omit_initial ) - an app hands in none since 2026-11-28),
-    " and z2ui5_if_ajson_filter does not compose if_serializable_object:
+    " and z2ui5_if_ui5_ajs_filter does not compose if_serializable_object:
     " the check keeps a new filter class of the framework honest.
     check_serializable( ir_ref   = ms_config-custom_filter
                         iv_label = `custom_filter` ).

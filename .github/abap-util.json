@@ -20,7 +20,7 @@
         "rtti_check_class_exists": "the cache lookup is written READ TABLE ... REFERENCE INTO here, the master keeps ASSIGN itab[ ... ] because its lint forbids READ TABLE - same behaviour",
         "rtti_check_class_impl_intf": "the cache lookup is written READ TABLE ... REFERENCE INTO here, the master keeps ASSIGN itab[ ... ] because its lint forbids READ TABLE - same behaviour",
         "rtti_get_t_attri_by_any": "the cache lookup is written READ TABLE ... REFERENCE INTO here, the master keeps ASSIGN itab[ ... ] because its lint forbids READ TABLE - same behaviour",
-        "xml_srtti_descr": "names the S-RTTI mirror by this repository's prefix (z2ui5_cl_srt_typedescr), a rename rather than drift"
+        "xml_srtti_descr": "names the S-RTTI mirror by this repository's prefix (z2ui5_cl_ui5_srt_type), a rename rather than drift"
       }
     },
     {

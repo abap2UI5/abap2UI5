@@ -58,7 +58,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! out; initial when `model` is the model itself
     METHODS main_json_to_attri
       IMPORTING
-        model     TYPE REF TO z2ui5_if_ajson
+        model     TYPE REF TO z2ui5_if_ui5_ajs
         iv_prefix TYPE string OPTIONAL.
 
     METHODS main_json_stringify
@@ -153,12 +153,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         ir_attri   TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
         ir_ref     TYPE REF TO data
-        io_result  TYPE REF TO z2ui5_if_ajson
+        io_result  TYPE REF TO z2ui5_if_ui5_ajs
       CHANGING
-        ci_default TYPE REF TO z2ui5_if_ajson
+        ci_default TYPE REF TO z2ui5_if_ui5_ajs
         cs_fast    TYPE ty_s_fast_state
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! may the attribute travel as a token (json_fast_set, json_ns_set): a
     "! table or a structure, under a client name without an empty segment
@@ -177,13 +177,13 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         ir_ref    TYPE REF TO data
         ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        io_result TYPE REF TO z2ui5_if_ajson
+        io_result TYPE REF TO z2ui5_if_ui5_ajs
       EXPORTING
         ev_taken  TYPE abap_bool
       CHANGING
         cs_fast   TYPE ty_s_fast_state
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! iv_json kept on cs_fast and a token standing for it set into the
     "! tree at iv_path - spliced in by json_fast_splice once the tree is
@@ -192,11 +192,11 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         iv_json   TYPE string
         iv_path   TYPE string
-        io_result TYPE REF TO z2ui5_if_ajson
+        io_result TYPE REF TO z2ui5_if_ui5_ajs
       CHANGING
         cs_fast   TYPE ty_s_fast_state
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! A bound table or structure whose type names a component with a
     "! namespace (`/ABC/FIELD`, rtti_check_namespaced) and that the fast
@@ -209,13 +209,13 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         ir_ref    TYPE REF TO data
         ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        io_result TYPE REF TO z2ui5_if_ajson
+        io_result TYPE REF TO z2ui5_if_ui5_ajs
       EXPORTING
         ev_taken  TYPE abap_bool
       CHANGING
         cs_fast   TYPE ty_s_fast_state
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! The JSON text of an ajson tree - what its stringify( ) writes, byte
     "! for byte - with every member named `/ABC/FIELD` moved into an object
@@ -228,15 +228,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! of the row (z2ui5_cl_ui5_view_builder=>component_path)
     CLASS-METHODS json_ns_text
       IMPORTING
-        it_tree       TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        it_tree       TYPE z2ui5_if_ui5_ajs_types=>ty_nodes_ts
       RETURNING
         VALUE(result) TYPE string.
 
     "! one node of json_ns_text, its text appended to ct_buffer
     CLASS-METHODS json_ns_node
       IMPORTING
-        it_tree   TYPE z2ui5_if_ajson_types=>ty_nodes_ts
-        is_node   TYPE z2ui5_if_ajson_types=>ty_node
+        it_tree   TYPE z2ui5_if_ui5_ajs_types=>ty_nodes_ts
+        is_node   TYPE z2ui5_if_ui5_ajs_types=>ty_node
       CHANGING
         ct_buffer TYPE string_table.
 
@@ -244,7 +244,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! grouped - see there
     CLASS-METHODS json_ns_object
       IMPORTING
-        it_tree   TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        it_tree   TYPE z2ui5_if_ui5_ajs_types=>ty_nodes_ts
         iv_path   TYPE string
       CHANGING
         ct_buffer TYPE string_table.
@@ -260,7 +260,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         sub       TYPE string,
         name      TYPE string,
         json_kind TYPE z2ui5_cl_ui5_util_context=>ty_s_flat_comp-json_kind,
-        node      TYPE z2ui5_if_ajson_types=>ty_node,
+        node      TYPE z2ui5_if_ui5_ajs_types=>ty_node,
       END OF ty_s_ns_member.
     TYPES ty_t_ns_member TYPE STANDARD TABLE OF ty_s_ns_member WITH EMPTY KEY.
 
@@ -268,7 +268,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! order json_ns_object writes them
     CLASS-METHODS json_ns_object_members
       IMPORTING
-        it_tree       TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        it_tree       TYPE z2ui5_if_ui5_ajs_types=>ty_nodes_ts
         iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE ty_t_ns_member.
@@ -301,11 +301,11 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! every token the tree will not write marked lost - see the body
     METHODS json_fast_check
       IMPORTING
-        io_result TYPE REF TO z2ui5_if_ajson
+        io_result TYPE REF TO z2ui5_if_ui5_ajs
       CHANGING
         cs_fast   TYPE ty_s_fast_state
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! every token's quoted text in the stringified tree replaced by its
     "! JSON - by offset, see json_fast_set
@@ -328,12 +328,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! io_json, asked by its type first
     METHODS json_quote_lossy_attri
       IMPORTING
-        io_json  TYPE REF TO z2ui5_if_ajson
+        io_json  TYPE REF TO z2ui5_if_ui5_ajs
         iv_path  TYPE string
         ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
         ir_ref   TYPE REF TO data
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! Every number node at and below iv_path of io_json whose digits a
     "! double would round (json_number_lossy), turned into a string node -
@@ -341,11 +341,11 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! float (never quoted) from a wide number
     METHODS json_quote_lossy
       IMPORTING
-        io_json TYPE REF TO z2ui5_if_ajson
+        io_json TYPE REF TO z2ui5_if_ui5_ajs
         iv_path TYPE string
         ir_ref  TYPE REF TO data
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! the json_kind of its column (see json_row)
     CLASS-METHODS json_cell
@@ -375,11 +375,11 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " _bind( json = abap_true ): the string spliced in as a JSON node
     METHODS json_bind_set
       IMPORTING
-        io_result TYPE REF TO z2ui5_if_ajson
+        io_result TYPE REF TO z2ui5_if_ui5_ajs
         iv_path   TYPE string
         iv_json   TYPE any
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
 
     " how many REFERENCE hops (`->`) a dissolved name may carry - the bound
@@ -546,11 +546,11 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! node - the shape the tests hand in
     METHODS delta_apply_to_table
       IMPORTING
-        io_val_front TYPE REF TO z2ui5_if_ajson
+        io_val_front TYPE REF TO z2ui5_if_ui5_ajs
         iv_name      TYPE string
         iv_path      TYPE string OPTIONAL
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! iv_row_parent carries the 1-based row index of the IMMEDIATE parent
     "! into a nested-table recursion, so a skipped inner cell can name the
@@ -559,14 +559,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! members, addressed by their full path. No sub-tree is sliced off
     METHODS delta_apply_nodes
       IMPORTING
-        io_delta      TYPE REF TO z2ui5_if_ajson
+        io_delta      TYPE REF TO z2ui5_if_ui5_ajs
         iv_base       TYPE string
         iv_table      TYPE string
         iv_row_parent TYPE i OPTIONAL
       CHANGING
         ct_tab        TYPE STANDARD TABLE
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     " what delta_apply_field learnt about a COLUMN of the table it is
     " writing: whether a nested table there is a standard one, and the type
@@ -597,7 +597,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! the table kinds per column (see ty_t_col_kind)
     METHODS delta_apply_field
       IMPORTING
-        io_delta    TYPE REF TO z2ui5_if_ajson
+        io_delta    TYPE REF TO z2ui5_if_ui5_ajs
         iv_path     TYPE string
         is_cell     TYPE z2ui5_if_client=>ty_s_model_skip
         ir_comp     TYPE REF TO data
@@ -605,13 +605,13 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       CHANGING
         ct_col_kind TYPE ty_t_col_kind
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! The cells of ONE delta row (iv_row_path) into the row ir_row, the
     "! old values kept aside in ir_work_row - see delta_apply_nodes
     METHODS delta_apply_row
       IMPORTING
-        io_delta      TYPE REF TO z2ui5_if_ajson
+        io_delta      TYPE REF TO z2ui5_if_ui5_ajs
         iv_row_path   TYPE string
         iv_table      TYPE string
         iv_row        TYPE i
@@ -621,7 +621,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       CHANGING
         ct_col_kind   TYPE ty_t_col_kind
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! The data object the cells of one delta row go into: the row itself,
     "! or - iv_ref_rows, a table of references - the row its reference
@@ -641,7 +641,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! caller goes on as before
     METHODS delta_apply_ns
       IMPORTING
-        io_delta      TYPE REF TO z2ui5_if_ajson
+        io_delta      TYPE REF TO z2ui5_if_ui5_ajs
         iv_row_path   TYPE string
         iv_fld        TYPE string
         iv_table      TYPE string
@@ -654,17 +654,17 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       CHANGING
         ct_col_kind   TYPE ty_t_col_kind
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! A whole object or array value into its target: to_abap( ), and for
     "! a type with namespaced components json_ns_to_abap after it - to_abap
     "! knows no member `ABC` and leaves `/ABC/FIELD` initial
     METHODS json_to_abap
       IMPORTING
-        io_json TYPE REF TO z2ui5_if_ajson
+        io_json TYPE REF TO z2ui5_if_ui5_ajs
         ir_ref  TYPE REF TO data
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     " a reference component of a structure a whole value is written into:
     " where it is, and the reference it held (json_to_abap_member)
@@ -685,25 +685,25 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! columns of a table, so its rows do not ask RTTI per cell
     METHODS json_to_abap_prepare
       IMPORTING
-        io_json     TYPE REF TO z2ui5_if_ajson
+        io_json     TYPE REF TO z2ui5_if_ui5_ajs
         iv_path     TYPE string
         ir_ref      TYPE REF TO data
         iv_keep     TYPE abap_bool
       CHANGING
         ct_col_kind TYPE ty_t_col_kind
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! one member of a structure node, see json_to_abap_prepare
     METHODS json_to_abap_member
       IMPORTING
-        io_json      TYPE REF TO z2ui5_if_ajson
+        io_json      TYPE REF TO z2ui5_if_ui5_ajs
         iv_path      TYPE string
         ir_comp      TYPE REF TO data
         iv_type_kind TYPE string
         iv_keep      TYPE abap_bool
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! The references of the structure behind ir_ref and of the structures
     "! below it - not of table rows, which to_abap( ) builds anew - each
@@ -745,27 +745,27 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! of a standard table and the components of a structure, at every depth
     METHODS json_ns_to_abap
       IMPORTING
-        io_json TYPE REF TO z2ui5_if_ajson
+        io_json TYPE REF TO z2ui5_if_ui5_ajs
         iv_path TYPE string
         ir_ref  TYPE REF TO data
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! the structure half of json_ns_to_abap
     METHODS json_ns_to_abap_struc
       IMPORTING
-        io_json TYPE REF TO z2ui5_if_ajson
+        io_json TYPE REF TO z2ui5_if_ui5_ajs
         iv_path TYPE string
         ir_ref  TYPE REF TO data
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! Every cell of a delta the table shape refuses lands in mt_skipped -
     "! the counterpart of delta_apply_nodes for a table that cannot be
     "! addressed by index (see delta_apply_to_table)
     METHODS delta_skip_nodes
       IMPORTING
-        io_delta      TYPE REF TO z2ui5_if_ajson
+        io_delta      TYPE REF TO z2ui5_if_ui5_ajs
         iv_base       TYPE string
         iv_table      TYPE string
         iv_row_parent TYPE i DEFAULT 0.
@@ -775,7 +775,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! (delta_apply_nodes)
     METHODS delta_skip_row
       IMPORTING
-        io_delta      TYPE REF TO z2ui5_if_ajson
+        io_delta      TYPE REF TO z2ui5_if_ui5_ajs
         iv_row_path   TYPE string
         iv_row        TYPE i
         iv_table      TYPE string
@@ -878,12 +878,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! once per column (ty_t_col_kind) - it used to be asked per cell
     METHODS delta_apply_scalar
       IMPORTING
-        io_delta     TYPE REF TO z2ui5_if_ajson
+        io_delta     TYPE REF TO z2ui5_if_ui5_ajs
         iv_path      TYPE string
         ir_comp      TYPE REF TO data
         iv_type_kind TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! A date (8) or a time (6) as it is about to be assigned - after the
     "! ISO unpack - must be exactly that many digits, or it is refused like
@@ -924,7 +924,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! carries one
     METHODS delta_trace_skipped
       IMPORTING
-        io_delta TYPE REF TO z2ui5_if_ajson
+        io_delta TYPE REF TO z2ui5_if_ui5_ajs
         iv_path  TYPE string
         is_cell  TYPE z2ui5_if_client=>ty_s_model_skip.
 
@@ -936,12 +936,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! caller traces it and the old value stands
     METHODS scalar_apply
       IMPORTING
-        io_model     TYPE REF TO z2ui5_if_ajson
+        io_model     TYPE REF TO z2ui5_if_ui5_ajs
         iv_path      TYPE string
         iv_node_type TYPE string
         ir_ref       TYPE REF TO data
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! One carried whole value into its attribute (main_json_to_attri): an
     "! OBJECT or ARRAY through a tree of its own and to_abap( ), a SCALAR
@@ -951,7 +951,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! attribute that cannot be reached (a draft that outlived its class)
     METHODS whole_value_apply
       IMPORTING
-        io_model      TYPE REF TO z2ui5_if_ajson
+        io_model      TYPE REF TO z2ui5_if_ui5_ajs
         iv_path       TYPE string
         ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
       RETURNING
@@ -961,7 +961,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! with the raw value when its node carries one
     METHODS whole_value_trace
       IMPORTING
-        io_model TYPE REF TO z2ui5_if_ajson
+        io_model TYPE REF TO z2ui5_if_ui5_ajs
         iv_path  TYPE string
         iv_name  TYPE string.
 
@@ -972,9 +972,9 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
         ir_ref    TYPE REF TO data
-        io_result TYPE REF TO z2ui5_if_ajson
+        io_result TYPE REF TO z2ui5_if_ui5_ajs
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
 ENDCLASS.
 
@@ -1109,11 +1109,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " same either way; the path leaf (name_client) is upper case by
         " construction (attribute names come from RTTI), so the mapping is
         " a no-op on it
-        DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+        DATA(li_ajson_result) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty(
                                        ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
         " the scratch instance for a filtered attribute - created when the
         " first such attribute asks for it
-        DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
+        DATA li_ajson_default TYPE REF TO z2ui5_if_ui5_ajs.
 
         " the fast path (json_fast_set): a bound table of flat rows is
         " written as text directly and spliced into the stringified tree
@@ -1224,7 +1224,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD json_custom_set.
 
     IF ci_default IS NOT BOUND.
-      ci_default = z2ui5_cl_ajson=>create_empty(
+      ci_default = z2ui5_cl_ui5_ajs=>create_empty(
                        ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     ENDIF.
     DATA(ajson) = ci_default.
@@ -1325,7 +1325,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ASSIGN ir_ref->* TO <val>.
     " the scratch is the result's twin - the same mapping, the same
     " options - so every node is the one the result would have held
-    DATA(li_scratch) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+    DATA(li_scratch) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty(
                                                 ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
     li_scratch->set( iv_ignore_empty = abap_false
                      iv_path         = `/`
@@ -1362,7 +1362,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " index, an object by name, a string escaped as the fast path escapes
     " it (json_row - the same bytes as ajson's escape_string)
     CASE is_node-type.
-      WHEN z2ui5_if_ajson_types=>node_type-array.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-array.
         INSERT `[` INTO TABLE ct_buffer.
         DATA(lv_path) = is_node-path && is_node-name && `/`.
         DATA(lv_first) = abap_true.
@@ -1376,15 +1376,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                         CHANGING  ct_buffer = ct_buffer ).
         ENDLOOP.
         INSERT `]` INTO TABLE ct_buffer.
-      WHEN z2ui5_if_ajson_types=>node_type-object.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-object.
         INSERT `{` INTO TABLE ct_buffer.
         json_ns_object( EXPORTING it_tree   = it_tree
                                   iv_path   = is_node-path && is_node-name && `/`
                         CHANGING  ct_buffer = ct_buffer ).
         INSERT `}` INTO TABLE ct_buffer.
-      WHEN z2ui5_if_ajson_types=>node_type-string.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-string.
         INSERT |"{ z2ui5_cl_ui5_util_context=>c_escape_json( is_node-value ) }"| INTO TABLE ct_buffer.
-      WHEN z2ui5_if_ajson_types=>node_type-null.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-null.
         INSERT `null` INTO TABLE ct_buffer.
       WHEN OTHERS.
         " number and boolean: the text as ajson holds it
@@ -1525,8 +1525,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       LOOP AT lt_segment INTO DATA(lv_segment).
         lv_path = |{ lv_path }/{ lv_segment }|.
         DATA(lv_type) = io_result->get_node_type( lv_path ).
-        IF lv_type <> z2ui5_if_ajson_types=>node_type-object
-            AND lv_type <> z2ui5_if_ajson_types=>node_type-array.
+        IF lv_type <> z2ui5_if_ui5_ajs_types=>node_type-object
+            AND lv_type <> z2ui5_if_ui5_ajs_types=>node_type-array.
           lr_fast->lost = abap_true.
           EXIT.
         ENDIF.
@@ -1787,7 +1787,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     CASE io_json->get_node_type( iv_path ).
 
-      WHEN z2ui5_if_ajson_types=>node_type-number.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-number.
         " the only number with that many digits that is no wide one is a
         " float - a double already, it survives the browser as it is
         IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> )
@@ -1797,7 +1797,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                iv_val  = io_json->get( iv_path ) ).
         ENDIF.
 
-      WHEN z2ui5_if_ajson_types=>node_type-object.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-object.
         " a structure - and not the target of a reference, which ajson
         " writes in its place: references are not followed, like
         " rtti_check_wide_numbers does not follow them
@@ -1821,7 +1821,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                             ir_ref  = REF #( <comp> ) ).
         ENDLOOP.
 
-      WHEN z2ui5_if_ajson_types=>node_type-array.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-array.
         IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> )
             <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
           RETURN.
@@ -1905,7 +1905,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
     io_result->set( iv_path = iv_path
-                    iv_val  = z2ui5_cl_ajson=>parse( iv_json ) ).
+                    iv_val  = z2ui5_cl_ui5_ajs=>parse( iv_json ) ).
 
   ENDMETHOD.
 
@@ -3389,7 +3389,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     ev_taken = abap_false.
     DATA(lv_path) = |{ iv_row_path }/{ iv_fld }|.
-    IF io_delta->get_node_type( lv_path ) <> z2ui5_if_ajson_types=>node_type-object.
+    IF io_delta->get_node_type( lv_path ) <> z2ui5_if_ui5_ajs_types=>node_type-object.
       RETURN.
     ENDIF.
     ASSIGN ir_row->* TO <row>.
@@ -3665,10 +3665,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     TRY.
         CASE lv_node_type.
 
-          WHEN z2ui5_if_ajson_types=>node_type-boolean.
+          WHEN z2ui5_if_ui5_ajs_types=>node_type-boolean.
             <comp> = io_delta->get_boolean( iv_path ).
 
-          WHEN z2ui5_if_ajson_types=>node_type-object.
+          WHEN z2ui5_if_ui5_ajs_types=>node_type-object.
             " either a nested table delta (marked by __delta) or a
             " structure component shipped as a whole value
             DATA(lv_sub_delta) = |{ iv_path }/__delta|.
@@ -3719,7 +3719,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                             ir_ref  = ir_comp ).
             ENDIF.
 
-          WHEN z2ui5_if_ajson_types=>node_type-array.
+          WHEN z2ui5_if_ui5_ajs_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
             json_to_abap( io_json = io_delta->slice( iv_path )
                           ir_ref  = ir_comp ).
@@ -3786,8 +3786,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
        AND iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
       RETURN.
     ENDIF.
-    result = xsdbool( iv_node_type <> z2ui5_if_ajson_types=>node_type-object
-                      AND iv_node_type <> z2ui5_if_ajson_types=>node_type-array ).
+    result = xsdbool( iv_node_type <> z2ui5_if_ui5_ajs_types=>node_type-object
+                      AND iv_node_type <> z2ui5_if_ui5_ajs_types=>node_type-array ).
 
   ENDMETHOD.
 
@@ -3826,10 +3826,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     CASE iv_node_type.
-      WHEN z2ui5_if_ajson_types=>node_type-null.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-null.
         " what to_abap( ) left behind for a null: the cleared target
         CLEAR <val>.
-      WHEN z2ui5_if_ajson_types=>node_type-boolean.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-boolean.
         <val> = io_model->get_boolean( iv_path ).
       WHEN OTHERS.
         delta_apply_scalar( io_delta     = io_model
@@ -3842,7 +3842,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD whole_value_apply.
 
-    DATA lo_val_front TYPE REF TO z2ui5_if_ajson.
+    DATA lo_val_front TYPE REF TO z2ui5_if_ui5_ajs.
 
     " a whole value that is an OBJECT or an ARRAY takes a tree of its own
     " - to_abap( ) converts an instance. A SCALAR does not: it is one keyed
@@ -3850,8 +3850,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " attribute, so a request carrying a mass delta next to one edited
     " input paid a walk over the whole delta for that input
     DATA(lv_node_type) = io_model->get_node_type( iv_path ).
-    IF lv_node_type = z2ui5_if_ajson_types=>node_type-object
-        OR lv_node_type = z2ui5_if_ajson_types=>node_type-array.
+    IF lv_node_type = z2ui5_if_ui5_ajs_types=>node_type-object
+        OR lv_node_type = z2ui5_if_ui5_ajs_types=>node_type-array.
       lo_val_front = io_model->slice( iv_path ).
       IF lo_val_front IS NOT BOUND.
         RETURN.
@@ -3945,7 +3945,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     CASE io_json->get_node_type( iv_path ).
 
-      WHEN z2ui5_if_ajson_types=>node_type-array.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-array.
         IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> )
             <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
           RETURN.
@@ -3963,7 +3963,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                 CHANGING  ct_col_kind = lt_col_kind ).
         ENDLOOP.
 
-      WHEN z2ui5_if_ajson_types=>node_type-object.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-object.
         DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
         IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
             AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
@@ -4026,7 +4026,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date
           OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
-        IF io_json->get_node_type( iv_path ) <> z2ui5_if_ajson_types=>node_type-string.
+        IF io_json->get_node_type( iv_path ) <> z2ui5_if_ui5_ajs_types=>node_type-string.
           RETURN.
         ENDIF.
         TRY.
@@ -4166,8 +4166,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       DATA(lv_node_type) = io_json->get_node_type( lv_sub ).
       " a member that is not there stays initial, as to_abap leaves a
       " component the object does not carry
-      IF lv_node_type = z2ui5_if_ajson_types=>node_type-object
-          OR lv_node_type = z2ui5_if_ajson_types=>node_type-array.
+      IF lv_node_type = z2ui5_if_ui5_ajs_types=>node_type-object
+          OR lv_node_type = z2ui5_if_ui5_ajs_types=>node_type-array.
         json_to_abap( io_json = io_json->slice( lv_sub )
                       ir_ref  = REF #( <comp> ) ).
       ELSEIF lv_node_type IS NOT INITIAL.

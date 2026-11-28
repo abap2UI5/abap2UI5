@@ -29,7 +29,7 @@
 // AGENTS.md has forbidden this since the exception class was written
 // ("Never inline a cause into a message"), and five raises in
 // z2ui5_cl_ui5_frontend did it anyway - the four option marshallers and the
-// action builder, all five raising a z2ui5_cx_ajson_error whose position is
+// action builder, all five raising a z2ui5_cx_ui5_ajs_error whose position is
 // the only thing that says which option was malformed. A rule nobody checks
 // is a rule that comes back.
 //

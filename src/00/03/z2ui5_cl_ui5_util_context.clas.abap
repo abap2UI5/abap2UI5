@@ -525,7 +525,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     "! A UTC time stamp as an ISO 8601 instant, `YYYY-MM-DDTHH:MM:SSZ` -
     "! `0000-00-00T00:00:00Z` for an initial one and for one that is no
     "! valid point in time. Statement for statement what
-    "! z2ui5_cl_ajson's lcl_abap_to_json=>format_timestamp does, because a
+    "! z2ui5_cl_ui5_ajs's lcl_abap_to_json=>format_timestamp does, because a
     "! caller writes it into a document next to what ajson wrote
     "! (z2ui5_cl_ui5_srv_model=>json_row): the two must not differ in a
     "! single character, whatever the platform makes of an odd value
@@ -2329,7 +2329,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " literal, so a namespace rename carries it along (rtti_get_ref_type_name).
     " ZCL_SRTTI_TYPEDESCR is the stand-alone S-RTTI project, installed
     " separately or not at all - a name this repository does not own
-    DATA lo_shipped TYPE REF TO z2ui5_cl_srt_typedescr.
+    DATA lo_shipped TYPE REF TO z2ui5_cl_ui5_srt_type.
     DATA(lv_classname) = COND string( WHEN rtti_check_class_exists( `ZCL_SRTTI_TYPEDESCR` ) = abap_true
                                       THEN `ZCL_SRTTI_TYPEDESCR`
                                       ELSE rtti_get_ref_type_name( lo_shipped ) ).
@@ -2973,7 +2973,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_json_kind.
 
-    " the same distinctions z2ui5_cl_ajson's lcl_abap_to_json=>convert_value
+    " the same distinctions z2ui5_cl_ui5_ajs's lcl_abap_to_json=>convert_value
     " makes, in the same order - a boolean by its type name first, so an
     " abap_bool (a CHAR 1) is not a string
     CASE val->absolute_name.

@@ -134,7 +134,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     "! io_model is the model itself
     METHODS model_json_parse
       IMPORTING
-        io_model      TYPE REF TO z2ui5_if_ajson
+        io_model      TYPE REF TO z2ui5_if_ui5_ajs
         iv_path       TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE z2ui5_if_client=>ty_t_model_skip.

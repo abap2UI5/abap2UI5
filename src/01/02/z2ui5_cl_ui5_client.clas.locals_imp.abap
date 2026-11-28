@@ -17,7 +17,7 @@ CLASS lcl_node_value DEFINITION FINAL.
     " are initial when empty
     CLASS-METHODS check_initial
       IMPORTING
-        is_node       TYPE z2ui5_if_ajson_types=>ty_node
+        is_node       TYPE z2ui5_if_ui5_ajs_types=>ty_node
       RETURNING
         VALUE(result) TYPE abap_bool.
   PROTECTED SECTION.
@@ -30,9 +30,9 @@ CLASS lcl_node_value IMPLEMENTATION.
   METHOD check_initial.
 
     CASE is_node-type.
-      WHEN z2ui5_if_ajson_types=>node_type-number.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-number.
         result = z2ui5_cl_ui5_util_json_fl=>check_number_initial( is_node-value ).
-      WHEN z2ui5_if_ajson_types=>node_type-boolean.
+      WHEN z2ui5_if_ui5_ajs_types=>node_type-boolean.
         result = xsdbool( is_node-value = `false` ).
       WHEN OTHERS.
         result = xsdbool( is_node-value IS INITIAL ).
@@ -46,7 +46,8 @@ ENDCLASS.
 " The row-preserving replacement for ajson's empty filter, behind
 " z2ui5_if_client~_bind( omit_initial = abap_true ).
 "
-" The vendored z2ui5_cl_ajson_filter_lib=>create_empty_filter drops ANY node
+" ajson's own empty filter (create_empty_filter of its filter library, which
+" the vendored copy does not carry) drops ANY node
 " that ends up empty - including an object that IS a table row whose fields
 " are all initial. The serialized array then has fewer entries than the
 " backend table, and every row behind the gap is shifted: a whole-table
@@ -60,10 +61,10 @@ ENDCLASS.
 CLASS lcl_empty_filter_keep_rows DEFINITION FINAL.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
     " a bound filter is stored on mt_attri and serialized into the draft
     " with the rest of the app state (z2ui5_cl_ui5_srv_bind->check_raise_new
-    " is the gate) - z2ui5_if_ajson_filter, unlike z2ui5_if_ajson_mapping,
+    " is the gate) - z2ui5_if_ui5_ajs_filter, unlike z2ui5_if_ui5_ajs_map,
     " does not compose if_serializable_object, so every filter class the
     " framework itself hands into a binding declares it here
     INTERFACES if_serializable_object.
@@ -74,7 +75,7 @@ ENDCLASS.
 
 CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
 
-  METHOD z2ui5_if_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
 
     " ajson numbers array children 1-based in is_node-index and leaves 0 on
     " every object member (lcl_abap_to_json / lcl_filter_runner=>walk), so
@@ -86,7 +87,7 @@ CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
     ENDIF.
 
     " everything below mirrors the vendored lcl_empty_filter
-    IF iv_visit = z2ui5_if_ajson_filter=>visit_type-value.
+    IF iv_visit = z2ui5_if_ui5_ajs_filter=>visit_type-value.
       rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
     ELSE.
       " children = 0 on open for initially empty nodes and on close for
@@ -115,7 +116,7 @@ ENDCLASS.
 CLASS lcl_initial_paths_filter DEFINITION FINAL.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
     " serialized into the draft when bound - see lcl_empty_filter_keep_rows
     INTERFACES if_serializable_object.
 
@@ -153,13 +154,13 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
 
     rv_keep = abap_true.
 
     " only a VALUE node can be initial - opening and closing an array or an
     " object always passes, or the structure around a dropped field would go
-    IF iv_visit <> z2ui5_if_ajson_filter=>visit_type-value.
+    IF iv_visit <> z2ui5_if_ui5_ajs_filter=>visit_type-value.
       RETURN.
     ENDIF.
 

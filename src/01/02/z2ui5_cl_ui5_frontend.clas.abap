@@ -62,7 +62,7 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! Empty when the roundtrip touches no slot.
     METHODS slots_serialize
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_ajs.
 
     "! The roundtrip's browser-history intent as the response's NAV section -
     "! the options Router.sync takes, which computes ONE outcome from the
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! the response's own id.
     METHODS nav_serialize
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_ajs.
 
     "! Queue a message toast for the APP phase. The call carries
     "! `MESSAGE_TOAST`, `show`, the text, and the options object. Only the
@@ -117,15 +117,15 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     METHODS build_global_call
       IMPORTING
         t_arg         TYPE string_table
-        opt           TYPE REF TO z2ui5_if_ajson OPTIONAL
+        opt           TYPE REF TO z2ui5_if_ui5_ajs OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_ajs.
 
     "! Queue one APP-phase framework action.
     METHODS queue_app
       IMPORTING
         t_arg TYPE string_table
-        opt   TYPE REF TO z2ui5_if_ajson OPTIONAL.
+        opt   TYPE REF TO z2ui5_if_ui5_ajs OPTIONAL.
 
     "! Drop everything queued for a slot so far - see the method body.
     METHODS slot_reset
@@ -136,11 +136,11 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! that is absent lets the control apply its own default.
     METHODS set_opt_string
       IMPORTING
-        json TYPE REF TO z2ui5_if_ajson
+        json TYPE REF TO z2ui5_if_ui5_ajs
         name TYPE string
         val  TYPE clike
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     " One option of a payload: the name it travels under, and the value the
     " app set. `val` is a string because that is what the option becomes -
@@ -162,28 +162,28 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! where it is stated once.
     METHODS set_opt_strings
       IMPORTING
-        json TYPE REF TO z2ui5_if_ajson
+        json TYPE REF TO z2ui5_if_ui5_ajs
         opt  TYPE ty_t_opt
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS set_opt_int
       IMPORTING
-        json TYPE REF TO z2ui5_if_ajson
+        json TYPE REF TO z2ui5_if_ui5_ajs
         name TYPE string
         val  TYPE clike
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! Add a boolean option only when it is set - an unset flag carries no
     "! information, the receiver's own default covers it.
     METHODS set_opt_bool
       IMPORTING
-        json TYPE REF TO z2ui5_if_ajson
+        json TYPE REF TO z2ui5_if_ui5_ajs
         name TYPE string
         val  TYPE abap_bool
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
 ENDCLASS.
 
@@ -202,7 +202,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
   METHOD build_global_call.
 
     TRY.
-        result = z2ui5_cl_ajson=>create_empty( ).
+        result = z2ui5_cl_ui5_ajs=>create_empty( ).
         result->touch_array( `/` ).
         " REFERENCE INTO - an argument can be a whole view XML
         LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
@@ -213,7 +213,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
           result->push( iv_path = `/`
                         iv_val  = opt ).
         ENDIF.
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = `ACTION_BUILD_FAILED`
@@ -280,7 +280,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " model switch and page transition. An option the caller left alone
         " is absent, never sent as an empty value - so a frontend that knows
         " no transition reads a display exactly as before.
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_opt) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
         set_opt_strings(
             json = li_opt
             opt  = VALUE #( ( name = `id`                        val = id )
@@ -304,7 +304,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                         options = li_opt )
                INTO TABLE mo_action->ms_next-t_action_front.
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = `SLOT_DISPLAY_OPTIONS_INVALID`
@@ -322,7 +322,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " so is what a new MAIN view takes down with it - nothing is sorted or
     " dropped here.
     TRY.
-        result = z2ui5_cl_ajson=>create_empty( ).
+        result = z2ui5_cl_ui5_ajs=>create_empty( ).
         " REFERENCE INTO - a row carries the whole view XML
         LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action).
           IF lr_action->method = z2ui5_if_ui5_types=>cs_slot_action-destroy.
@@ -339,7 +339,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                          iv_val  = lr_action->options ).
           ENDIF.
         ENDLOOP.
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = `VIEWS_SECTION_INVALID`
@@ -356,7 +356,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     TRY.
         " only what is actually set travels - an absent option reads exactly
         " like the empty value it would otherwise carry
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_opt) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
         set_opt_bool( json = li_opt
                       name = `setAppStateActive`
                       val  = ls_nav-set_app_state_active ).
@@ -378,7 +378,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
           result = li_opt.
         ENDIF.
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = `NAV_OPTIONS_INVALID`
@@ -391,7 +391,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
   METHOD msg_toast.
 
     TRY.
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_opt) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
 
         " Only what the app actually set travels. sap.m.MessageToast owns a
         " default for every option, and it applies its vertical lift ONLY
@@ -416,7 +416,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                                     ( CONV string( text ) ) )
                    opt   = li_opt ).
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = `MESSAGE_TOAST_OPTIONS_INVALID`
@@ -437,7 +437,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_opt) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
 
         " only what the app actually set travels - every MessageBox method
         " carries its OWN defaults ( confirm's [OK, CANCEL], error's [CLOSE],
@@ -471,7 +471,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                                     ( ls_msg-text ) )
                    opt   = li_opt ).
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = `MESSAGE_BOX_OPTIONS_INVALID`

@@ -87,16 +87,11 @@ jobs:
       if: steps.when.outputs.go == 'true'
       run: |
         set -euo pipefail
-        for m in mirror-ajson:src/00/01 mirror-srtti:src/00/02; do
-          repo=${m%%:*}; path=${m#*:}
-          git clone --quiet --depth 1 "https://github.com/abap2UI5/$repo.git" "$RUNNER_TEMP/$repo"
-          rm "$path"/z*
-          cp "$RUNNER_TEMP/$repo"/src/z* "$path"/
-        done
+        node .github/scripts/vendor-mirror.mjs
         if ! git diff --quiet -- src/00; then
           # the backticks are Markdown, not a shell expansion
           # shellcheck disable=SC2016
-          printf '**Vendored mirrors**\n\n- `src/00/01` (ajson) and `src/00/02` (srtti) refreshed from their mirror repositories\n\n' >> "$RUNNER_TEMP/summary.md"
+          printf '**Vendored mirrors**\n\n- `src/00/01` (ajson) and `src/00/02` (srtti) refreshed from abap-util/mirror-ajson and abap-util/mirror-srtti\n\n' >> "$RUNNER_TEMP/summary.md"
         fi
 
     # everything changed, new files and deleted ones included, as one binary

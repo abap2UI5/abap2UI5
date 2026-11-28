@@ -19,7 +19,7 @@
  *   z2ui5_cl_ui5_srv_monitor                  `Z2UI5_IF_UI5_MONITOR` - no monitor
  *   z2ui5_cl_ui5_srv_model=>diss_oref         `Z2UI5_CL_UI5_CLIENT` - the client
  *                                             graph walked into every draft
- *   z2ui5_cl_ui5_util_context=>xml_srtti_descr `Z2UI5_CL_SRT_TYPEDESCR`
+ *   z2ui5_cl_ui5_util_context=>xml_srtti_descr `Z2UI5_CL_UI5_SRT_TYPE`
  *
  * abaplint, the transpiler and the unit suite are all green over that: in
  * THIS namespace the literal and the object agree. Only a renamed system sees

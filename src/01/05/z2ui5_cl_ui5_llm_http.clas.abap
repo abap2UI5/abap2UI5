@@ -38,7 +38,7 @@ CLASS z2ui5_cl_ui5_llm_http DEFINITION
         is_response   TYPE z2ui5_if_ui5_llm_http=>ty_s_response
         iv_api        TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_ajs
       RAISING
         z2ui5_cx_ui5_llm.
 
@@ -110,7 +110,7 @@ CLASS z2ui5_cl_ui5_llm_http IMPLEMENTATION.
     DATA lv_message TYPE string.
 
     TRY.
-        result = z2ui5_cl_ajson=>parse( is_response-body ).
+        result = z2ui5_cl_ui5_ajs=>parse( is_response-body ).
       CATCH cx_root.
         CLEAR result.
     ENDTRY.

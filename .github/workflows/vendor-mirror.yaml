@@ -1,17 +1,15 @@
 name: vendor-mirror
 
-# Refreshes the vendored upstream sources under src/00/ from their mirror
-# repositories and opens a PR with the diff.
+# Refreshes the vendored ajson (src/00/01) and S-RTTI (src/00/02) from the
+# mirror repositories of abap-util and opens one PR with the diff (none when
+# nothing changed).
 #
-# This was three files: a reusable workflow plus one thin caller per mirror,
-# where a caller was a schedule and three strings. The strings are a matrix
-# now, so adding a third mirror is a line rather than a file, and the
-# workflow_call indirection - which existed only to serve those two callers -
-# is gone.
-#
-# A dispatch refreshes both mirrors. They are independent legs opening
-# independent PRs, and a run that finds no change opens nothing, so there is
-# nothing to gain from being able to name one.
+# The mirrors rename their upstream to abap-util's prefix (zabaputil_) and
+# apply their local patches; abap-util takes them as they are.
+# .github/scripts/vendor-mirror.mjs clones both, takes the objects this
+# repository uses and renames each one to this repository's name for it
+# (z2ui5_cl_ui5_ajs, z2ui5_cl_ui5_srt_type, ...): the table is
+# .github/vendor-mirror.json, why it is a table the script's header.
 
 # no schedule: bump-deps.yaml does this once a month, in its one
 # pull request; a dispatch still runs it on its own
@@ -35,30 +33,14 @@ jobs:
       pull-requests: write  # for peter-evans/create-pull-request to create a PR
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - repo: mirror-ajson
-            path: src/00/01
-            pr: mirror-ajson-update
-          - repo: mirror-srtti
-            path: src/00/02
-            pr: mirror-srtti-update
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: run
-      env:
-        MIRROR_REPO: ${{ matrix.repo }}
-        TARGET_PATH: ${{ matrix.path }}
       run: |
-        git clone "https://github.com/abap2UI5/$MIRROR_REPO.git"
-        rm "$TARGET_PATH"/z*
-        cp "$MIRROR_REPO"/src/z* "$TARGET_PATH"/
-        rm -rf "$MIRROR_REPO"
+        node .github/scripts/vendor-mirror.mjs
         git status
     - name: Open PR
       uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
-        title: ${{ matrix.pr }}
-        branch: ${{ matrix.pr }}
+        title: vendor-mirror-update
+        branch: vendor-mirror-update

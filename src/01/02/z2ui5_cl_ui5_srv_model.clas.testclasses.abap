@@ -750,14 +750,14 @@ CLASS ltcl_shp_filter DEFINITION FINAL
 
   PUBLIC SECTION.
     INTERFACES if_serializable_object.
-    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
 ENDCLASS.
 
 CLASS ltcl_shp_filter IMPLEMENTATION.
 
-  METHOD z2ui5_if_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
     " drop an initial string leaf, keep everything else
-    rv_keep = xsdbool( is_node-type <> z2ui5_if_ajson_types=>node_type-string OR is_node-value IS NOT INITIAL ).
+    rv_keep = xsdbool( is_node-type <> z2ui5_if_ui5_ajs_types=>node_type-string OR is_node-value IS NOT INITIAL ).
   ENDMETHOD.
 
 ENDCLASS.
@@ -1849,7 +1849,7 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
   METHOD values_per_form.
 
     bind_all( ).
-    DATA(lo_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( mo_model->main_json_stringify( ) ) ).
+    DATA(lo_json) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( mo_model->main_json_stringify( ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `text`
                                         act = lo_json->get_string( `/MV_STRING` ) ).
@@ -1915,7 +1915,7 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
     DATA(lv_json) = mo_model->main_json_stringify( ).
     " parsed back, the value is what the attribute holds - quotes, angle
     " brackets, ampersand and the line break included
-    DATA(lo_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
+    DATA(lo_json) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( lv_json ) ).
     cl_abap_unit_assert=>assert_equals( exp = mo_app->mv_markup
                                         act = lo_json->get_string( `/MV_MARKUP` ) ).
 
@@ -1927,8 +1927,8 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
     DATA(lr_attri) = bind( REF #( mo_app->mv_string ) ).
     lr_attri->check_json = abap_true.
 
-    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( mo_model->main_json_stringify( ) ) ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-object
+    DATA(lo_result) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( mo_model->main_json_stringify( ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ui5_ajs_types=>node_type-object
                                         act = lo_result->get_node_type( `/MV_STRING` )
                                         msg = `the raw JSON must become a node, not a quoted string` ).
     cl_abap_unit_assert=>assert_equals( exp = `card`
@@ -1956,7 +1956,7 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
     lr_attri->check_json = abap_true.
 
     DATA(lv_json) = mo_model->main_json_stringify( ).
-    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
+    DATA(lo_result) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( lv_json ) ).
     cl_abap_unit_assert=>assert_true( act = lo_result->exists( lr_attri->name_client )
                                       msg = lv_json ).
     cl_abap_unit_assert=>assert_equals( exp = `null`
@@ -1973,7 +1973,7 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
     DATA(lr_attri) = bind( REF #( mo_app->ms_flat ) ).
     lr_attri->custom_filter = NEW ltcl_shp_filter( ).
 
-    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( mo_model->main_json_stringify( ) ) ).
+    DATA(lo_result) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( mo_model->main_json_stringify( ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = 7
                                         act = lo_result->get_integer( `/MS_FLAT/COL2` ) ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -2104,9 +2104,9 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
       IMPORTING
         iv_json       TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_ajs
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 ENDCLASS.
 
 
@@ -2147,14 +2147,14 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
   METHOD delta.
 
-    result = z2ui5_cl_ajson=>parse( iv_json ).
+    result = z2ui5_cl_ui5_ajs=>parse( iv_json ).
 
   ENDMETHOD.
 
   METHOD whole_value_per_form.
 
     bind_all( ).
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MV_STRING`
                    iv_val  = `updated` ).
     lo_front->set( iv_path = `/MV_INT`
@@ -2207,7 +2207,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     DATA(lr_attri) = row_ref( `MV_STRING` ).
     lr_attri->bind        = abap_false.
     lr_attri->name_client = `/MV_STRING`.
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MV_STRING`
                    iv_val  = `should_not_update` ).
 
@@ -2223,7 +2223,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     mo_app->mv_string = `{"sap.app":{"type":"card"}}`.
     DATA(lr_attri) = bind( REF #( mo_app->mv_string ) ).
     lr_attri->check_json = abap_true.
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MV_STRING`
                    iv_val  = `overwritten` ).
 
@@ -2244,7 +2244,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     ls_extra-name        = `MV_STRING_ALIAS`.
     ls_extra-name_client = `/ALIAS`.
     INSERT ls_extra INTO TABLE mr_attri->*.
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MV_STRING`
                    iv_val  = `once` ).
 
@@ -2260,7 +2260,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     " `1,250.00` typed into an Input bound to a packed SCALAR: traced with
     " the attribute name, row 0 and the raw value, the old value kept
     bind( REF #( mo_app->mv_packed ) ).
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MV_PACKED`
                    iv_val  = `1,250.00` ).
 
@@ -2288,7 +2288,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     bind( REF #( mo_app->mv_string ) ).
 
     " the spellings ajson writes outbound - unpacked like a delta cell
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MV_DATE`
                    iv_val  = `2024-01-15` ).
     lo_front->set( iv_path = `/MV_TIME`
@@ -2314,7 +2314,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( mo_model->mt_skipped ).
 
     " a plain date keeps the direct assignment, like a delta cell does
-    lo_front = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_front = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MV_DATE`
                    iv_val  = `20240116` ).
 
@@ -2330,7 +2330,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
     bind( REF #( mo_app->ms_flat ) ).
     DATA(ls_before) = mo_app->ms_flat.
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_front->set( iv_path = `/MS_FLAT`
                    iv_val  = `not a structure` ).
 
@@ -2354,7 +2354,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     DATA(lv_before) = mo_app->mv_markup.
     CLEAR mo_app->mv_markup.
 
-    mo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_out ) ) ).
+    mo_model->main_json_to_attri( CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( lv_out ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_before
                                         act = mo_app->mv_markup ).
@@ -2375,7 +2375,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     " ...the client sends the whole table back with its next event, and the
     " backend holds exactly what it shipped
     CLEAR mo_app->mr_typed_tab->*.
-    mo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ) ).
+    mo_model->main_json_to_attri( CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( lv_json ) ) ).
     ASSIGN mo_app->mr_typed_tab->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( <tab> ) ).
@@ -2476,7 +2476,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
           mo_model->main_json_to_attri( delta( lv_json ) ).
         CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
           " an exception IS a legitimate answer - the handler renders it
-        CATCH z2ui5_cx_ajson_error ##NO_HANDLER.
+        CATCH z2ui5_cx_ui5_ajs_error ##NO_HANDLER.
           " so is the parser's own: an empty-keyed member never reaches the
           " model, and the single top-level CATCH cx_root renders this one
           " the same way. What must NOT happen is a runtime error, and that
@@ -2959,7 +2959,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     " the client sends the table back whole (a row added or removed on the
     " client replaces the delta with the array)
     CLEAR lo_app->mt_tab.
-    lo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_out ) ) ).
+    lo_model->main_json_to_attri( CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( lv_out ) ) ).
 
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
     cl_abap_unit_assert=>assert_equals( exp = 2
@@ -3258,7 +3258,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
     " whole: out and in again, unchanged
     CLEAR lo_app->mt_tab.
-    lo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_out ) ) ).
+    lo_model->main_json_to_attri( CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( lv_out ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = lv_text
                                         act = lo_app->mt_tab[ 1 ]-name ).
 
@@ -3512,16 +3512,16 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                           ( `/MS_DEEP/S_WIDE/CHANGED_AT` )
                                           ( `/MS_DEEP/T_WIDE/1/CHANGED_AT` ) ).
     LOOP AT lt_quoted INTO lv_path.
-      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ui5_ajs_types=>node_type-string
                                           act = lo_out->get_node_type( lv_path )
                                           msg = lv_path ).
       cl_abap_unit_assert=>assert_equals( exp = `20240115123045.1234567`
                                           act = lo_out->get_string( lv_path )
                                           msg = lv_path ).
     ENDLOOP.
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ui5_ajs_types=>node_type-string
                                         act = lo_out->get_node_type( `/MS_FLAT/BIG` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-string
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ui5_ajs_types=>node_type-string
                                         act = lo_out->get_node_type( `/MS_DEEP/S_WIDE/BIG` ) ).
 
     " what a double holds stays a number: a price of 8 bytes, a short
@@ -3533,7 +3533,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                           ( `/MS_DEEP/S_WIDE/RATIO` )
                                           ( `/MV_BIG` ) ).
     LOOP AT lt_number INTO lv_path.
-      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ajson_types=>node_type-number
+      cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ui5_ajs_types=>node_type-number
                                           act = lo_out->get_node_type( lv_path )
                                           msg = lv_path ).
     ENDLOOP.
@@ -5140,7 +5140,7 @@ CLASS ltcl_07_view_host IMPLEMENTATION.
                                       msg = `the sub-app's rows never reached the host's model` ).
 
     " ...and the way back lands in the sub-app instance, not in a copy
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
+    DATA(lo_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( lv_json ) ).
     lo_front->set( iv_path = `/MT_TABLE/1/CARRID`
                    iv_val  = `AA` ).
     mo_model->main_json_to_attri( lo_front ).
@@ -5561,7 +5561,7 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS every_kind_identical     FOR TESTING RAISING cx_static_check.
     METHODS empty_table_identical    FOR TESTING RAISING cx_static_check.
@@ -5692,7 +5692,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
   METHOD ajson_text.
 
     DATA lr_val TYPE REF TO data.
-    DATA(li_json) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
+    DATA(li_json) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
                       )->set( iv_ignore_empty = abap_false
                               iv_path         = `/`
                               iv_val          = iv_val ).
@@ -5778,8 +5778,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " characters it handles and the ones it leaves alone
     DATA(lv_raw) = `a"b\c` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab && z2ui5_cl_ui5_util_context=>cv_char_util_newline
                    && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf && `/ $& \u0041 ` && `{}`.
-    DATA(lv_exp) = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/V`
-                                                        iv_val   = lv_raw )->stringify( ).
+    DATA(lv_exp) = z2ui5_cl_ui5_ajs=>create_empty( )->set( iv_path = `/V`
+                                                        iv_val     = lv_raw )->stringify( ).
     cl_abap_unit_assert=>assert_equals( exp = lv_exp
                                         act = |\{"V":"{ z2ui5_cl_ui5_util_context=>c_escape_json( lv_raw ) }"\}| ).
     " nothing to escape: the text itself
@@ -5937,7 +5937,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
       lr_attri->name_client = |/{ lr_attri->name }|.
     ENDLOOP.
 
-    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(li_exp) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     li_exp->set( iv_ignore_empty = abap_false
                  iv_path         = `/MT_LOG`
                  iv_val          = lo_app->mt_log ).
@@ -5971,7 +5971,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
       lr_attri->name_client = |/{ lr_attri->name }|.
     ENDLOOP.
 
-    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(li_exp) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     li_exp->set( iv_ignore_empty = abap_false
                  iv_path         = `/MT_ROWS`
                  iv_val          = lo_app->mt_rows ).
@@ -6007,7 +6007,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
       lr_attri->name_client = |/{ lr_attri->name }|.
     ENDLOOP.
 
-    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(li_exp) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     li_exp->set( iv_ignore_empty = abap_false
                  iv_path         = `/MT_ROWS`
                  iv_val          = lo_app->mt_rows ).
@@ -6150,7 +6150,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
   METHOD tm_pop_ajson_text.
 
-    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(li_exp) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = io_cont->mt_attri
                                                  app   = io_cont->mo_app ).
     LOOP AT io_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
@@ -6195,7 +6195,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " every binding path is one UI5 resolves - no empty segment, at which
     " sap.ui.model.json.JSONModel stops walking - and finds the field's
     " value and its fixed values in the document
-    DATA(li_doc) = z2ui5_cl_ajson=>parse( lv_act ).
+    DATA(li_doc) = z2ui5_cl_ui5_ajs=>parse( lv_act ).
     LOOP AT lo_app->mt_field INTO DATA(lv_field).
       DATA(lv_val_path) = lt_path[ 2 * sy-tabix - 1 ].
       DATA(lv_fix_path) = lt_path[ 2 * sy-tabix ].
@@ -6297,7 +6297,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
                                         act = lo_model->attri_json_fast( lo_app->mr_tab ) ).
 
     " the general road writes the same text for the same table
-    DATA(li_tree) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(li_tree) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     FIELD-SYMBOLS <tab> TYPE any.
     ASSIGN lo_app->mr_tab->* TO <tab>.
     li_tree->set( iv_ignore_empty = abap_false
@@ -6307,7 +6307,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
                                         act = z2ui5_cl_ui5_srv_model=>json_ns_text( li_tree->mt_json_tree ) ).
 
     " and the model carries it, a relative row path resolves in it
-    DATA(li_doc) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_doc) = z2ui5_cl_ui5_ajs=>parse( lo_model->main_json_stringify( ) ).
     cl_abap_unit_assert=>assert_equals( exp = `X2`
                                         act = li_doc->get_string( |{ lt_path[ 1 ] }/2/CWM/XCWMAT| ) ).
     cl_abap_unit_assert=>assert_equals( exp = `CWM/XCWMAT`
@@ -6343,7 +6343,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS
         `[{"ABC":{"ITEMS":[{"AA_FIRST":"A1","CWM":{"VALUM":10,"XCWMAT":"X1"},"MATNR":"M1","VSO":{"R_TILT":"T1"}},` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `],"NOTE":"note"},"ID":1}]` ) ).
-    DATA(li_doc) = z2ui5_cl_ajson=>parse( lv_act ).
+    DATA(li_doc) = z2ui5_cl_ui5_ajs=>parse( lv_act ).
     cl_abap_unit_assert=>assert_equals( exp = `X2`
                                         act = li_doc->get_string( |{ lt_path[ 2 ] }/1/ABC/ITEMS/2/CWM/XCWMAT| ) ).
 
@@ -6354,7 +6354,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " the renderer of the general road writes what ajson writes for a value
     " without a namespace - the shapes the identity tests above hold
     DATA(lt_rows) = rows( ).
-    DATA(li_tree) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    DATA(li_tree) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     li_tree->set( iv_ignore_empty = abap_false
                   iv_path         = `/`
                   iv_val          = lt_rows ).
@@ -6363,7 +6363,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
     DATA lt_nested TYPE ty_t_nested.
     lt_nested = VALUE #( ( id = 1 ) ( id = 2 ) ).
-    li_tree = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_tree = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
     li_tree->set( iv_ignore_empty = abap_false
                   iv_path         = `/`
                   iv_val          = lt_nested ).
@@ -6420,7 +6420,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
                                                  app   = lo_app ).
     " what Lib.buildDeltaFromPaths sends for an edit at /<table>/1/CWM/XCWMAT:
     " the row's member CWM whole, read from the client's model
-    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(li_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/CWM/XCWMAT|
                    iv_val  = `edited` ).
     li_front->set( iv_path = |{ lt_path[ 1 ] }/__delta/1/CWM/VALUM|
@@ -6467,8 +6467,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
                         et_path = DATA(lt_path) ).
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
                                                  app   = lo_app ).
-    DATA(li_out) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
-    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(li_out) = z2ui5_cl_ui5_ajs=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     li_front->set( iv_path = lt_path[ 1 ]
                    iv_val  = li_out->slice( lt_path[ 1 ] ) ).
     li_front->set( iv_path = |{ lt_path[ 1 ] }/1/CWM/XCWMAT|
@@ -6512,8 +6512,8 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
                         et_path = DATA(lt_path) ).
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
                                                  app   = lo_app ).
-    DATA(li_out) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
-    DATA(li_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(li_out) = z2ui5_cl_ui5_ajs=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_front) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC|
                    iv_val  = li_out->slice( |{ lt_path[ 2 ] }/1/ABC| ) ).
     li_front->set( iv_path = |{ lt_path[ 2 ] }/__delta/0/ABC/ITEMS/2/CWM/XCWMAT|
@@ -6577,7 +6577,7 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     " and the model holds the cell there - ajson counts from 1
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_cont->mt_attri
                                                  app   = lo_app ).
-    DATA(li_doc) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+    DATA(li_doc) = z2ui5_cl_ui5_ajs=>parse( lo_model->main_json_stringify( ) ).
     cl_abap_unit_assert=>assert_equals( exp = `X2`
                                         act = li_doc->get_string( |{ lv_tab }/2/CWM/XCWMAT| ) ).
 
@@ -6777,7 +6777,7 @@ CLASS ltcl_07_intf_attr IMPLEMENTATION.
     bind( REF #( mo_app->lif_intf_attr~mt_intf ) ).
     bind( REF #( mo_app->mi_state->mv_intf ) ).
 
-    DATA(li_doc) = z2ui5_cl_ajson=>parse( model( )->main_json_stringify( ) ).
+    DATA(li_doc) = z2ui5_cl_ui5_ajs=>parse( model( )->main_json_stringify( ) ).
     cl_abap_unit_assert=>assert_equals( exp = `out`
                                         act = li_doc->get_string( `/LIF_INTF_ATTR~MV_INTF` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `B`
@@ -6786,7 +6786,7 @@ CLASS ltcl_07_intf_attr IMPLEMENTATION.
                                         act = li_doc->get_string( `/MI_STATE/LIF_INTF_ATTR~MV_INTF` ) ).
 
     " back in: a whole value, a row delta and a value behind the reference
-    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse(
+    model( )->main_json_to_attri( z2ui5_cl_ui5_ajs=>parse(
         `{"LIF_INTF_ATTR~MV_INTF":"in","LIF_INTF_ATTR~MT_INTF":{"__delta":{"1":{"QTY":7}}},` &&
         `"MI_STATE":{"LIF_INTF_ATTR~MV_INTF":"ref-in"}}` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `in`
@@ -6813,7 +6813,7 @@ CLASS ltcl_07_intf_attr IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `{"NS":{"LIF_INTF_ATTR~MV_INTF":"out"}}`
                                         act = model( )->main_json_stringify( ) ).
 
-    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse( `{"NS":{"LIF_INTF_ATTR~MV_INTF":"in"}}` ) ).
+    model( )->main_json_to_attri( z2ui5_cl_ui5_ajs=>parse( `{"NS":{"LIF_INTF_ATTR~MV_INTF":"in"}}` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `in`
                                         act = mo_app->lif_intf_attr~mv_intf ).
 
@@ -6847,12 +6847,12 @@ CLASS ltcl_07_intf_attr IMPLEMENTATION.
     lr_alias->* = `out`.
     DATA(lv_member) = substring( val = lv_path
                                  off = 1 ).
-    DATA(li_doc) = z2ui5_cl_ajson=>parse( model( )->main_json_stringify( ) ).
+    DATA(li_doc) = z2ui5_cl_ui5_ajs=>parse( model( )->main_json_stringify( ) ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( li_doc->members( `/` ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = `out`
                                         act = li_doc->get_string( lv_path ) ).
-    model( )->main_json_to_attri( z2ui5_cl_ajson=>parse( |\{"{ lv_member }":"in"\}| ) ).
+    model( )->main_json_to_attri( z2ui5_cl_ui5_ajs=>parse( |\{"{ lv_member }":"in"\}| ) ).
     cl_abap_unit_assert=>assert_equals( exp = `in`
                                         act = mo_app->lif_intf_alias~mv_shared ).
 

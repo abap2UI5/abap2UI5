@@ -49,7 +49,7 @@ CLASS ltcl_test_client DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
@@ -1102,7 +1102,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " FLP component data: one array per parameter name, first entry counts
     mo_action->mo_handler->ms_request-s_front-o_comp_data =
-        z2ui5_cl_ajson=>parse( `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ).
+        z2ui5_cl_ui5_ajs=>parse( `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ).
 
     DATA(ls_get_1) = li_client->get( ).
 
@@ -1141,7 +1141,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " whatever case the name is asked or written
     mo_action->mo_handler->ms_request-s_front-search = `?sap-client=100&LGN=0001&app=menu`.
     mo_action->mo_handler->ms_request-s_front-o_comp_data =
-        z2ui5_cl_ajson=>parse( `{"startupParameters":{"lgn":["FLP1"],"App":["FLP"],"MaintenanceOrder":["4711"]}}` ).
+        z2ui5_cl_ui5_ajs=>parse( `{"startupParameters":{"lgn":["FLP1"],"App":["FLP"],"MaintenanceOrder":["4711"]}}` ).
     mo_action->mo_handler->ms_request-s_front-hash = `#EWM-display?lgn=HASH&vc=CLUSTER&/app/ZCL_X?vc=ROUTE`.
 
     cl_abap_unit_assert=>assert_equals( exp = `0001`
@@ -1174,7 +1174,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " an EMPTY value in the URL is no answer - the next source is asked
     mo_action->mo_handler->ms_request-s_front-search = `?lgn=`.
     mo_action->mo_handler->ms_request-s_front-o_comp_data =
-        z2ui5_cl_ajson=>parse( `{"startupParameters":{"LGN":["0003"]}}` ).
+        z2ui5_cl_ui5_ajs=>parse( `{"startupParameters":{"LGN":["0003"]}}` ).
     CLEAR mo_client->mv_comp_params_set.
     cl_abap_unit_assert=>assert_equals( exp = `0003`
                                         act = li_client->get_start_param( `lgn` ) ).
@@ -1251,7 +1251,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " dropped when initial, so an abap_false that must reach the client (itself
     " initial) survives as long as its column is not listed. That is the whole
     " reason the scoped form exists next to the blanket omit_initial.
-    DATA(li_filter) = CAST z2ui5_if_ajson_filter(
+    DATA(li_filter) = CAST z2ui5_if_ui5_ajs_filter(
         NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX/` ) ) ) ).
 
     " listed + initial -> dropped
@@ -1286,7 +1286,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
         act = li_filter->keep_node( is_node  = VALUE #( name = `MIN` type = `object` )
-                                    iv_visit = z2ui5_if_ajson_filter=>visit_type-open ) ).
+                                    iv_visit = z2ui5_if_ui5_ajs_filter=>visit_type-open ) ).
 
   ENDMETHOD.
 
@@ -1308,7 +1308,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA(ls_row) = VALUE ty_s_row( name = `A` ).
 
-    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_ajson) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/row`
                    iv_val          = ls_row ).
@@ -1319,7 +1319,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " a non-zero value in the same spelling survives
     ls_row-price = '0.01'.
-    lo_ajson = z2ui5_cl_ajson=>create_empty( ).
+    lo_ajson = z2ui5_cl_ui5_ajs=>create_empty( ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/row`
                    iv_val          = ls_row ).
@@ -1357,7 +1357,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     INSERT VALUE #( title = `third`
                     count = 3 ) INTO TABLE lt_tab.
 
-    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    DATA(lo_ajson) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/`
                    iv_val          = lt_tab ).
@@ -1373,7 +1373,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " empty-filter behavior: an all-initial sub-structure vanishes entirely,
     " taking the then-empty root with it - stringify of the empty tree is ``
     DATA(ls_nest) = VALUE ty_s_row( ).
-    lo_ajson = z2ui5_cl_ajson=>create_empty( ).
+    lo_ajson = z2ui5_cl_ui5_ajs=>create_empty( ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/sub`
                    iv_val          = ls_nest ).
@@ -1392,8 +1392,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " TRANSFORMATION under the transpiler does not enforce
     " if_serializable_object, so this check IS what the suite can prove -
     " a real system enforces it at db_save
-    DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
-    DATA li_paths TYPE REF TO z2ui5_if_ajson_filter.
+    DATA li_omit TYPE REF TO z2ui5_if_ui5_ajs_filter.
+    DATA li_paths TYPE REF TO z2ui5_if_ui5_ajs_filter.
 
     li_omit = NEW lcl_empty_filter_keep_rows( ).
     cl_abap_unit_assert=>assert_true(
@@ -1867,7 +1867,7 @@ CLASS ltcl_test_model_skipped DEFINITION FINAL
     DATA mo_app    TYPE REF TO ltcl_app_price_editor.
     DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
 
-    METHODS setup RAISING z2ui5_cx_ajson_error.
+    METHODS setup RAISING z2ui5_cx_ui5_ajs_error.
 
     "! One roundtrip, assembled the way z2ui5_cl_ui5_action=>factory_by_frontend
     "! assembles it: apply the incoming client model, carry what it could not
@@ -1877,7 +1877,7 @@ CLASS ltcl_test_model_skipped DEFINITION FINAL
         model TYPE string OPTIONAL
         event TYPE string OPTIONAL
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS test_accepted_price_silent  FOR TESTING RAISING cx_static_check.
     METHODS test_refused_price_reported FOR TESTING RAISING cx_static_check.
@@ -1921,7 +1921,7 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     CLEAR mo_action->ms_actual.
 
     IF model IS NOT INITIAL.
-      mo_action->ms_actual-t_model_skipped = mo_action->mo_app->model_json_parse( z2ui5_cl_ajson=>parse( model ) ).
+      mo_action->ms_actual-t_model_skipped = mo_action->mo_app->model_json_parse( z2ui5_cl_ui5_ajs=>parse( model ) ).
     ENDIF.
     mo_action->ms_actual-event = event.
 

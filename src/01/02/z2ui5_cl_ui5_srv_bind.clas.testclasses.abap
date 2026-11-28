@@ -1,11 +1,11 @@
 " A filter for the adopt tests. It declares if_serializable_object for the
 " same reason the framework's own filters do (see lcl_empty_filter_keep_rows
-" in z2ui5_cl_ui5_client.clas.locals_imp): z2ui5_if_ajson_filter does not
+" in z2ui5_cl_ui5_client.clas.locals_imp): z2ui5_if_ui5_ajs_filter does not
 " compose it, and check_serializable( ) refuses a filter that cannot be
 " written into the draft.
 CLASS ltcl_test_filter DEFINITION FINAL CREATE PUBLIC.
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
     INTERFACES if_serializable_object.
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -14,7 +14,29 @@ ENDCLASS.
 
 CLASS ltcl_test_filter IMPLEMENTATION.
 
-  METHOD z2ui5_if_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
+
+    rv_keep = abap_true.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" A second filter class: rebinding an attribute with an implementation other
+" than the stored one is refused, whatever the two filters do.
+CLASS ltcl_test_filter_other DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
+    INTERFACES if_serializable_object.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_test_filter_other IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
 
     rv_keep = abap_true.
 
@@ -132,12 +154,12 @@ CLASS ltcl_bnd_filter_dead DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES z2ui5_if_ui5_ajs_filter.
 ENDCLASS.
 
 CLASS ltcl_bnd_filter_dead IMPLEMENTATION.
 
-  METHOD z2ui5_if_ajson_filter~keep_node.
+  METHOD z2ui5_if_ui5_ajs_filter~keep_node.
     rv_keep = abap_true.
   ENDMETHOD.
 
@@ -473,7 +495,7 @@ CLASS ltcl_02_cell IMPLEMENTATION.
     expect_bind_error( ir_val    = cell_name( 1 )
                        is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
                                             tab_index     = 1
-                                            custom_filter = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) )
+                                            custom_filter = NEW ltcl_test_filter_other( ) )
                        iv_text   = `Two different filters` ).
 
   ENDMETHOD.
@@ -897,7 +919,7 @@ CLASS ltcl_03_options IMPLEMENTATION.
 
     " a different implementation is still told apart through the memo
     expect_bind_error( ir_val    = REF #( mo_app->mv_value )
-                       is_config = VALUE #( custom_filter = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) )
+                       is_config = VALUE #( custom_filter = NEW ltcl_test_filter_other( ) )
                        iv_text   = `Two different filters` ).
 
   ENDMETHOD.
@@ -907,9 +929,9 @@ CLASS ltcl_03_options IMPLEMENTATION.
     bind( ir_val    = REF #( mo_app->mv_value )
           is_config = VALUE #( custom_filter = NEW ltcl_test_filter( ) ) ).
 
-    " the framework's own row filter is another implementation
+    " another implementation of the same interface
     expect_bind_error( ir_val    = REF #( mo_app->mv_value )
-                       is_config = VALUE #( custom_filter = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) )
+                       is_config = VALUE #( custom_filter = NEW ltcl_test_filter_other( ) )
                        iv_text   = `Two different filters` ).
 
   ENDMETHOD.

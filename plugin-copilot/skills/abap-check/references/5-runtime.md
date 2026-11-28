@@ -179,7 +179,7 @@ precisely because no gate will catch it.
   Build the result instead — collect what is kept and assign it back. It reads
   as what it does and has neither failure mode. `DELETE itab WHERE …` is fine
   too where the condition can be expressed there; `DELETE itab INDEX sy-tabix`
-  right after a `READ TABLE` is correct and common (`z2ui5_cl_ajson`), which is
+  right after a `READ TABLE` is correct and common (`z2ui5_cl_ui5_ajs`), which is
   why the shape cannot simply be banned. Gated by abaplint —
   `delete_index_in_loop` (abaplint/abaplint#4418, the read-then-delete form
   excepted), on in `abaplint.jsonc` since the 2.120.75 pin.

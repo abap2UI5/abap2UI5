@@ -1,3 +1,32 @@
+" ajson's own upper-case mapping (create_upper_case of its mapping library),
+" which z2ui5_cl_ui5_util_json_fl=>mapper_upper replaced and the vendored copy
+" no longer carries - written out with the answers it gave, as the reference
+" the framework's mapping is held to
+CLASS ltcl_upper_case DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_ajs_map.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_upper_case IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_ajs_map~to_json.
+    rv_result = to_upper( iv_name ).
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_ajs_map~to_abap.
+    CLEAR rv_result.
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_ajs_map~rename_node.
+    cv_name = to_upper( cv_name ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -32,11 +61,11 @@ CLASS ltcl_test IMPLEMENTATION.
     " it replaced (create_upper_case) - the same for every name shape the
     " serializer hands in: lower-cased component names, a numeric array
     " index, an already upper-cased leaf, an empty name
-    DATA lv_name_act TYPE z2ui5_if_ajson_types=>ty_node-name.
-    DATA lv_name_exp TYPE z2ui5_if_ajson_types=>ty_node-name.
+    DATA lv_name_act TYPE z2ui5_if_ui5_ajs_types=>ty_node-name.
+    DATA lv_name_exp TYPE z2ui5_if_ui5_ajs_types=>ty_node-name.
 
     DATA(li_act) = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ).
-    DATA(li_exp) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
+    DATA(li_exp) = CAST z2ui5_if_ui5_ajs_map( NEW ltcl_upper_case( ) ).
     DATA(lt_names) = VALUE string_table( ( `name` ) ( `price_net` ) ( `1` ) ( `ALREADY` ) ( `` ) ( `MiXeD_09` ) ).
 
     LOOP AT lt_names INTO DATA(lv_name).
@@ -90,10 +119,10 @@ CLASS ltcl_test IMPLEMENTATION.
                                        s_head  = VALUE #( id = 3 name = `h` )
                                        v_title = `t` ).
 
-    DATA(lv_act) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
+    DATA(lv_act) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
                      )->set( iv_path = `/`
                              iv_val  = ls_model )->stringify( ).
-    DATA(lv_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( )
+    DATA(lv_exp) = z2ui5_cl_ui5_ajs=>create_empty( ii_custom_mapping = NEW ltcl_upper_case( )
                      )->set( iv_path = `/`
                              iv_val  = ls_model )->stringify( ).
 
@@ -120,7 +149,7 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( xsdbool( lv_act CA lv_ctrl ) ).
 
     " tab, LF, CR and an escaped backslash are ajson's own and stay as they are
-    lv_json = z2ui5_cl_ajson=>create_empty( )->set(
+    lv_json = z2ui5_cl_ui5_ajs=>create_empty( )->set(
         iv_path = `/NAME`
         iv_val  = `x\u0001` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
                   && z2ui5_cl_ui5_util_context=>cv_char_util_newline )->stringify( ).

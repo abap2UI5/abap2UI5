@@ -211,7 +211,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         DATA(lo_comp) = mo_action->mo_handler->ms_request-s_front-o_comp_data.
         IF lo_comp IS NOT BOUND
             AND mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
-          lo_comp = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
+          lo_comp = z2ui5_cl_ui5_ajs=>parse( mo_action->mo_app->ms_session-comp_data ).
         ENDIF.
         IF lo_comp IS NOT BOUND.
           RETURN.
@@ -523,7 +523,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " an initial field stays ABSENT from the model and the control keeps its
     " own default. No TRY around the construction: the two local classes
     " have no constructor that can raise
-    DATA li_filter TYPE REF TO z2ui5_if_ajson_filter.
+    DATA li_filter TYPE REF TO z2ui5_if_ui5_ajs_filter.
     IF omit_initial_paths IS NOT INITIAL.
       " scoped: only the listed columns are dropped when initial, so a
       " boolean that must send abap_false survives

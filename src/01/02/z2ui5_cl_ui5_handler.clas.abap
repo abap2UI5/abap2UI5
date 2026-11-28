@@ -264,11 +264,11 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! real nested array it was built as.
     METHODS actions_serialize
       IMPORTING
-        ajson    TYPE REF TO z2ui5_if_ajson
+        ajson    TYPE REF TO z2ui5_if_ui5_ajs
         path     TYPE string
         t_action TYPE z2ui5_if_ui5_types=>ty_t_queued_action
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS request_parse_body
       IMPORTING
@@ -276,7 +276,7 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_request
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! The CONFIG block of S_FRONT - the device, the focus, the scroll
     "! positions, the UI5 build and the launchpad ComponentData - read field
@@ -284,12 +284,12 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! (see request_parse_body for why nothing is sliced)
     METHODS request_parse_config
       IMPORTING
-        io_json   TYPE REF TO z2ui5_if_ajson
+        io_json   TYPE REF TO z2ui5_if_ui5_ajs
         iv_config TYPE string
       CHANGING
         cs_front  TYPE z2ui5_if_ui5_types=>ty_s_request-s_front
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! the OS name as z2ui5_if_client=>cs_device-os spells it
     CLASS-METHODS device_os_name
@@ -304,7 +304,7 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! or a number type i cannot hold (see the method body)
     CLASS-METHODS request_get_int
       IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
+        io_json       TYPE REF TO z2ui5_if_ui5_ajs
         iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE i.
@@ -312,7 +312,7 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! one scroll position of S_SCROLL, iv_path naming its slot node
     METHODS scroll_pos_read
       IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
+        io_json       TYPE REF TO z2ui5_if_ui5_ajs
         iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_scroll_pos.
@@ -321,21 +321,21 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! tree - every one of them as the string the app receives
     METHODS request_parse_event_args
       IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
+        io_json       TYPE REF TO z2ui5_if_ui5_ajs
         iv_front      TYPE string
       RETURNING
         VALUE(result) TYPE string_table
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS request_app_start
       IMPORTING
         iv_search     TYPE string
-        io_comp_data  TYPE REF TO z2ui5_if_ajson
+        io_comp_data  TYPE REF TO z2ui5_if_ui5_ajs
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
 ENDCLASS.
 
@@ -406,11 +406,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " `Unexpected operator "IS"`, a SYNTAX_ERROR of the whole class pool,
     " reported from a system's SYNTAX_CHECK run - see check:downport)
     IF val IS INITIAL OR val CO space.
-      result-o_model = z2ui5_cl_ajson=>create_empty( ).
+      result-o_model = z2ui5_cl_ui5_ajs=>create_empty( ).
       RETURN.
     ENDIF.
 
-    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
+    DATA(lo_ajson) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( val ) ).
 
     " standalone requests arrive wrapped as { "value": <payload> } (see
     " bundle/webapp/core/Server.js), launchpad/gateway proxies may strip the
@@ -434,7 +434,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       result-o_model    = lo_ajson.
       result-model_path = lv_model_path.
     ELSE.
-      result-o_model = z2ui5_cl_ajson=>create_empty( ).
+      result-o_model = z2ui5_cl_ui5_ajs=>create_empty( ).
     ENDIF.
 
     " S_FRONT is read IN PLACE too, by keyed lookups on the request tree,
@@ -606,7 +606,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " argument shows up - once, and the per-argument slices then walk the
     " S_FRONT nodes only, as before. A request without an object argument,
     " the common one, slices nothing
-    DATA lo_front TYPE REF TO z2ui5_if_ajson.
+    DATA lo_front TYPE REF TO z2ui5_if_ui5_ajs.
 
     DATA(lv_arg_index) = 1.
     DO.
@@ -621,12 +621,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
             val = |EVENT_ARG_LIMIT_ERROR - more than { c_event_arg_limit } event arguments in one request|.
       ENDIF.
       CASE lv_node_type.
-        WHEN z2ui5_if_ajson_types=>node_type-object OR z2ui5_if_ajson_types=>node_type-array.
+        WHEN z2ui5_if_ui5_ajs_types=>node_type-object OR z2ui5_if_ui5_ajs_types=>node_type-array.
           IF lo_front IS NOT BOUND.
             lo_front = io_json->slice( iv_front ).
           ENDIF.
           INSERT lo_front->slice( |/T_EVENT_ARG/{ lv_arg_index }| )->stringify( ) INTO TABLE result.
-        WHEN z2ui5_if_ajson_types=>node_type-boolean.
+        WHEN z2ui5_if_ui5_ajs_types=>node_type-boolean.
           " the string a boolean node became on the to_abap path: X or empty
           INSERT CONV string( io_json->get_boolean( lv_arg_path ) ) INTO TABLE result.
         WHEN OTHERS.
@@ -754,7 +754,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         " the shared upper-case mapping, not one built here: it is stateless,
         " and this method runs once per response - see
         " z2ui5_cl_ui5_util_json_fl, which holds the one instance
-        DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+        DATA(li_ajson_result) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty(
                                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
 
         " Every field by name. The generic conversion of the structure wrote

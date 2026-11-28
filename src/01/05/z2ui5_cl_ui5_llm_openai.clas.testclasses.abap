@@ -88,7 +88,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(ls_request) = lo_llm->build_request( system    = `Answer briefly.`
                                               t_message = conversation( ) ).
 
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( ls_request-body ).
+    DATA(lo_json) = z2ui5_cl_ui5_ajs=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = `test-model`
                                         act = lo_json->get_string( `/model` ) ).
     " the system prompt is the first message - this API has no field for it
@@ -158,7 +158,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(ls_request) = lo_llm->build_request( t_message = conversation( )
                                               s_options = VALUE #( max_tokens  = 300
                                                                    temperature = `0.7` ) ).
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( ls_request-body ).
+    DATA(lo_json) = z2ui5_cl_ui5_ajs=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = 300
                                         act = lo_json->get_integer( `/max_completion_tokens` ) ).
     cl_abap_unit_assert=>assert_char_cp( exp = `*"temperature":0.7*`
@@ -170,7 +170,7 @@ CLASS ltcl_test IMPLEMENTATION.
                                           io_http             = NEW ltd_http( ) ).
     ls_request = lo_llm->build_request( t_message = conversation( )
                                         s_options = VALUE #( max_tokens = 300 ) ).
-    lo_json = z2ui5_cl_ajson=>parse( ls_request-body ).
+    lo_json = z2ui5_cl_ui5_ajs=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = 300
                                         act = lo_json->get_integer( `/max_tokens` ) ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false

@@ -27,14 +27,14 @@ CLASS ltcl_test_frontend DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     "! the SYSTEM actions the serialization produced, pipe-joined
     METHODS serialized
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 ENDCLASS.
 
 

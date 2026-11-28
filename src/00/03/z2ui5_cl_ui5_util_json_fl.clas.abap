@@ -5,7 +5,7 @@
 " on every single response, main_json_stringify one per model.
 "
 " The class used to implement a second thing, the no-empty-values filter
-" (create_no_empty_values, z2ui5_if_ajson_filter~keep_node), for the
+" (create_no_empty_values, z2ui5_if_ui5_ajs_filter~keep_node), for the
 " generic conversion of the response structure. Since protocol 3 the
 " response is written field by field (z2ui5_cl_ui5_handler
 " =>response_abap_to_json) and nothing asked for the filter any more; it
@@ -35,7 +35,7 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_mapping.
+    INTERFACES z2ui5_if_ui5_ajs_map.
 
     "! The upper-case field mapping every model and response serialization
     "! attaches - the shared, unconfigurable instance. It is attached to an
@@ -44,7 +44,7 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
     "! session shares.
     CLASS-METHODS mapper_upper
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson_mapping.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_ajs_map.
 
     "! Whether the VALUE of a NUMBER node is a numeric zero in any of its
     "! spellings: ajson writes a packed field with decimals as `0.00` and a
@@ -80,7 +80,7 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
     " the bytes of the set, in the order gv_controls holds the characters
     CONSTANTS c_controls_hex TYPE string VALUE `0001020304050607080B0C0E0F101112131415161718191A1B1C1D1E1F`.
 
-    CLASS-DATA gi_mapper_upper    TYPE REF TO z2ui5_if_ajson_mapping.
+    CLASS-DATA gi_mapper_upper    TYPE REF TO z2ui5_if_ui5_ajs_map.
     CLASS-DATA gv_controls        TYPE string.
     CLASS-DATA gv_controls_built  TYPE abap_bool.
 ENDCLASS.
@@ -97,7 +97,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_ajson_mapping~to_json.
+  METHOD z2ui5_if_ui5_ajs_map~to_json.
 
     " ajson hands the lower-cased component name in and writes what comes
     " back as the node name - the one call the upper-case mapping is
@@ -105,7 +105,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_ajson_mapping~to_abap.
+  METHOD z2ui5_if_ui5_ajs_map~to_abap.
 
     " the reader upper-cases the answer and falls back to the node name
     " when it is empty, so the name itself is the same answer ajson's
@@ -114,7 +114,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_ajson_mapping~rename_node.
+  METHOD z2ui5_if_ui5_ajs_map~rename_node.
 
     " as ajson's own upper-case mapping renames: the node name upper-cased
     cv_name = to_upper( cv_name ).

@@ -123,7 +123,7 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(li_json) = z2ui5_cl_ajson=>parse( lv_json ).
+        DATA(li_json) = z2ui5_cl_ui5_ajs=>parse( lv_json ).
         " by index, not over members( ): ajson sorts the member names as
         " text, so an eleventh sorter (`10`) came before the third (`2`)
         DATA(lv_count) = lines( li_json->members( `/` ) ).
@@ -154,7 +154,7 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(li_json) = z2ui5_cl_ajson=>parse( lv_json ).
+        DATA(li_json) = z2ui5_cl_ui5_ajs=>parse( lv_json ).
         LOOP AT li_json->members( `/` ) INTO DATA(lv_g).
           lv_group = lv_group + 1.
           LOOP AT li_json->members( |/{ lv_g }| ) INTO DATA(lv_c).

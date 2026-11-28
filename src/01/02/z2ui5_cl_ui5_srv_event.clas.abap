@@ -27,7 +27,7 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
         view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
         t_arg         TYPE string_table OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_ajs.
 
   PROTECTED SECTION.
     TYPES:
@@ -233,7 +233,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     ls_event-t_arg = args_trim_trailing( ls_event-t_arg ).
 
     TRY.
-        DATA(li_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_json) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
         li_json->touch_array( `/` ).
         li_json->push( iv_path = `/`
                        iv_val  = ls_event-val ).
@@ -250,7 +250,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
             " JSON.parse fallback produced for them before.
             TRY.
                 li_json->push( iv_path = `/`
-                               iv_val  = z2ui5_cl_ajson=>parse( lv_arg ) ).
+                               iv_val  = z2ui5_cl_ui5_ajs=>parse( lv_arg ) ).
                 lv_is_embedded = abap_true.
               CATCH cx_root ##NO_HANDLER.
             ENDTRY.

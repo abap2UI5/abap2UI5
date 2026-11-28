@@ -274,25 +274,25 @@ CLASS z2ui5_cl_ui5_test DEFINITION PUBLIC FINAL CREATE PRIVATE FOR TESTING.
 
     METHODS request_delta
       IMPORTING
-        ii_request TYPE REF TO z2ui5_if_ajson
+        ii_request TYPE REF TO z2ui5_if_ui5_ajs
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS response_read
       IMPORTING
         iv_body TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS response_views
       IMPORTING
-        ii_json TYPE REF TO z2ui5_if_ajson.
+        ii_json TYPE REF TO z2ui5_if_ui5_ajs.
 
     METHODS response_actions
       IMPORTING
-        ii_json TYPE REF TO z2ui5_if_ajson
+        ii_json TYPE REF TO z2ui5_if_ui5_ajs
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
     METHODS timer_read.
 
@@ -312,12 +312,12 @@ CLASS z2ui5_cl_ui5_test DEFINITION PUBLIC FINAL CREATE PRIVATE FOR TESTING.
 
     CLASS-METHODS node_text
       IMPORTING
-        ii_json       TYPE REF TO z2ui5_if_ajson
+        ii_json       TYPE REF TO z2ui5_if_ui5_ajs
         iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        z2ui5_cx_ajson_error.
+        z2ui5_cx_ui5_ajs_error.
 
 ENDCLASS.
 
@@ -395,7 +395,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(li_model) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( COND string( WHEN mv_model IS INITIAL
+        DATA(li_model) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( COND string( WHEN mv_model IS INITIAL
                                                                                   THEN `{}`
                                                                                   ELSE mv_model ) ) ).
         li_model->set( iv_path         = path_to_json( lv_path )
@@ -417,7 +417,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   METHOD request_page.
 
     TRY.
-        DATA(li_request) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_request) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
         li_request->set( iv_path = `/value/S_FRONT/ORIGIN`
                          iv_val  = c_origin ).
         li_request->set( iv_path = `/value/S_FRONT/PATHNAME`
@@ -439,7 +439,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   METHOD request_event.
 
     TRY.
-        DATA(li_request) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_request) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>create_empty( ) ).
         li_request->set( iv_path = `/value/S_FRONT/ID`
                          iv_val  = mv_id ).
         li_request->set( iv_path = `/value/S_FRONT/EVENT`
@@ -474,7 +474,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     IF mt_edit IS INITIAL OR mv_model IS INITIAL.
       RETURN.
     ENDIF.
-    DATA(li_model) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( mv_model ) ).
+    DATA(li_model) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( mv_model ) ).
     DATA lt_whole TYPE string_table.
 
     LOOP AT mt_edit INTO DATA(lv_path).
@@ -545,7 +545,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
           CLEAR mo_handler.
         ENDIF.
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+      CATCH z2ui5_cx_ui5_ajs_error INTO DATA(lx_json).
         z2ui5_cl_ui5_srv_draft=>set_instance( li_store_before ).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = lx_json.
@@ -585,7 +585,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
 
   METHOD response_read.
 
-    DATA(li_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( iv_body ) ).
+    DATA(li_json) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( iv_body ) ).
     mv_response = iv_body.
     mv_id = li_json->get_string( `/S_FRONT/ID` ).
 
@@ -678,7 +678,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
   METHOD node_text.
 
     DATA(lv_type) = ii_json->get_node_type( iv_path ).
-    IF lv_type = z2ui5_if_ajson_types=>node_type-object OR lv_type = z2ui5_if_ajson_types=>node_type-array.
+    IF lv_type = z2ui5_if_ui5_ajs_types=>node_type-object OR lv_type = z2ui5_if_ui5_ajs_types=>node_type-array.
       result = ii_json->slice( iv_path )->stringify( ).
     ELSE.
       result = ii_json->get_string( iv_path ).
@@ -762,7 +762,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(li_model) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( mv_model ) ).
+        DATA(li_model) = CAST z2ui5_if_ui5_ajs( z2ui5_cl_ui5_ajs=>parse( mv_model ) ).
         DATA(lv_path) = path_to_json( CONV #( path ) ).
         IF li_model->exists( lv_path ) = abap_true.
           result = node_text( ii_json = li_model
@@ -806,7 +806,7 @@ CLASS z2ui5_cl_ui5_test IMPLEMENTATION.
       DATA(lv_opt) = VALUE string( lt_arg[ 3 ] OPTIONAL ).
       IF lv_opt IS NOT INITIAL AND lv_opt(1) = `{`.
         TRY.
-            ls_message-title = z2ui5_cl_ajson=>parse( lv_opt )->z2ui5_if_ajson~get_string( `/title` ).
+            ls_message-title = z2ui5_cl_ui5_ajs=>parse( lv_opt )->z2ui5_if_ui5_ajs~get_string( `/title` ).
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
       ENDIF.

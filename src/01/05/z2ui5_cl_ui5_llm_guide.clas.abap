@@ -547,7 +547,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  marshals each control into an object carrying its ``ID`` plus its public` && |\n| &&
              `  properties, so ``client->get_event_arg( )`` returns a JSON array. Read the one` && |\n| &&
              `  property you need out of it BY HAND, per the bullet below - not with` && |\n| &&
-             `  ``z2ui5_cl_ajson``, which is framework-internal. Do **not** parse a display` && |\n| &&
+             `  ``z2ui5_cl_ui5_ajs``, which is framework-internal. Do **not** parse a display` && |\n| &&
              `  string such as ``filterString`` - it is localized and its format is not a` && |\n| &&
              `  contract.` && |\n| &&
              `  **Read only the fields you need**, and never expect the payload to be the` && |\n| &&
