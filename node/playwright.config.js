@@ -137,7 +137,7 @@ module.exports = defineConfig(
        point of use - both ends of the range have to say a failed start. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](error-view|nav-back-forward|lib-sanitizer|focus-after-enable|example|roundtrip|page-transition|embedded|message-box-details|library-preload|window|cc-bundle|start-failed)\.spec\.js$/,
+      testMatch: /e2e[/\\](error-view|nav-back-forward|lib-sanitizer|focus-after-enable|example|roundtrip|page-transition|embedded|message-box-details|library-preload|window|cc-bundle|cci-bundle|start-failed)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */
